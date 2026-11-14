@@ -1,0 +1,43 @@
+PASS  TRUTHY: a deprecated statement is left out, a preferred one hides the normal ones, another property is ignored
+PASS  THE ANSWER IS ONE ROW PER VALUE, each with the article; with no value, one row with the article alone
+PASS  THE CLEAN CASE IS AS PREDICTED: the control reproduces every roof-stage row, the treatment changes only the expected basis, and no request is made
+PASS  A VALUE THAT NAMES NO ROOF IS NO WITNESS: "tourist attraction" leaves its row exactly as it was
+PASS  THE ROWS THE DATA SAYS CARRY A CLOSED LABEL ARE DERIVED, and held to the expected ones
+PASS  the coverage line carries both denominators, and the report names the asked and answered items
+PASS  A P1552 VALUE THAT CHANGES A ROOF IS REPORTED, by name and kind
+PASS  TWO ROOFS ON ONE ITEM IS REVIEW, never the first or the last: the row leaves accepted and the run says so
+PASS  AN EXPECTED BASIS CHANGE THAT DID NOT HAPPEN IS NAMED
+PASS  A DEPRECATED STATEMENT IS NOT READ, as the query does not read it
+PASS  THE BASIS TEXT IS HELD EXACTLY, before and after, not only that it changed
+PASS  A BASIS CHANGE NOBODY EXPECTED IS NAMED
+PASS  A ROOFOF THAT DOES NOT REPRODUCE A COMMITTED ROW IN THE CONTROL IS REPORTED, by name, over its denominator
+PASS  THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different roof, basis, lead, status or review reason is reported, by name
+PASS  A REQUEST MADE DURING THE REPLAY IS COUNTED AND FAILS THE RUN
+PASS  A ROW WHOSE ANSWER IS MISSING FROM THE CACHE IS NOT COMPUTABLE, said and not skipped
+PASS  A VALUE WITH NO ENGLISH LABEL IS NOT PREDICTED, and the run says so
+PASS  AN UNKNOWN VALUE IS NOT PREDICTED, and the run says so
+PASS  AN ITEM THE OLD ANSWER FAILED FOR, OR THE PROBE DID NOT READ, IS NOT PREDICTED, and the run says so
+PASS  A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANNOT SEE THE CONTROL IS NOT A VALID WITNESS
+PASS  A PROBE WHOSE ITEMS ARE NOT THE CACHE'S IS NOT A VALID WITNESS
+PASS  A PROBE THAT IS NOT A VALID WITNESS FAILS THE RUN, not only its own report line
+PASS  a replay of nothing is not a pass
+PASS  the review reason is the source's: a dome name read open, a past-tense lead and a missing zone each name their own reason
+PASS  A ROW THAT LEAVES REVIEW CARRIES NO REVIEW REASON, and a row that enters it carries its own
+PASS  the report names its denominators: requests over calls, values over items, rows compared over rows; and its verdict is the problems'
+PASS  THE RUNNER'S FILL, AS PREDICTED, PASSES: every asked item answered, closed labels and articles equal, one basis changed
+PASS  AN ITEM THE NEW RESULTS ASK ABOUT AND THE NEW CACHE DOES NOT ANSWER IS NAMED, over its denominator
+PASS  A CLOSED LABEL THAT DIFFERS FROM THE PROBE'S IS NAMED, with both sides, over its denominator
+PASS  AN ARTICLE THAT DIFFERS FROM THE OLD ANSWER'S IS NAMED, over its denominator
+PASS  AN ANSWER WITH NO ARTICLE WHERE THE OLD ONE HAD ONE IS NAMED, and one with none on either side is not
+PASS  AN ARTICLE THE OLD ANSWER HAD NOT, AND THE NEW ONE HAS, IS NAMED
+PASS  AN OLD-KIND ENTRY LEFT IN THE NEW CACHE MEANS THE RUNNER DID NOT RUN THE NEW RULE
+PASS  A TABLE THAT DIFFERS BETWEEN THE REVS IS NAMED
+PASS  A ROW THAT CHANGES BETWEEN THE OLD AND THE NEW RESULTS IS NAMED
+PASS  A ROW ON ONE SIDE ONLY IS NAMED, with the coverage denominator
+PASS  A ROW THAT MOVED BETWEEN THE OLD AND THE NEW RESULTS IS NAMED
+PASS  A LABEL THAT NAMES NO ROOF AND DIFFERS FROM THE PROBE'S IS LISTED, and is not a failure
+PASS  AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITEM, IS NAMED IN THE LIVE READ
+PASS  a read of nothing is not a pass
+PASS  the live report names its denominators: items asked and answered, closed labels, all labels, articles, rows compared, the old items not asked
+
+41/41 checks passed

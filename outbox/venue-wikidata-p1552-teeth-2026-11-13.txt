@@ -1,0 +1,112 @@
+PASS  CONTROL: the unbroken copy's self-test exits 0 with 41 of 41 checks passing (it must exit 0 with all of them)
+PASS  [T1] broken; the self-test exits 1 and loses 2 aimed checks: TRUTHY: a deprecated statement is left out, a preferred one  | A DEPRECATED STATEMENT IS NOT READ, as the query does not re
+PASS  [T2] broken; the self-test exits 1 and loses 1 aimed check: TRUTHY: a deprecated statement is left out, a preferred one 
+PASS  [T3] broken; the self-test exits 1 and loses 1 aimed check: TRUTHY: a deprecated statement is left out, a preferred one 
+PASS  [A1] broken; the self-test exits 1 and loses 1 aimed check: THE ANSWER IS ONE ROW PER VALUE, each with the article; with
+PASS  [A2] broken; the self-test exits 1 and loses 1 aimed check: THE ANSWER IS ONE ROW PER VALUE, each with the article; with
+PASS  [A3] broken; the self-test exits 1 and loses 1 aimed check: THE ANSWER IS ONE ROW PER VALUE, each with the article; with
+PASS  [C1] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [C2] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [C2b] broken; the self-test exits 1 and loses 1 aimed check: TWO ROOFS ON ONE ITEM IS REVIEW, never the first or the last
+PASS  [C2c] broken; the self-test exits 1 and loses 1 aimed check: A VALUE THAT NAMES NO ROOF IS NO WITNESS: "tourist attractio
+PASS  [C3] broken; the self-test exits 1 and loses 1 aimed check: A VALUE WITH NO ENGLISH LABEL IS NOT PREDICTED, and the run 
+PASS  [C4] broken; the self-test exits 1 and loses 1 aimed check: AN UNKNOWN VALUE IS NOT PREDICTED, and the run says so
+PASS  [C5] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE OLD ANSWER FAILED FOR, OR THE PROBE DID NOT READ
+PASS  [C6] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE OLD ANSWER FAILED FOR, OR THE PROBE DID NOT READ
+PASS  [C7] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [C8] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [C9] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [C10] broken; the self-test exits 1 and loses 1 aimed check: the coverage line carries both denominators, and the report 
+PASS  [R1] broken; the self-test exits 1 and loses 1 aimed check: the review reason is the source's: a dome name read open, a 
+PASS  [R2] broken; the self-test exits 1 and loses 1 aimed check: the review reason is the source's: a dome name read open, a 
+PASS  [R3] broken; the self-test exits 1 and loses 1 aimed check: the review reason is the source's: a dome name read open, a 
+PASS  [R4] broken; the self-test exits 1 and loses 1 aimed check: the review reason is the source's: a dome name read open, a 
+PASS  [P1] broken; the self-test exits 1 and loses 1 aimed check: A REQUEST MADE DURING THE REPLAY IS COUNTED AND FAILS THE RU
+PASS  [P2] broken; the self-test exits 1 and loses 1 aimed check: A ROW WHOSE ANSWER IS MISSING FROM THE CACHE IS NOT COMPUTAB
+PASS  [S1] broken; the self-test exits 1 and loses 1 aimed check: A ROW THAT LEAVES REVIEW CARRIES NO REVIEW REASON, and a row
+PASS  [S2] broken; the self-test exits 1 and loses 1 aimed check: A ROW THAT LEAVES REVIEW CARRIES NO REVIEW REASON, and a row
+PASS  [S3] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [B1] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B2] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B3] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B4] broken; the self-test exits 1 and loses 1 aimed check: A PROBE WHOSE ITEMS ARE NOT THE CACHE'S IS NOT A VALID WITNE
+PASS  [B4b] broken; the self-test exits 1 and loses 1 aimed check: A PROBE WHOSE ITEMS ARE NOT THE CACHE'S IS NOT A VALID WITNE
+PASS  [B4c] broken; the self-test exits 1 and loses 1 aimed check: A PROBE WHOSE ITEMS ARE NOT THE CACHE'S IS NOT A VALID WITNE
+PASS  [B5] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B6] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B7] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B8] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [B9] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT DID NOT COMPLETE, DID NOT READ AN ITEM, OR CANN
+PASS  [D1] broken; the self-test exits 1 and loses 1 aimed check: A ROW ON ONE SIDE ONLY IS NAMED, with the coverage denominat
+PASS  [D1b] broken; the self-test exits 1 and loses 1 aimed check: A ROW ON ONE SIDE ONLY IS NAMED, with the coverage denominat
+PASS  [D1c] broken; the self-test exits 1 and loses 1 aimed check: A ROW ON ONE SIDE ONLY IS NAMED, with the coverage denominat
+PASS  [D2] broken; the self-test exits 1 and loses 1 aimed check: A ROW THAT MOVED BETWEEN THE OLD AND THE NEW RESULTS IS NAME
+PASS  [D3] broken; the self-test exits 1 and loses 2 aimed checks: A P1552 VALUE THAT CHANGES A ROOF IS REPORTED, by name and k | A ROW THAT CHANGES BETWEEN THE OLD AND THE NEW RESULTS IS NA
+PASS  [D4] broken; the self-test exits 1 and loses 1 aimed check: AN EXPECTED BASIS CHANGE THAT DID NOT HAPPEN IS NAMED
+PASS  [D5] broken; the self-test exits 1 and loses 1 aimed check: THE BASIS TEXT IS HELD EXACTLY, before and after, not only t
+PASS  [D5b] broken; the self-test exits 1 and loses 1 aimed check: THE BASIS TEXT IS HELD EXACTLY, before and after, not only t
+PASS  [D5c] broken; the self-test exits 1 and loses 1 aimed check: THE BASIS TEXT IS HELD EXACTLY, before and after, not only t
+PASS  [D6] broken; the self-test exits 1 and loses 1 aimed check: A BASIS CHANGE NOBODY EXPECTED IS NAMED
+PASS  [N1a] broken; the self-test exits 1 and loses 1 aimed check: THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different
+PASS  [N1b] broken; the self-test exits 1 and loses 1 aimed check: THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different
+PASS  [N1c] broken; the self-test exits 1 and loses 1 aimed check: THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different
+PASS  [N1d] broken; the self-test exits 1 and loses 1 aimed check: THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different
+PASS  [N1e] broken; the self-test exits 1 and loses 1 aimed check: THE CONTROL HOLDS EACH FIELD OF A COMMITTED ROW: a different
+PASS  [N2] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [N3] broken; the self-test exits 1 and loses 1 aimed check: THE ROWS THE DATA SAYS CARRY A CLOSED LABEL ARE DERIVED, and
+PASS  [N4] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [N5] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [N6] broken; the self-test exits 1 and loses 1 aimed check: THE CLEAN CASE IS AS PREDICTED: the control reproduces every
+PASS  [N7] broken; the self-test exits 1 and loses 1 aimed check: the coverage line carries both denominators, and the report 
+PASS  [G1] broken; the self-test exits 1 and loses 1 aimed check: A PROBE THAT IS NOT A VALID WITNESS FAILS THE RUN, not only 
+PASS  [G2] broken; the self-test exits 1 and loses 1 aimed check: a replay of nothing is not a pass
+PASS  [G3] broken; the self-test exits 1 and loses 1 aimed check: A ROW WHOSE ANSWER IS MISSING FROM THE CACHE IS NOT COMPUTAB
+PASS  [G4] broken; the self-test exits 1 and loses 1 aimed check: A VALUE WITH NO ENGLISH LABEL IS NOT PREDICTED, and the run 
+PASS  [G4a] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE OLD ANSWER FAILED FOR, OR THE PROBE DID NOT READ
+PASS  [G4b] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE OLD ANSWER FAILED FOR, OR THE PROBE DID NOT READ
+PASS  [G4c] broken; the self-test exits 1 and loses 1 aimed check: AN UNKNOWN VALUE IS NOT PREDICTED, and the run says so
+PASS  [G4d] broken; the self-test exits 1 and loses 1 aimed check: A VALUE WITH NO ENGLISH LABEL IS NOT PREDICTED, and the run 
+PASS  [G5] broken; the self-test exits 1 and loses 1 aimed check: A REQUEST MADE DURING THE REPLAY IS COUNTED AND FAILS THE RU
+PASS  [G6] broken; the self-test exits 1 and loses 1 aimed check: A ROOFOF THAT DOES NOT REPRODUCE A COMMITTED ROW IN THE CONT
+PASS  [G7] broken; the self-test exits 1 and loses 1 aimed check: A P1552 VALUE THAT CHANGES A ROOF IS REPORTED, by name and k
+PASS  [G8] broken; the self-test exits 1 and loses 1 aimed check: THE ROWS THE DATA SAYS CARRY A CLOSED LABEL ARE DERIVED, and
+PASS  [RP1] broken; the self-test exits 1 and loses 1 aimed check: the coverage line carries both denominators, and the report 
+PASS  [RP2] broken; the self-test exits 1 and loses 1 aimed check: the coverage line carries both denominators, and the report 
+PASS  [RP3] broken; the self-test exits 1 and loses 1 aimed check: the report names its denominators: requests over calls, valu
+PASS  [RP4] broken; the self-test exits 1 and loses 1 aimed check: the report names its denominators: requests over calls, valu
+PASS  [RP5] broken; the self-test exits 1 and loses 1 aimed check: A ROOFOF THAT DOES NOT REPRODUCE A COMMITTED ROW IN THE CONT
+PASS  [RP6] broken; the self-test exits 1 and loses 1 aimed check: the live report names its denominators: items asked and answ
+PASS  [RP7] broken; the self-test exits 1 and loses 2 aimed checks: the report names its denominators: requests over calls, valu | the live report names its denominators: items asked and answ
+PASS  [RP8] broken; the self-test exits 1 and loses 1 aimed check: the report names its denominators: requests over calls, valu
+PASS  [RP9] broken; the self-test exits 1 and loses 2 aimed checks: the report names its denominators: requests over calls, valu | THE RUNNER'S FILL, AS PREDICTED, PASSES: every asked item an
+PASS  [L1] broken; the self-test exits 1 and loses 1 aimed check: A CLOSED LABEL THAT DIFFERS FROM THE PROBE'S IS NAMED, with 
+PASS  [L2] broken; the self-test exits 1 and loses 1 aimed check: A LABEL THAT NAMES NO ROOF AND DIFFERS FROM THE PROBE'S IS L
+PASS  [L3] broken; the self-test exits 1 and loses 1 aimed check: AN ARTICLE THAT DIFFERS FROM THE OLD ANSWER'S IS NAMED, over
+PASS  [L3b] broken; the self-test exits 1 and loses 1 aimed check: AN ANSWER WITH NO ARTICLE WHERE THE OLD ONE HAD ONE IS NAMED
+PASS  [L3c] broken; the self-test exits 1 and loses 1 aimed check: AN ARTICLE THE OLD ANSWER HAD NOT, AND THE NEW ONE HAS, IS N
+PASS  [L6] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE NEW RESULTS ASK ABOUT AND THE NEW CACHE DOES NOT
+PASS  [L7] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITE
+PASS  [L7b] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITE
+PASS  [L8] broken; the self-test exits 1 and loses 1 aimed check: THE RUNNER'S FILL, AS PREDICTED, PASSES: every asked item an
+PASS  [L9] broken; the self-test exits 1 and loses 1 aimed check: THE RUNNER'S FILL, AS PREDICTED, PASSES: every asked item an
+PASS  [V1] broken; the self-test exits 1 and loses 1 aimed check: a read of nothing is not a pass
+PASS  [V2] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE NEW RESULTS ASK ABOUT AND THE NEW CACHE DOES NOT
+PASS  [V3] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITE
+PASS  [V3b] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITE
+PASS  [V3c] broken; the self-test exits 1 and loses 1 aimed check: AN ITEM THE PROBE DID NOT READ, OR WHOSE VALUE IS NOT AN ITE
+PASS  [V4] broken; the self-test exits 1 and loses 1 aimed check: A CLOSED LABEL THAT DIFFERS FROM THE PROBE'S IS NAMED, with 
+PASS  [V5] broken; the self-test exits 1 and loses 1 aimed check: AN ARTICLE THAT DIFFERS FROM THE OLD ANSWER'S IS NAMED, over
+PASS  [V6] broken; the self-test exits 1 and loses 1 aimed check: AN OLD-KIND ENTRY LEFT IN THE NEW CACHE MEANS THE RUNNER DID
+PASS  [V7] broken; the self-test exits 1 and loses 1 aimed check: A TABLE THAT DIFFERS BETWEEN THE REVS IS NAMED
+PASS  [V8] broken; the self-test exits 1 and loses 1 aimed check: A ROW THAT CHANGES BETWEEN THE OLD AND THE NEW RESULTS IS NA
+PASS  [RL1] broken; the self-test exits 1 and loses 1 aimed check: the live report names its denominators: items asked and answ
+PASS  [RL1b] broken; the self-test exits 1 and loses 2 aimed checks: AN ITEM THE NEW RESULTS ASK ABOUT AND THE NEW CACHE DOES NOT | the live report names its denominators: items asked and answ
+PASS  [RL2] broken; the self-test exits 1 and loses 1 aimed check: the live report names its denominators: items asked and answ
+PASS  [RL3] broken; the self-test exits 1 and loses 2 aimed checks: A CLOSED LABEL THAT DIFFERS FROM THE PROBE'S IS NAMED, with  | the live report names its denominators: items asked and answ
+PASS  [RL3b] broken; the self-test exits 1 and loses 2 aimed checks: A LABEL THAT NAMES NO ROOF AND DIFFERS FROM THE PROBE'S IS L | the live report names its denominators: items asked and answ
+PASS  [RL4] broken; the self-test exits 1 and loses 2 aimed checks: AN ARTICLE THAT DIFFERS FROM THE OLD ANSWER'S IS NAMED, over | the live report names its denominators: items asked and answ
+PASS  [RL5] broken; the self-test exits 1 and loses 1 aimed check: the live report names its denominators: items asked and answ
+PASS  [RL6] broken; the self-test exits 1 and loses 1 aimed check: the live report names its denominators: items asked and answ
+
+108 of 108 broken copies refused by their own self-test, each losing the checks it was aimed at; control green
+COVERAGE: 41 of 41 checks of the self-test have a break aimed at them and lost

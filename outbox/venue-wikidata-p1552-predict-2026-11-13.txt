@@ -1,0 +1,15 @@
+venue P1552, offline: roofOf end to end on the committed cache, with Wikidata silent and with the statements probe's P1552 values
+INPUTS: outbox/venue-source-results-latest.json sha256 5685d6dfcdf3; outbox/venue-source-cache.json sha256 fb2c96e580c0; outbox/venue-wikidata-statements-probe.json sha256 3861e48c7720 (run 43439848251)
+COVERAGE: roofOf replayed for 393 of 459 rows; 66 never reach the roof stage; 391 distinct items asked of the 396 the cache answered about under the old kind; not computable: 0
+NETWORK: 0 request(s) made by 786 roofOf calls (the stub refuses and counts)
+PROBE: complete; every item the cache asks about was read; the control item carries P1552 -> "retractable roof"
+P1552 VALUES (truthy, as the query returns them): 4 on 4 of 396 items; unlabelled 0, not an item 0
+  "tourist attraction" x3: Q123017 Q619558 Q1144973
+  "retractable roof" x1: Q1410402
+CONTROL (Wikidata silent): 393 of 393 rows reproduce the committed roof, basis, lead, status and review reason
+TREATMENT (the probe's values): rows whose item carries a closed P1552 label: 1
+  Decathlon Arena - Stade Pierre-Mauroy
+COMPARED with the committed results by name: 459 of 459 rows (new 459); only in old 0, only in new 0; moved 0
+CHANGED (status, roof or review reason): 0 of 459; same status and roof, different basis only: 1
+  Decathlon Arena - Stade Pierre-Mauroy: "wikipedia lead" -> "wikidata P1552 \"retractable roof\""
+AS PREDICTED: no row changes status, roof or review reason, and the basis text changes on exactly 1 row (Decathlon Arena - Stade Pierre-Mauroy); the Wikidata-silent control reproduces all 393 committed roof-stage rows
