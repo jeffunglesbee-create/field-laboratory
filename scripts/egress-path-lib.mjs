@@ -149,13 +149,16 @@ const shortCause = e => probeFacts(e).code
 
 // ── the runner ──────────────────────────────────────────────────────────────
 
-/** `Region` and `Cloud` out of the runner's `.setup_info`: a JSON list of `{ group, detail }`, or the same lines as plain text. */
+/**
+ * `Region` and `Cloud` out of the runner's `.setup_info`. The shape is the one read on a runner on 2026-11-14 (`outbox/egress-path-survey-20261114T171939Z.txt`): a JSON list of
+ * `{ "Group": ..., "Detail": ... }`, the Detail text holding `Key: value` lines. Any other shape is named as unreadable. None is guessed at: the first version of this parser guessed
+ * lowercase keys, and every line the live runs printed said `region unreadable (no Region line)`.
+ */
 export const parseSetupInfo = raw => {
-  let body = text(raw)
-  try {
-    const j = JSON.parse(body)
-    if (Array.isArray(j)) body = j.map(x => text(get(x, 'detail') ?? '')).join('\n')
-  } catch { /* plain text: read as it is */ }
+  let list
+  try { list = JSON.parse(text(raw)) } catch (e) { const r = unreadable(`not JSON: ${shortCause(e)}`); return { region: r, cloud: r } }
+  if (!Array.isArray(list)) { const r = unreadable('JSON but not a list'); return { region: r, cloud: r } }
+  const body = list.map(x => text(get(x, 'Detail') ?? '')).join('\n')
   const pick = k => {
     const m = new RegExp(`^\\s*${k}:\\s*(\\S+)\\s*$`, 'mi').exec(body)
     return m ? m[1] : unreadable(`no ${k} line`)
@@ -484,11 +487,19 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('REAL port 1 is refused by undici itself, before any network: unclassified', probeFacts(rPort1.error).stage === 'unclassified', describeError(rPort1.error))
 
   // ── the runner ──
-  const setup = JSON.stringify([{ group: 'Operating System', detail: 'Ubuntu\n26.04.1\nLTS' }, { group: 'Runner Image Provisioner', detail: 'Hosted Compute Agent\nVersion: 20261103.629\nWorker ID: {x}\nRegion: westus2\nCloud: Azure' }])
-  check('Region and Cloud are read out of a JSON .setup_info', JSON.stringify(parseSetupInfo(setup)) === '{"region":"westus2","cloud":"Azure"}', JSON.stringify(parseSetupInfo(setup)))
-  check('...and out of plain lines', parseSetupInfo('Region: eastus\nCloud: Azure').region === 'eastus')
-  check('a .setup_info with no Region says so, rather than inventing one', /unreadable \(no Region line\)/.test(parseSetupInfo('Cloud: Azure').region) && parseSetupInfo('Cloud: Azure').cloud === 'Azure')
-  check('Region is not read out of a longer key (Subregion: x)', /unreadable/.test(parseSetupInfo('Subregion: x\nCloud: Azure').region))
+  // The runner's own file, byte for byte: the 761 bytes the survey step printed from `/home/runner/actions-runner/cached/2.338.2/.setup_info` on 2026-11-14 (`outbox/egress-path-survey-20261114T171939Z.txt`).
+  // The first version of this check used a file I had written from a guess, with lowercase keys, and passed while the runner's own keys are `Group` and `Detail`: every line the live runs printed said `region unreadable (no Region line)`.
+  const REAL_SETUP_INFO = String.raw`[{"Group":"Runner Image Provisioner","Detail":"Hosted Compute Agent\nVersion: 20261103.629\nCommit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc\nBuild Date: 2026-11-03T17:26:59Z\nWorker ID: {05042ee8-72bd-43e7-8cc3-c0c425b25dce}\nRegion: southcentralus\nCloud: Azure"},{"Group":"_internal_runner_telemetry","Detail":"ProcessLifetimeId: c3de2b4d-267c-4c0c-9559-f0dff553edae\nAzure Region: southcentralus"},{"Group":"Operating System","Detail":"Ubuntu\n26.04.1\nLTS"},{"Group":"Runner Image","Detail":"Image: ubuntu-26.04\nVersion: 20261111.196.1\nIncluded Software: https://github.com/actions/runner-images/blob/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md\nImage Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261111.196"}]`
+  check('Region and Cloud are read out of the runner\'s own .setup_info, the bytes captured on a runner', JSON.stringify(parseSetupInfo(REAL_SETUP_INFO)) === '{"region":"southcentralus","cloud":"Azure"}', JSON.stringify(parseSetupInfo(REAL_SETUP_INFO)))
+  check('the telemetry group\'s "Azure Region:" line is not taken for Region', /unreadable \(no Region line\)/.test(parseSetupInfo(REAL_SETUP_INFO.replace('\\nRegion: southcentralus', '')).region), parseSetupInfo(REAL_SETUP_INFO.replace('\\nRegion: southcentralus', '')).region)
+  const notJson = parseSetupInfo('Region: eastus\nCloud: Azure')
+  check('a file that is not JSON is named as such; its lines are not read as if they were the shape', /^unreadable \(not JSON: SyntaxError\)$/.test(notJson.region) && /^unreadable \(not JSON: SyntaxError\)$/.test(notJson.cloud), JSON.stringify(notJson))
+  const notList = parseSetupInfo('{"Region":"x"}')
+  check('JSON that is not a list is named as such', /^unreadable \(JSON but not a list\)$/.test(notList.region) && /^unreadable \(JSON but not a list\)$/.test(notList.cloud), JSON.stringify(notList))
+  const noCloud = parseSetupInfo(REAL_SETUP_INFO.replace('\\nCloud: Azure', ''))
+  check('a .setup_info with no Cloud line says so, and still reads the Region', /^unreadable \(no Cloud line\)$/.test(noCloud.cloud) && noCloud.region === 'southcentralus', JSON.stringify(noCloud))
+  const subregion = parseSetupInfo(REAL_SETUP_INFO.replace('\\nRegion: southcentralus', '\\nSubregion: x'))
+  check('Region is not read out of a longer key (Subregion: x)', /^unreadable \(no Region line\)$/.test(subregion.region), JSON.stringify(subregion))
   check('the runner root is the parent of bin/Runner.Worker', findRunnerRoot([{ pid: 9, args: 'node a.mjs' }, { pid: 4, args: '/home/runner/runners/2.338.2/bin/Runner.Worker spawnclient 1 2' }]) === '/home/runner/runners/2.338.2')
   check('...and is null when no ancestor is the agent', findRunnerRoot([{ pid: 9, args: 'node a.mjs' }, { pid: 1, args: '/sbin/init' }]) === null)
   const procTable = { 30: ['(node)', 20], 20: ['(bash)', 10], 10: ['(Runner.Worker)', 1] }
@@ -504,7 +515,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     fetchText: async url => ({ status: 200, text: url.includes('[') ? 'fl=1\nip=2603:1030::9\nloc=US\n' : 'fl=1\nip=20.1.2.3\nloc=US\n' }),
     nodeFacts: () => ({ version: 'v22.0.0', autoSelectFamily: true, attemptTimeoutMs: 250, resultOrder: 'verbatim', resolvers: ['127.0.0.53'] }),
     ancestry: () => [{ pid: 1, args: '/home/runner/runners/2.338.2/bin/Runner.Worker spawnclient 1 2' }],
-    readFile: () => setup,
+    readFile: () => REAL_SETUP_INFO,
   }
   const envOk = { ImageOS: 'ubuntu26', ImageVersion: '20261111.196.1' }
   // Every description below goes through `ask`, so a description that THROWS or NEVER RETURNS fails the named checks that follow instead of killing the run. Measured by mutation
@@ -520,7 +531,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('DNS lists two addresses and counts the rest, per family', /dns-v4=ok 104\.18\.1\.1,104\.18\.2\.1 \(\+1\) \d+ms/.test(line) && /dns-v6=ok 2606:4700::1 \d+ms/.test(line), line)
   check('connect is per family, the IPv6 address bracketed', /connect-v4=104\.18\.1\.1:443 ok 5ms/.test(line) && /connect-v6=\[2606:4700::1\]:443 ok 5ms/.test(line), line)
   check('the egress address is read per family', /egress-v4=20\.1\.2\.3 /.test(line) && /egress-v6=2603:1030::9 /.test(line), line)
-  check('the runner line carries image, version, region and cloud', /runner=image ubuntu26@20261111\.196\.1 region westus2 cloud Azure$/.test(line), line)
+  check('the runner line carries image, version, region and cloud', /runner=image ubuntu26@20261111\.196\.1 region southcentralus cloud Azure$/.test(line), line)
   check('the node line carries its address-selection settings', /node=v22\.0\.0 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127\.0\.0\.53/.test(line), line)
 
   const noV6 = await ask({ host: 'h.example', error: null, env: envOk, deps: { ...healthy,
