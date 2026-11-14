@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `23ece0b` | 2026-11-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `23ece0b` | 2026-11-14 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `23ece0b` | 2026-11-14 | [sport-vocabulary-2026-11-14T17-53-00-429Z.json](sport-vocabulary-2026-11-14T17-53-00-429Z.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `0391f38` | 2026-11-14 | [egress-path-e2e-20261114T171939Z.txt](egress-path-e2e-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `0391f38` | 2026-11-14 | [egress-path-live-20261114T171939Z.txt](egress-path-live-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `0391f38` | 2026-11-14 | [egress-path-survey-20261114T171939Z.txt](egress-path-survey-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `0391f38` | 2026-11-14 | [open-meteo-egress-2026-11-14T17-19-34-656Z.json](open-meteo-egress-2026-11-14T17-19-34-656Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `0391f38` | 2026-11-14 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `4d0677a` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `112961b` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ebca26e [skip ci] |
 | `ebca26e` | 2026-11-14 | [egress-diagnostics-wiring-2026-11-14.md](egress-diagnostics-wiring-2026-11-14.md) | feat: the weather failure message names its cause (node's DNS, connect and egress path), with 23 mutations |
 | `c65ca85` | 2026-11-14 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: live-chip Task 1 run 2 was wet with no refusal; Task 1 is done as a measurement |
