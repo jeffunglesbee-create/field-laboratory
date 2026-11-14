@@ -1,0 +1,12 @@
+venue P1552, the runner's fill against the statements probe and the old results
+INPUTS: old 9e59307849e4, new 69b2f9cc4fef; outbox/venue-wikidata-statements-probe.json sha256 3861e48c7720 (run 43439848251)
+COVERAGE: 391 distinct items asked by the 393 roof-stage rows of 459; answered in the new cache 391 of 391; 5 of the 396 items the old cache answered about are not asked (no roof-stage row)
+CLOSED LABELS equal the probe's: 391 of 391; all labels equal: 391 of 391
+ARTICLES equal the old answer's: 390 of 391
+OLD KIND (wd-roof) entries left in the new cache: 0
+TABLE: src/Venues.fs is the same blob at both revs (5029632cdef7)
+COMPARED with the old results by name: 459 of 459 rows (new 459); only in old 0, only in new 0; moved 0
+CHANGED (status, roof or review reason): 0 of 459; same status and roof, different basis only: 1
+  Decathlon Arena - Stade Pierre-Mauroy: "wikipedia lead" -> "wikidata P1552 \"retractable roof\""
+NOT AS PREDICTED:
+  the article differs from the old answer's on 1 item(s): Q2409690
