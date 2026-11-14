@@ -53,7 +53,7 @@ runs:
       shell: bash
       run: node scripts/build-steady.mjs
 
-    # browser-gate: exempt 2 -- a failed install fails the shard red and its result is never uploaded; scripts/mutation-merge.mjs refuses the whole table when a shard is missing, so the gate never reads a slice alone (mutation-ids-probe.yml does, through this action, on purpose); N=2 is the site server and the mutation run, of which only a minority of rows drive a browser, so a failed install also loses the rows that need none (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7)
+    # browser-gate: exempt 3 -- a failed install fails the shard red and its result is never uploaded; scripts/mutation-merge.mjs refuses the whole table when a shard is missing, so the gate never reads a slice alone (mutation-ids-probe.yml does, through this action, on purpose); N=3 is the site server and the mutation run in this action, of which only a minority of rows drive a browser (so a failed install also loses the rows that need none, CC-CMD item 7), and the step that follows the action in mutation-ids-probe.yml, which runs on always() only when an earlier output is non-empty
     # No --with-deps (that is apt, and apt stalled ten minutes on 2026-11-11 when the Ubuntu mirrors did not resolve) and a time limit; docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
     # A composite action's step takes no timeout-minutes (GitHub lists none for them), so the limit is coreutils timeout: 180 s, SIGKILL 10 s later if the install
     # ignores SIGTERM, and any non-zero exit fails the step.

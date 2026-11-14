@@ -68,12 +68,14 @@ WHAT THIS CHECKS, on each target job (rules 1 to 8) and on every other install (
      when it fails and are not shown to need a browser (step_runs_after_failure: GitHub's rule that an `if` with no status
      function is evaluated as `success() && (...)`, applied three-valued to the expression, an unknown part counting as
      not certain), and the guard recomputes it, so a step added there changes N and the guard goes red until someone says
-     what the step is. The install must have no continue-on-error, nor its job (that is the shape, and needs all of it:
-     make the file a target). An annotation above no install is stale. A job that `needs:` an exempt site's job is skipped
-     by its failure too; that is not modelled (no workflow has one). The annotation is a drift guard and a statement of why
-     the skip is right; it does not make it right. Installs are found by INSTALL_CMD, which reads
-     `playwright install`, `playwright-core install`, `@playwright/test install` and a version suffix on each; an install
-     the text does not match (a wrapper script, an action that installs for you) is not seen.
+     what the step is. N also counts what else the failure skips: the jobs that `needs:` the install's job (and, through a
+     skipped one, theirs) whose `if` is not certain to run, and for a composite action the steps that follow the action in
+     every job that calls it, and the jobs that need those. The install must have no continue-on-error, nor its job (that
+     is the shape, and needs all of it: make the file a target). An annotation above no install is stale. The annotation
+     is a drift guard and a statement of why the skip is right; it does not make it right. Installs are found by
+     INSTALL_CMD, which reads `playwright install`, `playwright-core install`, `playwright/cli.js install` and
+     `@playwright/test install`, with a version suffix and quotes; an install the text does not match (a wrapper script, an
+     action that installs for you, a composite action called through another composite action) is not seen.
 
 HOW A STEP IS CLASSIFIED (and why not by a word)
 
@@ -148,7 +150,7 @@ TARGETS = [
     {"file": ".github/workflows/live-check.yml", "job": "live", "floors": (8, 5, 2)},
 ]
 # A comment line: its indentation, N (ASCII digits, no leading zero) and a reason that begins with a word character (a bare `--` or spaces is none).
-EXEMPT_NOTE = re.compile(r"^(\s*)#\s*browser-gate:\s*exempt\s+(0|[1-9][0-9]*)\s+--\s+(\w.*?)\s*$")
+EXEMPT_NOTE = re.compile(r"^(\s*)#\s*browser-gate:\s*exempt\s+(0|[1-9][0-9]{0,3})\s+--\s+(\w.*?)\s*$")
 EXEMPT_REACH = 40       # the annotation sits within this many lines above the install command
 FINAL_OUTCOMES = ("failure", "skipped", "cancelled", "")   # what steps.chromium.outcome can be when the final step runs
 FINAL_TIMEOUT = 20
@@ -164,7 +166,7 @@ LAUNCH = re.compile(
     r"""^\s*(?:import|from)\s+playwright\b""",
     re.MULTILINE,
 )
-INSTALL_CMD = re.compile(r"(?:\bplaywright(?:-core)?|@playwright/test)(?:@[\w.\-]+)?\s+install\b")
+INSTALL_CMD = re.compile(r"(?:\bplaywright(?:-core)?(?:/cli\.js)?|@playwright/test)(?:@[^\s'\"]+)?['\"]?\s+install\b")
 
 
 def is_install(step):
@@ -764,11 +766,17 @@ def coverage_problems(cov, bounds=(MIN_STEPS, MIN_BROWSER, MIN_PLAIN)):
 # and the evaluation is three-valued, so `!cancelled() && steps.x.outcome == 'success'` is UNKNOWN: it may run, and the guard cannot show that it does.
 RUNS, SKIPPED, UNKNOWN = "runs", "skipped", "unknown"
 STATUS_FUNCS = {"success": False, "failure": True, "cancelled": False, "always": True}
+# A value is ("lit", v) with v None, bool, float or str; UNK (nothing known); UNK_T / UNK_F (the value is unknown but its truthiness is known: `x || 'default'` is
+# truthy whatever x is, and comparing it to something decides nothing, which a literal True would have wrongly decided).
 UNK = ("unk", None)
+UNK_T = ("unkT", None)
+UNK_F = ("unkF", None)
+_BRACKET = re.compile(r"^\s*(?:'[^']*'|[0-9]+|\*)\s*$")
 _EXPR_TOKEN = re.compile(
     r"\s*(?:(?P<str>'(?:[^']|'')*')|(?P<num>[0-9]+(?:\.[0-9]+)?)|(?P<op>&&|\|\||==|!=|<=|>=|<|>|!|\(|\)|,)"
     r"|(?P<id>[A-Za-z_][\w-]*(?:\.[\w*-]+|\[[^\]]*\])*))"
 )
+_NUMSTR = re.compile(r"^\s*[+-]?[0-9]+(?:\.[0-9]+)?\s*$")
 
 
 class _Unreadable(Exception):
@@ -781,12 +789,26 @@ def _tokens(s):
         m = _EXPR_TOKEN.match(s, pos)
         if not m or m.end() == pos:
             raise _Unreadable(f"cannot tokenize at {s[pos:pos + 12]!r}")
-        out.append((m.lastgroup, m.group(m.lastgroup)))
+        kind, val = m.lastgroup, m.group(m.lastgroup)
+        if kind == "id":
+            # an index is read only when it is a plain string, number or `*`: anything else (a call, an operator) would hide a status function from this reader
+            for inner in re.findall(r"\[([^\]]*)\]", val):
+                if not _BRACKET.match(inner):
+                    raise _Unreadable("an index that is an expression")
+            val = re.sub(r"\[\s*'([\w-]+)'\s*\]", r".\1", val)
+        out.append((kind, val))
         pos = m.end()
     return out
 
 
-def _truthy(v):
+def _known(v):
+    """The truthiness of a value, or None when it is not known (GitHub: false, 0, '', null are falsy; everything else, 'false' included, is truthy)."""
+    if v is UNK_T:
+        return True
+    if v is UNK_F:
+        return False
+    if v[0] != "lit":
+        return None
     x = v[1]
     if x is None:
         return False
@@ -798,32 +820,61 @@ def _truthy(v):
 
 
 def _not(a):
-    return UNK if a is UNK else ("lit", not _truthy(a))
+    k = _known(a)
+    return UNK if k is None else ("lit", not k)
 
 
 def _and(a, b):
-    if a is UNK:
-        return ("lit", False) if (b is not UNK and not _truthy(b)) else UNK
-    return b if _truthy(a) else a
+    ka = _known(a)
+    if ka is None:
+        return UNK_F if _known(b) is False else UNK
+    return b if ka else a
 
 
 def _or(a, b):
-    if a is UNK:
-        return ("lit", True) if (b is not UNK and _truthy(b)) else UNK
-    return a if _truthy(a) else b
+    ka = _known(a)
+    if ka is None:
+        return UNK_T if _known(b) is True else UNK
+    return a if ka else b
+
+
+def _kind(x):
+    return "n" if x is None else "b" if isinstance(x, bool) else "f" if isinstance(x, float) else "s"
+
+
+def _tonum(x):
+    """GitHub's number coercion: null 0, true 1, false 0, '' 0, a decimal string its value; None for a string this reader does not model (NaN, hex, exponent)."""
+    if x is None:
+        return 0.0
+    if isinstance(x, bool):
+        return 1.0 if x else 0.0
+    if isinstance(x, float):
+        return x
+    if x.strip() == "":
+        return 0.0
+    return float(x) if _NUMSTR.match(x) else None
 
 
 def _cmp(op, a, b):
-    if a is UNK or b is UNK:
+    """A comparison as GitHub does it: the same kind compares directly (strings without regard to case), different kinds are both coerced to numbers."""
+    if a[0] != "lit" or b[0] != "lit":
         return UNK
     x, y = a[1], b[1]
-    if isinstance(x, str) and isinstance(y, str):
-        x, y = x.lower(), y.lower()
+    kx, ky = _kind(x), _kind(y)
+    if kx != ky:
+        x, y = _tonum(x), _tonum(y)
+        if x is None or y is None:
+            return UNK
+        kx = "f"
+    elif kx == "s":
+        if not (x.isascii() and y.isascii()):
+            return UNK                         # OrdinalIgnoreCase upper-cases per character; only ASCII is modelled
+        x, y = x.upper(), y.upper()
+    elif kx == "n":
+        x = y = 0.0
     if op in ("==", "!="):
         return ("lit", (x == y) == (op == "=="))
-    if isinstance(x, (int, float)) and isinstance(y, (int, float)) or isinstance(x, str) and isinstance(y, str):
-        return ("lit", {"<": x < y, "<=": x <= y, ">": x > y, ">=": x >= y}[op])
-    return UNK
+    return ("lit", {"<": x < y, "<=": x <= y, ">": x > y, ">=": x >= y}[op])
 
 
 class _Eval:
@@ -887,7 +938,6 @@ class _Eval:
         if kind == "num":
             return ("lit", float(val))
         if kind == "id":
-            low = val.lower()
             if self.peek() == ("op", "("):
                 self.take()
                 if not self.eat(")"):
@@ -897,13 +947,13 @@ class _Eval:
                             break
                         if not self.eat(","):
                             raise _Unreadable("a call that does not close")
-                if low in STATUS_FUNCS:
+                if val.lower() in STATUS_FUNCS:
                     self.status = True
-                    return ("lit", STATUS_FUNCS[low])
+                    return ("lit", STATUS_FUNCS[val.lower()])
                 return UNK
-            if low in self.known:
-                return ("lit", self.known[low])
-            return {"true": ("lit", True), "false": ("lit", False), "null": ("lit", None)}.get(low, UNK)
+            if val.lower() in self.known:
+                return ("lit", self.known[val.lower()])
+            return {"true": ("lit", True), "false": ("lit", False), "null": ("lit", None)}.get(val, UNK)   # the keywords are case-sensitive
         raise _Unreadable(f"unexpected {val!r}")
 
 
@@ -911,43 +961,82 @@ def step_runs_after_failure(step, install_id=None):
     """RUNS, SKIPPED or UNKNOWN for a step after an install that failed with no continue-on-error: GitHub's rule, three-valued. The install's own outcome is
     known (`failure`) when it has an id, so a step can test it."""
     c = step.get("if")
+    if isinstance(c, bool):
+        c = "true" if c else "false"          # YAML `if: true` reaches GitHub as the text true
     if c is None or str(c).strip() == "":
         return SKIPPED                       # no `if`: success() is implied, and it is false
     text = str(c).strip()
     m = re.fullmatch(r"\$\{\{(.*)\}\}", text, re.S)
     if m:
         text = m.group(1)
+    known = {}
+    if isinstance(install_id, str) and install_id:
+        known = {f"steps.{install_id.lower()}.outcome": "failure", f"steps.{install_id.lower()}.conclusion": "failure"}
     try:
-        known = {f"steps.{install_id.lower()}.outcome": "failure", f"steps.{install_id.lower()}.conclusion": "failure"} if install_id else {}
         ev = _Eval(_tokens(text), known)
         v = ev.expr()
         if ev.i != len(ev.t):
             raise _Unreadable("text after the expression")
-    except _Unreadable:
+    except (_Unreadable, RecursionError):
         return UNKNOWN
     if not ev.status:
         return SKIPPED                       # `success() && (...)`
-    if v is UNK:
-        return UNKNOWN
-    return RUNS if _truthy(v) else SKIPPED
+    k = _known(v)
+    return UNKNOWN if k is None else RUNS if k else SKIPPED
 
 
-def exempt_count(steps, at, pkg, read):
+def exempt_count(steps, at, pkg, read, install_id=...):
     """The steps after the install that are not CERTAIN to run when it fails (step_runs_after_failure is not RUNS) and are not shown to need a browser.
     A step the reader cannot read counts: it may be browser-free."""
-    install_id = steps[at].get("id")
+    if install_id is ...:
+        install_id = steps[at].get("id")
     return sum(1 for s in steps[at + 1:] if step_runs_after_failure(s, install_id) != RUNS and not read_step(s, pkg, read)["browser"])
 
 
+def _doc(f):
+    try:
+        d = yaml.safe_load(f.read_text(errors="replace")) or {}
+    except yaml.YAMLError:
+        return {}
+    return d if isinstance(d, dict) else {}
+
+
+def _step_lists(doc):
+    """[(job name or None, job document, steps)] of a workflow document or a composite action document."""
+    if isinstance(doc.get("jobs"), dict):
+        return [(name, j or {}, (j or {}).get("steps") or []) for name, j in doc["jobs"].items() if isinstance(j or {}, dict)]
+    return [(None, {}, ((doc.get("runs") or {}).get("steps")) or [])]
+
+
+def _local_uses(doc):
+    out = []
+    for name, job, steps in _step_lists(doc):
+        out += [job.get("uses")] + [s.get("uses") for s in steps if isinstance(s, dict)]
+    return [u.rstrip("/") for u in out if isinstance(u, str) and u.startswith("./") and not u.endswith((".yml", ".yaml"))]
+
+
 def workflow_files(root="."):
-    """Every file that can hold a step: the workflows (.yml and .yaml) and every composite action under .github (action.yml, action.yaml, at any depth)."""
-    base = Path(root)
+    """Every file that can hold a step: the workflows (.yml and .yaml), every composite action under .github (action.yml, action.yaml, at any depth), and every
+    local action they use (`uses: ./path`, wherever it lives), followed through composite actions that use others."""
+    base = Path(root).resolve()
     found = set()
     for pat in (".github/workflows/*.yml", ".github/workflows/*.yaml"):
-        found.update(base.glob(pat))
-    if (base / ".github").is_dir():
+        found.update(Path(root).glob(pat))
+    if (Path(root) / ".github").is_dir():
         for name in ("action.yml", "action.yaml"):
-            found.update((base / ".github").rglob(name))
+            found.update((Path(root) / ".github").rglob(name))
+    queue = sorted(found)
+    while queue:
+        f = queue.pop()
+        for u in _local_uses(_doc(f)):
+            d = (base / u[2:]).resolve()
+            if base not in d.parents:
+                continue
+            for name in ("action.yml", "action.yaml"):
+                cand = Path(root) / d.relative_to(base) / name
+                if cand.is_file() and cand not in found:
+                    found.add(cand)
+                    queue.append(cand)
     return sorted(found)
 
 
@@ -959,7 +1048,7 @@ def install_sites(root="."):
     targets = {x["file"]: x["job"] for x in TARGETS}
     for f in workflow_files(root):
         rel = f.relative_to(base).as_posix()
-        text = f.read_text()
+        text = f.read_text(errors="replace")
         lines = [n for n, line in enumerate(text.splitlines(), 1) if INSTALL_CMD.search(line) and not line.lstrip().startswith("#")]
         try:
             doc = yaml.safe_load(text) or {}
@@ -969,13 +1058,10 @@ def install_sites(root="."):
             continue
         if not isinstance(doc, dict):
             doc = {}
-        if isinstance(doc.get("jobs"), dict):
-            lists = [(name, (j or {}).get("steps") or [], j or {}) for name, j in doc["jobs"].items()]
-        else:
-            lists = [(None, ((doc.get("runs") or {}).get("steps")) or [], {})]
-        found = [(name, steps, i, jobdoc) for name, steps, jobdoc in lists for i, s in enumerate(steps) if is_install(s)]
+        found = [(name, steps, i, jobdoc) for name, jobdoc, steps in _step_lists(doc) for i, s in enumerate(steps) if isinstance(s, dict) and is_install(s)]
         if len(found) != len(lines):
-            bad.append(f"{rel}: {len(lines)} line(s) run the install command but {len(found)} step(s) parse as one: this guard cannot pair them")
+            names = [str(steps[at].get("name") or steps[at].get("id") or "(unnamed)") for _, steps, at, _ in found]
+            bad.append(f"{rel}: the install command is on line(s) {lines or 'none the text can match'}, and the step(s) that parse as an install are {names}: this guard cannot pair them")
             continue
         for (name, steps, at, jobdoc), n in zip(found, lines):
             if rel in targets and targets[rel] == name:
@@ -997,11 +1083,49 @@ def step_indent(text, line):
     return -1
 
 
+def _needs(job):
+    n = (job or {}).get("needs")
+    return [n] if isinstance(n, str) else [x for x in (n or []) if isinstance(x, str)]
+
+
+def dependents_not_certain(doc, job_name):
+    """The jobs of one workflow that need `job_name` (directly, or through a job that is itself skipped) and whose `if` is not certain to run after its failure.
+    A dependent that is certain to run (`if: always()`) does not pass the failure on."""
+    jobs = doc.get("jobs") or {}
+    out, queue, seen = [], [job_name], {job_name}
+    while queue:
+        cur = queue.pop(0)
+        for name, j in jobs.items():
+            if name in seen or cur not in _needs(j):
+                continue
+            seen.add(name)
+            if step_runs_after_failure({"if": (j or {}).get("if")}) != RUNS:
+                out.append(name)
+                queue.append(name)
+    return out
+
+
+def exempt_extra(root, rel, job, pkg, read, docs):
+    """What else a failed install skips beyond the steps after it in its own job or action: the jobs that need its job; for a composite action, the steps that
+    follow the action in every job that calls it, and the jobs that need those jobs."""
+    if job is not None:
+        return len(dependents_not_certain(docs.get(rel, {}), job))
+    target = "./" + Path(rel).parent.as_posix()
+    extra = 0
+    for doc in docs.values():
+        for name, jobdoc, steps in _step_lists(doc):
+            for k, s in enumerate(steps):
+                if isinstance(s, dict) and str(s.get("uses", "")).rstrip("/") == target:
+                    extra += exempt_count(steps, k, pkg, read, install_id=None) + len(dependents_not_certain(doc, name))
+    return extra
+
+
 def exempt_sites(root, pkg, read):
     """(problems, table) for the installs outside the TARGET jobs. Each needs ONE `# browser-gate: exempt N -- reason` comment at its step's indentation within
     EXEMPT_REACH lines above its install command and after the previous install of the file, N being exempt_count(). A step added after an exempt install
     changes N: that is the signal to give the job the shape or say why not. An annotation that pairs with no install is stale."""
     sites, bad = install_sites(root)
+    docs = {f.relative_to(Path(root)).as_posix(): _doc(f) for f in workflow_files(root)}
     table, used, prev = [], set(), {}
     for rel, line, steps, at, job, jobdoc in sorted(sites, key=lambda s: (s[0], s[1])):
         text = Path(root, rel).read_text().splitlines()
@@ -1018,7 +1142,7 @@ def exempt_sites(root, pkg, read):
         if truthy(steps[at].get("continue-on-error")) or truthy((jobdoc or {}).get("continue-on-error")):
             bad.append(f"{rel}:{line}: the install (or its job) has continue-on-error, so a failed install does not fail the job there. That is the verify shape and needs all of it: make this file a target of this guard, do not annotate it")
             continue
-        n, said = exempt_count(steps, at, pkg, read), int(m.group(2))
+        n, said = exempt_count(steps, at, pkg, read) + exempt_extra(root, rel, job, pkg, read, docs), int(m.group(2))
         if n != said:
             bad.append(f"{rel}:{line}: {n} step(s) after the install are not certain to run when it fails and are not shown to need a browser, but the annotation says {said}. A step added there may be lost when the install fails: if it matters, give the job the verify shape; if not, change the annotation and keep its reason true")
         table.append((rel, line, n, m.group(3)))
@@ -1473,25 +1597,46 @@ def self_test():
 
     # ---- WHEN A STEP RUNS AFTER A FAILED INSTALL: GitHub's rule on the expression, three-valued (the install failed, so success() is false)
     def st(cond, install_id=None):
-        return step_runs_after_failure({"if": cond} if cond is not None else {}, install_id)
+        try:
+            return step_runs_after_failure({"if": cond} if cond is not None else {}, install_id)
+        except Exception as e:                  # a crash is a failed check, not a traceback
+            return f"CRASH {type(e).__name__}"
     cases = [
         (None, SKIPPED), ("", SKIPPED), ("always()", RUNS), ("failure()", RUNS), ("!cancelled()", RUNS), ("cancelled()", SKIPPED), ("success()", SKIPPED),
         ("!failure()", SKIPPED), ("success() || failure()", RUNS), ("Always()", RUNS), ("ALWAYS()", RUNS), ("Failure()", RUNS), ("!Cancelled()", RUNS),
         ("contains('always()', 'x')", SKIPPED), ("steps.x.outcome == 'always()'", SKIPPED), ("steps.x.outcome == 'success'", SKIPPED), ("false", SKIPPED), (True, SKIPPED),
         ("always() && steps.chromium.outcome == 'success'", UNKNOWN), ("!cancelled() && steps.x.outcome == 'success'", UNKNOWN), ("always() && success()", SKIPPED),
-        ("${{ always() }}", RUNS), ("${{ !cancelled() && !failure() }}", SKIPPED), ("!(failure())", SKIPPED), ("failure() && !cancelled()", RUNS), ("always() || x.y", RUNS),
+        ("${{ always() }}", RUNS), ("${{ !cancelled() && !failure() }}", SKIPPED), ("!(failure())", SKIPPED), ("failure() && !cancelled()", RUNS), ("always() || github.y", RUNS),
         ("cancelled() || failure()", RUNS), ("always() && false", SKIPPED), ("(always())", RUNS), ("always() &&", UNKNOWN), ("always( && x", UNKNOWN),
-        ("always() && contains(github.ref, 'x')", UNKNOWN), ("failure() && steps.x.outcome == 'failure'", UNKNOWN), ("always() || contains(x, 'y')", RUNS),
-        ("${{ always() }} && x", UNKNOWN), ("always() && 0", SKIPPED), ("always() && 1", RUNS), ("always() && 'A' == 'a'", RUNS), ("always() && steps['x'].outcome == 'y'", UNKNOWN),
+        ("always() && contains(github.ref, 'x')", UNKNOWN), ("failure() && steps.x.outcome == 'failure'", UNKNOWN), ("always() || contains(github.x, 'y')", RUNS),
+        ("${{ always() }} && github.x", UNKNOWN), ("always() && 0", SKIPPED), ("always() && 1", RUNS), ("always() && 'A' == 'a'", RUNS), ("always() && steps['x'].outcome == 'y'", UNKNOWN),
         ("!always()", SKIPPED), ("always() && !failure()", SKIPPED), ("failure() || cancelled()", RUNS),
         ("always() && steps.x.outcome == 'success' && false", SKIPPED), ("always() && (steps.x.outcome == 'a' || always())", RUNS), ("always() && 'a' != 'b'", RUNS),
         ("always() && 'a' != 'a'", SKIPPED), ("always() )", UNKNOWN), ("always() && 2 > 1", RUNS), ("always() && 1 >= 2", SKIPPED),
+        # falsy on the left of && / truthy on the left of ||
+        ("cancelled() && always()", SKIPPED), ("false && always()", SKIPPED), ("success() && failure()", SKIPPED), ("cancelled() || always()", RUNS),
+        # loose equality across kinds (GitHub coerces both sides to numbers: null 0, true 1, false 0, '' 0, a decimal string its value)
+        ("always() && false == ''", RUNS), ("always() && '1' == 1", RUNS), ("always() && null == 0", RUNS), ("always() && 0 != ''", SKIPPED), ("always() && null != ''", SKIPPED),
+        ("always() && !(null == '')", SKIPPED), ("always() && true == '1'", RUNS), ("always() && ' 1 ' == 1", RUNS), ("always() && 'abc' == 0", UNKNOWN),
+        ("success() != '0'", SKIPPED), ("success() == ''", RUNS), ("always() == '1'", RUNS), ("cancelled() != '0'", SKIPPED), ("always() && null == null", RUNS),
+        ("always() && null >= null", RUNS), ("always() && null > null", SKIPPED), ("always() && true > false", RUNS),
+        # strings compare without regard to case, upper-cased as .NET OrdinalIgnoreCase does (the characters between Z and a order differently from lower-casing)
+        ("always() && '_' < 'a'", SKIPPED), ("always() && '_' > 'a'", RUNS), ("always() && 'é' == 'É'", UNKNOWN),
+        # a value that is unknown but whose truthiness is known decides nothing when it is compared
+        ("always() && (github.mode || 'full') != 'skip'", UNKNOWN), ("failure() && (github.a || true) == true", UNKNOWN), ("always() && (github.x && '') == ''", UNKNOWN),
+        ("always() && (github.x || 'a')", RUNS), ("always() && !(github.x || 'a')", SKIPPED), ("always() && (github.x && false)", SKIPPED),
+        # an index is read only when it is a plain string, number or *; anything else could hide a status function
+        ("always() && steps[always()].outcome", UNKNOWN), ("steps[always()].outcome", UNKNOWN), ("steps['x' || always()].outcome == 'y'", UNKNOWN), ("always() && steps['x'].outcome == 'y'", UNKNOWN), ("always() && steps.*.outcome", UNKNOWN),
+        # the keywords true, false and null are case-sensitive in GitHub; a YAML boolean arrives as its lower-case text
+        ("always() && True", UNKNOWN), ("always() && true", RUNS), (False, SKIPPED), ("always() && 'false'", RUNS), ("always() && !'false'", SKIPPED), ("always() && ''", SKIPPED), ("always() && null", SKIPPED),
+        ("(" * 400 + "always()" + ")" * 400, UNKNOWN),
     ]
     wrong = [(c, want, st(c)) for c, want in cases if st(c) != want]
-    check(f"the `if` evaluator: {len(cases)} expressions, each as GitHub reads it (a status function is read as written, none means success() && ..., case-insensitive, string literals are not calls)", wrong == [], wrong)
+    check(f"the `if` evaluator: {len(cases)} expressions; a decided result is GitHub's (a status function is read as written, none means success() && ..., loose equality, strings without regard to case), an undecidable or unmodelled one is UNKNOWN", wrong == [], wrong)
     own = [("!cancelled() && steps.install.outcome != 'skipped'", "install", RUNS), ("!cancelled() && steps.Install.outcome != 'skipped'", "install", RUNS),
            ("!cancelled() && steps.install.outcome == 'success'", "install", SKIPPED), ("!cancelled() && steps.install.outcome != 'skipped'", None, UNKNOWN),
-           ("always() && steps.install.conclusion == 'failure'", "install", RUNS), ("always() && steps.other.outcome != 'skipped'", "install", UNKNOWN)]
+           ("always() && steps.install.conclusion == 'failure'", "install", RUNS), ("always() && steps.other.outcome != 'skipped'", "install", UNKNOWN),
+           ("always() && steps['install'].outcome == 'failure'", "install", RUNS), ("always()", 5, RUNS), ("always() && steps.install.outcome == 'failure'", 5, UNKNOWN)]
     wrong2 = [(c, i, want, st(c, i)) for c, i, want in own if st(c, i) != want]
     check("the install's own outcome is known to be `failure` when it has an id (and only then)", wrong2 == [], wrong2)
 
@@ -1500,7 +1645,7 @@ def self_test():
     NAME = "      - name: Install Chromium\n        run: npx playwright install chromium\n"
     AFTER = "      - name: verdict\n        run: npm run pure\n"
     two_jobs = "jobs:\n  verify:\n    steps:\n" + NAME + "  other:\n    steps:\n{note}" + NAME + AFTER
-    bad_a, tab_a = sites({"verify.yml": two_jobs.format(note="")})
+    bad_a, _ = sites({"verify.yml": two_jobs.format(note="")})
     check("a SECOND job of a target file that installs a browser is an exempt site and is refused without an annotation (the target job's own install is not)",
           len(bad_a) == 1 and "verify.yml:9" in bad_a[0] and "neither a target" in bad_a[0], bad_a)
     bad_b, tab_b = sites({"verify.yml": two_jobs.format(note=NOTE.format(n=1, why="the second job's verdict needs the browser"))})
@@ -1556,6 +1701,51 @@ def self_test():
     bad_s, tab_s = sites({"s.yml": PROBE + NOTE.format(n=0, why="the evidence step runs after a failed install") + "      - name: Install Chromium\n        id: install\n        run: npx playwright install chromium\n"
                           + "      - name: evidence\n        if: \"!cancelled() && steps.install.outcome != 'skipped'\"\n        run: npm run pure\n"})
     check("exempt_count knows the install's own id: a step that tests it is certain to run, so N is 0", bad_s == [] and tab_s and tab_s[0][2] == 0, (bad_s, tab_s))
+    # ---- WHAT ELSE A FAILED INSTALL SKIPS: the jobs that need its job, and the steps after a composite action in its callers
+    dep_text = lambda n, tail: PROBE + NOTE.format(n=n, why="the verdict needs the browser") + NAME + AFTER + tail
+    bad_t, tab_t = sites({"t.yml": dep_text(2, "  b:\n    needs: a\n    steps:\n      - run: npm run pure\n").replace("  probe:", "  a:")})
+    bad_t2, _ = sites({"t.yml": dep_text(1, "  b:\n    needs: a\n    steps:\n      - run: npm run pure\n").replace("  probe:", "  a:")})
+    bad_t3, tab_t3 = sites({"t.yml": dep_text(1, "  b:\n    needs: a\n    if: always()\n    steps:\n      - run: npm run pure\n").replace("  probe:", "  a:")})
+    bad_t4, tab_t4 = sites({"t.yml": dep_text(3, "  b:\n    needs: [a]\n    steps:\n      - run: npm run pure\n  c:\n    needs: b\n    steps:\n      - run: npm run pure\n").replace("  probe:", "  a:")})
+    check("a job that needs the install's job and is not certain to run after its failure is counted in N (through a skipped job too); one with `if: always()` is not",
+          bad_t == [] and tab_t and tab_t[0][2] == 2 and any_of("the annotation says 1", bad_t2) and bad_t3 == [] and tab_t3[0][2] == 1 and bad_t4 == [] and tab_t4[0][2] == 3,
+          (bad_t, bad_t2, bad_t3, bad_t4))
+    comp = "runs:\n  using: composite\n  steps:\n" + NOTE.format(n=0, why="the shard needs the browser").replace("      #", "    #") + "    - name: Install Chromium\n      shell: bash\n      run: npx playwright install chromium\n"
+    bad_u, tab_u = sites({"w.yml": "jobs:\n  j:\n    steps:\n      - uses: ./.github/actions/shard\n      - run: npm run pure\n"}, actions={"shard": comp})
+    check("the steps that follow a composite action in a job that calls it are counted in the action's N", any_of("the annotation says 0", bad_u) and any_of("1 step(s)", bad_u), (bad_u, tab_u))
+    bad_u2, tab_u2 = sites({"w.yml": "jobs:\n  j:\n    steps:\n      - uses: ./.github/actions/shard\n      - if: always()\n        run: npm run pure\n"}, actions={"shard": comp})
+    check("...and one that is certain to run is not", bad_u2 == [] and tab_u2 and tab_u2[0][2] == 0, (bad_u2, tab_u2))
+    bad_u3, tab_u3 = sites({"w.yml": "jobs:\n  j:\n    steps:\n      - uses: ./.github/actions/shard\n  k:\n    needs: j\n    steps:\n      - run: npm run pure\n"}, actions={"shard": comp})
+    check("...and so is a job that needs the calling job", any_of("the annotation says 0", bad_u3), (bad_u3, tab_u3))
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d) / ".github" / "workflows").mkdir(parents=True)
+        (Path(d) / "tools" / "x").mkdir(parents=True)
+        (Path(d) / ".github" / "workflows" / "w.yml").write_text("jobs:\n  j:\n    steps:\n      - uses: ./tools/x\n")
+        (Path(d) / "tools" / "x" / "action.yaml").write_text("runs:\n  using: composite\n  steps:\n    - run: npx playwright install chromium\n      shell: bash\n")
+        bad_v, _ = exempt_sites(d, pkg, read)
+    check("a local composite action OUTSIDE .github, named by a `uses: ./path`, is found", any_of("neither a target", bad_v), bad_v)
+    for form in ('npx "playwright@^1.49" install chromium', "npx playwright@~1.49.1 install", "node node_modules/playwright-core/cli.js install chromium",
+                 "npx 'playwright-core@1.49.1' install"):
+        bad_w, _ = sites({"w.yml": PROBE + f"      - name: Install\n        run: {form}\n" + AFTER})
+        check(f"`{form}` is seen as an install", any_of("neither a target", bad_w), bad_w)
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d) / ".github" / "workflows").mkdir(parents=True)
+        (Path(d) / ".github" / "workflows" / "verify.yml").write_text("jobs: [\n")
+        (Path(d) / "package.json").write_text('{"scripts": {}}')
+        r = subprocess.run([sys.executable, __file__], cwd=d, capture_output=True, text=True, timeout=60)
+    check("a target that is not valid YAML is refused with a message and no traceback", r.returncode == 1 and "not valid YAML" in r.stdout and "Traceback" not in r.stdout + r.stderr, (r.returncode, r.stdout[-300:], r.stderr[-300:]))
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d) / ".github" / "workflows").mkdir(parents=True)
+        (Path(d) / ".github" / "workflows" / "w.yml").write_text("jobs:\n  j:\n    steps:\n      - uses: ./../outside\n")
+        try:
+            bad_y, _ = exempt_sites(d, pkg, read)
+        except Exception as e:
+            bad_y = [f"CRASH {type(e).__name__}"]
+    check("a `uses: ./../x` that leaves the repository is not followed and does not crash", bad_y == [], bad_y)
+    bad_x, _ = sites({"x.yml": PROBE + "      # browser-gate: exempt 12345 -- why\n" + NAME + AFTER})
+    check("an N of five digits is not an annotation (and cannot crash the guard)", any_of("0 found", bad_x), bad_x)
+    bad_c2, _ = sites({"c.yml": PROBE + "      - name: Install\n        run: |\n          npx playwright \\\n            install chromium\n" + AFTER})
+    check("the refusal of an install it cannot pair names the lines and the steps", any_of("line(s) none the text can match", bad_c2) and any_of("['Install']", bad_c2), bad_c2)
     bad_q, tab_q = sites({"q.yml": site(2, steps_after="      - name: one\n        run: npm run pure\n      - name: two\n        run: npm run pure\n")})
     check("two skipped steps are BOTH counted", bad_q == [] and tab_q and tab_q[0][2] == 2, (bad_q, tab_q))
     check("the second target's floors are 8 steps, 5 browser steps and 2 browser-free steps (pinned, not read from TARGETS)",
@@ -1585,7 +1775,11 @@ def real_tree(root="."):
         if not path.exists():
             bad.append(f"the target {tg['file']} does not exist")
             continue
-        doc = yaml.safe_load(path.read_text())
+        try:
+            doc = yaml.safe_load(path.read_text(errors="replace"))
+        except yaml.YAMLError as e:
+            bad.append(f"the target {tg['file']} is not valid YAML ({type(e).__name__}): this guard cannot read it")
+            continue
         problems, cov = audit(doc, pkg, read, job=tg["job"])
         print(f"=== {tg['file']}, job `{tg['job']}`: the browser steps wait for the Chromium install ===")
         print(f"  steps after the install read : {cov['steps']}")
@@ -1603,7 +1797,7 @@ def real_tree(root="."):
     print(f"  The other {len(table)} install site(s) are EXEMPT by the annotation above each install; N is the number of steps after it that are not certain to run when")
     print("  it fails and are not shown to need a browser, pinned so a step added there is noticed. A site with no annotation, or a wrong N, is a problem below:")
     for rel, line, n, reason in table:
-        print(f"  {rel}:{line}  N={n}  {reason[:110]}")
+        print(f"  {rel}:{line}  N={n}  {reason}")
     if bad:
         print(f"\nFAIL: {len(bad)} problem(s):")
         for b in bad:

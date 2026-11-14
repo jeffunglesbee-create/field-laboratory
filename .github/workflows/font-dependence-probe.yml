@@ -79,7 +79,7 @@ jobs:
 
       # The install exactly as every workflow now runs it (no --with-deps, 180 s), with apt, dpkg and sudo replaced on PATH by shims that log the call and fail.
       # If the install needed one of them it fails loudly here, and the log says which.
-      # browser-gate: exempt 3 -- a failed install ends the job red, and the two measurements the verdict step reads (what the install did, the runner's timeout) run on `!cancelled()`; what it skips is the site server, the treatment (the nine fonts, with nothing to compare it to) and the verdict step that restates a red job
+      # browser-gate: exempt 3 -- a failed install ends the job red, and the two measurements the verdict step reads (what the install did, the runner's timeout) run on `!cancelled()`; what is still skipped and counted is the site server, the nine-font treatment (nothing to compare it to) and the verdict step that restates a red job, and A1, A2, T and B, which need the browser, are skipped too
       - name: Install Chromium, with apt watched
         id: install
         timeout-minutes: 3
