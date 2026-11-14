@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **green** on `bd0d8e1` — but that is not `main` HEAD
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `df2635b` at "Render the deployed page and assert on it" — nothing was skipped behind it — [run 43587347908](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43587347908)
 
 ## Is it published?
 

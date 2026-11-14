@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e727a13` | 2026-11-14 | [live-check-census-2026-11-14-mutate.mjs](live-check-census-2026-11-14-mutate.mjs) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
+| `e727a13` | 2026-11-14 | [live-check-census-2026-11-14.mjs](live-check-census-2026-11-14.mjs) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
+| `e727a13` | 2026-11-14 | [live-check-census-2026-11-14.tsv](live-check-census-2026-11-14.tsv) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
+| `e727a13` | 2026-11-14 | [live-check-weather-silent-2026-11-14.md](live-check-weather-silent-2026-11-14.md) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
+| `cbf3a2a` | 2026-11-14 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B stands with the one exception the owner accepted; the CC-CMD is DONE |
 | `86cfaea` | 2026-11-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-14 [skip ci] |
 | `86cfaea` | 2026-11-14 | [sport-vocabulary-2026-11-14T07-44-08-797Z.json](sport-vocabulary-2026-11-14T07-44-08-797Z.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
 | `ce2eab0` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
