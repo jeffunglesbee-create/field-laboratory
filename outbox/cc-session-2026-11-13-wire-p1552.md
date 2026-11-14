@@ -1,15 +1,16 @@
 # CC session 2026-11-13: Task 5, Step B, wire P1552 in place of P5624 in the roof rule
 
-Session: https://claude.ai/code/session_01X1QRUKcA6Q8MCKMehmeiXX. Scope: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, Task 5, "Step B, wire P1552" (the specification is commit `14178acc`: criteria W1 to W8, the premises and the order). It is edited by each commit of the work and its Landing manifest is the last section, added last. First version: with the commit that changes the rule (item 2 of the spec's order). Second: with the commit that adds the replay tool and its offline output (item 3). Third: with the docs commit that records the runner's fill, `compare`'s verdict and the Result (items 4 and 5). Fourth (this one): with the commit that adds the reproduction record and the Landing manifest, the last section, written after `verify-full` ended (item 6).
+Session: https://claude.ai/code/session_01X1QRUKcA6Q8MCKMehmeiXX. Scope: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, Task 5, "Step B, wire P1552" (the specification is commit `14178acc`: criteria W1 to W8, the premises and the order). It is edited by each commit of the work and its Landing manifest is the last section, added last. First version: with the commit that changes the rule (item 2 of the spec's order). Second: with the commit that adds the replay tool and its offline output (item 3). Third: with the docs commit that records the runner's fill, `compare`'s verdict and the Result (items 4 and 5). Fourth: with the commit that adds the reproduction record and the Landing manifest, the last section, written after `verify-full` ended (item 6). Fifth (this one): with the docs commit that records the owner's "Accept" of the one exception to W5; it changes the table below, the Q2409690 section, the W5 row, "Not verified", Work remaining, and the manifest's commit table, Runs table, Known mismatches and Residual, and nothing else.
 
 ## What the owner said and what was done
 
 | time (ET) | owner's words | read as | done |
 |---|---|---|---|
 | Fri 2026-11-13 19:07 | "Wire" | the answer to the Step A report's question, "remove", "wire" or "neither" | not acted on at once: it contradicted Step A's record (no candidate property passes criteria 1 to 7), so one question was put back, with that stated |
-| the same evening, after the question | "Wire P1552" | approval of the first follow-on only: the roof rule's Wikidata step reads P1552 "has characteristic" in place of P5624. The second follow-on, removing the Wikidata step, is not approved and is not started | `14178acc`: the specification; `1caa76eb`: the rule change; `9e593078`: the replay tool; `69b2f9cc`: the runner's fill; the docs commit that carries this version: the comparison and the Result |
+| the same evening, after the question | "Wire P1552" | approval of the first follow-on only: the roof rule's Wikidata step reads P1552 "has characteristic" in place of P5624. The second follow-on, removing the Wikidata step, is not approved and is not started | `14178acc`: the specification; `1caa76eb`: the rule change; `9e593078`: the replay tool; `69b2f9cc`: the runner's fill; `f4619de9`: the comparison and the Result; `bd0d8e1f`: the reproduction record and the manifest |
+| Sat 2026-11-14 05:54 | "Accept" | the answer to the one question put to him after the fill: whether Step B stands with the one named exception to W5's article clause (Q2409690, 390 of 391). It is not an approval of the second follow-on | this docs commit: the ruling recorded in the CC-CMD (Result, Status) and in this document |
 
-The time of the second answer is not recorded here because it was not read from a timestamp. The second follow-on, removing the Wikidata step, has not been approved and has not been touched.
+The time of the second answer is not recorded here because it was not read from a timestamp. The time of "Accept" is the one it carried when it arrived, noted before this session was continued; it was not re-read from a timestamp afterwards. The second follow-on, removing the Wikidata step, has not been approved and has not been touched.
 
 ## HEAD progression
 
@@ -158,7 +159,7 @@ What was read to explain it (Rule 73: read 2026-11-14 UTC, Friday 2026-11-13 eve
 
 So the old answer was right when it was cached (after the 13 October move, before the two in November) and the live answer is right now. Nothing in the rule changed the article; Wikipedia did. The fill therefore read Wikipedia for the new title (3 cache keys added, above), and the row's whole JSON object, `lead` included, is unchanged.
 
-The criterion is not met in its letter: 390 of 391. It is not in the stop rules (W2 or W6 failing, a `wikidata unanswered`, a closed label that differs from the probe's), so the work did not stop; it is also not adjusted. The text of W5 is changed in its denominator only (396 to 391, a counting error, mistake 1) and not in what the clause demands, and the tool's verdict, NOT AS PREDICTED, stands as printed. What the clause was for, that every cached Wikipedia answer is still the one the rule reads, holds for 390 of 391 items and, for the 391st, the rule reads the page's current title. Restoring the two data files from `9e593078`, the specification's recovery, would put the old answer back and would not move the page: a later run reads `(Washington)` whatever the cache holds. Whether Step B stands with this one named exception, or not, is the owner's decision, and the Done-when of Step B is not claimed as met until he gives it.
+The criterion is not met in its letter: 390 of 391. It is not in the stop rules (W2 or W6 failing, a `wikidata unanswered`, a closed label that differs from the probe's), so the work did not stop; it is also not adjusted. The text of W5 is changed in its denominator only (396 to 391, a counting error, mistake 1) and not in what the clause demands, and the tool's verdict, NOT AS PREDICTED, stands as printed. What the clause was for, that every cached Wikipedia answer is still the one the rule reads, holds for 390 of 391 items and, for the 391st, the rule reads the page's current title. Restoring the two data files from `9e593078`, the specification's recovery, would put the old answer back and would not move the page: a later run reads `(Washington)` whatever the cache holds. Whether Step B stands with this one named exception, or not, was the owner's decision. He answered "Accept" (Saturday 2026-11-14): Step B stands with it. The clause stays at 390 of 391, the criterion's text and the tool's verdict are not changed, and every other clause of Step B's Done-when is met, as W1 to W8 below show.
 
 ## Mistakes
 
@@ -229,24 +230,24 @@ NOT AS PREDICTED:
 | W2 | exactly 1 row differs, Q1410402, basis only | met offline, and in the fill: 1 of 459 rows differs, that row, field `roofBasis` only, `wikipedia lead` to `wikidata P1552 "retractable roof"`; its roof `retractable` and status `accepted` are unchanged | `predict`, `compare`, and a second route (the whole-object comparison above) |
 | W3 | the rule's self-test with a case for each listed behaviour, each with an input that must fail it | met: 94 of 94 (80 before) | `node scripts/venue-source.mjs --self-test`; the harness |
 | W4 | each registry entry red by a named check, 0 stale anchors, the two P5624 entries re-anchored | met: harness, five commands each exit 0; `checked 1503 of 1506 mutation anchors; 0 stale` | `outbox/venue-source-p1552-mutation-2026-11-13.txt` |
-| W5 | the fill answers every item; the closed labels equal the probe's; the articles equal the old answers'; 0 `wikidata unanswered` | answers 391 of 391 (the specification said 396; corrected), all `ok`; 0 `wikidata unanswered`; closed labels equal the probe's 391 of 391; **articles equal 390 of 391: not met in the letter** (Q2409690, above) | `compare`; `grep -c 'wikidata unanswered'` over the results file |
+| W5 | the fill answers every item; the closed labels equal the probe's; the articles equal the old answers'; 0 `wikidata unanswered` | answers 391 of 391 (the specification said 396; corrected), all `ok`; 0 `wikidata unanswered`; closed labels equal the probe's 391 of 391; **articles equal 390 of 391: not met in the letter** (Q2409690, above), accepted by the owner as the one exception on 2026-11-14 ("Accept") | `compare`; `grep -c 'wikidata unanswered'` over the results file |
 | W6 | 459 of 459 compared by name: exactly the W2 row differs; 0 moved, 0 on one side only, 0 changed in status or roof | met: 459 of 459, 1 differs (basis only), 0 moved, 0 on one side only, 0 changed in status or roof | `compare`; the second route: 458 of 459 identical as whole objects |
 | W7 | `src/Venues.fs` byte-identical, `npm run check:venue-sourced` green with no `--write` | met: the same blob at `14178acc` and `69b2f9cc` (`5029632cdef7`), `git diff --stat` over it empty; `check:venue-sourced` 6 of 6 on this tree; `--write` was not run | `compare`, the two commands |
 | W8 | `verify` green on the rule commit, `guards` green on each docs commit, `verify-full` green on the final head, each new tool's output byte-equal on a fresh `git archive`, n of n | met: `verify` 43538395303 green on `1caa76eb`; `guards` green on `14178acc` (43534002257), `1caa76eb` (43538395286), `9e593078` (43539060559) and `f4619de9` (43541142761); `verify-full` run 43541210130 green on `f4619de9` (9 of 9 jobs, the gate 530 of 530, total 100, no failing or skipped row); the new tool's committed outputs reproduce byte for byte on fresh `git archive` trees, 4 of 4 output files and the harness file's command blocks 5 of 5 | REST, by full SHA; `outbox/venue-wikidata-p1552-reproduction-2026-11-13.txt` |
 
 Gates, as read by REST: `verify` 43538395303 (success), `guards` 43538395286, 43539060559 and 43541142761 (success), `deploy` 43538991561 (success), and `verify-full` 43541210130 on `f4619de9` (success, 9 of 9 jobs, 01:32:35Z to 02:30:48Z; its ledger line reads gate 530 of 530, total 100, `failing` and `skipped` empty, 3390 s; `dirty: true` is on the earlier lines too). `live-check` run 43539102233, the one the deploy started, failed in "Render the deployed page and assert on it" with `3 known venue(s) on this slate, 0 chip(s) filled … host-silent`; it is not a consequence of this work (premises table). Of the workflow's last 8 runs, 3 are red for 2 different reasons: this one and run 43348342619 (2026-11-13T01:54Z) for the weather chips, and run 43441145223 (2026-11-13T14:16Z, on the runner's statements-probe commit `d600db24`) at the step "Build (the venue table this check derives its expectation from)" with `Compilation failed`, which was not read further here.
 
-Not verified, and what would verify it: whether the owner accepts Step B with the one named exception to W5 (his decision, below); whether he wants the five changed dated tools' records kept as they are (they are not edited; the CC-CMD's Done-when says so). No card has been rendered with this change, because nothing in it reaches the page: `src/Venues.fs`, the table the page is built from, is the same blob.
+Not verified, and what would verify it: whether he wants the five changed dated tools' records kept as they are (they are not edited; the CC-CMD's Done-when says so). The owner's decision on the one exception to W5 is recorded: "Accept", 2026-11-14. No card has been rendered with this change, because nothing in it reaches the page: `src/Venues.fs`, the table the page is built from, is the same blob.
 
 ## Work remaining inside this session
 
 None of the specification's six items is open. Done, in its order: (1) the specification; (2) the rule change, with `verify`, `guards` and `deploy` green; (3) the offline prediction, W1 and W2; (4) the runner's fill; (5) `compare`, W5 and W6, and the table check, W7; (6) `verify-full` on the head that carries the Result, the fresh-archive reproduction, the Result and the Status in the CC-CMD, and the manifest below.
 
-Not mine to do: the owner's decision on the one clause of W5 that is not met in its letter (Q2409690), which decides whether Step B's Done-when is met. The second follow-on, removing the Wikidata step, is not approved and is not started.
+The owner's decision on the one clause of W5 that is not met in its letter (Q2409690) was given on 2026-11-14 ("Accept"): Step B stands with that exception, and nothing of it is left to do. The second follow-on, removing the Wikidata step, is not approved and is not started.
 
 ## Landing manifest
 
-Written last, after `verify-full` ended. The commit that adds it is docs only, so it cannot change what `verify-full` measured, and it cannot name its own hash or the `guards` run that commit starts; `git log -1 --format=%h -- outbox/cc-session-2026-11-13-wire-p1552.md` gives the hash.
+Written last, after `verify-full` ended, and updated in place by the docs commit that records the owner's "Accept": the commit table, the Runs table, Known mismatches and Residual, and nothing else in it. A docs-only commit cannot change what `verify-full` measured, and cannot name its own hash or the `guards` run it starts; `git log -1 --format=%h -- outbox/cc-session-2026-11-13-wire-p1552.md` gives the hash of the latest of them.
 
 ### Commits, all on `main` (`git branch --show-current` printed `main` before each push)
 
@@ -258,7 +259,8 @@ Written last, after `verify-full` ended. The commit that adds it is docs only, s
 | `69b2f9cc` | the runner's data commit (`venue-source` run 43539312250) |
 | `f4619de9` | docs: the fill compared, the Result, the corrections, this document's third version |
 | `8afcd248`, `2d863411` | the ledger commits `verify-full` made |
-| the commit that adds this section | the reproduction record, this manifest, the W8 lines of the CC-CMD |
+| `bd0d8e1f` | docs: the reproduction record, this manifest, the W8 lines of the CC-CMD |
+| the commit that records the owner's "Accept" | docs: the ruling in the CC-CMD (Result, Status) and in this document; its hash is the one `git log -1 --format=%h -- outbox/cc-session-2026-11-13-wire-p1552.md` prints |
 
 ### Runs, read by REST on the full SHA
 
@@ -267,6 +269,7 @@ Written last, after `verify-full` ended. The commit that adds it is docs only, s
 | 43538395303 | `verify` on `1caa76eb` | success |
 | 43538991561 | `deploy`, started by it | success |
 | 43534002257, 43538395286, 43539060559, 43541142761 | `guards` on `14178acc`, `1caa76eb`, `9e593078`, `f4619de9` | success |
+| 43547035522 | `guards` on `bd0d8e1f` | success |
 | 43539312250 | `venue-source`, mode `source`, the fill (data commit `69b2f9cc`) | success |
 | 43541210130 | `verify-full` on `f4619de9` | success: 9 of 9 jobs, gate 530 of 530, total 100 |
 | 43539102233 | `live-check`, started by the rule commit's deploy | failure, the weather chips (`host-silent`); not a consequence of this work (premises table) |
@@ -331,8 +334,8 @@ Every clause of the Done-when is met except `ARTICLES equal the old answer's: 39
 - Relay contract: none; no relay file changed (the relay is a separate repository and was not touched).
 - Client consumer: none. `grep -rl roofBasis --include='*.mjs' --include='*.fs' --include='*.js' --include='*.yml' --include='*.json' --include='*.py' .` outside `outbox/`, `node_modules`, `build/` and `public/` lists `scripts/venue-source.mjs` (the producer) and `scripts/venue-infobox.mjs` (a probe); `src/Venues.fs` is the same blob, so nothing reaches the page.
 - Status: VERIFIED for the data path, Wikidata to the rule to the results file to the table check, by the fill and by the table check. No card was rendered, because nothing in the change reaches the page.
-- Known mismatches: W5's article clause, 390 of 391, one item (Q2409690).
+- Known mismatches: W5's article clause, 390 of 391, one item (Q2409690); accepted by the owner on 2026-11-14 ("Accept"), so it is a recorded exception and not an open mismatch.
 
 ### Residual
 
-One: W5's article clause, which is the owner's decision (above) and not deferred work. Read, and not caused by this work: 5 of the 9 dated record tools differ between `14178acc` and `69b2f9cc` (nothing runs them; none is edited, as the CC-CMD says), and `live-check` is red on the weather chips and was red the same way on 2026-11-13T01:54Z, before this work began. The Wikidata step is still in the rule: the second follow-on is not approved.
+None that is deferred work. W5's article clause, 390 of 391 (Q2409690), was the owner's decision and he accepted it on 2026-11-14 ("Accept"). Read, and not caused by this work: 5 of the 9 dated record tools differ between `14178acc` and `69b2f9cc` (nothing runs them; none is edited, as the CC-CMD says), and `live-check` is red on the weather chips and was red the same way on 2026-11-13T01:54Z, before this work began. The Wikidata step is still in the rule: the second follow-on is not approved.
