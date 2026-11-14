@@ -1,0 +1,64 @@
+checked 1273 of 1680 expected samples
+VERDICT: none-observed-while-wet
+slate 2026-11-14; 56 ground(s) x 30 round(s) every 60s; 2026-11-14T14:22:21.075Z to 2026-11-14T15:08:44.903Z
+per-request rate of rain > precipitation + 0.001: 0 of 1273 read responses (0.00%)
+wet at the start: yes; wet samples overall: 19
+requests with no answer: 407, by cause: UND_ERR_CONNECT_TIMEOUT 407
+
+ground                                   read  violations  flips
+Hard Rock Stadium                          10           0      0
+Gerald J. Ford Stadium                     11           0      0
+Ohio Stadium                               18           0      0
+Jack Trice Stadium                         17           0      0
+Carter-Finley Stadium                      20           0      0
+SECU Stadium                               15           0      0
+Pratt & Whitney Stadium                    24           0      0
+Memorial Stadium (Clemson, SC)             22           0      0
+SHI Stadium                                17           0      0
+FirstBank Stadium                          16           0      0
+Jerry Richardson Stadium                   26           0      0
+Lincoln Financial Field                    24           0      0
+Brooks Stadium (SC)                        19           0      0
+Amon G. Carter Stadium                     18           0      0
+Elliott T. Bowers Stadium                  27           0      0
+Kyle Field                                 28           0      0
+Robert W. Plaster Stadium                  17           0      0
+Delaware Stadium                           18           0      0
+Sanford Stadium                            25           0      0
+Notre Dame Stadium                         24           0      0
+Memorial Stadium (Bloomington, IN)         22           0      0
+Autzen Stadium                             22           0      0
+Scott Stadium                              28           0      0
+Huskie Stadium                             25           0      0
+Center Parc Stadium                        20           0      0
+Houchens Industries-L.T. Smith Stadium     21           0      0
+Williams Stadium (VA)                      26           0      0
+Milan Puskar Stadium                       26           0      0
+UFCU Stadium                               24           0      0
+Davis Wade Stadium                         17           0      0
+First Community Stadium                    27           0      0
+Joe Aillet Stadium                         27           0      0
+Acrisure Bounce House                      20           0      0
+Spartan Stadium                            20           0      0
+Albertsons Stadium                         28           0      0
+Joan C. Edwards Stadium                    25           0      0
+Kroger Field                               25           0      0
+LaVell Edwards Stadium                     18           0      0
+Kenan Stadium                              27           0      0
+Beaver Stadium                             28           0      0
+Falcon Stadium                             22           0      0
+Hancock Whitney Stadium                    20           0      0
+H. A. Chapman Stadium                      29           0      0
+Tiger Stadium (LA)                         25           0      0
+Kinnick Stadium                            24           0      0
+Lane Stadium                               20           0      0
+University Stadium (NM)                    30           0      0
+Donald W. Reynolds Razorback Stadium       27           0      0
+Alamodome                                  23           0      0
+Boone Pickens Stadium                      21           0      0
+Snapdragon Stadium                         30           0      0
+Sun Bowl                                   27           0      0
+Casino Del Sol Stadium                     24           0      0
+Martin Stadium                             23           0      0
+Clarence T.C. Ching Athletics Complex      29           0      0
+Memorial Stadium (Norman, OK)              27           0      0
