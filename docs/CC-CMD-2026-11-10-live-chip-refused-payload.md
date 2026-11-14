@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-10 by CC, found when the verify run for `faa831d` failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** DONE 2026-11-14 for Task 1, the measurement (approved by the owner 2026-11-11; built `e23288f`, landed `5f1ace27` after verify-full 43020056001 530/530; failure causes added `1877c12`, verify-full 43070530181 530/530). Run 2 was wet and the three answers are written below ("Task 1, run 2"), but on thin evidence: 19 wet readings at 2 grounds, all light rain. The choice under "Options" is the owner's and is not made. The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
+**Status:** CLOSED 2026-11-14. The owner chose option 3 ("Option 3", 2026-11-14): keep the decoder's rule (`rain > total + 0.001<mm>`, `src/Weather.fs`) and count the re-runs. Nothing is built or changed. Task 1, the measurement, is done (runs 1 and 2 below). Each future refusal is re-run and recorded under "Re-runs counted". The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
 
 ---
 
@@ -132,6 +132,23 @@ far more common failure of a live weather read than a refused body. It bears on
 5. **Retry a refused 200 body once**, if Task 1 shows a location's pair flips back within seconds. `WeatherView.fs` retries only `NeverAnswered` and gives the 429 as the reason a `Refused` is not retried. A refused 200 body is a different case, but the line is drawn at `Refused`, so this changes that ruling and is the owner's. The measurement is what would make it a fix rather than a fallback, as it was for the connect failures.
 
 The recommendation is Task 1 first, because options 1, 2 and 5 each depend on a number nobody has, and 4 should not be chosen without it.
+
+## Ruling, 2026-11-14: option 3
+
+The owner chose option 3 after Task 1's two runs (0 refusals in 1,340 read responses; 0 of 19 wet). Keep
+the rule; do not tolerate, retry, rebound or re-request. A refused 200 that turns `verify` or `live-check`
+red is re-run, and a line is added below. That costs about 7 minutes of runner time and a delayed deploy
+per occurrence.
+
+**Re-open when:** the count shows refusals are not rare. The ruling does not set a number; the owner reads
+the count and decides. Options 1 and 5 then need a measurement Task 1 could not make (no violation was
+ever caught with the probe running), so re-opening starts with a probe run on the day of a refusal.
+
+### Re-runs counted
+
+| date | run | step | refused grounds and the decoder's message | re-run |
+|---|---|---|---|---|
+| 2026-11-10 | verify 42863538303 attempt 1 | Render check against the LIVE slate | The Kassam Stadium (`rain 0.1 exceeds precipitation 0`), Broadfield Stadium (`rain 0.6 exceeds precipitation 0.3`) | attempt 2 green |
 
 ## Not in scope
 

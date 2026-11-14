@@ -131,3 +131,10 @@ weekend), 14:22Z to 15:08Z: `checked 1273 of 1680 expected samples`, `VERDICT: n
 got no answer, all `UND_ERR_CONNECT_TIMEOUT`, in bursts of up to 30 of 56 per round: the cause the run-1
 version of the probe could not record. The CC-CMD's Task 1 is DONE as a measurement, with the thinness of
 the wet sample stated beside the answers; the options stay with the owner.
+
+## The owner's ruling (2026-11-14): option 3
+
+"Option 3": keep the decoder's rule and count the re-runs. Nothing is built or changed. The CC-CMD is
+CLOSED with a "Re-runs counted" table (the one known occurrence, 2026-11-10, is its first row) and says
+how a future refusal is handled: re-run, then one row. The probe and its workflow stay, dispatch only, for
+the day a refusal is seen again.
