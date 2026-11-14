@@ -1310,6 +1310,15 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:import-purity
 
+      # The weather failure message in render-check names the path Node's fetch failed on (docs/CC-CMD-2026-11-14-weather-failure-cause.md). This is the
+      # description's own self-test: real loopback failures of every shape that can be made here, injected dependencies for the ones that cannot, and
+      # the wiring read from render-check's source. Each check was made to fail on purpose first (mutation-check.mjs, the egress-path-* entries).
+      - name: The weather failure message's own checks
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:egress-path
+
 
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED

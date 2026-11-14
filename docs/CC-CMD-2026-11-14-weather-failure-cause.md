@@ -74,7 +74,7 @@ Mutations (MUTATE-FIRST-A), registered in `scripts/mutation-check.mjs`, each a o
 
 ## Task 2 — the wiring, text only
 
-`scripts/render-check.mjs`. The diff is exactly: one import; `let probeErr = null` and `let pathSaw = 'not probed'` beside `probeSaw`; `probeErr = e` in the probe's `catch`; `pathSaw = await describeEgressPath(...)` inside the existing `if`, after the probe; and one sentence in the failing chip check's detail, after the late-probe sentence and before "The page reported:". Every existing sentence is byte-identical. `openMeteoDown`, `probeSaw`, `attributeWeather`, `TOLERATE`, every `check` condition and the `::warning::` text are untouched.
+`scripts/render-check.mjs`. The diff is exactly: one import; `let probeErr = null` and `let pathSaw = 'not probed'` beside `probeSaw`, with a two-line comment above them; `probeErr = e` in the probe's `catch`; `pathSaw = await describeEgressPath(...)` inside the existing `if`, after the probe; and one sentence in the failing chip check's detail, after the late-probe sentence and before "The page reported:". Every existing sentence is byte-identical. `openMeteoDown`, `probeSaw`, `attributeWeather`, `TOLERATE`, every `check` condition and the `::warning::` text are untouched.
 
 Artifact: `git diff -U0 e727a133 -- scripts/render-check.mjs`, quoted in the outbox, showing only those lines. The module's self-test reads render-check's source and asserts the four wiring facts; three registered mutations remove each in turn and must go red. `node scripts/mutation-check.mjs --anchors` stays green.
 

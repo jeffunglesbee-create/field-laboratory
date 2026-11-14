@@ -61,6 +61,89 @@ jobs:
           # verdict; this step used to report all of them green. The next step is always(), so the reading is still committed.
           exit ${PIPESTATUS[0]}
 
+      # docs/CC-CMD-2026-11-14-weather-failure-cause.md, Task 3. Three more measurements on this runner, for the one question the probe above does not answer: when
+      # render-check's late node probe says "fetch failed", WHICH stage failed and in which address family, and where can a red say which runner it ran on.
+      # Each is always(), so one that fails does not hide the others, each writes into outbox/, and the step below commits what they wrote. One dispatch.
+      #
+      # The survey comes first because the runner line of the description (scripts/egress-path-lib.mjs) reads region and cloud from ONE source that was a hypothesis
+      # until this ran (a .setup_info file beside the runner agent), and because it sets the stamp the artifacts share.
+      - name: Survey the runner
+        if: always()
+        run: |
+          # A survey reads what it can: an unreadable file or a find that met a directory it may not enter is a line in the artifact, not a failed step.
+          set +e
+          STAMP="${STAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          OUT="outbox/egress-path-survey-$STAMP.txt"
+          {
+            echo "survey of this runner; 4 sources; $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "## 1. files named like .setup_info on the root filesystem (find / -xdev, 90 s limit; other mounts are not searched; contents of the first 12 shown)"
+            timeout 90 find / -xdev \( -iname '*setup_info*' -o -iname '.setup*' \) -type f -not -path '/proc/*' 2>/dev/null > "$RUNNER_TEMP/setup-info-found.txt"
+            echo "find exit status: $? (1 means a directory could not be read; 124 means it hit the limit and the list is partial)"
+            echo "files found: $(wc -l < "$RUNNER_TEMP/setup-info-found.txt")"
+            head -12 "$RUNNER_TEMP/setup-info-found.txt" | while IFS= read -r f; do
+              echo "--- $f ($(wc -c < "$f") bytes; first 4000 shown)"
+              head -c 4000 "$f"
+              echo
+            done
+            echo
+            echo "## 2. ImageOS, ImageVersion and RUNNER_* (names and values; no secret is in this set)"
+            env | grep -E '^(ImageOS|ImageVersion|RUNNER_[A-Z_]+)=' | sort
+            echo
+            echo "## 3. process ancestry of this step: pid, exe, args"
+            pid=$$
+            roots=""
+            while [ -n "$pid" ] && [ "$pid" -gt 0 ] && [ -r "/proc/$pid/stat" ]; do
+              args="$(tr '\0\n' '  ' < "/proc/$pid/cmdline" | cut -c1-240)"
+              echo "pid=$pid exe=$(readlink "/proc/$pid/exe" 2>/dev/null || echo unreadable) args=$args"
+              root="$(printf '%s' "$args" | sed -n 's#^\(/[^ ]*\)/bin/Runner\.\(Worker\|Listener\).*#\1#p')"
+              [ -n "$root" ] && roots="$roots $root"
+              pid="$(awk '{ s = $0; sub(/^.*\) /, "", s); split(s, a, " "); print a[2] }' "/proc/$pid/stat")"
+            done
+            echo
+            echo "## 4. names only (no file is read) of the directory the runner agent starts from"
+            if [ -z "$roots" ]; then echo "no ancestor's args name .../bin/Runner.Worker or Runner.Listener"; fi
+            for r in $roots; do echo "--- $r"; ls -A "$r" 2>&1 | head -60; done
+          } > "$OUT" 2>&1
+          cat "$OUT"
+
+      # The four shapes Node's fetch can fail in, each made for real on this runner: the real forecast URL, a name that cannot resolve, a documentation address no
+      # route answers, and a closed loopback port. The artifact's first line is "checked 4 of 4 shapes"; its last is a verdict, and the step's status is the verdict's.
+      - name: Four failure shapes on this runner
+        if: always()
+        timeout-minutes: 5
+        run: |
+          STAMP="${STAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
+          node scripts/egress-path-lib.mjs --live "outbox/egress-path-live-$STAMP.txt"
+
+      # The end to end: api.open-meteo.com is made to resolve to 192.0.2.1 (a documentation address nothing answers), then render-check runs UNPINNED and STRICT, as
+      # live-check does. It is expected to go red. What is read is its own failing message for the weather chip check: does it carry the description. The verdict
+      # is `observed`, `incomplete` or `not-observable`, and only the first is a pass. A slate with no known ground is not-observable: not measured.
+      - name: Fault-injected render-check
+        if: always()
+        timeout-minutes: 8
+        run: |
+          STAMP="${STAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
+          OUT="outbox/egress-path-e2e-$STAMP.txt"
+          RAW="$RUNNER_TEMP/egress-path-e2e-raw.txt"
+          # The Probe step started a server in its own step; whether it outlived the step is not assumed.
+          curl -sf -o /dev/null http://localhost:8080/ || { node scripts/serve.mjs & }
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+          trap 'sudo sed -i "/^192\.0\.2\.1 api\.open-meteo\.com$/d" /etc/hosts' EXIT
+          sudo tee -a /etc/hosts <<< "192.0.2.1 api.open-meteo.com"
+          FAULT="$(getent ahostsv4 api.open-meteo.com | head -1)"
+          echo "the name now resolves to: ${FAULT:-nothing}"
+          set +e
+          timeout --kill-after=10 420 npm run check:live > "$RAW" 2>&1
+          RC=$?
+          set -e
+          tail -n 40 "$RAW"
+          node scripts/egress-path-lib.mjs --judge "$RAW" "$RC" "$OUT" "api.open-meteo.com resolves to ${FAULT:-nothing}"
+
       - name: Commit the reading
         if: always()
         run: |
