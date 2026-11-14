@@ -118,3 +118,13 @@ DONE needs all of: Task 1's capture file with `feedShapeSeen` true (the live fee
 - Goals, cards and player names from ESPN's `matchEvents` on a live card: score and minute only.
 - Push or any notification of a score (ADR-002 Rule A).
 - `Final` from ESPN: ruled out by the owner's second ruling above.
+
+## Found 2026-11-14, while gating `docs/CC-CMD-2026-11-14-weather-failure-cause.md`: one Suite check passes only under UTC
+
+The check `before kickoff the status is 'Scheduled <raw> (parsed HH:mm)', byte for byte` (added in `5a1f98bb`, this CC-CMD's Task 4) holds 477 of 477 under `TZ=UTC` and fails under `TZ=America/New_York` (476 of 477, the same build): `node build/VerifyMain.js`, both measured 2026-11-14.
+
+**The cause is the suite's own date helper, not the page.** `at` in `src/Suite.fs` (line 17) is `DateTimeOffset.Parse(iso, InvariantCulture)`. Fable's `DateTimeOffset.Parse("2026-08-09T23:05:00Z")`, run directly against `build/fable_modules/fable-library-js.5.13.0/DateOffset.js` on 2026-11-14, gave offset 0 and hour 23 under `TZ=UTC`, and offset -14400000 ms and hour 19 under `TZ=America/New_York`. The page's `parseStartTime` in `src/Desk.fs` (line 1031) passes `AssumeUniversal ||| AdjustToUniversal`, is UTC under both, and is not affected.
+
+**Effect.** A local `npm run gate` from a New York shell fails the row `the F# harness refuses a check with no counterexample` (the first local run in `outbox/egress-diagnostics-wiring-2026-11-14.md`, section "The gate"), and the gate is a conjunction, so it is red. CI is not affected: `verify-full` run 43114034855 scored 530 of 530 at `e1f5f281`, which carries the check (`5a1f98bb` is its ancestor).
+
+**Fix, not made here** because it is an F# change outside the weather-message work: give `at` the same two styles as `parseStartTime`, then run `node build/VerifyMain.js` under both zones. It needs the owner's word or this CC-CMD's next session; until then a local gate is run as `TZ=UTC npm run gate`.
