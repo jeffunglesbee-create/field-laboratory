@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2bb2593` | 2026-11-14 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-14T22:44 [skip ci] |
+| `b47686e` | 2026-11-14 | [cc-session-2026-11-14-egress-diagnostics.md](cc-session-2026-11-14-egress-diagnostics.md) | docs: session record for the weather failure message that names its cause, closed out |
+| `4acd8f0` | 2026-11-14 | [egress-path-e2e-20261114T203623Z.txt](egress-path-e2e-20261114T203623Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `4acd8f0` | 2026-11-14 | [egress-path-live-20261114T203623Z.txt](egress-path-live-20261114T203623Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `4acd8f0` | 2026-11-14 | [egress-path-survey-20261114T203623Z.txt](egress-path-survey-20261114T203623Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `4acd8f0` | 2026-11-14 | [open-meteo-egress-2026-11-14T20-36-18-830Z.json](open-meteo-egress-2026-11-14T20-36-18-830Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `4acd8f0` | 2026-11-14 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `c372a52` | 2026-11-14 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: the live-chip refusal CC-CMD is closed on the owner's option 3 |
 | `510c44e` | 2026-11-14 | [cc-session-2026-11-14-egress-diagnostics.md](cc-session-2026-11-14-egress-diagnostics.md) | docs: session record for the weather failure message that names its cause |
 | `a8eace8` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d30a4af` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of d7a8e36 [skip ci] |
