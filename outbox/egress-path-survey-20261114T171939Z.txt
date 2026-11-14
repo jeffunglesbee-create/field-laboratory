@@ -1,0 +1,56 @@
+survey of this runner; 4 sources; 2026-11-14T17:19:39Z
+
+## 1. files named like .setup_info on the root filesystem (find / -xdev, 90 s limit; other mounts are not searched; contents of the first 12 shown)
+find exit status: 124 (1 means a directory could not be read; 124 means it hit the limit and the list is partial)
+files found: 1
+--- /home/runner/actions-runner/cached/2.338.2/.setup_info (761 bytes; first 4000 shown)
+[{"Group":"Runner Image Provisioner","Detail":"Hosted Compute Agent\nVersion: 20261103.629\nCommit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc\nBuild Date: 2026-11-03T17:26:59Z\nWorker ID: {05042ee8-72bd-43e7-8cc3-c0c425b25dce}\nRegion: southcentralus\nCloud: Azure"},{"Group":"_internal_runner_telemetry","Detail":"ProcessLifetimeId: c3de2b4d-267c-4c0c-9559-f0dff553edae\nAzure Region: southcentralus"},{"Group":"Operating System","Detail":"Ubuntu\n26.04.1\nLTS"},{"Group":"Runner Image","Detail":"Image: ubuntu-26.04\nVersion: 20261111.196.1\nIncluded Software: https://github.com/actions/runner-images/blob/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md\nImage Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261111.196"}]
+
+## 2. ImageOS, ImageVersion and RUNNER_* (names and values; no secret is in this set)
+ImageOS=ubuntu26
+ImageVersion=20261111.196.1
+RUNNER_ARCH=X64
+RUNNER_ENVIRONMENT=github-hosted
+RUNNER_NAME=GitHub Actions 1000045810
+RUNNER_OS=Linux
+RUNNER_TEMP=/home/runner/work/_temp
+RUNNER_TOOL_CACHE=/opt/hostedtoolcache
+RUNNER_TRACKING_ID=github_789cf3da-c7a1-4b72-b166-e1d743b38a49
+RUNNER_WORKSPACE=/home/runner/work/field-laboratory
+
+## 3. process ancestry of this step: pid, exe, args
+pid=2815 exe=/usr/bin/bash args=/usr/bin/bash -e /home/runner/work/_temp/dd695c94-04ac-49fa-9f5c-d90b509b5e65.sh 
+pid=2042 exe=/home/runner/actions-runner/cached/2.338.2/bin/Runner.Worker args=/home/runner/actions-runner/cached/2.338.2/bin/Runner.Worker spawnclient 142 145 
+pid=2023 exe=/home/runner/actions-runner/cached/2.338.2/bin/Runner.Listener args=/home/runner/actions-runner/cached/2.338.2/bin/Runner.Listener run 
+pid=1963 exe=/opt/hca/hosted-compute-agent args=/opt/hca/hosted-compute-agent 
+pid=1 exe=unreadable args=/sbin/init 
+
+## 4. names only (no file is read) of the directory the runner agent starts from
+--- /home/runner/actions-runner/cached/2.338.2
+.agent
+.credentials
+.runner
+.setup_info
+_diag
+bin
+config.sh
+env.sh
+externals
+run-helper.cmd.template
+run-helper.sh.template
+run.sh
+safe_sleep.sh
+--- /home/runner/actions-runner/cached/2.338.2
+.agent
+.credentials
+.runner
+.setup_info
+_diag
+bin
+config.sh
+env.sh
+externals
+run-helper.cmd.template
+run-helper.sh.template
+run.sh
+safe_sleep.sh

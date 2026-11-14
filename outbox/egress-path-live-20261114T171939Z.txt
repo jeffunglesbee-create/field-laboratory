@@ -1,0 +1,23 @@
+checked 4 of 4 shapes; node v22.23.4; 2026-11-14T17:21:23.311Z
+
+## real: as expected (264ms)
+   expected: HTTP 200, or a failure whose stage the table places
+   observed: HTTP 200
+   egress-path: probe-error=none | cause=none stage=none | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 167.114.211.86 0ms | dns-v6=ENOTFOUND 29ms | connect-v4=167.114.211.86:443 ok 58ms | connect-v6=not attempted (no v6 address: ENOTFOUND) | egress-v4=20.64.49.212 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region unreadable (no Region line) cloud unreadable (no Cloud line)
+
+## nxdomain: as expected (74ms)
+   expected: stage dns, code ENOTFOUND or EAI_AGAIN
+   observed: stage dns, code ENOTFOUND
+   egress-path: probe-error=TypeError "fetch failed" < Error ENOTFOUND getaddrinfo api.open-meteo.invalid | cause=ENOTFOUND stage=dns | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ENOTFOUND 7ms | dns-v6=ENOTFOUND 17ms | connect-v4=not attempted (no v4 address: ENOTFOUND) | connect-v6=not attempted (no v6 address: ENOTFOUND) | egress-v4=20.64.49.212 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region unreadable (no Region line) cloud unreadable (no Cloud line)
+
+## blackhole: as expected (13498ms)
+   expected: a connect-stage cause (connect, connect-budget or own-abort), whichever this network gives
+   observed: stage connect-budget, code UND_ERR_CONNECT_TIMEOUT
+   egress-path: probe-error=TypeError "fetch failed" < ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT "Connect Timeout Error (attempted address: 192.0.2.1:443, timeout: 10000ms)" | cause=UND_ERR_CONNECT_TIMEOUT stage=connect-budget | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 192.0.2.1 0ms | dns-v6=ok no address of this family (the lookup returned 192.0.2.1) 0ms | connect-v4=192.0.2.1:443 no-connect-in-3000ms 3004ms | connect-v6=not attempted (the v6 lookup returned no address) | egress-v4=20.64.49.212 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region unreadable (no Region line) cloud unreadable (no Cloud line)
+
+## refused: as expected (63ms)
+   expected: stage connect, code ECONNREFUSED
+   observed: stage connect, code ECONNREFUSED
+   egress-path: probe-error=TypeError "fetch failed" < Error ECONNREFUSED connect 127.0.0.1:38997 | cause=ECONNREFUSED stage=connect | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 127.0.0.1 1ms | dns-v6=ok no address of this family (the lookup returned 127.0.0.1) 0ms | connect-v4=127.0.0.1:38997 ECONNREFUSED 2ms | connect-v6=not attempted (the v6 lookup returned no address) | egress-v4=20.64.49.212 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region unreadable (no Region line) cloud unreadable (no Cloud line)
+
+VERDICT: pass, 4 of 4 shapes as expected
