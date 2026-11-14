@@ -33,6 +33,7 @@ jobs:
           dotnet tool restore
       - name: Build
         run: npm run build
+      # browser-gate: exempt 1 -- a failed install ends the job red; the one step it skips that needs no browser only serves the site to the render check and screenshot, which are the job's product and need one
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       - name: Install Chromium
         timeout-minutes: 3

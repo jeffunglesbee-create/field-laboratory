@@ -49,6 +49,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      # browser-gate: exempt 3 -- a failed install ends the job red (no continue-on-error) before the probe runs; the steps it skips are a printed, not enforced, deployed-sha line, the probe's verdict-logic self-test and the verdict step, and the probe's product, its manifest, needs the browser
       - name: Install Chromium
         timeout-minutes: 3
         run: npx playwright install chromium

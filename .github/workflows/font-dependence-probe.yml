@@ -79,6 +79,7 @@ jobs:
 
       # The install exactly as every workflow now runs it (no --with-deps, 180 s), with apt, dpkg and sudo replaced on PATH by shims that log the call and fail.
       # If the install needed one of them it fails loudly here, and the log says which.
+      # browser-gate: exempt 3 -- a failed install ends the job red, and the two measurements the verdict step reads (what the install did, the runner's timeout) run on `!cancelled()`; what it skips is the site server, the treatment (the nine fonts, with nothing to compare it to) and the verdict step that restates a red job
       - name: Install Chromium, with apt watched
         id: install
         timeout-minutes: 3
@@ -94,7 +95,11 @@ jobs:
           PATH="/tmp/shims:$PATH" npx playwright install chromium
           echo "install_seconds: $(( $(date +%s) - START ))" | tee /tmp/install-seconds.txt
 
+      # Not the default success(): when the install fails, this is the step that prints the shim log (which apt, apt-get, dpkg or sudo call it made) and the
+      # libraries it left unresolved, and the verdict step below reads its file. Skipped, the failure would say only that a premise is unknown. It does not run when
+      # the install itself did not (an earlier step failed): there is nothing to read then.
       - name: What the install did
+        if: "!cancelled() && steps.install.outcome != 'skipped'"
         shell: bash
         run: |
           {
@@ -116,7 +121,9 @@ jobs:
 
       # The limit on the composite action and on the combined `Install` step is a coreutils `timeout`. The runner image decides which one it is (GNU, or uutils on 26.04),
       # so its behaviour is measured here: a process tree that never ends, killed by the plain form and by the --kill-after form, with the exit status, the time and the survivors.
+      # `!cancelled()` for the same reason: the verdict step reads /tmp/timeout.txt, and a measurement of the runner that never ran would read as two failed premises.
       - name: The runner's timeout ends a stalled process tree
+        if: "!cancelled()"
         shell: bash
         run: |
           {

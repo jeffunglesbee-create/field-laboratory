@@ -94,7 +94,14 @@ jobs:
 
       - run: npm ci
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
+      #
+      # The same shape as verify.yml's (that file's comment above its install says why): `continue-on-error` and an id, so a failed
+      # install does not skip the two checks below that need no browser (the build stamp, the deploy landing); the seven steps that DO
+      # need one carry `steps.chromium.outcome == 'success'`; and the last step fails the job when the install did not succeed, so it is
+      # never green with the deployed page's browser checks skipped. scripts/check-browser-gate.py (job `browser-gate`) keeps that true.
       - name: Install Chromium
+        id: chromium
+        continue-on-error: true
         timeout-minutes: 3
         run: npx playwright install chromium
 
@@ -156,7 +163,7 @@ jobs:
       - name: Render the deployed page and assert on it
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs
 
       # THE TINTS, ON THE PAGE THAT IS ACTUALLY SERVED.
@@ -172,7 +179,7 @@ jobs:
       # `public/data` and the worker serves at the same path — so the count here
       # is the same 62 verify asserts, measured one hop further out.
       - name: Team tints on the DEPLOYED page
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         run: |
           URL='https://field-laboratory.jeffunglesbee.workers.dev/?data=context-2026-08-29' \
             node scripts/team-tint-render-check.mjs
@@ -195,7 +202,7 @@ jobs:
       # answers 200 deployed).
       - name: The score's weight axis interpolates on the DEPLOYED page
         id: axis
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         env:
           # The commit the widths describe, from the stamp step's own read of
           # /version.txt — the published artifact, not this runner's HEAD. Absent
@@ -210,7 +217,7 @@ jobs:
       - name: The deployed page groups by sport
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         run: |
           # render-check counts cards; it does not know about sections. On a
           # real multi-sport day the live slate must come back grouped, which is
@@ -231,7 +238,7 @@ jobs:
       - name: A finished game shows the brief written after it finished
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         run: |
           node scripts/brief-phase-live-check.mjs --self-test
           URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/brief-phase-live-check.mjs
@@ -239,13 +246,13 @@ jobs:
       - name: The deployed page serves both pick tabs
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         run: npm run check:live-tabs
 
       - name: The pitcher and records rows appear on the deployed page
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
-        if: "!cancelled() && steps.landed.outcome == 'success'"
+        if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
         # Against the DEPLOYED page, not a local server: this is the only
         # configuration where the schedule fetch runs at all — a page pinned to
         # `?data=` renders a committed capture and must never reach the network,
@@ -313,6 +320,23 @@ jobs:
           git commit -m "probe: the score's weight axis on the deployed page [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
+
+      # LAST, and `always()`: without this a failed install would leave the job green with every browser check of the deployed page
+      # skipped. The outcome comes in through `env:`; scripts/check-browser-gate.py RUNS this script under `bash -e` for each outcome and
+      # requires a non-zero exit with an `::error::` line, which is why it may use only echo, `exit N` and `[ ]` comparisons.
+      - name: Install Chromium did not succeed, so the steps that need a browser were skipped
+        if: always() && steps.chromium.outcome != 'success'
+        env:
+          INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
+        run: |
+          if [ "$INSTALL_OUTCOME" = skipped ]; then
+            echo "::error::The Chromium install was skipped: an earlier step failed, or the run was cancelled before it. The checks that need a browser did not run, so the deployed page was NOT checked."
+          elif [ "$INSTALL_OUTCOME" = cancelled ]; then
+            echo "::error::The run was cancelled before the Chromium install finished. The deployed page was NOT checked."
+          else
+            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The checks that need a browser were skipped, so the deployed page was NOT checked; the build stamp and deploy-landing checks above did run."
+          fi
+          exit 1
 
       # The window simulation (npm run check:window) does NOT live here. It runs
       # in `verify`, which also has relay egress.

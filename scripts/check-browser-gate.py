@@ -125,6 +125,19 @@ INSTALL_ID = "chromium"
 MIN_STEPS = 60          # coverage floors: a classifier that reads nothing must not pass
 MIN_BROWSER = 10
 MIN_PLAIN = 30
+# The jobs that get the whole shape (install continue-on-error, browser steps gated, a final red step), each with its own floors
+# (steps read, browser steps, browser-free steps). Every OTHER place that installs a browser is EXEMPT and says so in an annotation
+# above its install: see EXEMPT_NOTE.
+TARGETS = [
+    {"file": WORKFLOW, "job": JOB, "floors": (MIN_STEPS, MIN_BROWSER, MIN_PLAIN)},
+    {"file": ".github/workflows/live-check.yml", "job": "live", "floors": (8, 5, 2)},
+]
+EXEMPT_NOTE = re.compile(r"#\s*browser-gate:\s*exempt\s+(\d+)\s+--\s+(\S.*?)\s*$")
+EXEMPT_REACH = 40       # the annotation sits within this many lines above the install command
+# What lets a step run after the Chromium install FAILED: always(), failure(), or the negated cancelled(). A bare `cancelled()` runs only when the run was cancelled, and an explicit
+# `success()` is the default that a failure turns off, so neither of those is a status function in this sense.
+RUNS_AFTER_FAILURE = re.compile(r"\b(?:always|failure)\s*\(|!\s*cancelled\s*\(")
+EXPLICIT_SUCCESS = re.compile(r"(?<![.\w'])success\s*\(")
 FINAL_OUTCOMES = ("failure", "skipped", "cancelled", "")   # what steps.chromium.outcome can be when the final step runs
 FINAL_TIMEOUT = 20
 
@@ -256,7 +269,10 @@ PREFIX_WORDS = {"if", "then", "else", "elif", "do", "while", "until", "!", "{", 
 # Commands that cannot start a program of this repo's. `cd` is not here on purpose: it would make every later relative path
 # mean something else. `curl` fetches; piping it to a shell makes the shell a command of its own, which is unresolved.
 SAFE_HEADS = frozenset({"echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[",
-                        "export", "unset", "set", "cat", "mkdir"})
+                        "export", "unset", "set", "cat", "mkdir", "tr"})
+GIT_SUBS = frozenset({"config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch",
+                      "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"})
+DOTNET_SUBS = frozenset({"fable", "build", "restore"})
 ACTIONS_OK = ("actions/checkout@", "actions/setup-node@", "actions/setup-dotnet@", "actions/setup-python@",
               "actions/upload-artifact@", "actions/download-artifact@", "actions/cache@")
 NODE_PRELOAD = {"-r", "--require", "--import", "--loader", "--experimental-loader"}
@@ -372,6 +388,19 @@ def read_python(w, out, shown):
     out["entries"].append((w[i], w[i + 1:]))
 
 
+def read_git(w, out, shown):
+    sub = w[1] if len(w) > 1 else ""
+    if sub not in GIT_SUBS:
+        out["unresolved"].append(f"`{shown}`: git {sub or '(nothing)'} is not a subcommand this guard reads (a global flag such as -c or -C runs or moves something it cannot see)")
+
+
+def read_dotnet(w, out, shown):
+    sub = w[1] if len(w) > 1 else ""
+    if (sub == "tool" and len(w) > 2 and w[2] == "restore") or sub in DOTNET_SUBS:
+        return
+    out["unresolved"].append(f"`{shown}`: dotnet {sub or '(nothing)'} is not a subcommand this guard reads (it reads tool restore, fable, build and restore)")
+
+
 def read_npx(w, out, shown):
     i = 1
     while i < len(w) and w[i] in ("-y", "--yes", "--no-install"):
@@ -465,6 +494,10 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
                 read_python(w, out, shown)
             elif head == "npx":
                 read_npx(w, out, shown)
+            elif head == "git":
+                read_git(w, out, shown)
+            elif head == "dotnet":
+                read_dotnet(w, out, shown)
             elif head in SAFE_HEADS:
                 continue
             else:
@@ -698,46 +731,85 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
     return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "final_ok": final_ok}
 
 
-def other_install_sites(root="."):
-    """`file:line` of every OTHER place that installs a browser: this guard reads only the `verify` job."""
-    sites = []
-    base = Path(root)
-    for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):
-        for f in sorted(base.glob(pat)):
-            rel = f.relative_to(base).as_posix()
-            if rel == WORKFLOW:
-                continue
-            for n, line in enumerate(f.read_text().splitlines(), 1):
-                if INSTALL_CMD.search(line) and not line.lstrip().startswith("#"):
-                    sites.append(f"{rel}:{n}")
-    return sites
-
-
 def classification(doc, pkg, read, job=JOB):
     steps = job_steps(doc, job)
     at = next((i for i, s in enumerate(steps) if is_install(s)), -1)
     return [{"name": s.get("name"), "needsChromium": "yes" if needs_browser(s, pkg, read) else "no"} for i, s in enumerate(steps) if i > at and s.get("name")]
 
 
-def coverage_problems(cov):
+def coverage_problems(cov, bounds=(MIN_STEPS, MIN_BROWSER, MIN_PLAIN)):
     """A classifier that read nothing must not pass: the counts it reports are bounded below."""
-    floors = [("steps read", cov["steps"], MIN_STEPS), ("browser steps", cov["browser"], MIN_BROWSER), ("browser-free steps", cov["plain"], MIN_PLAIN)]
+    floors = [("steps read", cov["steps"], bounds[0]), ("browser steps", cov["browser"], bounds[1]), ("browser-free steps", cov["plain"], bounds[2])]
     return [f"only {got} {label} read, expected at least {floor}: the classifier read too little to mean anything" for label, got, floor in floors if got < floor]
 
 
+# ---------------------------------------------------------------- the other install sites: exempt, by annotation, with a pinned count
+def runs_after_failure(step):
+    c = if_text(step)
+    return bool(RUNS_AFTER_FAILURE.search(c)) and not EXPLICIT_SUCCESS.search(c)
+
+
+def exempt_count(steps, at, pkg, read):
+    """The steps after the install that a failed install SKIPS (no status function in their `if`) and that do not need a browser. An
+    unreadable step counts: it may be browser-free."""
+    return sum(1 for s in steps[at + 1:] if not runs_after_failure(s) and not read_step(s, pkg, read)["browser"])
+
+
+def install_sites(root="."):
+    """([(rel, line, steps, at)], [problem]) for every install outside the TARGETS: the text line of its command (comment lines dropped)
+    paired in order with the parsed install step, which gives the steps that follow it in its job or composite action."""
+    base, out, bad = Path(root), [], []
+    targets = {x["file"] for x in TARGETS}
+    for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):
+        for f in sorted(base.glob(pat)):
+            rel = f.relative_to(base).as_posix()
+            if rel in targets:
+                continue
+            text = f.read_text()
+            lines = [n for n, line in enumerate(text.splitlines(), 1) if INSTALL_CMD.search(line) and not line.lstrip().startswith("#")]
+            if not lines:
+                continue
+            doc = yaml.safe_load(text) or {}
+            lists = [(j or {}).get("steps") or [] for j in (doc.get("jobs") or {}).values()] or [((doc.get("runs") or {}).get("steps")) or []]
+            found = [(steps, i) for steps in lists for i, s in enumerate(steps) if is_install(s)]
+            if len(found) != len(lines):
+                bad.append(f"{rel}: {len(lines)} line(s) run the install command but {len(found)} step(s) parse as one: this guard cannot pair them")
+                continue
+            out += [(rel, n, steps, at) for (steps, at), n in zip(found, lines)]
+    return out, bad
+
+
+def exempt_sites(root, pkg, read):
+    """(problems, table) for the installs outside the TARGETS. Each needs ONE `# browser-gate: exempt N -- reason` within EXEMPT_REACH lines
+    above its install command, N being exempt_count(). A step added after an exempt install is skipped when the install fails: N rising is the
+    signal to either give the job the shape or say why not. An annotation that pairs with no install is stale."""
+    sites, bad = install_sites(root)
+    table, used, prev = [], set(), {}
+    for rel, line, steps, at in sorted(sites, key=lambda s: (s[0], s[1])):
+        text = Path(root, rel).read_text().splitlines()
+        # an annotation belongs to the FIRST install below it: the window opens after the previous install in the same file, so one annotation cannot cover two
+        lo = max(0, line - 1 - EXEMPT_REACH, prev.get(rel, 0))
+        prev[rel] = line
+        notes = [(n, m) for n, l in enumerate(text[lo:line - 1], lo + 1) for m in [EXEMPT_NOTE.search(l)] if m]
+        if len(notes) != 1:
+            bad.append(f"{rel}:{line} installs a browser and is neither a target of this guard nor annotated exactly once with `# browser-gate: exempt <N> -- <reason>` within {EXEMPT_REACH} lines above the install ({len(notes)} found): a failed install there skips every later step that has no status function, so say why that is right, or give the job the verify shape")
+            continue
+        at_line, m = notes[0]
+        used.add((rel, at_line))
+        n, said = exempt_count(steps, at, pkg, read), int(m.group(1))
+        if n != said:
+            bad.append(f"{rel}:{line}: {n} step(s) after the install are skipped by a failed install and need no browser, but the annotation says {said}. A step added there is lost when the install fails: if it matters, give the job the verify shape; if not, change the annotation and keep its reason true")
+        table.append((rel, line, n, m.group(2)))
+    for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):
+        for f in sorted(Path(root).glob(pat)):
+            rel = f.relative_to(Path(root)).as_posix()
+            for n, l in enumerate(f.read_text().splitlines(), 1):
+                if EXEMPT_NOTE.search(l) and (rel, n) not in used:
+                    bad.append(f"{rel}:{n}: a `browser-gate: exempt` annotation that sits above no install in a file this guard does not cover (a target carries the shape and needs none): it is stale")
+    return bad, table
+
+
 # ---------------------------------------------------------------- self-test
-def _sites_fixture_ok():
-    with tempfile.TemporaryDirectory() as d:
-        wf = Path(d, ".github", "workflows")
-        act = Path(d, ".github", "actions", "shard")
-        wf.mkdir(parents=True)
-        act.mkdir(parents=True)
-        (wf / "verify.yml").write_text("run: npx playwright install chromium\n")
-        (wf / "a.yml").write_text("# npx playwright install chromium (a comment)\n      run: npx playwright install chromium\n")
-        (act / "action.yml").write_text("run: timeout 180 npx playwright install chromium\n")
-        return other_install_sites(d) == [".github/workflows/a.yml:2", ".github/actions/shard/action.yml:1"]
-
-
 def self_test():
     ok = fail = 0
 
@@ -1058,39 +1130,134 @@ def self_test():
           any_of("must be ONE", mut(lambda s: s[1].update({"run": "npx playwright install chromium\nnpm run pure"}))) and
           any_of("must be ONE", mut(lambda s: s[1].update({"run": "npx playwright install chromium && npm run pure"}))))
     check("...and `timeout --kill-after=10 180 npx playwright install chromium` is one install command", mut(lambda s: s[1].update({"run": "timeout --kill-after=10 180 npx playwright install chromium"})) == [])
-    check("the other install sites are listed with their lines, a comment that names the command is not one, and verify.yml is not one of them",
-          _sites_fixture_ok())
 
-    # ---- THE REAL-TREE PATH AND THE CLI EXIT, which no mutant reached before the second review: run the guard itself, as the
-    # browser-gate job does, in a temporary root holding a workflow big enough to pass the coverage floors
-    def cli(steps, with_other_site=False):
+    # ---- THE REAL-TREE PATH AND THE CLI EXIT: run the guard itself, as the browser-gate job does, in a temporary root holding a verify.yml
+    # big enough to pass the coverage floors, a live-check.yml of the second target, and the other install sites each with its annotation
+    live_final = {"name": "Chromium did not install", "if": "always() && steps.chromium.outcome != 'success'", "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}"},
+                  "run": "echo \"::error::outcome $INSTALL_OUTCOME\"\nexit 1"}
+    live_good = [{"name": "setup", "run": "npm run pure"}, inst] + \
+                [{"name": f"deployed {i}", "if": "!cancelled() && " + gated, "run": "npm run shot"} for i in range(6)] + \
+                [{"name": f"stamp {i}", "run": "npm run pure"} for i in range(3)] + [live_final]
+    live_wf = {"jobs": {"live": {"steps": live_good}}}
+    probe_text = "jobs:\n  probe:\n    steps:\n      - run: npm run pure\n" + \
+                 "      # browser-gate: exempt 1 -- the probe's own verdict is the only step after it and needs the browser's result\n" + \
+                 "      - name: Install Chromium\n        run: npx playwright install chromium\n      - name: verdict\n        run: npm run pure\n      - name: Commit\n        if: always()\n        run: npm run pure\n"
+
+    def cli(steps, with_probe=probe_text, live=live_wf, extra=None):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / ".github" / "workflows").mkdir(parents=True)
             (root / ".github" / "workflows" / "verify.yml").write_text(yaml.safe_dump(wf(steps)))
+            if live is not None:
+                (root / ".github" / "workflows" / "live-check.yml").write_text(yaml.safe_dump(live))
+            if with_probe is not None:
+                (root / ".github" / "workflows" / "probe.yml").write_text(with_probe)
+            for name, text in (extra or {}).items():
+                (root / ".github" / "workflows" / name).write_text(text)
             (root / "package.json").write_text(json.dumps({"scripts": pkg}))
             for f, src in files.items():
                 if "/" in f:
                     (root / f).parent.mkdir(parents=True, exist_ok=True)
                     (root / f).write_text(src)
-            if with_other_site:
-                (root / ".github" / "workflows" / "probe.yml").write_text("run: npx playwright install chromium\n")
             r = subprocess.run([sys.executable, __file__], cwd=d, capture_output=True, text=True, timeout=60)
             return r.returncode, r.stdout + r.stderr
 
     big = [{"name": "build", "id": "build", "run": "npm run pure"}, inst] + \
           [{"name": f"shot {i}", "if": gated, "run": "npm run shot"} for i in range(12)] + \
           [{"name": f"plain {i}", "run": "npm run pure"} for i in range(50)] + [final]
-    rc, out = cli(big, with_other_site=True)
-    check("THE CLI on a good tree exits 0 and says `verdict: gated`", rc == 0 and "verdict: gated" in out, (rc, out[-300:]))
-    check("...and lists the other install sites it does not read (Rule 91)", "NOT COVERED, 1 other place(s)" in out and "probe.yml:1" in out, out[-300:])
+    rc, out = cli(big)
+    check("THE CLI on a good tree exits 0 and says `verdict: gated`", rc == 0 and "verdict: gated" in out, (rc, out[-400:]))
+    check("...it reads BOTH targets and says so", "workflows/verify.yml, job `verify`" in out and "workflows/live-check.yml, job `live`" in out and "2 job(s) get the whole shape" in out, out[-500:])
+    check("...and lists the exempt site with its pinned N and its reason (Rule 91)", "probe.yml:" in out and "N=1" in out and "the probe's own verdict" in out, out[-400:])
     broken = [dict(s) for s in big]
     del broken[1]["id"]
     rc, out = cli(broken)
     check("THE CLI on a tree whose install has lost its id exits 1, prints FAIL and names the problem",
           rc == 1 and "FAIL: " in out and "must have `id: chromium`" in out and "verdict: gated" not in out, (rc, out[-300:]))
     rc, out = cli([{"name": "build", "id": "build", "run": "npm run pure"}, inst, {"name": "shots", "if": gated, "run": "npm run shot"}, final])
-    check("THE CLI applies the coverage floors to the real tree: a tree that reads too little exits 1", rc == 1 and "expected at least" in out, (rc, out[-300:]))
+    check("THE CLI applies the coverage floors to the first target: a tree that reads too little exits 1", rc == 1 and "expected at least" in out, (rc, out[-300:]))
+    rc, out = cli(big, live=None)
+    check("THE CLI with a target file missing exits 1 and says which", rc == 1 and "live-check.yml does not exist" in out, (rc, out[-300:]))
+    rc, out = cli(big, live={"jobs": {"live": {"steps": live_good[:-1]}}})
+    check("THE CLI on a second target that lost its final step exits 1, naming that file", rc == 1 and "live-check.yml: the LAST step" in out, (rc, out[-300:]))
+    rc, out = cli(big, live={"jobs": {"live": {"steps": [dict(live_good[0]), dict(live_good[1])] + live_good[2:4]}}})
+    check("THE CLI applies the SECOND target's floors (8 steps, 5 browser, 2 browser-free): a live job that reads too little exits 1", rc == 1 and "live-check.yml: only" in out, (rc, out[-300:]))
+    rc, out = cli(big, with_probe=probe_text.replace("      # browser-gate: exempt 1 -- the probe's own verdict is the only step after it and needs the browser's result\n", ""))
+    check("THE CLI on an install site with no annotation exits 1", rc == 1 and "neither a target of this guard nor annotated" in out, (rc, out[-300:]))
+    rc, out = cli(big, with_probe=probe_text.replace("exempt 1 --", "exempt 5 --"))
+    check("THE CLI on an annotation with a wrong N exits 1 and says what N is", rc == 1 and "the annotation says 5" in out, (rc, out[-300:]))
+    rc, out = cli(big, extra={"stale.yml": "# browser-gate: exempt 0 -- nothing installs here\njobs:\n  a:\n    steps:\n      - run: echo hi\n"})
+    check("THE CLI on an annotation above no install exits 1, calling it stale", rc == 1 and "is stale" in out, (rc, out[-300:]))
+
+    # ---- THE EXEMPT SITES, directly: the pinned count, the annotation's shape and its reach, the pairing, a composite action
+    def sites(files_by_name, actions=None):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / ".github" / "workflows").mkdir(parents=True)
+            for n, text in files_by_name.items():
+                (root / ".github" / "workflows" / n).write_text(text)
+            for n, text in (actions or {}).items():
+                (root / ".github" / "actions" / n).mkdir(parents=True)
+                (root / ".github" / "actions" / n / "action.yml").write_text(text)
+            return exempt_sites(str(root), pkg, read)
+    NOTE = "      # browser-gate: exempt {n} -- {why}\n"
+
+    def site(n, why="the verdict needs the browser", steps_after="      - name: verdict\n        run: npm run pure\n"):
+        return "jobs:\n  probe:\n    steps:\n" + NOTE.format(n=n, why=why) + "      - name: Install Chromium\n        run: npx playwright install chromium\n" + steps_after
+    bad1, tab1 = sites({"a.yml": site(1)})
+    check("an exempt site with the right N is accepted and listed with its reason", bad1 == [] and len(tab1) == 1 and tab1[0][2] == 1 and tab1[0][3] == "the verdict needs the browser", (bad1, tab1))
+    bad2, _ = sites({"a.yml": site(2)})
+    check("...with a wrong N it is refused, and the message says what N is", any_of("the annotation says 2", bad2) and any_of("1 step(s) after the install", bad2), bad2)
+    bad3, _ = sites({"a.yml": site(0, steps_after="      - name: verdict\n        run: npm run shot\n")})
+    check("a step that NEEDS a browser is not counted (it is skipped, and should be)", bad3 == [], bad3)
+    bad4, _ = sites({"a.yml": site(0, steps_after="      - name: after\n        if: always()\n        run: npm run pure\n")})
+    check("a step with `always()` is not counted (it runs when the install fails)", bad4 == [], bad4)
+    bad4b, _ = sites({"a.yml": site(0, steps_after="      - name: after\n        if: ${{ !cancelled() && steps.x.outcome == 'success' }}\n        run: npm run pure\n")})
+    check("a step whose `if` has `!cancelled()` is not counted either", bad4b == [], bad4b)
+    bad4d, _ = sites({"a.yml": site(0, steps_after="      - name: after\n        if: failure()\n        run: npm run pure\n")})
+    check("a step with `failure()` is not counted (it runs when the install fails)", bad4d == [], bad4d)
+    bad4e, _ = sites({"a.yml": site(1, steps_after="      - name: after\n        if: success()\n        run: npm run pure\n")})
+    check("an explicit `success()` IS counted (a failure turns it off, as it does the default)", bad4e == [], bad4e)
+    bad4f, _ = sites({"a.yml": site(1, steps_after="      - name: after\n        if: cancelled()\n        run: npm run pure\n")})
+    check("a bare `cancelled()` IS counted (it runs only when the run was cancelled)", bad4f == [], bad4f)
+    bad4g, _ = sites({"a.yml": site(1, steps_after="      - name: after\n        if: ${{ always() && success() }}\n        run: npm run pure\n")})
+    check("`always() && success()` IS counted (the second clause turns it off after a failure)", bad4g == [], bad4g)
+    bad4c, _ = sites({"a.yml": site(1, steps_after="      - name: after\n        if: steps.x.outcome == 'success'\n        run: npm run pure\n")})
+    check("...but a step gated only on another step's outcome IS counted (the implicit success() skips it)", bad4c == [], bad4c)
+    bad5, _ = sites({"a.yml": site(1, steps_after="      - name: u\n        run: timeout 5 node scripts/pure.mjs\n")})
+    check("an UNREADABLE step is counted (it may be browser-free)", bad5 == [], bad5)
+    bad6, _ = sites({"a.yml": site(1).replace("-- the verdict needs the browser", "--")})
+    check("an annotation with no reason is not an annotation", any_of("0 found", bad6), bad6)
+    bad6b, _ = sites({"a.yml": site(1) .replace("      # browser-gate", "      # browser-gate: exempt 1 -- twice\n      # browser-gate", 1)})
+    check("two annotations above one install are refused", any_of("2 found", bad6b), bad6b)
+    bad7, _ = sites({"a.yml": site(1).replace(NOTE.format(n=1, why="the verdict needs the browser"), NOTE.format(n=1, why="far") + "      # x\n" * 45)})
+    check("an annotation more than 40 lines above the install is out of reach", any_of("0 found", bad7), bad7)
+    bad8, _ = sites({"b.yml": "# browser-gate: exempt 0 -- nothing here\njobs:\n  a:\n    steps:\n      - run: echo hi\n"})
+    check("an annotation in a file that installs nothing is stale", any_of("is stale", bad8), bad8)
+    bad9, _ = sites({"c.yml": site(2) + "      - name: Install Chromium again\n        run: npx playwright install chromium\n"})
+    check("two installs and one annotation: the second is refused, and ONLY the second (one annotation does not cover two installs)",
+          len(bad9) == 1 and "c.yml:10" in bad9[0] and "neither a target" in bad9[0], bad9)
+    bad10, tab10 = sites({}, actions={"shard": "runs:\n  using: composite\n  steps:\n    - run: npm run pure\n      shell: bash\n" + NOTE.format(n=1, why="the shard needs it").replace("      #", "    #") + "    - name: Install Chromium\n      shell: bash\n      run: timeout 180 npx playwright install chromium\n    - name: Run\n      shell: bash\n      run: npm run pure\n"})
+    check("a composite action's install is read the same way", bad10 == [] and len(tab10) == 1, (bad10, tab10))
+    bad11, _ = sites({"d.yml": "jobs:\n  a:\n    steps:\n      - name: Install\n        run: |\n          npx playwright install chromium\n          npx playwright install firefox\n"})
+    check("two install commands in ONE step cannot be paired and are refused", any_of("cannot pair", bad11), bad11)
+    bad12, tab12 = sites({"e.yml": "# npx playwright install chromium (a comment that names the command)\n" + site(1)})
+    check("a comment that names the install command is not an install site", bad12 == [] and len(tab12) == 1, (bad12, tab12))
+    bad13, _ = sites({}, actions={"x": "runs:\n  using: composite\n  steps:\n    # browser-gate: exempt 0 -- nothing installs here\n    - run: echo hi\n      shell: bash\n"})
+    check("a stale annotation inside a composite action is found too", any_of("is stale", bad13), bad13)
+    bad14, tab14 = sites({"verify.yml": "jobs:\n  verify:\n    steps:\n      - name: Install\n        run: npx playwright install chromium\n"})
+    check("an install in a file the guard covers as a target is not an exempt site (it carries the whole shape, audited elsewhere)", bad14 == [] and tab14 == [], (bad14, tab14))
+    check("the second target's floors are 8 steps, 5 browser steps and 2 browser-free steps (pinned, not read from TARGETS)",
+          len(coverage_problems({"steps": 7, "browser": 4, "plain": 1}, (8, 5, 2))) == 3 and coverage_problems({"steps": 8, "browser": 5, "plain": 2}, (8, 5, 2)) == [] and
+          TARGETS[1]["floors"] == (8, 5, 2) and TARGETS[1]["job"] == "live" and TARGETS[1]["file"] == ".github/workflows/live-check.yml" and TARGETS[0]["floors"] == (60, 10, 30))
+    # ---- THE READER KNOWS WHAT live-check.yml RUNS
+    check("`git config`, `add`, `commit`, `push`, `pull`, `rev-parse` are read", unresolved('git config user.name x; git add f; git commit -m m; git pull --rebase origin main; git push origin HEAD:main') == [] and unresolved("x=$(git rev-parse HEAD)") == [])
+    check("a git global flag or a subcommand that runs something is unresolved (`-c`, `-C`, `bisect run`, `difftool`)",
+          unresolved("git -c core.hooksPath=x commit -m m") != [] and unresolved("git -C sub status") != [] and unresolved("git bisect run node scripts/shot.mjs") != [] and unresolved("git difftool") != [])
+    check("`dotnet tool restore`, `dotnet fable ...` and `dotnet build` are read; `dotnet run`, `test` and `tool run` are not",
+          unresolved("dotnet tool restore") == [] and unresolved("dotnet fable src/L.fsproj --outDir build") == [] and unresolved("dotnet build") == [] and
+          unresolved("dotnet run") != [] and unresolved("dotnet test") != [] and unresolved("dotnet tool run x") != [])
+    check("`tr` is a safe head and a pipe into it is read (`DEPLOYED=$(curl -sSf url | tr -d '[:space:]')`)", unresolved("DEPLOYED=$(curl -sSf --max-time 30 \"$SITE/v.txt\" | tr -d '[:space:]')") == [] and browser("echo x | tr a b | node scripts/shot.mjs") is True)
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
@@ -1099,23 +1266,36 @@ def self_test():
 
 # ---------------------------------------------------------------- the real tree
 def real_tree(root="."):
-    text = Path(root, WORKFLOW).read_text()
-    doc = yaml.safe_load(text)
     pkg = json.loads(Path(root, "package.json").read_text()).get("scripts", {})
     read = lambda p: Path(root, p).read_text()
-    bad, cov = audit(doc, pkg, read)
-    print(f"=== the {JOB} job's browser steps wait for the Chromium install ===")
-    print(f"  steps after the install read : {cov['steps']}")
-    print(f"  need a browser (gated)       : {cov['browser']}")
-    print(f"  need none (not gated)        : {cov['plain']}")
-    print(f"  could not be read (refused)  : {cov['unreadable']}")
-    print(f"  final step run for {len(FINAL_OUTCOMES)} outcomes   : exits non-zero with ::error:: for {cov['final_ok']} of {len(FINAL_OUTCOMES)} ({', '.join(repr(o) for o in FINAL_OUTCOMES)})")
-    others = other_install_sites(root)
-    print(f"\nCOVERAGE: the `verify` job of {WORKFLOW} only. NOT COVERED, {len(others)} other place(s) that install a browser:")
-    print("  " + (", ".join(others) if others else "none"))
-    bad += coverage_problems(cov)
-    if "--json" in sys.argv:
-        print(json.dumps(classification(doc, pkg, read), indent=1))
+    bad = []
+    first_doc = None
+    for tg in TARGETS:
+        path = Path(root, tg["file"])
+        if not path.exists():
+            bad.append(f"the target {tg['file']} does not exist")
+            continue
+        doc = yaml.safe_load(path.read_text())
+        if first_doc is None:
+            first_doc = doc
+        problems, cov = audit(doc, pkg, read, job=tg["job"])
+        print(f"=== {tg['file']}, job `{tg['job']}`: the browser steps wait for the Chromium install ===")
+        print(f"  steps after the install read : {cov['steps']}")
+        print(f"  need a browser (gated)       : {cov['browser']}")
+        print(f"  need none (not gated)        : {cov['plain']}")
+        print(f"  could not be read (refused)  : {cov['unreadable']}")
+        print(f"  final step run for {len(FINAL_OUTCOMES)} outcomes   : exits non-zero with ::error:: for {cov['final_ok']} of {len(FINAL_OUTCOMES)} ({', '.join(repr(o) for o in FINAL_OUTCOMES)})")
+        print()
+        bad += [f"{tg['file']}: {b}" for b in problems] + [f"{tg['file']}: {b}" for b in coverage_problems(cov, tg["floors"])]
+        if "--json" in sys.argv and tg is TARGETS[0]:
+            print(json.dumps(classification(doc, pkg, read, tg["job"]), indent=1))
+    exempt_problems, table = exempt_sites(root, pkg, read)
+    bad += exempt_problems
+    print(f"COVERAGE: {len(TARGETS)} job(s) get the whole shape ({', '.join(t['file'] + ':' + t['job'] for t in TARGETS)}).")
+    print(f"  The other {len(table)} install site(s) are EXEMPT by the annotation above each install; N is the number of steps after it that a failed install")
+    print("  skips and that need no browser, pinned so a step added there is noticed. A site with no annotation, or a wrong N, is a problem below:")
+    for rel, line, n, reason in table:
+        print(f"  {rel}:{line}  N={n}  {reason[:110]}")
     if bad:
         print(f"\nFAIL: {len(bad)} problem(s):")
         for b in bad:

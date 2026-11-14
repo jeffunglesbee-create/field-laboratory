@@ -21,6 +21,10 @@
 // FOUND BY THE FIRST SWEEP, then removed: a `not preload` clause on the --self-test exemption (preload entries carry no arguments) and the final step's own
 // `continue-on-error` and `shell` checks (the rules that read every step already refuse both). FOUND BY THE SECOND REVIEW, now mutants below: E2, E3, E4, E6 of the first
 // version of this list were not equivalent (each had an input the self-test lacked) and the real-tree path had no mutant at all.
+// ADDED 2026-11-14 (open item 1 of docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md): the guard now reads a SECOND job (live-check.yml, job `live`) and requires every other install to carry
+// `# browser-gate: exempt N -- reason`. The sweep copies the whole .github tree (the real-tree path reads every workflow), the six CODE mutants of the old `other_install_sites` are replaced by
+// 28 of `install_sites`, `exempt_sites`, `exempt_count`, `runs_after_failure`, the TARGETS wiring and the floors, and a third group (OTHERS: 8 of live-check.yml, 11 of the exempt sites,
+// among them the two fixes that took a step out of the skipped set) is judged by the guard on the real-tree path. 138 CODE, 56 verify.yml, 19 OTHERS.
 //   node outbox/browser-gate-sweep-2026-11-12.mjs        (from the repository root)
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
@@ -136,18 +140,40 @@ const CODE = [
   ['a composite action is accepted', 'if not str(uses).startswith(ACTIONS_OK):', 'if False:'],
   ['a shell other than bash is accepted', '    if step.get("shell") not in (None, "bash"):\n        res["unresolved"]', '    if False:\n        res["unresolved"]'],
   ['a working-directory is accepted', 'if step.get("working-directory") not in (None, "."):', 'if False:'],
-  ['the other install sites count a comment', 'if INSTALL_CMD.search(line) and not line.lstrip().startswith("#"):', 'if INSTALL_CMD.search(line):'],
-  ['the other install sites include verify.yml', 'if rel == WORKFLOW:\n                continue', 'if False:\n                continue'],
-  ['the other install sites miss the composite actions', 'for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):', 'for pat in (".github/workflows/*.yml",):'],
   ['the coverage floors are zero', 'MIN_STEPS = 60 ', 'MIN_STEPS = 0 '],
   ['the browser floor is zero', 'MIN_BROWSER = 10', 'MIN_BROWSER = 0'],
   ['the browser-free floor is zero', 'MIN_PLAIN = 30', 'MIN_PLAIN = 0'],
   ['more than one install step is accepted', 'if len(installs) != 1:', 'if len(installs) < 1:'],
   ['a bad tree prints FAIL and returns True', '            print(f"  - {b}")\n        return False\n', '            print(f"  - {b}")\n        return True\n'],
   ['the CLI exits 0 whatever the verdict', 'sys.exit(0 if real_tree() else 1)', 'real_tree(); sys.exit(0)'],
-  ['the problems of audit() are not reported', 'bad, cov = audit(doc, pkg, read)\n    print(f"=== the {JOB}', 'bad, cov = [], audit(doc, pkg, read)[1]\n    print(f"=== the {JOB}'],
-  ['the coverage floors are not applied on the real tree', '    bad += coverage_problems(cov)\n', '    pass\n'],
-  ['the other install sites are not listed', 'others = other_install_sites(root)', 'others = []'],
+  ['the install sites count a comment', 'if INSTALL_CMD.search(line) and not line.lstrip().startswith("#")]', 'if INSTALL_CMD.search(line)]'],
+  ['the install sites include the targets', 'if rel in targets:\n                continue', 'if False:\n                continue'],
+  ['the install sites miss the composite actions', 'for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):\n        for f in sorted(base.glob(pat)):', 'for pat in (".github/workflows/*.yml",):\n        for f in sorted(base.glob(pat)):'],
+  ['the stale scan misses the composite actions', 'for pat in (".github/workflows/*.yml", ".github/actions/*/action.yml"):\n        for f in sorted(Path(root).glob(pat)):', 'for pat in (".github/workflows/*.yml",):\n        for f in sorted(Path(root).glob(pat)):'],
+  ['an install that cannot be paired with its step is accepted', 'if len(found) != len(lines):', 'if False:'],
+  ['the problems of audit() are not reported', 'bad += [f"{tg[\'file\']}: {b}" for b in problems] + [f"{tg[\'file\']}: {b}" for b in coverage_problems(cov, tg["floors"])]', 'bad += [f"{tg[\'file\']}: {b}" for b in coverage_problems(cov, tg["floors"])]'],
+  ['the coverage floors are not applied on the real tree', 'bad += [f"{tg[\'file\']}: {b}" for b in problems] + [f"{tg[\'file\']}: {b}" for b in coverage_problems(cov, tg["floors"])]', 'bad += [f"{tg[\'file\']}: {b}" for b in problems]'],
+  ['the exempt sites are not read on the real tree', 'exempt_problems, table = exempt_sites(root, pkg, read)\n    bad += exempt_problems', 'exempt_problems, table = exempt_sites(root, pkg, read)\n    bad += []'],
+  ['only the first target is audited', 'for tg in TARGETS:\n        path = Path(root, tg["file"])', 'for tg in TARGETS[:1]:\n        path = Path(root, tg["file"])'],
+  ['a missing target is not reported', 'bad.append(f"the target {tg[\'file\']} does not exist")', '(lambda *_: None)(f"the target {tg[\'file\']} does not exist")'],
+  ['the second target is held to no floors', '"floors": (8, 5, 2)', '"floors": (0, 0, 0)'],
+  ['the second target is another job', '"job": "live"', '"job": "verify"'],
+  ['an annotation may sit any distance above its install', 'EXEMPT_REACH = 40', 'EXEMPT_REACH = 4000'],
+  ['an annotation has no reach', 'EXEMPT_REACH = 40', 'EXEMPT_REACH = 0'],
+  ['an annotation needs no reason', '--\\s+(\\S.*?)\\s*$', '--\\s*(.*?)\\s*$'],
+  ['two annotations above one install are accepted', 'if len(notes) != 1:', 'if len(notes) < 1:'],
+  ['one annotation covers two installs', 'lo = max(0, line - 1 - EXEMPT_REACH, prev.get(rel, 0))', 'lo = max(0, line - 1 - EXEMPT_REACH)'],
+  ['a wrong N is accepted', 'if n != said:', 'if False:'],
+  ['a stale annotation is accepted', 'if EXEMPT_NOTE.search(l) and (rel, n) not in used:', 'if False:'],
+  ['an annotation is never marked used', 'used.add((rel, at_line))', 'pass'],
+  ['the count includes steps that run after a failure', 'if not runs_after_failure(s) and not read_step(s, pkg, read)["browser"])', 'if not read_step(s, pkg, read)["browser"])'],
+  ['the count includes steps that need a browser', 'if not runs_after_failure(s) and not read_step(s, pkg, read)["browser"])', 'if not runs_after_failure(s))'],
+  ['the count reads only the first step after the install', 'for s in steps[at + 1:] if not runs_after_failure(s)', 'for s in steps[at + 1:at + 2] if not runs_after_failure(s)'],
+  ['always() is not a status function', 'RUNS_AFTER_FAILURE = re.compile(r"\\b(?:always|failure)\\s*\\(|', 'RUNS_AFTER_FAILURE = re.compile(r"\\b(?:failure)\\s*\\(|'],
+  ['failure() is not a status function', 'RUNS_AFTER_FAILURE = re.compile(r"\\b(?:always|failure)\\s*\\(|', 'RUNS_AFTER_FAILURE = re.compile(r"\\b(?:always)\\s*\\(|'],
+  ['!cancelled() is not a status function', '|!\\s*cancelled\\s*\\(")', '")'],
+  ['a bare cancelled() is a status function', '|!\\s*cancelled\\s*\\(")', '|cancelled\\s*\\(")'],
+  ['an explicit success() does not turn a step off', 'return bool(RUNS_AFTER_FAILURE.search(c)) and not EXPLICIT_SUCCESS.search(c)', 'return bool(RUNS_AFTER_FAILURE.search(c))'],
 ]
 
 // anchors that exist exactly once in verify.yml (the sweep asserts it). `ins` puts text directly under a step's name.
@@ -216,13 +242,37 @@ const WORKFLOW = [
   ['the job swallows its failure', '  verify:\n    runs-on: ubuntu-latest\n', '  verify:\n    runs-on: ubuntu-latest\n    continue-on-error: true\n'],
 ]
 
+// The same for the OTHER things the guard now reads: the second target (live-check.yml) and the exempt installs. Each is [file, name, from, to]; judged by the guard on the real-tree path.
+const LIVE = '.github/workflows/live-check.yml'
+const GATED7 = "        if: \"!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'\"\n"
+const OTHERS = [
+  [LIVE, 'live-check: the install loses its id', '        id: chromium\n        continue-on-error: true\n', '        continue-on-error: true\n'],
+  [LIVE, 'live-check: the install loses continue-on-error', '        id: chromium\n        continue-on-error: true\n', '        id: chromium\n'],
+  [LIVE, 'live-check: a browser step loses its install gate', "steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'\"\n        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs", "steps.landed.outcome == 'success'\"\n        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs"],
+  [LIVE, 'live-check: the build waits for the install', ...ins('Build (the venue table this check derives its expectation from)', "        if: steps.chromium.outcome == 'success'\n")],
+  [LIVE, 'live-check: the stamp waits for the install', '      - name: The deployed build stamp matches main\n        id: stamp\n', "      - name: The deployed build stamp matches main\n        id: stamp\n        if: steps.chromium.outcome == 'success'\n"],
+  [LIVE, 'live-check: the final step is switched off', "        if: always() && steps.chromium.outcome != 'success'\n        env:", "        if: always() && steps.chromium.outcome != 'success' && false\n        env:"],
+  [LIVE, 'live-check: the final step does not fail the job', '          fi\n          exit 1\n\n      # The window simulation', '          fi\n          exit 0\n\n      # The window simulation'],
+  [LIVE, 'live-check: a browser step swallows its failure', '      - name: The deployed page groups by sport\n', '      - name: The deployed page groups by sport\n        continue-on-error: true\n'],
+  ['.github/workflows/client-sections-probe.yml', 'exempt: the annotation is not an annotation', '# browser-gate: exempt 2 -- ', '# exempt 2 -- '],
+  ['.github/workflows/client-sections-probe.yml', 'exempt: the annotation says the wrong N', '# browser-gate: exempt 2 -- ', '# browser-gate: exempt 3 -- '],
+  ['.github/workflows/client-sections-probe.yml', 'exempt: a step is added after the install', '      - name: The verdict logic, before it judges anything\n', '      - name: A new check\n        run: npm run check:palette\n      - name: The verdict logic, before it judges anything\n'],
+  ['.github/workflows/client-sections-probe.yml', 'exempt: a second install is added under the same annotation', '      - name: The verdict logic, before it judges anything\n', '      - name: Install Chromium again\n        run: npx playwright install chromium\n      - name: The verdict logic, before it judges anything\n'],
+  ['.github/workflows/client-sections-probe.yml', 'exempt: the install goes and the annotation stays (stale)', '        run: npx playwright install chromium\n', '        run: npm ci\n'],
+  ['.github/workflows/open-meteo-egress-probe.yml', 'exempt: the annotation is out of reach of the install', '      - name: Install\n        run: |\n          npm ci\n', '      #\n'.repeat(45) + '      - name: Install\n        run: |\n          npm ci\n'],
+  ['.github/workflows/font-dependence-probe.yml', 'exempt: the evidence step stops running after a failed install', '        if: "!cancelled() && steps.install.outcome != \'skipped\'"\n', ''],
+  ['.github/workflows/font-dependence-probe.yml', 'exempt: the timeout measurement stops running after a failed install', '        if: "!cancelled()"\n        shell: bash\n        run: |\n          {\n            echo "timeout_path', '        shell: bash\n        run: |\n          {\n            echo "timeout_path'],
+  ['.github/workflows/verify-full.yml', 'exempt: the proof-doc self-test stops running after a failed install', '        if: "!cancelled()"\n        run: node scripts/proof-check.mjs --self-test', '        run: node scripts/proof-check.mjs --self-test'],
+  ['.github/actions/mutation-shard/action.yml', 'exempt: a step is added to the shard after the install', '    - name: Run the shard\n', '    - name: Another check\n      shell: bash\n      run: npm run check:palette\n\n    - name: Run the shard\n'],
+  ['.github/workflows/lineups-card-probe.yml', 'exempt: the annotation goes', '# browser-gate: exempt 3 -- ', '# '],
+]
+
 const prep = () => {
   const dir = mkdtempSync(join(tmpdir(), 'bgsweep-'))
   cpSync(join(here, 'scripts'), join(dir, 'scripts'), { recursive: true })
-  mkdirSync(join(dir, '.github', 'workflows'), { recursive: true })
-  cpSync(join(here, '.github', 'workflows', 'verify.yml'), join(dir, '.github', 'workflows', 'verify.yml'))
-  mkdirSync(join(dir, '.github', 'actions', 'mutation-shard'), { recursive: true })
-  cpSync(join(here, '.github', 'actions', 'mutation-shard', 'action.yml'), join(dir, '.github', 'actions', 'mutation-shard', 'action.yml'))
+  mkdirSync(join(dir, '.github'), { recursive: true })
+  cpSync(join(here, '.github', 'workflows'), join(dir, '.github', 'workflows'), { recursive: true })
+  cpSync(join(here, '.github', 'actions'), join(dir, '.github', 'actions'), { recursive: true })
   cpSync(join(here, 'package.json'), join(dir, 'package.json'))
   return dir
 }
@@ -261,5 +311,6 @@ const sweep = (kind, list, file, judge) => {
 }
 sweep('CODE', CODE, join('scripts', 'check-browser-gate.py'), selfTest)
 sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree)
-console.log(`\ncaught ${caught} of ${total} mutations (${CODE.length} of the guard's code, ${WORKFLOW.length} of the workflow it guards); ${EXCLUDED} more were NOT run, each named in this file's header as equivalent or as a crash`)
+for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree)
+console.log(`\ncaught ${caught} of ${total} mutations (${CODE.length} of the guard's code, ${WORKFLOW.length} of verify.yml, ${OTHERS.length} of the other workflows it reads); ${EXCLUDED} more were NOT run, each named in this file's header as equivalent or as a crash`)
 process.exit(caught === total ? 0 : 1)

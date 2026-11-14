@@ -35,6 +35,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      # browser-gate: exempt 3 -- a failed install ends the job red (no continue-on-error) before the probe runs; the steps it skips are a printed, not enforced, deployed-sha line, the two verdict-logic self-tests and the verdict step, and the probe's product, its manifest, needs the browser
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       - name: Install Chromium
         timeout-minutes: 3
