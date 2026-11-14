@@ -1,6 +1,6 @@
 {
- "at": "2026-11-10T17:12:32.969Z",
- "run": "42861596952",
+ "at": "2026-11-14T01:16:54.752Z",
+ "run": "43539312250",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
@@ -1176,7 +1176,7 @@
    "qid": "Q1410402",
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "retractable",
-   "roofBasis": "wikipedia lead",
+   "roofBasis": "wikidata P1552 \"retractable roof\"",
    "lead": "The Stade Pierre-Mauroy, also known as the Decathlon Arena – Stade Pierre-Mauroy for sponsorship reasons, is a multi-use retractable roof stadium in Villeneuve-d'Ascq, Metropolis of Lille, Northern Fr",
    "zone": "Europe/Paris"
   },
