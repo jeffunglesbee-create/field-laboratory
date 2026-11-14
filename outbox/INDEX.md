@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `bd0d8e1` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B landing, verify-full green on f4619de9, the reproduction record and the manifest |
+| `bd0d8e1` | 2026-11-13 | [venue-wikidata-p1552-reproduction-2026-11-13.txt](venue-wikidata-p1552-reproduction-2026-11-13.txt) | docs: Task 5 Step B landing, verify-full green on f4619de9, the reproduction record and the manifest |
+| `8afcd24` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of f4619de [skip ci] |
+| `f4619de` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B, the fill compared and the Result; W5's article clause is 390 of 391, not met in its letter |
+| `f4619de` | 2026-11-13 | [venue-wikidata-p1552-compare-2026-11-13.txt](venue-wikidata-p1552-compare-2026-11-13.txt) | docs: Task 5 Step B, the fill compared and the Result; W5's article clause is 390 of 391, not met in its letter |
+| `69b2f9c` | 2026-11-14 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 43539312250) [skip ci] |
+| `69b2f9c` | 2026-11-14 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 43539312250) [skip ci] |
+| `274373e` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `9e59307` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
 | `9e59307` | 2026-11-13 | [venue-wikidata-p1552-2026-11-13.mjs](venue-wikidata-p1552-2026-11-13.mjs) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
 | `9e59307` | 2026-11-13 | [venue-wikidata-p1552-predict-2026-11-13.txt](venue-wikidata-p1552-predict-2026-11-13.txt) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
