@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `112961b` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ebca26e [skip ci] |
+| `ebca26e` | 2026-11-14 | [egress-diagnostics-wiring-2026-11-14.md](egress-diagnostics-wiring-2026-11-14.md) | feat: the weather failure message names its cause (node's DNS, connect and egress path), with 23 mutations |
+| `c65ca85` | 2026-11-14 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: live-chip Task 1 run 2 was wet with no refusal; Task 1 is done as a measurement |
+| `3a277b2` | 2026-11-14 | [rain-precip-pair-2026-11-14-2026-11-14T14-22-21.jsonl](rain-precip-pair-2026-11-14-2026-11-14T14-22-21.jsonl) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `3a277b2` | 2026-11-14 | [rain-precip-pair-2026-11-14-2026-11-14T14-22-21.txt](rain-precip-pair-2026-11-14-2026-11-14T14-22-21.txt) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `be1c015` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4c88e74` | 2026-11-14 | [node-fetch-failure-shapes-2026-11-14.mjs](node-fetch-failure-shapes-2026-11-14.mjs) | docs: CC-CMD for the weather failure message that names no cause |
 | `4c88e74` | 2026-11-14 | [node-fetch-failure-shapes-2026-11-14.txt](node-fetch-failure-shapes-2026-11-14.txt) | docs: CC-CMD for the weather failure message that names no cause |
 | `aebd806` | 2026-11-14 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-14T13:47 [skip ci] |
