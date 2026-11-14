@@ -334,7 +334,7 @@ jobs:
           elif [ "$INSTALL_OUTCOME" = cancelled ]; then
             echo "::error::The run was cancelled before the Chromium install finished. The deployed page was NOT checked."
           else
-            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The checks that need a browser were skipped, so the deployed page was NOT checked; the build stamp and deploy-landing checks above did run."
+            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The checks that need a browser were skipped, so the deployed page was NOT checked. The build, stamp and deploy-landing steps above need no browser and ran unless the build itself failed: read their own results."
           fi
           exit 1
 

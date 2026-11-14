@@ -95,13 +95,17 @@ jobs:
           PATH="/tmp/shims:$PATH" npx playwright install chromium
           echo "install_seconds: $(( $(date +%s) - START ))" | tee /tmp/install-seconds.txt
 
-      # Not the default success(): when the install fails, this is the step that prints the shim log (which apt, apt-get, dpkg or sudo call it made) and the
-      # libraries it left unresolved, and the verdict step below reads its file. Skipped, the failure would say only that a premise is unknown. It does not run when
-      # the install itself did not (an earlier step failed): there is nothing to read then.
+      # Not the default success(): when the install fails, this is the step that prints the shim log (each apt, apt-get, dpkg or sudo call the install made, which is
+      # what the install step's comment means by "the log says which") and writes the counts, package-state hashes and unresolved libraries the verdict step below
+      # reads. Skipped, the failure would say only that a premise is unknown. It does not run when the install itself did not (an earlier step failed): there is
+      # nothing to read then.
       - name: What the install did
         if: "!cancelled() && steps.install.outcome != 'skipped'"
         shell: bash
         run: |
+          echo "--- /tmp/apt-calls.log: each line is a call to apt, apt-get, dpkg or sudo that the install made (shimmed, so it failed) ---"
+          cat /tmp/apt-calls.log
+          echo "--- end of the log ---"
           {
             echo "dpkg_list_sha: $(dpkg-query -W -f '${Package} ${Version}\n' | sort | sha256sum | cut -c1-16)"
             echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"

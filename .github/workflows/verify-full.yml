@@ -169,7 +169,7 @@ jobs:
       - name: Build (F# -> JS, then assemble public/)
         run: node scripts/build-steady.mjs
 
-      # browser-gate: exempt 2 -- a failed install ends the job red with no ledger line written (the peak-slate step and the Confidence gate are skipped, and the two ledger steps find nothing new); the proof-doc self-test, the one standalone browser-free step, runs on !cancelled(); the gate is ONE step whose 23 rows include 17 that need no browser, which a failed install loses, and giving the job the verify shape needs a browser-free-rows mode in scripts/confidence.mjs and a way to tell this guard that `npm run gate` needs a browser (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, open item 6)
+      # browser-gate: exempt 2 -- a failed install ends the job red with no ledger line written (the peak-slate step and the Confidence gate are skipped, and the two ledger steps find nothing new); the proof-doc self-test, the one standalone browser-free step, runs on !cancelled(); N=2 is the site server and the Confidence gate, which this guard cannot see launching a browser (confidence.mjs spawns its rows, and 6 of its 23 rows drive one); the gate is ONE step whose 17 rows that drive no browser are lost with it, and giving the job the verify shape needs a browser-free-rows mode in scripts/confidence.mjs and a way to tell this guard that `npm run gate` needs a browser (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, items 2 and 6)
       # The gate drives real browsers through several of its rows, and those
       # rows fetch from the local server. Started here, before anything needs it.
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
