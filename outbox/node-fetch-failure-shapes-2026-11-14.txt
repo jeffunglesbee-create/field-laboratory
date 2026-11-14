@@ -1,0 +1,28 @@
+checked 7 of 7 shapes; node v22.23.4; 2026-11-14
+
+## A  a name that cannot resolve (.invalid): threw after 17ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"Error","name":"Error","code":"ENOTFOUND","errno":-3008,"syscall":"getaddrinfo","hostname":"api.open-meteo.invalid","msg":"getaddrinfo ENOTFOUND api.open-meteo.invalid","via":"cause"}
+
+## B  port 1 (undici refuses it before any network): threw after 0ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"Error","name":"Error","msg":"bad port","via":"cause"}
+
+## C  accepts and never answers, AbortSignal.timeout(600): threw after 602ms; outermost e.message = "The operation was aborted due to timeout"
+   {"d":0,"ctor":"DOMException","name":"TimeoutError","code":23,"msg":"The operation was aborted due to timeout"}
+
+## D  a closed ephemeral port on 127.0.0.1: threw after 2ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"Error","name":"Error","code":"ECONNREFUSED","errno":-111,"syscall":"connect","address":"127.0.0.1","port":45741,"msg":"connect ECONNREFUSED 127.0.0.1:45741","via":"cause"}
+
+## E  localhost on that closed port: threw after 2ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"Error","name":"Error","code":"ECONNREFUSED","errno":-111,"syscall":"connect","address":"127.0.0.1","port":45741,"msg":"connect ECONNREFUSED 127.0.0.1:45741","via":"cause"}
+
+## F  accepts then destroys the socket (reset): threw after 1ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"SocketError","name":"SocketError","code":"UND_ERR_SOCKET","msg":"other side closed","via":"cause"}
+
+## G  connect hang (accept queue full), undici default connect budget, abort at 14s: threw after 10057ms; outermost e.message = "fetch failed"
+   {"d":0,"ctor":"TypeError","name":"TypeError","msg":"fetch failed"}
+   {"d":1,"ctor":"ConnectTimeoutError","name":"ConnectTimeoutError","code":"UND_ERR_CONNECT_TIMEOUT","msg":"Connect Timeout Error (attempted address: 127.0.0.1:40941, timeout: 10000ms)","via":"cause"}
