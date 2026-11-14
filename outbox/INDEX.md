@@ -12,9 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d30a4af` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of d7a8e36 [skip ci] |
 | `23ece0b` | 2026-11-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-14 [skip ci] |
 | `23ece0b` | 2026-11-14 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
 | `23ece0b` | 2026-11-14 | [sport-vocabulary-2026-11-14T17-53-00-429Z.json](sport-vocabulary-2026-11-14T17-53-00-429Z.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `d7a8e36` | 2026-11-14 | [egress-diagnostics-wiring-2026-11-14.md](egress-diagnostics-wiring-2026-11-14.md) | fix: the runner line reads .setup_info in the shape a runner writes |
 | `0391f38` | 2026-11-14 | [egress-path-e2e-20261114T171939Z.txt](egress-path-e2e-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `0391f38` | 2026-11-14 | [egress-path-live-20261114T171939Z.txt](egress-path-live-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `0391f38` | 2026-11-14 | [egress-path-survey-20261114T171939Z.txt](egress-path-survey-20261114T171939Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
