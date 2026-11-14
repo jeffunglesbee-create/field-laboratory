@@ -1,0 +1,301 @@
+run_id	event	created_at	conclusion	head_sha	failing_step	cloud	region	image	agent	om_class	om_requests	om_max_ms	fail_class	attribution	node_probe
+43587347908	schedule	2026-11-14T10:52:50Z	failure	df2635bc	Render the deployed page and assert on it	Azure	westus2	ubuntu-26.04@20261111.196.1	20261103.629	SILENT	8	8001	weather-silent-whole-window	host-silent	unreachable — fetch failed
+43567330161	workflow_run	2026-11-14T06:38:30Z	success	bd0d8e1f		Azure	centralus	ubuntu-26.04@20261111.196.1	20261103.629	none	0				
+43539102233	workflow_run	2026-11-14T01:11:59Z	failure	9e593078	Render the deployed page and assert on it	AWS	us-west-2	ubuntu-26.04@20261111.82.6	20261103.629	SILENT	6	8001	weather-silent-whole-window	host-silent	unreachable — fetch failed
+43528754615	workflow_run	2026-11-13T23:39:42Z	success	30c68832		AWS	us-west-2	ubuntu-26.04@20261111.82.6	20261103.629	answered	3	30			
+43476809362	workflow_run	2026-11-13T17:50:45Z	success	64434853		Azure	westus3	ubuntu-26.04@20261111.196.1	20261103.629	answered	3	172			
+43441145223	workflow_run	2026-11-13T14:16:19Z	failure	d600db24	Build (the venue table this check derives its expectation from)	Azure	westus3	ubuntu-26.04@20261111.196.1	20261103.629	reached-not	0		fable-crash-signature		
+43417450850	schedule	2026-11-13T11:29:20Z	success	54bc066d		Azure	westcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	220			
+43403263289	workflow_run	2026-11-13T09:40:22Z	success	018d6199		Azure	eastus	ubuntu-26.04@20261111.196.1	20261103.629	none	0				
+43349947319	workflow_dispatch	2026-11-13T02:08:01Z	success	c3176fa5		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	222			
+43348342619	workflow_run	2026-11-13T01:54:44Z	failure	78ba16bd	Render the deployed page and assert on it	Azure	westus3	ubuntu-26.04@20261111.196.1	20261103.629	SILENT	6	8001	weather-silent-whole-window	host-silent	unreachable — fetch failed
+43304903428	workflow_run	2026-11-12T20:54:22Z	success	4067d571		Azure	southcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	247			
+43270651320	workflow_run	2026-11-12T17:33:14Z	success	bf1fdf4c		Azure	westus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	641			
+43221752256	workflow_run	2026-11-12T12:51:25Z	success	39e21c3d		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	522			
+43212126608	schedule	2026-11-12T11:47:13Z	success	39e21c3d		Azure	westcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	3	562			
+43193289777	workflow_run	2026-11-12T09:38:48Z	success	a9714456		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	none	0				
+43151021320	workflow_run	2026-11-12T03:52:04Z	success	175bcde2		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	4	173			
+43148094338	workflow_run	2026-11-12T03:25:19Z	success	f2c380f1		Azure	northcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	4	499			
+43122664235	workflow_run	2026-11-11T23:48:55Z	success	0cf1ddec		Azure	northcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	4	122			
+43115511547	workflow_run	2026-11-11T22:53:42Z	skipped	9b50e36f											
+43115011612	workflow_run	2026-11-11T22:49:58Z	failure	b3bceaa7	The deploy landed (published is the newest deployable commit)	Azure	eastus3	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		deploy-not-landed		
+43113667713	workflow_run	2026-11-11T22:40:03Z	skipped	7db735fa											
+43064687662	workflow_run	2026-11-11T17:05:18Z	success	e5acdec1		Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	4	2722			
+43056630500	workflow_run	2026-11-11T16:16:09Z	failure	eabb568c	Run npx playwright install --with-deps chromium	Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		playwright-install-exit		
+43051002729	workflow_run	2026-11-11T15:42:18Z	skipped	7e1a7e59											
+43011774291	schedule	2026-11-11T11:25:05Z	success	1eb51775		Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	4	409			
+42991299843	workflow_run	2026-11-11T08:58:45Z	success	4210c884		Azure	southcentralus	ubuntu-26.04@20261101.186.1	20261028.624	none	0				
+42984084323	workflow_run	2026-11-11T08:03:56Z	success	73810062		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	none	0				
+42982372728	workflow_run	2026-11-11T07:49:57Z	failure	deb031bc	The deploy landed (published is the newest deployable commit)	Azure	southcentralus	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		deploy-not-landed		
+42977360634	workflow_run	2026-11-11T07:08:48Z	skipped	4f0da015											
+42953478332	workflow_run	2026-11-11T03:32:56Z	success	a10bce95		Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	571			
+42937949233	workflow_run	2026-11-11T01:18:10Z	success	5d922d5d		Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	572			
+42899690290	workflow_run	2026-11-10T20:53:40Z	success	d89b9dbd		Azure	westus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	274			
+42872262917	workflow_run	2026-11-10T18:09:17Z	success	0279fe1b		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	668			
+42867186531	workflow_run	2026-11-10T17:39:29Z	success	ef1f33af		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	669			
+42864685304	workflow_run	2026-11-10T17:24:48Z	skipped	faa831da											
+42862712302	workflow_run	2026-11-10T17:13:27Z	success	b266e5f0		Azure	eastus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	15	127			
+42825685620	workflow_run	2026-11-10T13:34:00Z	success	c56b5ca4		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	15	571			
+42809765820	schedule	2026-11-10T11:43:20Z	success	c56b5ca4		Azure	westus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	15	280			
+42757341088	workflow_run	2026-11-10T04:40:25Z	success	3c3fd550		Azure	westcentralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	364			
+42712251709	workflow_run	2026-11-09T22:28:55Z	success	276e1382		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	506			
+42690276129	workflow_run	2026-11-09T20:09:48Z	success	3429152d		Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	300			
+42683554851	workflow_run	2026-11-09T19:27:44Z	success	0827a1ff		Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	428			
+42679525267	workflow_run	2026-11-09T19:02:37Z	success	968ee51d		Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	199			
+42668783425	workflow_run	2026-11-09T17:52:10Z	success	b247c68d		Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	89			
+42659353535	workflow_run	2026-11-09T16:54:00Z	success	30ac490b		Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	523			
+42651653992	workflow_run	2026-11-09T16:08:07Z	success	0d3875cb		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	180			
+42632953773	workflow_run	2026-11-09T14:15:48Z	success	a18e26a2		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	answered	1	288			
+42622518292	workflow_run	2026-11-09T13:06:13Z	skipped	17d28eb0											
+42613880170	schedule	2026-11-09T12:03:44Z	failure	1f114708	Render the deployed page and assert on it	Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	none	0		venue-table-covers-none	null	not probed
+42611575822	workflow_run	2026-11-09T11:45:45Z	failure	41a5cf24	Render the deployed page and assert on it	Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	none	0		venue-table-covers-none	null	not probed
+42552505799	workflow_run	2026-11-09T02:43:42Z	success	c7ba0780		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	187			
+42532735195	workflow_run	2026-11-08T22:56:58Z	failure	16bda913	A finished game shows the brief written after it finished	Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	431	brief-game_live-on-final		
+42512210506	workflow_run	2026-11-08T18:53:08Z	failure	ae45a5af	A finished game shows the brief written after it finished	Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	435	brief-game_live-on-final		
+42508515549	workflow_run	2026-11-08T18:09:05Z	failure	d9554f31	A finished game shows the brief written after it finished	Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	69	brief-game_live-on-final		
+42507380715	workflow_run	2026-11-08T17:55:40Z	skipped	16fe4e97											
+42485857570	workflow_run	2026-11-08T13:37:37Z	success	5548486c		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	209			
+42472682229	schedule	2026-11-08T10:44:19Z	success	5548486c		Azure	westus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	35	285			
+42453890707	workflow_run	2026-11-08T06:14:01Z	success	08848bef		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	none	0				
+42426463552	workflow_run	2026-11-07T23:42:30Z	failure	6a21570f	A finished game shows the brief written after it finished	Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	94	504	brief-game_live-on-final		
+42410306002	workflow_run	2026-11-07T20:17:06Z	failure	39686eea	A finished game shows the brief written after it finished	Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	94	113	brief-game_live-on-final		
+42387767654	workflow_run	2026-11-07T15:43:37Z	failure	7d6ed4a1	A finished game shows the brief written after it finished	Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	94	570	brief-game_live-on-final		
+42374544456	workflow_run	2026-11-07T12:54:39Z	success	19cc44b7		Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	94	306			
+42374543476	workflow_dispatch	2026-11-07T12:54:38Z	cancelled	19cc44b7											
+42374292669	workflow_run	2026-11-07T12:51:07Z	success	76a050b3		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	94	513			
+42364844307	schedule	2026-11-07T10:39:02Z	failure	76a050b3	The deploy landed (published is the newest deployable commit)	Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		deploy-not-landed		
+42357360747	workflow_run	2026-11-07T08:53:15Z	failure	53e42b59	The deploy landed (published is the newest deployable commit)	Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		deploy-not-landed		
+42326907832	workflow_run	2026-11-07T01:59:23Z	failure	2c4ec401	The deploy landed (published is the newest deployable commit)	Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	reached-not	0		deploy-not-landed		
+42324924551	workflow_run	2026-11-07T01:35:57Z	skipped	c8fd5780											
+42297859669	workflow_run	2026-11-06T21:34:34Z	success	19c40453		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	527			
+42248037332	workflow_run	2026-11-06T15:58:45Z	success	08822882		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	167			
+42210279467	schedule	2026-11-06T11:26:35Z	success	b7d98777		Azure	eastus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	245			
+42200389206	workflow_run	2026-11-06T10:08:44Z	success	ff9c83af		Azure	westus3	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	305			
+42184458375	workflow_run	2026-11-06T07:59:07Z	success	85b047f0		Azure	southcentralus	ubuntu-26.04@20261101.186.1	20261028.624	none	0				
+42136439023	workflow_run	2026-11-06T00:23:15Z	failure	51336d5e	Render the deployed page and assert on it	Azure	eastus	ubuntu-26.04@20261101.186.1	20261028.624	answered	16	4925	weather-partial-fill	page	unreachable — fetch failed
+42088001942	workflow_run	2026-11-05T18:49:46Z	success	0f7f2b75		Azure	westus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	34	313			
+42019175306	schedule	2026-11-05T11:28:00Z	success	d61c757e		Azure	westus	ubuntu-26.04@20261101.186.1	20261028.624	answered	34	298			
+42016265442	workflow_run	2026-11-05T11:06:48Z	success	c659a483		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	34	317			
+41955997170	workflow_run	2026-11-05T02:33:32Z	success	e7932fe9		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	13	557			
+41920854618	workflow_run	2026-11-04T21:57:21Z	success	d2b4f8fb		Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	13	128			
+41858541441	workflow_run	2026-11-04T15:30:59Z	success	ba1bd338		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	13	525			
+41844295524	workflow_run	2026-11-04T14:06:37Z	success	18a41658		Azure	northcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	13	488			
+41821532590	schedule	2026-11-04T11:31:10Z	success	b70b29a9		Azure	eastus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	13	432			
+41786831459	workflow_run	2026-11-04T06:38:07Z	success	6a2e444b		Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	none	0				
+41739559926	workflow_run	2026-11-03T23:29:34Z	success	4621f980		Azure	eastus2	ubuntu-26.04@20261025.179.1	20261021.618	answered	10	407			
+41729918856	workflow_run	2026-11-03T22:20:22Z	success	f38fc97e		Azure	eastus2	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	288			
+41688655100	workflow_run	2026-11-03T17:54:02Z	success	14af0e35		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	10	674			
+41685999384	workflow_run	2026-11-03T17:37:10Z	success	6f33b8df		Azure	centralus	ubuntu-26.04@20261101.186.1	20261028.624	answered	10	536			
+41656647750	workflow_run	2026-11-03T14:44:22Z	success	bec69ef3		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	10	562			
+41636247854	workflow_run	2026-11-03T12:30:13Z	success	b6c80de9		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	10	344			
+41626325527	schedule	2026-11-03T11:17:37Z	failure	87b0d3f5	The deploy landed (published is the newest deployable commit)	Azure	westus2	ubuntu-26.04@20261025.179.1	20261021.618	reached-not	0		deploy-not-landed		
+41612854267	workflow_run	2026-11-03T09:39:57Z	failure	945fee9c	The deploy landed (published is the newest deployable commit)	Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	reached-not	0		deploy-not-landed		
+41597895917	workflow_run	2026-11-03T07:40:39Z	skipped	6542583b											
+41597373225	workflow_run	2026-11-03T07:35:52Z	success	8bc18311		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	none	0				
+41596805043	workflow_dispatch	2026-11-03T07:30:51Z	failure	8bc18311	The deploy landed (published is the newest deployable commit)	Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	reached-not	0		deploy-not-landed		
+41594457470	workflow_run	2026-11-03T07:09:35Z	failure	2a2119c1	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+41591593999	workflow_run	2026-11-03T06:42:34Z	failure	9db195af	The score's weight axis interpolates on the DEPLOYED page	Azure	eastus2	ubuntu-26.04@20261025.179.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+41587999128	workflow_run	2026-11-03T06:08:20Z	failure	be9bf6f4	The score's weight axis interpolates on the DEPLOYED page	Azure	eastus2	ubuntu-26.04@20261025.179.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+41583043477	workflow_run	2026-11-03T05:17:24Z	failure	dfd92762	The score's weight axis interpolates on the DEPLOYED page	Azure	westcentralus	ubuntu-26.04@20261025.179.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+41581099525	workflow_run	2026-11-03T04:57:52Z	success	59a4f547		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	8	162			
+41561174107	workflow_run	2026-11-03T01:39:41Z	success	a3b2bac0		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	8	601			
+41501201295	workflow_run	2026-11-02T18:30:20Z	success	d5c5662e		Azure	eastus	ubuntu-26.04@20261025.179.1	20261021.618	answered	8	73			
+41438478659	schedule	2026-11-02T11:39:00Z	success	569ff631		Azure	eastus	ubuntu-26.04@20261025.179.1	20261021.618	answered	8	411			
+41408326171	workflow_run	2026-11-02T07:45:15Z	success	113d1364		Azure	westcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	3	587			
+41369487563	workflow_run	2026-11-02T00:52:34Z	success	dd02a4c7		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	29	558			
+41350999921	workflow_run	2026-11-01T21:14:43Z	success	e3e6002d		AWS	us-east-1	ubuntu-26.04@20261018.50.1	20261015.610	answered	29	398			
+41330090286	workflow_run	2026-11-01T17:10:17Z	success	5e279611		Azure	westcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	29	641			
+41298963755	schedule	2026-11-01T10:46:47Z	success	113f5c40		Azure	southcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	29	277			
+41298258380	workflow_run	2026-11-01T10:36:46Z	success	bf25d8ed		Azure	eastus	ubuntu-26.04@20261025.179.1	20261021.618	answered	29	85			
+41264690496	workflow_run	2026-11-01T02:19:10Z	failure	31ce981a	A finished game shows the brief written after it finished	Azure	southcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	81	197	brief-game_live-on-final		
+41248754279	workflow_run	2026-10-31T22:33:56Z	failure	1c2d9027	A finished game shows the brief written after it finished	Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	answered	81	614	brief-game_live-on-final		
+41230385441	workflow_run	2026-10-31T18:38:19Z	success	0fe9e846		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	81	148			
+41206823993	workflow_run	2026-10-31T13:43:04Z	success	fd8ff34c		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	81	296			
+41190663342	schedule	2026-10-31T09:55:51Z	success	af39fc95		Azure	westcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	205			
+41179119354	workflow_run	2026-10-31T07:04:15Z	success	fa85adea		Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	620			
+41152489923	workflow_run	2026-10-31T00:52:16Z	success	1f35b6f6		Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	answered	7	289			
+41126667155	workflow_run	2026-10-30T20:52:41Z	success	0fc57407		Azure	westus2	ubuntu-26.04@20261025.179.1	20261021.618	answered	7	636			
+41085835690	workflow_run	2026-10-30T16:00:00Z	success	babdddd7		Azure	eastus	ubuntu-26.04@20261025.179.1	20261021.618	answered	7	407			
+41040676448	schedule	2026-10-30T10:25:45Z	success	f577488d		Azure	eastus	ubuntu-26.04@20261025.179.1	20261021.618	answered	7	77			
+41028527600	workflow_run	2026-10-30T08:44:51Z	failure	4d0f0246	The score's weight axis interpolates on the DEPLOYED page	Azure	northcentralus	ubuntu-26.04@20261025.179.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+40989161470	workflow_run	2026-10-30T02:00:42Z	failure	830a6e88	A finished game shows the brief written after it finished	Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	642	brief-card-not-rendered		
+40961318353	workflow_run	2026-10-29T21:51:59Z	success	0ee382cc		Azure	eastus2	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	411			
+40916863382	workflow_run	2026-10-29T16:58:54Z	success	a0e50552		Azure	southcentralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	512			
+40857108100	schedule	2026-10-29T10:22:56Z	success	9156812d		Azure	westus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	340			
+40855165154	workflow_run	2026-10-29T10:08:29Z	success	21ce2b12		Azure	centralus	ubuntu-26.04@20261025.179.1	20261021.618	answered	14	544			
+40807004888	workflow_run	2026-10-29T02:32:58Z	success	f3777d7d		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	26	288			
+40786327161	workflow_run	2026-10-28T23:17:41Z	success	5380a615		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	26	579			
+40749487504	workflow_run	2026-10-28T18:54:43Z	success	51087d50		Azure	westus3	ubuntu-26.04@20261025.179.1	20261021.618	answered	26	565			
+40693606154	workflow_run	2026-10-28T13:07:34Z	success	fb51aeff		Azure	centralus	ubuntu-26.04@20261012.163.1	20261021.618	answered	26	686			
+40668559446	schedule	2026-10-28T09:59:41Z	success	fb51aeff		Azure	westus3	ubuntu-26.04@20261012.163.1	20261021.618	answered	26	829			
+40651108401	workflow_run	2026-10-28T07:35:53Z	success	ecd43e7a		Azure	centralus	ubuntu-26.04@20261012.163.1	20261021.618	answered	12	533			
+40649865456	workflow_run	2026-10-28T07:24:27Z	skipped	db9890d0											
+40647248244	workflow_run	2026-10-28T06:59:50Z	success	add9f1c0		Azure	centralus	ubuntu-26.04@20261012.163.1	20261021.618	answered	12	778			
+40645917063	workflow_run	2026-10-28T06:46:37Z	success	41621958		Azure	westus	ubuntu-26.04@20261012.163.1	20261021.618	answered	12	660			
+40640521618	workflow_run	2026-10-28T05:52:42Z	success	abc49bda		Azure	westus3	ubuntu-26.04@20261012.163.1	20261021.618	answered	12	289			
+40604854277	workflow_run	2026-10-27T23:50:33Z	success	4c683358		Azure	westus3	ubuntu-26.04@20261012.163.1	20261021.618	answered	8	316			
+40569444297	workflow_run	2026-10-27T19:28:34Z	success	ba743d84		Azure	centralus	ubuntu-26.04@20261012.163.1	20261021.618	answered	8	660			
+40511052100	workflow_run	2026-10-27T13:19:40Z	success	70f2ff51		Azure	southcentralus	ubuntu-26.04@20261012.163.1	20261021.618	answered	8	197			
+40479828935	schedule	2026-10-27T09:18:53Z	failure	56eac943	The score's weight axis interpolates on the DEPLOYED page	Azure	eastus	ubuntu-26.04@20261012.163.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+40460804469	workflow_run	2026-10-27T06:23:22Z	failure	20a92c3c	The score's weight axis interpolates on the DEPLOYED page	Azure	eastus	ubuntu-26.04@20261012.163.1	20261021.618	none	0		axis-desk-card-timeout-30s		
+40427092188	workflow_run	2026-10-27T00:32:48Z	success	c10d9110		Azure	centralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	5	2009			
+40396939728	workflow_run	2026-10-26T20:35:05Z	success	77e21529		Azure	westus	ubuntu-24.04@20261012.334.1	20261021.618	answered	5	290			
+40339055190	workflow_run	2026-10-26T14:22:31Z	success	cb7b5a74		Azure	centralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	5	329			
+40298705891	schedule	2026-10-26T09:19:53Z	success	4588f3a1		Azure	centralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	1	520			
+40279876930	workflow_run	2026-10-26T06:26:59Z	success	22f34d8d		Azure	eastus2	ubuntu-24.04@20261012.334.1	20261021.618	answered	1	407			
+40253488283	workflow_run	2026-10-26T01:17:20Z	failure	4b80fff7	A finished game shows the brief written after it finished	Azure	centralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	37	307	brief-game_live-on-final		
+40243865417	workflow_run	2026-10-25T23:14:43Z	failure	b075ee01	A finished game shows the brief written after it finished	Azure	westcentralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	37	572	brief-game_live-on-final		
+40241045060	workflow_run	2026-10-25T22:37:12Z	failure	abcf3dd5	The deploy landed (published is the newest deployable commit)	Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	reached-not	0		deploy-not-landed		
+40233717510	workflow_run	2026-10-25T21:04:09Z	skipped	db97638c											
+40227355716	workflow_run	2026-10-25T19:43:12Z	success	ce98a2b5		Azure	westus2	ubuntu-24.04@20261012.334.1	20261021.618	answered	37	322			
+40212101863	workflow_run	2026-10-25T16:31:39Z	success	3e9623f7		Azure	canadaeast	ubuntu-24.04@20261012.334.1	20261021.618	answered	37	505			
+40190395862	workflow_run	2026-10-25T11:48:18Z	success	4325bfa2		Azure	eastus	ubuntu-24.04@20261012.334.1	20261021.618	answered	37	430			
+40177659792	schedule	2026-10-25T08:42:03Z	success	4325bfa2		Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	answered	7	564			
+40168577632	workflow_run	2026-10-25T06:17:35Z	success	ceb55c28		Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	answered	7	592			
+40164361907	workflow_run	2026-10-25T05:07:07Z	success	a3ae2b7c		Azure	centralus	ubuntu-24.04@20261012.334.1	20261021.618	answered	7	189			
+40149969146	workflow_run	2026-10-25T01:16:11Z	failure	711306f2	A finished game shows the brief written after it finished	Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	answered	62	321	brief-game_live-on-final		
+40139076400	workflow_run	2026-10-24T22:33:30Z	failure	66cce211	A finished game shows the brief written after it finished	Azure	eastus	ubuntu-24.04@20261012.334.1	20261021.618	answered	62	83	brief-game_live-on-final		
+40136617225	workflow_run	2026-10-24T21:59:40Z	failure	e407ba0f	A finished game shows the brief written after it finished	Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	answered	62	303	brief-game_live-on-final		
+40126831886	workflow_run	2026-10-24T19:46:43Z	failure	96fae24b	A finished game shows the brief written after it finished	Azure	eastus2	ubuntu-24.04@20261012.334.1	20261021.618	answered	59	429	brief-game_live-on-final		
+40125766145	workflow_run	2026-10-24T19:32:32Z	failure	83057463	A finished game shows the brief written after it finished	Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	58	613	brief-game_live-on-final		
+40122375010	workflow_run	2026-10-24T18:48:13Z	failure	672c676c	A finished game shows the brief written after it finished	Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	58	608	brief-game_live-on-final		
+40120716439	workflow_run	2026-10-24T18:26:34Z	skipped	db423631											
+40120303991	workflow_run	2026-10-24T18:21:13Z	skipped	2e7c60b5											
+40116924084	workflow_run	2026-10-24T17:36:58Z	skipped	46e17c7a											
+40112657476	workflow_run	2026-10-24T16:40:35Z	failure	e3530ff0	Render the deployed page and assert on it	Azure	westus	ubuntu-24.04@20261012.334.1	20261021.618	answered	58	373	weather-partial-fill	page	HTTP 200
+40095209587	workflow_run	2026-10-24T12:44:54Z	failure	6f9fcefc	Render the deployed page and assert on it	Azure	westus	ubuntu-24.04@20261012.334.1	20261021.618	answered	58	621	weather-partial-fill	page	HTTP 200
+40077801530	schedule	2026-10-24T08:22:45Z	success	33028502		Azure	eastus2	ubuntu-24.04@20261012.334.1	20261021.618	answered	15	454			
+40073925812	workflow_run	2026-10-24T07:23:13Z	success	45ed2d81		Azure	westus3	ubuntu-24.04@20261012.334.1	20261021.618	answered	15	548			
+40050856079	workflow_run	2026-10-24T01:40:24Z	success	c3d19675		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	8	806			
+40032734343	workflow_run	2026-10-23T22:18:22Z	success	b6c0e0e7		Azure	eastus2	ubuntu-24.04@20261012.334.1	20261021.618	answered	8	2145			
+40003333055	workflow_run	2026-10-23T18:26:46Z	success	bff13efa		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	8	416			
+39962139178	workflow_run	2026-10-23T13:33:02Z	success	866dd70d		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	8	521			
+39927305845	schedule	2026-10-23T08:48:45Z	failure	de3874fe	Render the deployed page and assert on it	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	none	0		state-transition-no-change		
+39919215756	workflow_run	2026-10-23T07:39:22Z	failure	ecbb66c6	The score's weight axis interpolates on the DEPLOYED page	Azure	southcentralus	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+39884938972	workflow_run	2026-10-23T01:36:19Z	failure	5c950e0b	A finished game shows the brief written after it finished	Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	27	534	brief-card-not-rendered		
+39864841281	workflow_run	2026-10-22T22:25:24Z	success	79a5bf94		Azure	westcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	27	586			
+39851093725	workflow_run	2026-10-22T20:41:58Z	success	a4ff3652		Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	answered	27	605			
+39840919959	workflow_run	2026-10-22T19:32:00Z	success	614b3019		Azure	centralus	ubuntu-24.04@20261018.339.1	20261015.610	answered	1	158			
+39790851128	workflow_run	2026-10-22T13:53:09Z	success	4f860ca1		Azure	westus	ubuntu-24.04@20261018.339.1	20261015.610	answered	1	694			
+39751238155	schedule	2026-10-22T08:54:04Z	failure	4c729eb4	Render the deployed page and assert on it	Azure	eastus	ubuntu-24.04@20261018.339.1	20261015.610	none	0		venue-table-covers-none	null	not probed
+39742315528	workflow_run	2026-10-22T07:42:02Z	failure	2e67c33c	Render the deployed page and assert on it	Azure	westus	ubuntu-24.04@20261018.339.1	20261015.610	none	0		venue-table-covers-none	null	not probed
+39709281584	workflow_run	2026-10-22T02:03:55Z	success	0871f6a3		Azure	eastus2	ubuntu-24.04@20261018.339.1	20261015.610	answered	4	464			
+39706500542	workflow_run	2026-10-22T01:34:49Z	success	8417d617		Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	4	631			
+39686359779	workflow_run	2026-10-21T22:25:19Z	success	e74c69a3		Azure	westus	ubuntu-24.04@20261018.339.1	20261015.610	answered	4	626			
+39673442863	workflow_run	2026-10-21T20:48:10Z	success	e1718432		Azure	southcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	4	505			
+39655218912	workflow_run	2026-10-21T18:43:03Z	success	4d361564		Azure	westus2	ubuntu-24.04@20261018.339.1	20261015.610	answered	4	697			
+39611963366	workflow_run	2026-10-21T13:53:29Z	success	275c284d		Azure	westus3	ubuntu-24.04@20261018.339.1	20261015.610	answered	4	570			
+39572406496	schedule	2026-10-21T08:51:12Z	success	acd90325		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	2	685			
+39564258369	workflow_run	2026-10-21T07:45:39Z	success	989509db		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	2	412			
+39528624612	workflow_run	2026-10-21T01:39:52Z	success	d67da60c		Azure	westus3	ubuntu-24.04@20261018.339.1	20261015.610	answered	2	560			
+39507519768	workflow_run	2026-10-20T22:21:35Z	success	1efc42b2		Azure	eastus	ubuntu-24.04@20261018.339.1	20261015.610	answered	2	439			
+39504351756	workflow_run	2026-10-20T21:56:30Z	success	70906ae1		Azure	eastus	ubuntu-24.04@20261018.339.1	20261015.610	answered	2	416			
+39475334976	workflow_run	2026-10-20T18:30:26Z	failure	11a3dd94	The deploy landed (published is the newest deployable commit)	Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	reached-not	0		deploy-not-landed		
+39454454245	workflow_run	2026-10-20T16:06:11Z	skipped	e12b33b2											
+39446913027	workflow_run	2026-10-20T15:16:40Z	skipped	39572f86											
+39432033037	workflow_run	2026-10-20T13:37:39Z	failure	1dad56c4	Render the deployed page and assert on it	Azure	eastus2	ubuntu-24.04@20261018.339.1	20261015.610	none	0		page-not-ready-30s	null	not probed
+39396410471	schedule	2026-10-20T08:51:20Z	failure	4267cceb	The score's weight axis interpolates on the DEPLOYED page	Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+39388236152	workflow_run	2026-10-20T07:42:00Z	failure	9709ec11	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+39357829824	workflow_run	2026-10-20T02:14:23Z	success	b03747dc		Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	487			
+39355962931	workflow_run	2026-10-20T01:53:59Z	success	ecd5ecad		Azure	westus2	ubuntu-24.04@20261018.339.1	20261015.610	answered	1	633			
+39335001539	workflow_run	2026-10-19T22:26:48Z	failure	6cb906a3	Build (the venue table this check derives its expectation from)	Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	reached-not	0		fable-crash-signature		
+39304468427	workflow_run	2026-10-19T18:40:21Z	success	8239180b		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	635			
+39295117155	workflow_run	2026-10-19T17:33:23Z	success	08fc4876		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	393			
+39240604561	workflow_run	2026-10-19T10:52:52Z	success	e15bfe9b		Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	623			
+39228841980	schedule	2026-10-19T09:16:41Z	failure	e15bfe9b	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+39201692251	workflow_run	2026-10-19T04:52:56Z	failure	e92a08ab	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+39193583143	workflow_run	2026-10-19T03:12:30Z	success	ba8fb0d4		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	663			
+39179861928	workflow_run	2026-10-19T00:14:14Z	success	42d69a6f		Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	1698			
+39168339267	workflow_run	2026-10-18T21:33:06Z	success	e701ba4f		Azure	westcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	607			
+39168325408	workflow_run	2026-10-18T21:32:55Z	skipped	e701ba4f											
+39159139057	workflow_run	2026-10-18T19:31:16Z	success	e09fb0b3		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	554			
+39155317199	workflow_run	2026-10-18T18:41:32Z	success	aa2cb279		Azure	southcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	542			
+39151050833	workflow_run	2026-10-18T17:45:35Z	success	f5cc25bd		Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	667			
+39142774338	workflow_run	2026-10-18T15:57:04Z	success	3622c315		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	623			
+39122708742	workflow_run	2026-10-18T11:18:32Z	success	4e8ebe94		Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	677			
+39110943751	schedule	2026-10-18T08:18:34Z	success	4e8ebe94		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	4	636			
+39102517335	workflow_run	2026-10-18T06:00:46Z	success	5a18c2ac		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	4	886			
+39085455788	workflow_run	2026-10-18T01:09:42Z	failure	8750709f	A finished game shows the brief written after it finished	Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	530	brief-game_live-on-final		
+39078056453	workflow_run	2026-10-17T23:11:33Z	failure	14dab3c2	A finished game shows the brief written after it finished	Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	619	brief-game_live-on-final		
+39067830952	workflow_run	2026-10-17T20:42:10Z	failure	18417981	A finished game shows the brief written after it finished	Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	73	brief-game_live-on-final		
+39053193056	workflow_run	2026-10-17T17:18:43Z	success	3b03d495		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	678			
+39050891097	workflow_run	2026-10-17T16:46:45Z	success	d7fadc03		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	408			
+39042634333	workflow_run	2026-10-17T14:52:57Z	success	aa7db0eb		Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	132			
+39039964596	workflow_run	2026-10-17T14:15:23Z	success	61110a45		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	532			
+39026609373	workflow_run	2026-10-17T10:53:22Z	success	3d368d30		Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	7	102			
+39015778624	schedule	2026-10-17T08:01:01Z	success	3d368d30		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	6	5300			
+39007075078	workflow_run	2026-10-17T05:39:44Z	success	075f4b43		Azure	southcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	6	852			
+39003627246	workflow_run	2026-10-17T04:43:22Z	success	ebb8fea2		Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	answered	6	562			
+39003360304	workflow_run	2026-10-17T04:39:06Z	skipped	d9f2cce5											
+39002242847	workflow_dispatch	2026-10-17T04:21:11Z	success	da5134ae		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	6	202			
+39002076011	workflow_run	2026-10-17T04:18:35Z	success	fc967594		Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	6	617			
+39001673671	workflow_run	2026-10-17T04:12:10Z	skipped	53da77fe											
+38995571737	workflow_run	2026-10-17T02:36:14Z	success	d2aed99a		Azure	mexicocentral	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	1083			
+38986860547	workflow_run	2026-10-17T00:32:42Z	failure	315d8483	The deploy landed (published is the newest deployable commit)	Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	reached-not	0		deploy-not-landed		
+38985036647	workflow_run	2026-10-17T00:09:22Z	skipped	c64251c2											
+38984759744	workflow_run	2026-10-17T00:05:50Z	skipped	5e65e875											
+38968530360	workflow_run	2026-10-16T21:19:11Z	success	8eaf5a05		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	508			
+38940248105	workflow_run	2026-10-16T17:30:43Z	success	e201ae2a		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	395			
+38901460021	workflow_run	2026-10-16T12:34:24Z	success	9069d74d		Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	answered	1	602			
+38881925364	workflow_run	2026-10-16T09:39:14Z	failure	62a3aa31	The score's weight axis interpolates on the DEPLOYED page	Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+38873956357	schedule	2026-10-16T08:28:49Z	failure	a702ad6f	The score's weight axis interpolates on the DEPLOYED page	Azure	westus2	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+38868987225	workflow_run	2026-10-16T07:43:04Z	failure	42ac0ce8	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	none	0		axis-desk-card-timeout-30s		
+38866222843	workflow_run	2026-10-16T07:16:58Z	failure	1ba6f6f3	The deploy landed (published is the newest deployable commit)	Azure	northcentralus	ubuntu-24.04@20261012.334.1	20261012.601	reached-not	0		deploy-not-landed		
+38853808646	workflow_run	2026-10-16T05:03:41Z	skipped	d63e8220											
+38835238068	workflow_run	2026-10-16T01:27:44Z	success	08149968		Azure	westus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	627			
+38817090840	workflow_run	2026-10-15T22:26:16Z	success	58e29a5f		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	400			
+38785076296	workflow_run	2026-10-15T18:22:27Z	success	ed212aa7		Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	619			
+38743322840	workflow_run	2026-10-15T13:30:47Z	success	2e435b75		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	5	596			
+38706600586	schedule	2026-10-15T08:34:11Z	success	10205b77		Azure	centralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	3	541			
+38699488337	workflow_run	2026-10-15T07:32:54Z	success	f99af512		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	3	152			
+38666258777	workflow_run	2026-10-15T01:33:04Z	success	ef998171		Azure	eastus	ubuntu-24.04@20261012.334.1	20261012.601	answered	4	601			
+38647103576	workflow_run	2026-10-14T22:21:43Z	success	4ec5dcaf		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	420			
+38617395668	workflow_run	2026-10-14T18:42:14Z	success	ebdd69ee		Azure	southcentralus	ubuntu-24.04@20261012.334.1	20261012.601	answered	3	511			
+38575043557	workflow_run	2026-10-14T13:49:18Z	failure	56341173	Render the deployed page and assert on it	Azure	westus3	ubuntu-24.04@20261012.334.1	20261012.601	reached-not	0		page-not-ready-30s		
+38539169161	schedule	2026-10-14T09:00:17Z	success	85661889		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	3	710			
+38530407125	workflow_run	2026-10-14T07:45:19Z	success	3c250938		Azure	westus	ubuntu-24.04@20261004.327.1	20261002.596	answered	3	633			
+38498581722	workflow_run	2026-10-14T01:58:33Z	success	8501f508		Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	550			
+38480711891	workflow_run	2026-10-13T22:53:02Z	success	345886ec		Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	583			
+38440366767	workflow_run	2026-10-13T17:39:06Z	success	15b542ba		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	678			
+38387511862	schedule	2026-10-13T11:02:46Z	success	b07f4313		Azure	eastus2	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	549			
+38376964553	workflow_run	2026-10-13T09:31:46Z	failure	cb15c3ca	The score's weight axis interpolates on the DEPLOYED page	Azure	northcentralus	ubuntu-24.04@20261004.327.1	20261002.596	none	0		axis-desk-card-timeout-30s		
+38335231304	workflow_run	2026-10-13T02:05:29Z	success	130c994e		Azure	westus2	ubuntu-24.04@20261004.327.1	20261002.596	answered	2	675			
+38300473411	workflow_run	2026-10-12T19:52:04Z	success	5721a964		Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	answered	2	577			
+38241742735	schedule	2026-10-12T11:17:54Z	success	f1648a3d		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	2	147			
+38229426153	workflow_run	2026-10-12T09:22:02Z	failure	a5be7e07	The score's weight axis interpolates on the DEPLOYED page	Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	none	0		axis-desk-card-timeout-30s		
+38191747681	workflow_run	2026-10-12T01:24:15Z	success	15712208		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	197			
+38178990149	workflow_run	2026-10-11T22:05:08Z	success	368f9b2f		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	524			
+38165234965	workflow_run	2026-10-11T18:46:43Z	success	9c83f43c		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	81			
+38164991756	workflow_run	2026-10-11T18:43:14Z	skipped	6a790872											
+38163822492	workflow_run	2026-10-11T18:26:31Z	success	c58720aa		Azure	northcentralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	509			
+38162615715	workflow_run	2026-10-11T18:09:17Z	success	00c751c6		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	564			
+38161592372	workflow_run	2026-10-11T17:54:29Z	success	54285cc4		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	78			
+38156886113	workflow_run	2026-10-11T16:46:59Z	success	7eb8ff6c		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	96			
+38156473031	workflow_run	2026-10-11T16:40:59Z	success	47e01fb1		Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	573			
+38155361893	workflow_run	2026-10-11T16:24:57Z	skipped	ec479e2b											
+38152267119	workflow_run	2026-10-11T15:40:32Z	success	bb112d57		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	543			
+38141542673	workflow_run	2026-10-11T13:01:40Z	success	3e141c21		Azure	eastus2	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	451			
+38131430036	schedule	2026-10-11T10:17:38Z	success	3e141c21		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	5	527			
+38116460034	workflow_run	2026-10-11T05:57:13Z	success	51edb913		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	3	84			
+38101368599	workflow_run	2026-10-11T01:18:03Z	failure	d730ed60	A finished game shows the brief written after it finished	Azure	northcentralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	503	brief-game_live-on-final		
+38099969253	workflow_run	2026-10-11T00:53:42Z	failure	f86292b9	A finished game shows the brief written after it finished	Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	581	brief-game_live-on-final		
+38095720678	workflow_run	2026-10-10T23:38:20Z	failure	6e7dc515	A finished game shows the brief written after it finished	Azure	westus2	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	724	brief-game_live-on-final		
+38082582960	workflow_run	2026-10-10T20:08:45Z	failure	7a9f48fd	A finished game shows the brief written after it finished	Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	550	brief-game_live-on-final		
+38063639975	workflow_run	2026-10-10T15:26:49Z	success	e1d689b7		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	4	574			
+38043744577	schedule	2026-10-10T10:06:22Z	failure	fe764466	The score's weight axis interpolates on the DEPLOYED page	Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	none	0		axis-desk-card-timeout-30s		
+38038489288	workflow_run	2026-10-10T08:36:53Z	success	64533cc7		Azure	centralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	3	538			
+38014551171	workflow_run	2026-10-10T01:47:50Z	failure	24005d24	Render the deployed page and assert on it	Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	none	0		venue-table-covers-none	null	not probed
+37995304711	workflow_run	2026-10-09T21:45:03Z	failure	5fba5d7d	Render the deployed page and assert on it	Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	none	0		venue-table-covers-none	null	not probed
+37958581803	workflow_run	2026-10-09T16:21:56Z	failure	40760432	Render the deployed page and assert on it	Azure	westus3	ubuntu-24.04@20261004.327.1	20261002.596	none	0		venue-table-covers-none	null	not probed
+37931519162	workflow_run	2026-10-09T12:39:53Z	skipped	2000641c											
+37920321109	schedule	2026-10-09T10:53:06Z	failure	4e6d079a	Render the deployed page and assert on it	Azure	westus	ubuntu-24.04@20261004.327.1	20261002.596	none	0		venue-table-covers-none	null	not probed
+37910261389	workflow_run	2026-10-09T09:16:58Z	failure	19c79279	The score's weight axis interpolates on the DEPLOYED page	Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	none	0		axis-desk-card-timeout-30s		
+37892134591	workflow_run	2026-10-09T06:10:07Z	skipped	33db3731											
+37884647537	workflow_run	2026-10-09T04:36:08Z	skipped	e1303e63											
+37877641480	workflow_run	2026-10-09T03:05:17Z	success	2cced765		Azure	southcentralus	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	567			
+37877338377	workflow_run	2026-10-09T03:01:24Z	skipped	8c4cda08											
+37874922417	workflow_run	2026-10-09T02:30:46Z	skipped	3900a1a2											
+37874420762	workflow_run	2026-10-09T02:24:23Z	skipped	147ac8a3											
+37873718905	workflow_run	2026-10-09T02:15:38Z	success	34f98937		Azure	westus	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	640			
+37863265155	workflow_run	2026-10-09T00:08:59Z	skipped	366aec68											
+37862788205	workflow_dispatch	2026-10-09T00:03:35Z	success	f15884e2		Azure	eastus	ubuntu-24.04@20261004.327.1	20261002.596	answered	1	865			
