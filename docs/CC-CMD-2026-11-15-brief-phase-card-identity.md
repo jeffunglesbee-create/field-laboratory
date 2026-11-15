@@ -94,7 +94,9 @@ After the landing, dispatch `live-check` on `main` with `brief_date=2026-11-14` 
 
 ## Task 7 — the follow-up is a task, not a note
 
-A scheduled task reads the first Saturday-evening beat after the landing (`live-check` created after 2026-11-22T03:37Z): `checked N of M` rows, the verdict, and whether any row had a card count above 1. **Artifact:** the task's id in the Status line.
+The first Saturday evening after the landing is Saturday 2026-11-21. The daily cron cannot be its beat. `live-check`'s `schedule` runs are created 5.70 to 8.45 h after the 03:37Z cron (median 7.80 h; 20 of 20 runs, `gh run list --event schedule`, read 2026-11-15), and a run created then shows the page's date after the turn of the ET day (`slate 2026-11-15` in run 43708978645, created 11:27Z that day), so it never meets Saturday's finals. The spec first written here, "a `live-check` created after 2026-11-22T03:37Z", rested on the cron's nominal time and is withdrawn.
+
+A scheduled task therefore dispatches `live-check` on `main` itself at 2026-11-22T01:30Z (20:30 ET on Saturday 2026-11-21), with no `brief_date` (the page then shows the current ET day, with games still in play beside the finals), reads the brief step's log over REST, and records: the `slate` line; the `final games carrying BOTH ...: N` line; the check's last line (`every final game with both phases shows its after-play brief (N testable)`) with its PASS or FAIL; every row whose shown text carries `cards, duplicated upstream`; and, for a red row, the evidence lines (every card id the verdict looked at). `NOT OBSERVABLE` is not a pass: the task says so and re-arms once, +1 h. **Artifact:** the task's id in the Status line.
 
 ## Task 8 — the manifest is last
 
@@ -111,7 +113,7 @@ A scheduled task reads the first Saturday-evening beat after the landing (`live-
 ## What this does not establish (said before it is built)
 
 - That the partner cards carried `game_live`. The failure text says a card in `matching` did and the own card did not. Which partner it was is deduced: in the 04:23Z run, `Alabama @ Vanderbilt` has one partner (`Troy @ South Alabama`); for `Michigan @ Oregon` the partner `Oregon St @ Boise St` is also the only card of its own passing row, so it is not during-play, which leaves `Washington @ Michigan St`; for `California @ Virginia` the partner `Kansas @ West Virginia` sits in a passing row of its own, which leaves `Stanford @ Virginia Tech`. The evidence print is what will say it.
-- That the fix would have been green on Saturday's data in Saturday's state. Task 6 runs the same day later, with the relay's rows finalised.
+- That the fix would have been green on Saturday's data in Saturday's state. Task 6 runs the same day later, with the relay's rows finalised; Task 7 is the run in an evening's state, with partners in play.
 - That every testable game's card carries its payload id. Measured on the 16 red rows (16 of 16). A game whose id is on no card takes the no-card branch, which already fails the row and prints the near-name list (`wrong.push`, then the final check), so a mismatch elsewhere is red in Task 6's table and not a pass.
 - That the relay still carries both phases for 2026-11-14. The payload answered 200 with 339,314 bytes; the count of testable games is what Task 6 prints. `NOT OBSERVABLE` there means the proof has not run, and the dispatch is repeated with another day.
 - Anything about the relay's duplicated fixtures (counted and reported by the NOTE block, unchanged) or about why a `Final` card can carry `game_live` (a final game with only the during-play brief is not a testable row).
