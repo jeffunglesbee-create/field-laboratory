@@ -52,8 +52,9 @@ WHAT THIS CHECKS, on each target job (rules 1 to 8) and on every other install (
      echo that mentions it, an `exit 0` before it or an `if false; then exit 1; fi` all contain the characters and none of
      them reddens the job. Because the guard's run and the runner's differ in everything but the script (files, variables
      the runner sets, the shell's options), the script is a CLOSED GRAMMAR: only echo, `exit N` (a literal non-zero
-     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect; anything else is refused,
-     because what it does here would say nothing about what it does there. It is last because a step after it that has no
+     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect, and a comparison reads only a
+     variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more: `[ "$GITHUB_ACTIONS" != true ]`
+     fails here and passes there); anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
      `always()` is skipped by the failure it makes.
   5. every `steps.<id>` an `if` mentions is the id of an earlier step (a renamed id evaluates to null and skips every
      browser step without a word)
@@ -111,10 +112,13 @@ playwright or calls chromium.launch, and the arguments do not include `--self-te
     `python3`, `npx playwright` and a short list of commands that cannot start a browser (SAFE_HEADS). Anything else, a
     wrapper (`timeout`, `env`, `xvfb-run`, `bash -c`, `time`, `exec`, `xargs`), a command substitution inside quotes, a
     heredoc or process substitution, a script with no extension, an npm pass-through argument, a missing script or a
-    cycle, a node flag in the `--opt=value` form that is not understood, NODE_OPTIONS or PATH set in front of a command, is
+    cycle, a node flag in the `--opt=value` form that is not understood, NODE_OPTIONS or PATH set in front of a command (or npm's own
+    spelling of them, `npm_config_node_options`, `NPM_CONFIG_SCRIPT_SHELL`: DANGEROUS_VARS and NPM_CONFIG_DANGEROUS), is
     UNRESOLVED and refused: the author writes the plain form, or gates the step on the install. Before the 2026-11-12
     review this reader dropped what it did not parse and called the step browser-free; seven forms of that were reproduced,
-    and a second review found twelve more (a `#` inside a word, `--import=`, `<( )`, `NODE_OPTIONS=` and others), now fixed.
+    and a second review found twelve more (a `#` inside a word, `--import=`, `<( )`, `NODE_OPTIONS=` and others), now fixed. `node -e CODE` is read
+    only when CODE is a closed grammar that can start no program (INLINE_ROOTS, INLINE_PROPS); a step that cannot be read and runs `if: always()`
+    is kept as opaque only when every command on its unreadable lines is an allowed head (raw_line_hides), never because it is not a known wrapper.
   - ONLY STEPS AFTER THE INSTALL must be fully readable. A step before it that needs a browser fails with or without
     the gate; for those the reader only looks for a definite launch.
 
@@ -216,18 +220,32 @@ RUNS_A_ROW = re.compile(r"""\.run\s*\??\.?\s*\(|\[\s*['"]run['"]\s*\]\s*\??\.?\s
 # The heads that run another command: an unreadable step whose unreadable part is one of THESE may be hiding a browser launch (`timeout 60 node scripts/x.mjs`), and is not the ledger kind of opaque.
 WRAPPER_HEADS = frozenset({"timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot"})
 WRAPPER_REASON = re.compile(r"^`([^`]*)`: `([^`]+)` is not a command this guard can read")
-# The one wrapper-shaped reason that is not a command: the words of an arithmetic expansion (`$((attempt * 3))`) read as a head.
-ARITHMETIC = re.compile(r"\w+\s*[-+*/%]\s*[\w$]+")
 # What an unreadable step may be made of and still be kept as opaque (the ledger steps of verify-full are these): text and file tools, which run no other command, a substitution or heredoc that hides a
-# whole line (the raw line is scanned for a script name and for a wrapper, below), inline node, and a git subcommand the reader does not read. Every OTHER reason (an unknown head, `npx`, `dotnet`, a
-# flag, a variable that changes what runs) makes the step a candidate for a hidden launch: a denylist of wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through.
+# whole line (the raw line is scanned, below), a git subcommand that only reads (GIT_READONLY), and inline node whose code is a closed grammar of its own (INLINE_ROOTS: read_node reads it, so it is no
+# reason at all). Every OTHER reason (an unknown head, `npx`, `dotnet`, a flag, a variable that changes what runs, `git rebase -x`, `node --run`) makes the step a candidate for a hidden launch: a denylist of
+# wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through. Review of 48f504e, finding 23: the allowlist used to name EVERY `git X is not a subcommand` and every
+# `node with inline code` reason, and `git rebase -x 'node scripts/render-check.mjs'`, `git -c alias.s='!cmd' s`, `node -e "...execSync(...)"` and `node --run <package script>` each run a command; it also
+# let any two-word command that looked like `a -b` through as "arithmetic" (`make -s`, `deno -A`). Arithmetic is masked where the line is split (ARITH_EXPANSION), so it is no longer a reason to read.
 BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
                           "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"})
-OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting", r": git \S+ is not a subcommand this guard reads",
-                                            r": node with inline code")]
-# A wrapper as the first word of a command, wherever the command is on the line (after `&&`, `||`, `;`, a pipe, `(`, `then`, `do`, `else`, and any VAR=value words): read from the RAW line, so one that sits on a
-# line the splitter could not split (`timeout 120 node scripts/x.mjs --out "$(date)"`) is still seen.
-WRAPPER_IN_TEXT = re.compile(r"(?:^|&&|\|\||[;|(]|\bthen\b|\bdo\b|\belse\b)\s*(?:[A-Za-z_]\w*=\S*\s+)*(\S+)")
+OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting")]
+# The git subcommands that only read the repository and run nothing: the ones an unreadable step may use and stay opaque (`git merge-base --is-ancestor` is the ledger's). Not GIT_SUBS: those are read by
+# read_git and are no reason at all. `-c`, `-C`, `rebase`, `bisect`, `submodule`, `filter-branch` and the aliases a config defines are not here, because each runs something.
+GIT_READONLY = frozenset({"merge-base", "rev-list", "symbolic-ref", "describe", "cat-file", "for-each-ref", "show-ref", "ls-tree"})
+GIT_REASON = re.compile(r"^`[^`]*`: git (\S+) is not a subcommand this guard reads")
+# A command word on a RAW line (one the splitter could not split) is allowed when it is one of these: the benign tools, the safe heads, and the words that open or close a shell construct and run nothing.
+RAW_WORDS = frozenset({"for", "select", "case", "esac", "fi", "done", "in", "}", ":"})
+# Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), and the keywords that precede one.
+# Review of 48f504e, finding 22: the head used to be `(\S+)`, which swallowed a `;` or `(` written without a space, so a wrapper after `echo "at $(date)";` was never a head.
+COMMAND_SEP_SYMBOLS = (";", "|", "&", "(", "{", "`", "!")
+COMMAND_SEP_WORDS = ("then", "do", "else", "if", "elif", "while", "until")
+_SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)"}
+COMMAND_HEAD = re.compile(
+    r"""(?:^|""" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
+    r"""(?:[A-Za-z_]\w*=(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')*\s+)*["']*"""                          # VAR=value words (quoted values too) and a quote before the head
+    r"""(?!(?:""" + "|".join(COMMAND_SEP_WORDS) + r""")\b|[{!](?:\s|$))([^\s;|&()<>`"']+)""")
+# An arithmetic expansion, `$((attempt * 3))`: only names, numbers, `$name` and the operators, so it runs nothing and cannot hold a substitution. It is replaced by `0` before a line is split or searched for heads.
+ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
 # What a REQUIRED no-browser step (TARGETS[...]["flagged"]) has to do as real work. The rule that a target RUNS its no-browser spawner was met by any step with the right `if` that names the spawner and
 # its flag (`mutation-check.mjs --list-ids --no-browser`, `confidence.mjs --quick --browserless`, `... || true`), so it is a closed form now: every line is one `node`/`npm` command (no `||`, `&&`, `;`, pipe
 # or substitution) or the bare `if [ -n "$X" ]; then`, `else`, `fi`; nothing but the spawner runs; the arguments a mode that does no work would carry are refused (NOT_WORK), and the arguments real work
@@ -392,8 +410,54 @@ NODE_PRELOAD_EQ = ("--require=", "--import=", "--loader=", "--experimental-loade
 NODE_ARG = {"--input-type", "-C", "--conditions", "--env-file", "--title", "--stack-trace-limit"}
 NODE_INLINE = {"-e", "--eval", "-p", "--print", "-i", "--interactive", "-", "--run"}
 NODE_INLINE_EQ = ("--eval=", "--print=", "--run=")
+# Inline code is read, not refused outright, when it is nothing but a closed grammar that can start no program: the words are the three globals INLINE_ROOTS, a property from INLINE_PROPS after a `.`,
+# or the one parameter of an arrow function (`d=>`); the punctuation is `( ) , .` and `=>`; the only other tokens are quoted strings (no template literal) and numbers. No `[` (so no `process['x']`), no
+# `require`, `import`, `eval`, `Function`, `this`, `globalThis`, `constructor`, `binding`, `mainModule`: none of them is a word of the grammar. The ledger step of verify-full (`Record this measurement`)
+# parses the JSON of a push with `node -e 'process.stdin.on("data",d=>console.log(JSON.parse(d.toString()).id))'`, and is the one inline use in the target jobs. `-p`/`-e` and their `=` forms are
+# the ones that take code; `-i`, `-` (stdin) and `--run` (a package script) run something else and stay unreadable. Review of 48f504e, finding 23: every inline use used to be an allowed reason.
+NODE_EVAL = {"-e", "--eval", "-p", "--print"}
+NODE_EVAL_EQ = ("--eval=", "--print=")
+INLINE_ROOTS = frozenset({"process", "console", "JSON"})
+INLINE_PROPS = frozenset({"stdin", "on", "log", "error", "parse", "stringify", "toString", "id"})
+INLINE_TOKEN = re.compile(r"""\s*(?:(?P<str>'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")|(?P<num>\d+(?:\.\d+)?)|(?P<arrow>=>)|(?P<punct>[(),.])|(?P<id>[A-Za-z_$][\w$]*))""")
+
+
+def inline_code_is_pure(code):
+    """Whether `node -e CODE` runs nothing but the closed grammar above: it cannot start a program, so it is browser-free whatever else the step does."""
+    code, pos, toks = code.strip(), 0, []
+    while pos < len(code):
+        m = INLINE_TOKEN.match(code, pos)
+        if m is None or m.end() == pos:
+            return False
+        toks.append((m.lastgroup, m.group(m.lastgroup)))
+        pos = m.end()
+    params = {toks[k][1] for k in range(len(toks) - 1) if toks[k][0] == "id" and toks[k + 1][0] == "arrow" and not (k and toks[k - 1] == ("punct", "."))}
+    for k, (kind, val) in enumerate(toks):
+        if kind == "id" and not (val in INLINE_PROPS if k and toks[k - 1] == ("punct", ".") else val in INLINE_ROOTS or val in params):
+            return False
+    return bool(toks)
 # Variables that change WHAT a command runs without appearing in it: a preload through NODE_OPTIONS, a shadowing PATH.
 DANGEROUS_VARS = frozenset({"NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME"})
+# npm has its own spelling of some of those, and reads it from the environment: `npm_config_<key>`, in ANY letter case, with `_` for `-` (@npmcli/config loadEnv, npm 10.9.4:
+# `/^npm_config_/i`, then `key.replace(/(?!^)_/g, '-').toLowerCase()`). `npm_config_node_options` is NODE_OPTIONS for every node npm starts (a preload into each script, which the guard
+# refused only under its own name), and `NPM_CONFIG_SCRIPT_SHELL` is the shell `npm run` hands the script to (review of 48f504e, finding 29: both read as `npm run <browser-free script>`).
+# Read from npm's own config reference (docs/content/using-npm/config.md), the keys that change WHICH command `npm run` executes: `script-shell` and `node-options` (how a script is started),
+# `prefix` ("forces non-global commands to run in the specified folder": another package.json), `workspace`, `workspaces` and `include-workspace-root` (the same script of another package) and
+# `userconfig`, `globalconfig` (a config file that sets any of the above). NOT `shell`: the docs say it is the shell of `npm explore`, and the guard refuses `npm explore` as a subcommand it does not read.
+NPM_CONFIG_DANGEROUS = frozenset({"script-shell", "node-options", "prefix", "userconfig", "globalconfig", "workspace", "workspaces", "include-workspace-root"})
+
+
+def npm_config_key(name):
+    """The npm config key an environment variable name sets, as npm reads it, or None when the name is no `npm_config_` one."""
+    m = re.match(r"npm_config_(.*)$", str(name), re.I | re.S)
+    return None if m is None else re.sub(r"(?!^)_", "-", m.group(1)).lower()
+
+
+def dangerous_var(name):
+    """Whether setting this variable changes what the commands of a step run: DANGEROUS_VARS, or an `npm_config_` spelling of an npm key that does (NPM_CONFIG_DANGEROUS)."""
+    return str(name) in DANGEROUS_VARS or npm_config_key(name) in NPM_CONFIG_DANGEROUS
+
+
 INSTALL_LINE = re.compile(r"^(?:timeout(?: --kill-after=\d+)? \d+ )?npx playwright install(?: [\w-]+)*$")
 FINAL_HEADS = frozenset({"echo", "exit", "[", "test"})
 PY_FLAGS = {"-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"}
@@ -405,6 +469,7 @@ MAX_DEPTH = 16
 
 def split_commands(line):
     """The words of each simple command on one logical line. Raises Unreadable on a shape that is not read."""
+    line = ARITH_EXPANSION.sub("0", line)          # `sleep $((attempt * 3))`: arithmetic runs nothing; its words must not read as a command `attempt`
     try:
         lex = shlex.shlex(strip_comment(line), posix=True, punctuation_chars=True)
         lex.whitespace_split = True
@@ -450,9 +515,17 @@ def command_words(group):
 
 
 def read_node(w, out, shown):
-    i, preloads = 1, []
+    i, preloads, inline = 1, [], False
     while i < len(w):
         a = w[i]
+        if a in NODE_EVAL or a.startswith(NODE_EVAL_EQ):
+            code = a.split("=", 1)[1] if a not in NODE_EVAL else (w[i + 1] if i + 1 < len(w) else "")
+            if not inline_code_is_pure(code):
+                out["unresolved"].append(f"`{shown}`: node with inline code (`{a}`) that is not the closed grammar this guard reads runs code it cannot read")
+                return
+            inline = True
+            i += 1 if a not in NODE_EVAL else 2
+            continue
         if a in NODE_INLINE or a.startswith(NODE_INLINE_EQ):
             out["unresolved"].append(f"`{shown}`: node with inline code or a package script (`{a}`) runs code this guard cannot read")
             return
@@ -479,6 +552,9 @@ def read_node(w, out, shown):
             i += 1
             continue
         break
+    if inline:                                       # pure inline code: the words after it are its arguments, not a script; a preload (`-r x -e ...`) still runs
+        out["entries"] += [(p, []) for p in preloads]
+        return
     if i >= len(w) or not SCRIPT_FILE.match(w[i]):
         out["unresolved"].append(f"`{shown}`: node's first non-flag word is {w[i] if i < len(w) else 'missing'!r}, not a .mjs/.cjs/.js file (a flag that takes a separate value? write it as --flag=value)")
         return
@@ -592,8 +668,8 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
         for g in groups:
             w = command_words(g)
             assigned = [x.split("=", 1)[0] for x in (list(g[:len(g) - len(w)]) + (list(w[1:]) if w and w[0] == "export" else [])) if re.match(r"^[A-Za-z_]\w*=", x)]
-            if any(a in DANGEROUS_VARS for a in assigned):
-                out["unresolved"].append(f"`{' '.join(g)[:80]}`: it sets {', '.join(a for a in assigned if a in DANGEROUS_VARS)}, which changes what the commands after it run")
+            if any(dangerous_var(a) for a in assigned):
+                out["unresolved"].append(f"`{' '.join(g)[:80]}`: it sets {', '.join(a for a in assigned if dangerous_var(a))}, which changes what the commands after it run")
             if not w:
                 continue
             head, shown = w[0], " ".join(w)[:80]
@@ -691,20 +767,52 @@ def spawns_browser(entry, args, read, no_browser_ok=False):
     return spawned_browser_scripts(entry, read)
 
 
+def command_heads(line):
+    """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD)."""
+    line = ARITH_EXPANSION.sub("0", line)
+    return [(m.group(1), line[m.end():]) for m in COMMAND_HEAD.finditer(line)]
+
+
+def raw_line_hides(line):
+    """Whether a RAW line (one the splitter could not split: a quoted command substitution, a heredoc) may hide a launcher. Every command on it must be an allowed head: the benign tools, the safe heads and the
+    words of a shell construct (RAW_WORDS), an assignment, a `git` that is read or only reads, or `node`/`python` with a script file on the line (read_step has scanned that file for a launch). Anything else
+    (`npm run X`, `npx playwright ...`, `make`, `eval`, `./x.sh`, `deno`, a `$VAR` head) is a command whose arguments this guard cannot read here. Review of 48f504e, finding 21: the raw line was scanned for
+    script names and for wrapper heads only, so `echo "at $(date)" && npm run check:peak` stayed opaque while the same command written plainly is refused."""
+    for head, rest in command_heads(line):
+        words = rest.split()
+        if head in BENIGN_HEADS or head in SAFE_HEADS or head in RAW_WORDS or re.match(r"[A-Za-z_]\w*=", head):
+            continue
+        if head == "git" and words and words[0] in GIT_SUBS | GIT_READONLY:
+            continue
+        if head in ("node", "python", "python3") and SCRIPT_NAME.search(line):
+            continue
+        return True
+    return False
+
+
 def hides_a_launcher(reasons, text=""):
-    """Whether an unreadable step may be hiding a launch, and so must NOT be kept as opaque: a reason that is not one of the benign shapes (an unknown head, `npx`, a flag...), or a known wrapper (`timeout`,
-    `xvfb-run`, `bash -c`, `env`, `exec`...) as the first word of any command on any line of its raw text."""
+    """Whether an unreadable step may be hiding a launch, and so must NOT be kept as opaque: a reason that is not one of the benign shapes (an unknown head, `npx`, a flag, a git subcommand that is not read-only...),
+    a known wrapper (`timeout`, `xvfb-run`, `bash -c`, `env`, `exec`...) as the first word of any command on any line of its raw text, or a raw line with a command on it that is not an allowed head."""
     for r in reasons:
         m = WRAPPER_REASON.match(r)
         if m:
-            if m.group(2) in BENIGN_HEADS or ARITHMETIC.fullmatch(m.group(1)):
+            if m.group(2) in BENIGN_HEADS:
+                continue
+            return True
+        g = GIT_REASON.match(r)
+        if g:
+            if g.group(1) in GIT_READONLY:
                 continue
             return True
         if not any(pat.search(r) for pat in OPAQUE_REASON_OK):
             return True
     for line in logical_lines(text):
-        for h in WRAPPER_IN_TEXT.findall(line):
-            if os.path.basename(h.strip("'\"")) in WRAPPER_HEADS:
+        if any(os.path.basename(h) in WRAPPER_HEADS for h, _ in command_heads(line)):
+            return True
+        try:
+            split_commands(line)
+        except Unreadable:
+            if raw_line_hides(line):
                 return True
     return False
 
@@ -716,7 +824,7 @@ def flagged_step_ok(s, req, pkg, read):
         return False
     depth, has_else, branch_cmds = 0, False, 0
     for line in logical_lines(text):
-        line = re.sub(r"\s+#.*$", "", line.strip())                         # a trailing comment is not part of the command
+        line = strip_comment(line).strip()                                  # a trailing comment is not part of the command: found where bash finds it, at a `#` that begins a word OUTSIDE quotes (`echo "note # x" ; exit 0` has none)
         if re.fullmatch(r'if \[\[? -n "\$\{?\w+\}?" \]\]?; then', line):
             depth, has_else, branch_cmds = depth + 1, False, 0
             continue
@@ -734,7 +842,10 @@ def flagged_step_ok(s, req, pkg, read):
             continue
         if not re.match(r"(?:node|npm) ", line) or FORBIDDEN_IN_LINE.search(line) or re.search(r"\s--\s", line):
             return False
-        branch_cmds += 1
+        # A branch's work is the spawner, not any `node`/`npm` line: a then-branch of only `npm ci` ran nothing for the `--ids` path (review of 48f504e, finding 24). (That the spawner carries its flag is
+        # checked below, for every command of the step.)
+        if any(os.path.normpath(e) == req for e, a in read_commands(line, pkg, read)["entries"]):
+            branch_cmds += 1
     if depth != 0:
         return False
     entries = [(os.path.normpath(e), a) for e, a in read_commands(text, pkg, read)["entries"]]
@@ -772,7 +883,7 @@ def read_step(step, pkg, read, no_browser_ok=False):
     if step.get("working-directory") not in (None, "."):
         res["unresolved"].append(f"working-directory: {step.get('working-directory')!r}: relative script paths would mean something else")
     for k in env_map(step):
-        if str(k) in DANGEROUS_VARS:
+        if dangerous_var(k):
             res["unresolved"].append(f"env: {k} changes what the commands of this step run")
     out = read_commands(script, pkg, read)
     res["unresolved"] += out["unresolved"]
@@ -831,11 +942,17 @@ def run_final(step, outcome, timeout=FINAL_TIMEOUT, others=None):
                               capture_output=True, text=True, timeout=timeout)
 
 
-def final_script_problems(script):
+# A `$` in a word of a `[ ]` or `test`: `$NAME` or `${NAME}`, and nothing else (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}` all differ between the guard's run and the runner's, or hide a lookup).
+VAR_REF = re.compile(r"\$(?:\{([^}]*)\}|([A-Za-z_]\w*)|(.?))")
+
+
+def final_script_problems(script, env_names=()):
     """The final step's script may use ONLY echo, `exit N` (N a literal non-zero integer) and `[ ]`/`test` comparisons, in
     if/elif/else/fi. The guard runs it to see that it fails, and can only know that it fails the same way on the runner if it
     touches nothing the two places differ in: a file (the guard's cwd is empty), a variable the runner sets, a pipe (the
-    runner has no pipefail), a redirect, a command that is not one of these. Returns [why]."""
+    runner has no pipefail), a redirect, a command that is not one of these. A comparison may read only a variable the step's
+    own `env:` defines (`env_names`): the guard's run gives the script PATH, LC_ALL and that env, so `[ "$GITHUB_ACTIONS" != true ]`
+    fails here and passes on every runner (review of 48f504e, finding 28). Returns [why]."""
     bad = []
     for line in logical_lines(script):
         try:
@@ -872,6 +989,12 @@ def final_script_problems(script):
                 bad.append(f"`{' '.join(w)[:60]}`: exit must be followed by a literal non-zero integer")
             elif head in ("[", "test") and any(x.startswith("-") for x in w[1:]):
                 bad.append(f"`{' '.join(w)[:60]}`: a file or string operator in a test; compare the outcome with = or !=")
+            elif head in ("[", "test"):
+                refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for x in w[1:] for m in VAR_REF.finditer(x)}
+                foreign = sorted(refs - set(env_names))
+                if foreign:
+                    bad.append(f"`{' '.join(w)[:60]}`: a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                               f"compare only a variable the step's `env:` defines")
     return bad
 
 
@@ -883,7 +1006,7 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
     if not run_text(step).strip():
         bad.append(f"the final step {name} has no script to fail with")
         return bad
-    grammar = final_script_problems(run_text(step))
+    grammar = final_script_problems(run_text(step), {str(k) for k in env_map(step)})
     if grammar:
         bad.append(f"the final step {name} must use only echo, `exit N` and `[ ]` comparisons in if/elif/else/fi, so that running it here shows what the runner does: " + "; ".join(grammar[:3]))
         return bad
@@ -940,7 +1063,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
         bad.append(f"the install step {name(inst)} must be ONE `npx playwright install ...` command (optionally behind `timeout N`): it has `continue-on-error`, so anything else in it that fails is swallowed and the job is green over it")
     for scope, env in (("job", jobdoc.get("env")), ("workflow", (doc or {}).get("env"))):
         for k in (env or {}):
-            if str(k) in DANGEROUS_VARS:
+            if dangerous_var(k):
                 bad.append(f"the {scope}'s env sets {k}, which changes what every command in it runs")
     for i, s in enumerate(steps):
         if i != at and truthy(s.get("continue-on-error")):
@@ -1023,11 +1146,57 @@ ROW_SHARDED = re.compile(r"(?<![.\w$])shardedSuite\s*\(")
 # The helpers a row may name instead of an arrow function: they hold no command of a browser script (outboxToday and outboxAccompaniesSource read the outbox and git).
 ROW_HELPERS = ("outboxToday", "outboxAccompaniesSource")
 # A string that names a command: a script path or a shell command. Every one in a row has to be the argument of a call this reader understands, or it is a command it cannot attribute.
-SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:node|npm|npx|python3?|bash|sh|xvfb-run|timeout|env)\b|\s(?:\./)?scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")   # a bare path (`'scripts/x.mjs'`) is a file, not a command
-# Strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, in the order a JavaScript tokenizer meets them.
-# A `/` starts a regular expression only after a token that cannot end an expression (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`, `=>`, `return`): after a name, a number or `)` it is a
-# division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next one, hiding the call between them).
-JS_TOKEN = re.compile(r"""('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|(?:(?<=[(,=:\[!&|?{};])|(?<==>)|(?<=\breturn))[ \t]*/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*)|//[^\n]*|/\*.*?\*/""", re.S)
+# The heads of a string that is a command (`npx playwright test`, `CI=1 npm run x`), and a path to a script FILE as the whole string or after a space (`scripts/x.mjs`, `./scripts/x.mjs`, `xargs scripts/x.mjs`, `${ROOT}/scripts/x.mjs`).
+# A bare path used to be "a file, not a command" (review round 3), which let `cp.spawnSync(process.execPath, ['scripts/render-check.mjs'])` and `helpers.runAll(['scripts/render-check.mjs'])` read as running no
+# browser: a path is a file only when a call that READS files takes it (ROW_READ_CALLS, below), and every other one is a command nothing here can attribute (review of 48f504e, finding 25).
+SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvfb-run", "timeout", "env")
+SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:" + "|".join(SCRIPTISH_HEADS) + r")\b|(?:^|\s)(?:\$\{?\w+\}?/|\.{1,2}/)*scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")
+# The calls that only READ a path, so a script path as their first argument is a file and not a command (the arguments of `readFileSync('scripts/gate-checks.mjs')` in a row that checks a script's text).
+ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+ROW_READ_ARG = re.compile(r"""(?<![.\w$])(?:""" + "|".join(ROW_READ_CALLS) + r""")\s*\(\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)")""")
+# JAVASCRIPT TOKENS: strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, found by a scanner that remembers the last
+# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, `return`
+# or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
+# one, hiding the call between them). "Last significant" skips whitespace INCLUDING NEWLINES and comments: `=>` at the end of a line and `/it's/.test(s) && ok(...)` on the next is one regular expression and one
+# call (review of 48f504e, finding 26: the lookbehind of a single regular expression saw only the character before the whitespace on the same line, and the quote swallowed the call).
+REGEX_AFTER = frozenset("(,=:[!&|?{};")
+JS_STRING = re.compile(r"""'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`""", re.S)
+JS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+JS_REGEX = re.compile(r"""/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*""")
+JS_WORD = re.compile(r"[A-Za-z_$][\w$]*|\d[\w.]*")
+
+
+def js_tokens(src):
+    """[(start, end, literal)] of the strings, template literals and regular expression literals (literal=True) and the comments (literal=False) of `src`, in the order a tokenizer meets them."""
+    out, i, n, prev = [], 0, len(src), ""
+    while i < n:
+        c = src[i]
+        if c.isspace():
+            i += 1
+            continue
+        m = JS_COMMENT.match(src, i)
+        if m:                                                   # a comment does not change what came before it
+            out.append((i, m.end(), False))
+            i = m.end()
+            continue
+        m = JS_STRING.match(src, i)
+        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev in ("=>", "return")):
+            m = JS_REGEX.match(src, i)
+        if m:
+            out.append((i, m.end(), True))
+            i, prev = m.end(), "x"                              # a value ends an expression: a `/` after it is a division
+            continue
+        m = JS_WORD.match(src, i)
+        if m:
+            i, prev = m.end(), ("return" if m.group(0) == "return" else "x")
+            continue
+        if src.startswith("=>", i):
+            i, prev = i + 2, "=>"
+            continue
+        i, prev = i + 1, c
+    return out
+
+
 # A call this reader does not know could run a command from a helper defined above the rows array (`const sparkRow = () => ok('node scripts/spark-check.mjs')`, `run: () => sparkRow()`).
 ROW_ANY_CALL = re.compile(r"(?<![.\w$])([A-Za-z_]\w*)\s*\(")
 ROW_KNOWN_CALLS = frozenset({"ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite", "Number", "String", "Boolean", "parseInt", "readFileSync", "existsSync", "readdirSync", "statSync", "if", "for", "while", "switch", "catch", "return", "function"})
@@ -1036,12 +1205,22 @@ MIN_ROWS, MIN_BROWSER_ROWS = 20, 6
 
 def _blank_comments(src):
     """JavaScript comments become spaces (offsets kept); a string or a regular expression, which may hold `//` (a URL), is kept whole."""
-    return JS_TOKEN.sub(lambda m: m.group(0) if m.group(1) else re.sub(r"[^\n]", " ", m.group(0)), src)
+    out, last = [], 0
+    for s, e, literal in js_tokens(src):
+        if not literal:
+            out += [src[last:s], re.sub(r"[^\n]", " ", src[s:e])]
+            last = e
+    return "".join(out) + src[last:]
 
 
 def _blank_strings(src):
     """The contents of every string and regular expression become NUL (offsets kept), so a word inside a command is not a use of that word."""
-    return JS_TOKEN.sub(lambda m: m.group(0)[0] + "\0" * (len(m.group(0)) - 2) + m.group(0)[-1] if m.group(1) else m.group(0), src)
+    out, last = [], 0
+    for s, e, literal in js_tokens(src):
+        if literal:
+            out += [src[last:s], src[s] + "\0" * (e - s - 2) + src[e - 1]]
+            last = e
+    return "".join(out) + src[last:]
 
 
 def _matching_paren(shape, lp):
@@ -1051,6 +1230,19 @@ def _matching_paren(shape, lp):
         if shape[k] == "(":
             depth += 1
         elif shape[k] == ")":
+            depth -= 1
+            if depth == 0:
+                return k
+    return -1
+
+
+def _matching_brace(shape, lb):
+    """The index of the `}` that closes the `{` at shape[lb] (strings and regular expressions are blanked, so their braces do not count), or -1."""
+    depth = 0
+    for k in range(lb, len(shape)):
+        if shape[k] == "{":
+            depth += 1
+        elif shape[k] == "}":
             depth -= 1
             if depth == 0:
                 return k
@@ -1075,9 +1267,24 @@ def gate_rows(root="."):
     n_weight = len(re.findall(r"\bweight\s*:", shape))
     if n_weight != len(starts):
         problems.append(f"{n_weight} `weight:` keys in the rows array of scripts/gate-checks.mjs but {len(starts)} rows read: a row not written `{{ name: '...', weight: N` at the start of a line is not read, and a row not read is not compared")
+    # THE ARRAY IS READ WHOLE, AND ONLY THERE. The rows are what scripts/confidence.mjs iterates, so every element of the exported array has to be a row this reader read: nothing between `[` and the
+    # first row, nothing but a comma between one row's `}` and the next row (a spread `...more`, a variable, a call, a row written with quoted keys or two on a line is none of the rows read), nothing but
+    # `]` after the last; and the name `rows` is used nowhere else but its declaration and its `export { ... }` (`rows.push(...)`, `rows.splice`, `rows.unshift`, `rows = ...`, `rows[...] = ...`, `...rows`
+    # change the array after it is read here). Review of 48f504e, finding 27: a row outside the literal, or with quoted keys, was not read, not counted and not compared.
+    whole = _blank_strings(_blank_comments(text))
+    spans = [(x.start(), x.end()) for x in re.finditer(r"\bexport\s*\{[^}]*\}", whole)]
+    stray = [x for x in re.finditer(r"(?<![\w$])(?:(?<=\.\.\.)|(?<!\.))rows\b(?!\s*:)", whole) if x.start() != at + len("const ") and not any(s <= x.start() < e for s, e in spans)]
+    if stray:
+        problems.append(f"`rows` is used {len(stray)} time(s) in scripts/gate-checks.mjs besides `const rows = [` and its `export {{ ... }}` (`rows.push(...)`, `rows.splice`, `rows = ...`, `rows[...]`, a spread): a row changed there is not one this reader read")
+    if starts and shape[shape.index("[") + 1:starts[0].start()].strip():
+        problems.append("the rows array of scripts/gate-checks.mjs has something before its first row (a spread, a call, a row written with quoted keys): an element that is not `{ name: '...', weight: N, ...}` at the start of a line is not read")
     for k, m in enumerate(starts):
         lo, hi = m.start(), (starts[k + 1].start() if k + 1 < len(starts) else len(body))
         chunk, cshape, name = body[lo:hi], shape[lo:hi], m.group(2)
+        close = _matching_brace(cshape, cshape.index("{"))
+        tail = cshape[close + 1:] if close >= 0 else None
+        if tail is None or not re.fullmatch(r"\s*,?\s*\]\s*" if k + 1 == len(starts) else r"\s*,\s*", tail):
+            problems.append(f"gate row {name!r} is not followed by a comma and the next row (or by `]`) in scripts/gate-checks.mjs: something else sits between the rows (a spread, a variable, a call, a row with quoted keys), and is not read")
         run = re.search(r"\brun\s*:", cshape)
         if run is None:
             problems.append(f"gate row {name!r} has no `run:` this reader can find")
@@ -1123,10 +1330,10 @@ def gate_rows(root="."):
         for ac in ROW_ANY_CALL.finditer(rshape):
             if ac.group(1) not in ROW_KNOWN_CALLS and ac.group(1) not in ROW_HELPERS:
                 problems.append(f"gate row {name!r} calls `{ac.group(1)}(...)`, which this reader does not know: a helper defined above the rows array could run a command from there, unread")
-        have = set(cmds)
-        for tok in JS_TOKEN.finditer(rest):
-            lit = tok.group(1)
-            if lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
+        have = set(cmds) | {x or y for x, y in ROW_READ_ARG.findall(rest)}
+        for s, e, is_lit in js_tokens(rest):
+            lit = rest[s:e]
+            if is_lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
                 problems.append(f"gate row {name!r} names a command ({lit[1:-1][:50]!r}) that no `ok(`, `fails(`, `all(`, `execSync(` or `shardedSuite(` call takes: this reader cannot attribute it")
         out.append((name, int(m.group(3)), flagged, cmds))
     return out, problems
@@ -1740,9 +1947,9 @@ def self_test():
           needs_browser({"run": "npx playwright test"}, pkg, read) and not needs_browser({"run": "npx playwright install chromium"}, pkg, read))
     check("a backslash-continued command and a background `&` are read",
           needs_browser({"run": "node scripts/shot.mjs \\\n  --flag &\nsleep 1"}, pkg, read) is True)
-    check("an inline `node -e` is not read: it is UNRESOLVED (and the step that launches inline is a browser step by its own text)",
+    check("an inline `node -e` is not read unless it is the closed grammar: it is UNRESOLVED (and the step that launches inline is a browser step by its own text)",
           read_step({"run": "node -e \"require('playwright').chromium.launch()\""}, pkg, read)["browser"] is True and
-          read_step({"run": "node -e \"console.log(1)\""}, pkg, read)["unresolved"] != [])
+          read_step({"run": "node -e \"require('fs')\""}, pkg, read)["unresolved"] != [])
     check("a command whose script name is on the continuation line is read (the lines are joined)",
           needs_browser({"run": "node \\\n  scripts/shot.mjs"}, pkg, read) is True)
     check("`--self-test` on the continuation line makes the step plain (the lines are joined)",
@@ -1817,7 +2024,7 @@ def self_test():
     check("the final step's script is run with `bash -e` and no pipefail, as the runner's default shell does",
           subprocess.run(["bash", "-e", "-c", "false | true; echo reached"], capture_output=True, text=True).stdout == "reached\n")
     check("the final step that interpolates an expression into its script is refused", any_of("interpolates", mut(final_run(ERR + "echo ${{ steps.chromium.outcome }}\nexit 1"))))
-    check("the final step with an env value that is any other expression is refused", any_of("cannot evaluate", mut(lambda s: s[-1].update({"env": {"X": "${{ github.sha }}"}}))))
+    check("the final step with an env value that is any other expression is refused", any_of("cannot evaluate", mut(lambda s: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "X": "${{ github.sha }}"}}))))
     check("the final step with `shell: pwsh` is refused", any_of("shell", mut(lambda s: s[-1].update({"shell": "pwsh"}))))
     check("a step after the final step is refused (the failure it makes would skip it)",
           any_of("LAST step", mut(lambda s: s.append({"name": "appended", "run": "npm run pure"}))))
@@ -2406,14 +2613,14 @@ def self_test():
     for runner in PINNED_RUNNERS:
         check(f"{runner} is a browser step by DECLARATION even when its text shows no row being run (the content rule cannot see it)", needs_browser({"run": f"node {runner} x"}, pkg, read_decl) is True, runner)
     check("...and a script that is not declared and shows no row being run is not", needs_browser({"run": "node scripts/pure.mjs"}, pkg, read_decl) is False)
-    op_step = {"name": "ledger", "if": "always()", "run": "node -e \"console.log(1)\""}
-    op_browser = {"name": "ledger", "if": "always()", "run": "node scripts/shot.mjs\nnode -e \"console.log(1)\""}
+    op_step = {"name": "ledger", "if": "always()", "run": "echo \"$(date)\""}
+    op_browser = {"name": "ledger", "if": "always()", "run": "node scripts/shot.mjs\necho \"$(date)\""}
     w_op = wf([{"name": "build", "run": "npm run pure"}, inst, op_step, {"name": "pure", "run": "npm run pure"}, final])
     w_ob = wf([{"name": "build", "run": "npm run pure"}, inst, op_browser, {"name": "pure", "run": "npm run pure"}, final])
     check("an unreadable step with `if: always()` is OPAQUE and counted, not refused, when nothing in it is seen to launch a browser", bad_of(w_op) == [] and audit(w_op, pkg, read)[1]["opaque"] == 1, (bad_of(w_op), audit(w_op, pkg, read)[1]))
     check("...but one the reader has SEEN launch a browser is not: it is refused as unreadable and as an ungated browser step (it fails in an outage and skips the steps behind it)",
           any_of("cannot be read", bad_of(w_ob)) and any_of("needs a browser", bad_of(w_ob)) and audit(w_ob, pkg, read)[1]["opaque"] == 0, bad_of(w_ob))
-    w_last = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "z", "if": "always()", "run": "node -e \"1\""}])
+    w_last = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "z", "if": "always()", "run": "echo \"$(date)\""}])
     check("the LAST step is never kept as opaque: an unreadable last step is refused as unreadable", any_of("cannot be read", bad_of(w_last)), bad_of(w_last))
     w_use = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "local", "if": "always()", "uses": "./.github/actions/x"}, {"name": "pure", "run": "npm run pure"}, final])
     check("an action the guard cannot read with `if: always()` is refused, not kept: a local composite action may hold a browser step, and with none it fails and skips the steps behind it",
@@ -2509,7 +2716,7 @@ def self_test():
     t0 = time.time()
     SCRIPT_NAME.findall("a" * 20000 + " " + "a." * 10000)
     check("the search for a script name is linear: 20,000 characters of name and 10,000 of `a.` take well under a second (the unbounded pattern took 1.4 s and 17.8 s)", time.time() - t0 < 1.0, f"{time.time() - t0:.2f} s")
-    many = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **{f"O{n}": f"${{{{ steps.s{n}.outcome }}}}" for n in range(4)}}}
+    many = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **{f"O{n}": f"${{{{ steps.s{n}.outcome }}}}" for n in range(4)}}, "run": 'echo "::error::x $INSTALL_OUTCOME"\nexit 1'}
     res = audit(wf([{"name": "build", "run": "npm run pure"}] + [{"name": f"s{n}", "id": f"s{n}", "run": "npm run pure"} for n in range(4)] + [inst, many]), pkg, read, final_timeout=5)[0]
     check("a final step that reads the outcome of more than three other steps is refused (it is run for every combination, 4 x 5^k times)", any_of("besides the install", res), res)
 
@@ -2669,9 +2876,8 @@ def self_test():
     vocab("DANGEROUS_VARS", DANGEROUS_VARS, ("NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME"),
           lambda k: any_of(f"env: {k} changes what the commands of this step run", read_step({"run": "node scripts/pure.mjs", "env": {k: "x"}}, vp, vread)["unresolved"]))
     # an opaque reason (one that leaves an unreadable always() step opaque) is one of these; each input below yields that reason and no other
-    vocab("OPAQUE_REASON_OK", [p.pattern for p in OPAQUE_REASON_OK], (": a command substitution inside a word$", ": a process substitution$", ": a heredoc$", ": unbalanced quoting", ": git \\S+ is not a subcommand this guard reads", ": node with inline code"),
-          lambda pat: not hides_a_launcher(unresolved({": a command substitution inside a word$": "echo `date`", ": a process substitution$": "cat <(date)", ": a heredoc$": "cat <<true\necho hi\ntrue", ": unbalanced quoting": 'echo "x',
-                                                       ": git \\S+ is not a subcommand this guard reads": "git foo x", ": node with inline code": "node -e x"}[pat]), "x"))
+    vocab("OPAQUE_REASON_OK", [p.pattern for p in OPAQUE_REASON_OK], (": a command substitution inside a word$", ": a process substitution$", ": a heredoc$", ": unbalanced quoting"),
+          lambda pat: not hides_a_launcher(unresolved({": a command substitution inside a word$": "echo `date`", ": a process substitution$": "cat <(date)", ": a heredoc$": "cat <<true\necho hi\ntrue", ": unbalanced quoting": 'echo "x'}[pat]), "x"))
     vocab("ROW_HELPERS", ROW_HELPERS, ("outboxToday", "outboxAccompaniesSource"), lambda h: row_problems(f"  {{ name: 'x', weight: 10,\n    run: {h} }},\n") == [])
     row_calls = ("ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite", "Number", "String", "Boolean", "parseInt", "readFileSync", "existsSync", "readdirSync", "statSync",
                  "if", "for", "while", "switch", "catch", "return", "function")
@@ -2687,6 +2893,166 @@ def self_test():
         if not any_of("GREEN", res):
             broken.append(v)
     check("ANY_OUTCOMES: a final step that exits 0 for exactly one outcome of another step is refused, for each of the five outcomes", not broken, broken)
+
+    # ---- ROUND 5: THE THIRD REVIEW'S FINDINGS (21 to 30 of the review of 48f504e). Each fixture below failed on the guard as it stood, or is the pin of an alternative that no fixture reached. Every family is a LITERAL
+    # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
+    kept = lambda cmd: (lambda res: res[0] == [] and res[1]["opaque"] == 1)(unread(cmd))
+    refused = lambda cmd: (lambda res: any_of("cannot be read", res[0]) and res[1]["opaque"] == 0)(unread(cmd))
+    row_pr = lambda body, head="", close="]", after="": (lambda d: (Path(d, "scripts").mkdir(), Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after), gate_row_problems(d, pkg, read))[2])(tempfile.mkdtemp())
+    one_row = lambda run, name="x": f"  {{ name: '{name}', weight: 10,\n    run: {run} }},\n"
+
+    # FINDING 21. The raw line of an unreadable always() step: a command on it that is not an allowed head hides a launcher, whether or not the reader could tell what it launches.
+    for cmd in ("npm run pure", "npm test", "npx playwright screenshot http://localhost:8080 /tmp/a.png", "make shot", "eval 'node scripts/shot.mjs'", "./x.sh", "deno run x.ts", "$RUNNER scripts/x"):
+        check(f"finding 21: `echo \"at $(date)\" && {cmd}` (a command on a line the splitter cannot read) is refused as unreadable, not kept as opaque", refused(f'echo "at $(date)" && {cmd}') and refused(f'echo "at $(date)"; {cmd}'), cmd)
+    check("finding 21: ...while the ledger kind (text tools, a git that only reads, a node with a script file the scan has seen, an assignment of a substitution, arithmetic) stays opaque",
+          all(kept(c) for c in ('echo "at $(date)" && git merge-base --is-ancestor HEAD x', 'echo "at $(date)" && node scripts/pure.mjs', 'D=$(mktemp -d); echo "$D/$(basename x)"', 'echo "n $(date)"; sleep $((attempt * 3))',
+                                'git diff -- x | grep y > "$(basename z)"', 'echo "${SAVED}/$(basename x)"')))
+    PINNED_RAW_WORDS = ("for", "select", "case", "esac", "fi", "done", "in", "}", ":")
+    vocab("RAW_WORDS", RAW_WORDS, PINNED_RAW_WORDS, lambda w: not raw_line_hides(f'{w} x "$(date)"'))
+
+    # FINDING 22. Where a command starts on a raw line: each separator, glued to the word before it and spaced, in front of a wrapper.
+    PINNED_SEP_SYMBOLS = {";": 'echo "$(date)";timeout 5 x', "|": 'echo "$(date)"|timeout 5 x', "&": 'echo "$(date)"&timeout 5 x', "(": '(timeout 5 x)', "{": '{ timeout 5 x; }', "`": 'echo `timeout 5 x`', "!": '! timeout 5 x'}
+    PINNED_SEP_WORDS = {"then": "true; then timeout 5 x", "do": "true; do timeout 5 x", "else": "true; else timeout 5 x", "if": "if timeout 5 x; then true; fi", "elif": "true; elif timeout 5 x; then true", "while": "while timeout 5 x; do true", "until": "until timeout 5 x; do true"}
+    check("COMMAND_SEP_SYMBOLS and COMMAND_SEP_WORDS: the members the guard knows are exactly the pinned (literal tables)", set(PINNED_SEP_SYMBOLS) == set(COMMAND_SEP_SYMBOLS) and set(PINNED_SEP_WORDS) == set(COMMAND_SEP_WORDS), (COMMAND_SEP_SYMBOLS, COMMAND_SEP_WORDS))
+    for sep, text in {**PINNED_SEP_SYMBOLS, **PINNED_SEP_WORDS}.items():
+        check(f"finding 22: a wrapper after `{sep}` is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for text in ('echo "at $(date)" && timeout 5 x', 'echo x || timeout 5 x', 'A=1 timeout 5 x', 'A="x y" timeout 5 x', "A='x y' timeout 5 x", 'x=$(timeout 5 y)', '"timeout" 5 x', "'timeout' 5 x", "true; then timeout 5 x", "true;timeout 5 x"):
+        check(f"finding 22: a wrapper behind `&&`, `||`, an assignment (quoted value too), `$(` or a quote is found (`{text}`)", hides_a_launcher([], text) is True, text)
+    check("finding 22: ...and a word that is no command start is not (`${timeout}`, `echo timeout`, `a;b`, a `$((n * 2))` and a keyword's own word)",
+          not any(hides_a_launcher([], t) for t in ('echo "${timeout}" x', "echo timeout 5", "a;b", 'sleep $((n * 2))', "if true; then echo x; fi", "echo hi!timeout 5", '[ "$X" != timeout ]')))
+    for cmd in ('echo "at $(date)"; xvfb-run -a ./run-checks.sh', 'true; xvfb-run -a ./run-checks.sh "$(date)"', '(xvfb-run -a ./run-checks.sh "$(date)")', 'if true; then timeout 60 ./run-checks.sh "$(date)"; fi',
+                '{ timeout 60 ./run-checks.sh "$(date)"; }', 'if timeout 60 ./run-checks.sh "$(date)"; then echo ok; fi'):
+        check(f"finding 22: an unreadable always() step with `{cmd[:50]}` is refused, not kept", refused(cmd), cmd)
+
+    # FINDING 23. What a benign reason may be: a git subcommand that only reads, and nothing that runs a command.
+    PINNED_GIT_READONLY = ("merge-base", "rev-list", "symbolic-ref", "describe", "cat-file", "for-each-ref", "show-ref", "ls-tree")
+    vocab("GIT_READONLY", GIT_READONLY, PINNED_GIT_READONLY, lambda s: kept(f"git {s} x y"))
+    for cmd in ("git rebase -x 'node scripts/shot.mjs' HEAD~1", "git -c alias.s='!node scripts/shot.mjs' s", "git bisect run node scripts/shot.mjs", "git submodule foreach 'node scripts/shot.mjs'", "git filter-branch --tree-filter x", "git"):
+        check(f"finding 23: `{cmd[:50]}` (git runs a command) is refused under always(), not kept", refused(cmd), cmd)
+    for cmd in ("node -e \"require('child_process').execSync('node scripts/shot.mjs')\"", "node -p \"process.mainModule\"", "node --eval \"import('x')\"", "node --run check:peak", "node -i", "node -", "node -e \"process['x']\"", "node -e \"d=>d.constructor\"",
+                "node -e \"globalThis\"", "node -e 'eval(1)'", "node -e \"console.log(`x`)\"", "node -e \"console.log(1);console.log(2)\"", "node -e \"process.stdin.on('data', d=>d.x)\"", "node --run=check:peak", "node --eval=\"require('fs')\""):
+        check(f"finding 23: `{cmd[:50]}` (node runs code or a package script this guard cannot read) is refused under always(), not kept", refused(cmd), cmd)
+    check("finding 23: inline node that is the closed grammar is READ, not refused: the ledger's `process.stdin.on(\"data\", d=>console.log(JSON.parse(d.toString()).id))` and `console.log(1)`",
+          all(read_step({"run": c}, pkg, read) == {"browser": False, "unresolved": []} for c in ("node -e 'process.stdin.on(\"data\",d=>console.log(JSON.parse(d.toString()).id))'", "node -e \"console.log(1)\"", "node -p \"JSON.stringify(1)\"", "node --print=\"console.error('x')\"", "node --eval='console.log(2)' a b")))
+    check("finding 23: ...a preload before or after inline code still runs (`node -r ./pre-launch.cjs -e ...` and `node -e ... -r ./pre-launch.cjs` are browser steps)",
+          needs_browser({"run": "node -r ./pre-launch.cjs -e \"console.log(1)\""}, pkg, read) is True and needs_browser({"run": "node -e \"console.log(1)\" -r ./pre-launch.cjs"}, pkg, read) is True)
+    PINNED_NODE_EVAL = ("-e", "--eval", "-p", "--print")
+    check("NODE_EVAL: the flags that take inline code are exactly the four pinned (a literal list)", set(PINNED_NODE_EVAL) == set(NODE_EVAL), sorted(NODE_EVAL))
+    for fl in PINNED_NODE_EVAL:
+        check(f"finding 23: node {fl} with the closed grammar reads clean, and with another code is unresolved", unresolved(f'node {fl} "console.log(1)"') == [] and unresolved(f'node {fl} "require(1)"') != [], fl)
+    check("NODE_EVAL_EQ: the `=` forms are exactly the two pinned", set(("--eval=", "--print=")) == set(NODE_EVAL_EQ), NODE_EVAL_EQ)
+    for fl in ("--eval=", "--print="):
+        check(f"finding 23: node {fl}CODE with the closed grammar reads clean, and with another code is unresolved", unresolved(f"node {fl}'console.log(1)'") == [] and unresolved(f"node {fl}'require(1)'") != [], fl)
+    PINNED_INLINE_ROOTS, PINNED_INLINE_PROPS = ("process", "console", "JSON"), ("stdin", "on", "log", "error", "parse", "stringify", "toString", "id")
+    vocab("INLINE_ROOTS", INLINE_ROOTS, PINNED_INLINE_ROOTS, lambda r: inline_code_is_pure(f"{r}.on(1)") is True and inline_code_is_pure(f"x{r}.on(1)") is False)
+    vocab("INLINE_PROPS", INLINE_PROPS, PINNED_INLINE_PROPS, lambda q: inline_code_is_pure(f"console.{q}(1)") is True and inline_code_is_pure(f"console.{q}x(1)") is False)
+    check("finding 23: the closed grammar has no `[`, template literal, `=`, `;`, `{` or a word of its own (each is refused) and a parameter is the one name before `=>`",
+          not any(inline_code_is_pure(c) for c in ("console['log'](1)", "console.log(`x`)", "x=1", "console.log(1);", "{}", "console.log(this)", "console.log(d=>d.x(e))", "d=>x", "")) and inline_code_is_pure("process.on('x', d=>console.log(d))"))
+    for cmd in ("make -s", "deno -A", "foo * 3", "bun -x", "xargs -r"):
+        check(f"finding 23: `{cmd}` is no arithmetic (it is a command and a flag): refused under always(), not kept", refused(cmd), cmd)
+    check("finding 23: ...arithmetic is masked where the line is split: `sleep $((attempt * 3))` is `sleep 0`, and one that holds a substitution is still unreadable",
+          split_commands("sleep $((attempt * 3))") == [["sleep", "0"]] and split_commands('echo "$((a+1))" b') == [["echo", "0", "b"]] and unresolved("sleep $(( $(date) + 1 ))") != [])
+
+    # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
+    both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'
+    pkg_np = {k: v for k, v in pkg.items() if k != "prepare"}                      # `npm ci` of a package.json with no install hook runs nothing, as the real one does
+    run_req_np = lambda w: audit(w, pkg_np, read, final_timeout=5, flagged=req)[0]
+    for label, text in [("an echo with a `#` inside quotes and then `exit 0`", f'echo "note # x" ; exit 0\n{full_form}'), ("the same with single quotes", f"echo 'note # x' ; exit 0\n{full_form}"),
+                        ("`|| true` after a `#` inside quotes", f'{ids_line} --note " # x" || true\n{shard_line} --note " # x" || true'), ("a `;` after a `#` inside quotes", f'{ids_line} --note "a # b" ; exit 0\n{shard_line}'),
+                        ("a then-branch that is only `npm ci` (the else-branch carries every argument)", f'if [ -n "$IDS" ]; then\n  npm ci\nelse\n  {both_line}\nfi'),
+                        ("an else-branch that is only `npm ci`", f'if [ -n "$IDS" ]; then\n  {both_line}\nelse\n  npm ci\nfi'),
+                        ("a then-branch of the spawner without its flag and `npm ci`", f'if [ -n "$IDS" ]; then\n  node scripts/mutation-check.mjs --ids "$IDS" --out x.json\nelse\n  {shard_line}\nfi')]:
+        res = run_req_np(w_nb(nbv(text)))
+        check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
+    check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # FINDING 25. A script path that no call this reader understands takes is a command it cannot attribute, however it is passed.
+    for label, run in [("`cp.spawnSync(process.execPath, [...])`", "() => cp.spawnSync(process.execPath, ['scripts/shot.mjs']).status === 0"), ("`helpers.runAll([...])`", "() => helpers.runAll(['scripts/shot.mjs'])"),
+                       ("`spawnSync('node', [...])`", "() => spawnSync('node', ['scripts/shot.mjs'])"), ("`execFileSync('node', [...])`", "() => execFileSync('node', ['scripts/shot.mjs'])"),
+                       ("a path in an array a known call does not take", "() => ok('node scripts/pure.mjs') && ['./scripts/shot.mjs'].every(f => f)")]:
+        check(f"finding 25: a row with {label} names a command this reader cannot attribute", any_of("names a command", row_pr(one_row(run))), row_pr(one_row(run)))
+    PINNED_SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvfb-run", "timeout", "env")
+    check("SCRIPTISH_HEADS: the heads of a command string are exactly the ten pinned (a literal list)", set(PINNED_SCRIPTISH_HEADS) == set(SCRIPTISH_HEADS), SCRIPTISH_HEADS)
+    for h in PINNED_SCRIPTISH_HEADS:
+        check(f"finding 25/30: a string `{h} x` that no call takes is a command (the head `{h}` alone matches it)", any_of("names a command", row_pr(one_row(f"() => helpers.go('{h} x')"))), h)
+    check("finding 25/30: ...also behind a VAR= prefix (`CI=1 npm x`)", any_of("names a command", row_pr(one_row("() => helpers.go('CI=1 npm x')"))))
+    for label, lit in [("a bare path (`scripts/a.mjs`, at the start)", "scripts/a.mjs"), ("a path after a space (`xargs scripts/a.mjs`)", "xargs scripts/a.mjs"), ("`./scripts/a.mjs`", "./scripts/a.mjs"), ("`../scripts/a.mjs`", "../scripts/a.mjs"),
+                       ("`${ROOT}/scripts/a.mjs`", "${ROOT}/scripts/a.mjs"), ("`$ROOT/scripts/a.mjs`", "$ROOT/scripts/a.mjs"), ("a `.cjs` file", "scripts/a.cjs"), ("a `.js` file", "scripts/a.js"), ("a `.py` file", "scripts/a.py")]:
+        check(f"finding 25/30: {label} that no call takes is a command", any_of("names a command", row_pr(one_row(f"() => helpers.go('{lit}')"))), lit)
+    check("finding 25: ...but a path that a call which only READS takes is a file (`readFileSync('scripts/gate-checks.mjs')`), and a string `scripts/` is not a script",
+          row_pr(one_row("() => ok('node scripts/pure.mjs') && readFileSync('scripts/gate-checks.mjs', 'utf8').includes('scripts/')")) == [])
+    PINNED_ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+    vocab("ROW_READ_CALLS", ROW_READ_CALLS, PINNED_ROW_READ_CALLS, lambda c: row_pr(one_row(f"() => ok('node scripts/pure.mjs') && {c}('scripts/gate-checks.mjs')")) == [] and any_of("names a command", row_pr(one_row(f"() => ok('node scripts/pure.mjs') && x.{c}('scripts/gate-checks.mjs')"))))
+
+    # FINDING 26. A regular expression that starts a line, or follows a comment, is a regular expression: the quote inside it must not start a string over the call after it.
+    rx = lambda before, after="": any_of("drives a browser", row_pr(one_row(f"() => {before}/it's/.test(s) && ok('node scripts/shot.mjs'){after}")))
+    PINNED_REGEX_AFTER = ("(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";")
+    check("REGEX_AFTER: the characters after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)", set(PINNED_REGEX_AFTER) == set(REGEX_AFTER), sorted(REGEX_AFTER))
+    for c in PINNED_REGEX_AFTER:
+        check(f"finding 26/30: a regular expression after `{c}` (and after `{c}` and a newline) is one: the call after it is read", rx(f"s {c} ") and rx(f"s {c}\n      "), c)
+    check("finding 26: ...after `=>` or `return` at the end of a line, after `&&` at the end of a line (the review's rows), and after a line comment", rx("\n      ") and rx("s &&\n      ") and rx("s && // a note\n      ") and rx("s && /* a note */\n      ") and rx("return ") and rx("return\n      "))
+    check("finding 26: a comment between `&&` and a regular expression does not hide it from the pass that blanks comments: a `//` comment after the regular expression is a comment, not a use of the call inside it",
+          row_pr(one_row("() => s && // note\n      /it's/.test(s) // ok('node scripts/shot.mjs')\n      && ok('node scripts/pure.mjs')\n   ")) == [], row_pr(one_row("() => s && // note\n      /it's/.test(s) // ok('node scripts/shot.mjs')\n      && ok('node scripts/pure.mjs')\n   ")))
+    check("finding 26: a string ends an expression: after `'a'` a `/` is a division (`('a' / 2 && ok('node scripts/shot.mjs') / 3)` reads the call between the two slashes)",
+          any_of("drives a browser", row_pr(one_row("() => ('a' / 2 && ok('node scripts/shot.mjs') / 3)"))))
+    PINNED_TOKENS = [("/it's/.test(s)", [(0, 6, True)]), (r"'it\'s'", [(0, 7, True)]), (r'"it\"s"', [(0, 7, True)]), ("`a\\`b`", [(0, 6, True)]), ("x = /a\\/b/", [(4, 10, True)]), ("x = /[/]x/", [(4, 10, True)]),
+                     ("a // x\nb", [(2, 6, False)]), ("a /* x\ny */ b", [(2, 11, False)]), ("a / b / c", []), ("x = 'a' / 2 / 3", [(4, 7, True)]), ("x = a\n / 2 /3", []), ("x = (a) / 2 / 3", []),
+                     ("// c\n/it's/", [(0, 4, False), (5, 11, True)]), ("=>\n/it's/", [(3, 9, True)]), ("return/it's/", [(6, 12, True)])]
+    check("finding 26/30: the scanner's tokens are exactly these on each of these inputs (a string of each quote, an escape in it and in a regular expression, a class, both comments, a division after a name, a string, `)` and a newline; a regular expression at the start, after a comment, `=>`, `return`)",
+          all(js_tokens(src) == want for src, want in PINNED_TOKENS), [(src, js_tokens(src), want) for src, want in PINNED_TOKENS if js_tokens(src) != want])
+    check("finding 26: ...and a `/` at the start of a line after a NAME is a division: `a\\n / 2 && ok(...) && b / 3` reads the call between the two slashes",
+          any_of("drives a browser", row_pr(one_row("() => a\n      / 2 && ok('node scripts/shot.mjs') && b / 3"))))
+    for label, run in [("a double-quoted string with an apostrophe before the call", "() => \"it's\" && ok('node scripts/shot.mjs')"), ("a single-quoted string with a double quote before the call", "() => 'say \"hi' && ok(\"node scripts/shot.mjs\")"),
+                       ("a template literal with an apostrophe before the call", "() => `it's` && ok('node scripts/shot.mjs')"), ("a string with an escaped quote", "() => 'it\\'s' && ok('node scripts/shot.mjs')")]:
+        check(f"finding 30: {label} is one string, and the call after it is read", any_of("drives a browser", row_pr(one_row(run))), run)
+    for label, run in [("a line comment holding a call", "() => ok('node scripts/pure.mjs') // ok('node scripts/shot.mjs')"), ("a block comment holding a call", "() => ok('node scripts/pure.mjs') /* ok('node scripts/shot.mjs') */"),
+                       ("a block comment over two lines", "() => ok('node scripts/pure.mjs') /* ok('node\n scripts/shot.mjs') */")]:
+        check(f"finding 30: {label} is no use of the call", row_pr(one_row(run + "\n   ")) == [], row_pr(one_row(run + "\n   ")))
+    check("finding 30: a regular expression with a `/` inside a bracket class (`/[/']x/`) or an escaped one (`/a\\/b'/`) is one regular expression, and the call after it is read",
+          all(any_of("drives a browser", row_pr(one_row(f"() => s && {rxl}.test(s) && ok('node scripts/shot.mjs')"))) for rxl in ("/[/']x/", "/a\\/b'/")))
+
+    # FINDING 27. The rows array is read whole, and the name `rows` is used nowhere else.
+    row_x = "{ name: 'late', weight: 10, run: () => ok('node scripts/shot.mjs') }"
+    check("finding 27: the file the fixtures use reads clean (nothing is wrong with the wrapper, only with what is put in it)", row_pr("") == [], row_pr(""))
+    for label, after in [("`rows.push(...)` after the export", f"rows.push({row_x})\n"), ("`rows.splice(0, 1)`", "rows.splice(0, 1)\n"), ("`rows.unshift(...)`", f"rows.unshift({row_x})\n"), ("`rows = []`", "rows = []\n"),
+                         ("`rows[0] = ...`", "rows[0] = {}\n"), ("`rows.length = 0`", "rows.length = 0\n"), ("`...rows` in another array", "const all = [...rows]\n"), ("`rows.pop()`", "rows.pop()\n")]:
+        check(f"finding 27: {label} is refused: the array is changed after it is read", any_of("`rows` is used", row_pr("", after=after)), row_pr("", after=after))
+    check("finding 27: ...also in a statement between the array and the export",
+          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
+    check("finding 27: ...while `rows` as an object key, a property (`x.rows`) and one more name in the export are not a use", row_pr("", after="const a = { rows: 1 }\nconst b = x.rows.length\n") == [])
+    check("finding 27: a spread, a variable or a call in front of the first row is refused", all(any_of("something before its first row", row_pr("", head=h)) for h in ("  ...more,\n", "  someRow,\n", "  makeRow(),\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/pure.mjs') },\n")))
+    check("finding 27: ...and between two rows or after the last (`...more,`, a variable, a row with quoted keys, two rows on one line, `].concat(more)`)",
+          all(any_of("is not followed by a comma", row_pr(b)) for b in ("  ...more,\n", "  someRow,\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/shot.mjs') },\n",
+                                                                        "  { name: 'q', weight: 1, run: () => ok('node scripts/pure.mjs') }, { name: 'r', weight: 1, run: () => ok('node scripts/pure.mjs') },\n"))
+          and any_of("is not followed by a comma", row_pr("", close="].concat(more)")))
+    check("finding 27: a row with no comma after it (not the last: JavaScript allows that one) is refused, and the real file's shape (`},` then `]`, and a last row with no comma) is clean",
+          any_of("is not followed by a comma", row_pr("", head=one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n"))) and row_pr(one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n")) == [])
+
+    # FINDING 28. The final step's tests read only what the step's own `env:` defines.
+    for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),
+                        ("`$1`", '[ "$1" != x ]'), ("`$-`", '[ "$-" != x ]'), ("`${X:-y}`", '[ "${X:-y}" != x ]'), ("`${!X}`", '[ "${!X}" != x ]'), ("`${INSTALL_OUTCOME:-x}` (an expansion with an operator)", '[ "${INSTALL_OUTCOME:-x}" != x ]'),
+                        ("`${}`", '[ "${}" != x ]'), ("a variable of the second operand", '[ "$INSTALL_OUTCOME" != "$GITHUB_REF" ]'), ("a variable inside `test`", 'test "$GITHUB_ACTIONS" != true')]:
+        res = mut(final_run(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
+        check(f"finding 28: a test that reads {label} is refused (the guard's run does not set it)", any_of("which this guard's run does not set", res), res)
+    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME`, `${INSTALL_OUTCOME}`, a literal env value of its own, and a variable-free comparison",
+          all(mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})) == []
+              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "${INSTALL_OUTCOME}" = skipped ]', '[ "$MODE" = strict ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"')))
+    check("finding 28: ...and the variable of a test in the grammar's `echo` is not a test (`echo \"$GITHUB_ACTIONS\"` prints, it decides nothing)", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1')) == [])
+
+    # FINDING 29. npm's own spelling of the variables that change what a script runs.
+    unresolved_env = lambda k: read_step({"run": "npm run pure", "env": {k: "x"}}, pkg, read)["unresolved"]
+    PINNED_NPM_CONFIG = ("script-shell", "node-options", "prefix", "userconfig", "globalconfig", "workspace", "workspaces", "include-workspace-root")
+    vocab("NPM_CONFIG_DANGEROUS", NPM_CONFIG_DANGEROUS, PINNED_NPM_CONFIG, lambda k: any_of("changes what the commands of this step run", unresolved_env("npm_config_" + k.replace("-", "_"))) and
+          any_of("changes what the commands of this step run", unresolved_env("NPM_CONFIG_" + k.replace("-", "_").upper())) and any_of("changes what the commands of this step run", unresolved_env("npm_config_" + k)) and
+          any_of("changes what the commands after it run", unresolved(f"npm_config_{k.replace('-', '_')}=x npm run pure")))
+    check("finding 29: the spelling is npm's: any case of the prefix and the key, `_` or `-`, and the job's and the workflow's env too; an npm key that changes no command (`loglevel`, `shell`, `cache`) and a name that is no npm_config_ one are not refused",
+          all(any_of("changes what the commands", unresolved_env(k)) for k in ("Npm_Config_Node_Options", "NPM_CONFIG_node_options", "npm_config_Script_Shell")) and
+          not any(any_of("changes what the commands", unresolved_env(k)) for k in ("npm_config_loglevel", "NPM_CONFIG_SHELL", "npm_config_cache", "my_npm_config_node_options", "npm_config_", "npm_configscript_shell")) and
+          any_of("the job's env sets", audit({"jobs": {"verify": {"env": {"NPM_CONFIG_SCRIPT_SHELL": "x"}, "steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]) and
+          any_of("the workflow's env sets", audit({"env": {"npm_config_node_options": "x"}, "jobs": {"verify": {"steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]))
+    check("finding 29: npm_config_key reads the name as npm does (`_` to `-` except at the start of the key, lower case, no prefix is None)",
+          npm_config_key("NPM_CONFIG_Script_Shell") == "script-shell" and npm_config_key("npm_config__x_y") == "_x-y" and npm_config_key("npm_config_") == "" and npm_config_key("X_npm_config_a") is None and npm_config_key("PATH") is None)
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
