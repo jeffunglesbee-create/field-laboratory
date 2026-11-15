@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0cfc0ce` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `17dc13a` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 58e81d2 [skip ci] |
 | `b8b43f0` | 2026-11-15 | [live-check-schedule-sweep-2026-11-15.txt](live-check-schedule-sweep-2026-11-15.txt) | docs: live-check's daily beat observed the brief rule in 0 of 20 runs, filed with its measurement |
 | `3aea19d` | 2026-11-15 | [push-lands-pyyaml-message-2026-11-15.txt](push-lands-pyyaml-message-2026-11-15.txt) | fix: check-push-lands.py says what to install when PyYAML is missing |
