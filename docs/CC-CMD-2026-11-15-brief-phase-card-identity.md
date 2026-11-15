@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-15 by CC, on the owner's word ("Brief and hook", Sun 2026-11-15 06:53 ET), as the residual named in `outbox/cc-session-2026-11-14-tls-stage.md` ("A finished game shows the brief written after it finished" red in 6 of 6 renders since 2026-11-14 23:06Z)
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** IN PROGRESS 2026-11-15. The fix is built and proven on the work branch `brief-hook` and not landed; Tasks 6 and 7 (the runner replay of 2026-11-14 and the first Saturday-evening beat) run after landing. The premises below were tested before filing and are in `outbox/brief-hook-premises-2026-11-15.txt`.
+**Status:** DONE 2026-11-15. Approved by the owner ("Brief and hook", Sun 2026-11-15 06:53 ET). Landed on `main` as `4b66f5d7` (merge of `brief-hook`) after a scored `verify-full`, 43716154931, at 530 of 530 (ledger id `58e81d25cca8-9ac77ec85710`); `verify` 43721275726 on the branch head `d5ef64d0` is green, and on the landing `verify` 43721845406, `guards` 43721845434, `deploy` 43722537255 and `live-check` 43722647467 are green. All five done conditions are met, each with its artifact in the Outcome; the Task 6 replay, `live-check` 43722817857 with `brief_date=2026-11-14`, is PASS on 42 testable games. Two things differ from the plan and are in the Outcome: the scored commit is not the branch tip, and Task 7's beat is a scheduled task that dispatches its own run, because the daily cron measured blind to this rule in 20 of 20 runs (that finding is filed as `docs/CC-CMD-2026-11-15-live-check-daily-beat-late.md` and not built). The first Saturday-evening check is scheduled task `trig_01QL6mcB9jqiJPWyBPEXh9Sn`, 2026-11-21 20:30 ET. The premises were tested before filing and are in `outbox/brief-hook-premises-2026-11-15.txt`. Session record: `outbox/cc-session-2026-11-15-brief-hook.md`.
 
 ---
 
@@ -86,7 +86,7 @@ Add to the self-test, from the 2026-11-14 rows (ids, team lines and statuses are
 
 ## Task 5 — gates and landing
 
-The hook runs on every commit. `check:mutation-anchors`, `check:workflows`, `check:browser-gate` and the doc guards run locally. A scored `verify-full` on the branch at the tip, then a merge into `main` (`--no-ff`, the run id in the message), then `verify`, `guards`, `deploy` and `live-check` for the landing. **Artifact:** the run ids and `530 of 530`.
+The hook runs on every commit. `check:mutation-anchors`, `check:workflows`, `check:browser-gate` and the doc guards run locally. A scored `verify-full` on the branch, on the last commit that changes code the gate scores (the commits after it are docs, the gate's recording commits and one guard the gate does not run, all named in the landing message); `main` merged into the branch and `verify` run on that head, so it runs on the combination; then a merge into `main` (`--no-ff`, the run id in the message), then `verify`, `guards`, `deploy` and `live-check` for the landing. **Artifact:** the run ids and `530 of 530`.
 
 ## Task 6 — the runner proof, in this session
 
@@ -106,9 +106,33 @@ A scheduled task therefore dispatches `live-check` on `main` itself at 2026-11-2
 
 1. The self-test passes with the new checks, and the Task 1 output exists showing them red against the old predicate.
 2. The mutation run printed `caught K of K` with every anchor unique and applied.
-3. `verify-full` on the tip at 530 of 530; the landing's `verify`, `guards`, `deploy` and `live-check` green.
+3. `verify-full` on the scored commit at 530 of 530; `verify` green on the branch head with `main` merged in; the landing's `verify`, `guards`, `deploy` and `live-check` green.
 4. The Task 6 run's brief step lines are in the session record.
 5. The Task 7 task exists and is named in the Status line.
+
+## Outcome, 2026-11-15
+
+One landing on `main`: `4b66f5d7`, `git merge --no-ff brief-hook` (parents `54d7cd74` and `d5ef64d0`), pushed 13:59:11Z (08:59 ET). Its tree is the tree `verify` ran on at `d5ef64d0` (both `306706b30003453dd42c9c058d17b4e4c7471bbd`). The branch's commits for this CC-CMD: `471dc3c3` (the self-test reproduces the 2026-11-14 collisions), `1e9176a2` (the evidence names every card the verdict looked at), `7bfaf77f` (the id join) and `6623066c` (`live-check` takes `brief_date`). `verify-full` 43716154931 scored `58e81d25cca8-9ac77ec85710` at 530 of 530 in 3,279 s. `verify` 43721275726 on the branch head `d5ef64d0` (the branch with `main` merged in) is green, all six jobs, in 5 min 57 s. On the landing, `verify` 43721845406 and `guards` 43721845434 are green, `deploy` 43722537255 is green on `4b66f5d7`, and `live-check` 43722647467, started by that deploy, is green.
+
+One dispatch of `live-check` on `main` with `brief_date=2026-11-14`: run 43722817857 (created 14:09:41Z, success at 14:10:59Z, on `0cfc0ce2`, the landing plus two automation commits that change `STATUS.md`, `outbox/INDEX.md` and `outbox/axis-manifest-latest.json`).
+
+| # | result | artifact |
+|---|---|---|
+| 1 | met: the self-test went `22/22`, `26/26`, `34/34` over the three stages; the join's checks, run first against a stub that held the substring predicate, read `28/34 checks passed` with 6 red | `outbox/brief-phase-card-identity-proof-2026-11-15.txt`, sections 2 to 5 |
+| 2 | met: `caught 4 of 4`, `caught 6 of 6` and `caught 6 of 6` on the three stages, every anchor refused unless it occurs once; two wiring mutants (the loop back on the substring predicate, the page's id no longer read) each fail the end-to-end run; variant `idmismatch` is red on the one row with `NO CARD CARRIES THIS GAME'S ID` and the near-name card's id, exit 1 | the same file, sections 5 and Z |
+| 3 | met: 530/530 against a bar of 95; `verify` on the branch head, and `verify`, `guards`, `deploy` and `live-check` on the landing, green | `docs/confidence-log.jsonl`, run `58e81d25cca8-9ac77ec85710`; the run ids above |
+| 4 | met: `slate 2026-11-14 — 79 game(s), 365 brief(s), 79 card(s)`; `final games carrying BOTH ...: 42`; 42 rows, each `game_recap` expected and shown, none carrying `cards, duplicated upstream`, none marked `<--`; `PASS  every final game with both phases shows its after-play brief (42 testable)`; `checked 42 testable of 79 games`; the three old reds read `game_recap` | `outbox/cc-session-2026-11-15-brief-hook.md`, the step's lines verbatim |
+| 5 | met: scheduled task `trig_01QL6mcB9jqiJPWyBPEXh9Sn`, fires 2026-11-22T01:30:00Z (20:30 ET Saturday 2026-11-21) | the Status line |
+
+The `brief_date` input: the step's URL line was run with an unset, an empty, a set and two hostile values, `checked 5 of 5 values; 0 produced extra output`, and the form that interpolates the input into the command was flagged by the same test (section 6b of the proof file). On the real runner the `workflow_run` run 43722647467 printed `BRIEF_DATE:` empty and `slate 2026-11-15`, so the empty input leaves the URL as the page root; its brief step read `NOT OBSERVABLE` (a Sunday 09:07 ET slate of 27 games with none final carrying both phases), which is not a pass, and its other four checks passed.
+
+Differences from the plan.
+
+- Task 5. The scored commit is `58e81d25`, not the branch tip: the branch head differs from it by the guard fix `3aea19d0` (`verify-full` does not run that guard; `verify`'s `push-lands` job does), a two-line comment in the hook, three CC-CMDs and two outbox records, the gate's two recording commits and the merge of `main`. `main` had moved by eight commits that share one file with this change (`package.json`, one added script line on each side), so it was merged into the branch and `verify` ran on the combination before the landing. Task 5 and Done condition 3 above now say that.
+- Task 7. The daily cron cannot be the Saturday beat: its runs are created 5.70 to 8.45 h after 03:37Z and render the next day's empty slate, so the brief step printed `NOT OBSERVABLE` in 18 of 20 and did not run in the other 2 (`outbox/live-check-schedule-sweep-2026-11-15.txt`). A scheduled task dispatches the run itself. The daily beat's own fix is filed as `docs/CC-CMD-2026-11-15-live-check-daily-beat-late.md` (FILED, not built: its recommended option changes what the daily beat renders, which the order for this work did not cover).
+- Hook. `docs/CC-CMD-2026-11-15-hook-runs-the-workflow-guards.md` landed in the same merge; its Outcome has its own differences.
+
+Not tested here. Task 6 replays a finished day: the partners that were in play when the 2026-11-14 reds happened now read `Final`, and the old matcher was not run on this same state, so the replay does not show it red. Saturday's evening run is the test with partners in play. The empty `brief_date` was observed on a `workflow_run` run and not on a `schedule` run; the next scheduled `live-check` is the first.
 
 ## What this does not establish (said before it is built)
 
