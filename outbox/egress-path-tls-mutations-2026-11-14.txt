@@ -1,4 +1,4 @@
-checked 48 of 48 new mutations, applied twice: by the harness and by a script of its own; 48 of 48 caught each time (41 for the TLS stage, sections 1 and 2; 7 for the live mode's wiring, section 3)
+checked 50 of 50 new mutations, applied twice: by the harness and by a script of its own; 50 of 50 caught each time (41 for the TLS stage, sections 1 and 2; 7 for the live mode's wiring, section 3; 2 from a generic sweep, section 4)
 docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md, Task 3 (Rule 90: an assertion is not trusted until it has failed on purpose)
 
 Each entry in scripts/mutation-check.mjs named egress-path-<id> breaks one clause of the TLS stage in scripts/egress-path-lib.mjs. The self-test must go red on it, by a CHECK, not by a crash.
@@ -149,6 +149,66 @@ STILL NOT COVERED by a mutation, said here because a green list reads as complet
 The self-test injects its own; the runner's --live run is the only thing that exercises these, and a run only ever shows them passing. The artifact it writes is read from outside by the assertion in outbox/cc-session-2026-11-14-tls-stage.md,
 whose conditions were each turned red by a break made on purpose.
 
+4. A GENERIC OPERATOR SWEEP OF THE LINES THIS CHANGE ADDED (Rule 91: the denominator is printed with the result)
+
+Sections 1 to 3 are mutations I chose, and one of them was missing until I found it by reading. A census that does not depend on what I thought to break: every && and ||, === and !==, >=, <=, > and <, every ! negation and every true and false that is CODE (a scanner walks the whole
+file once and leaves out strings, template text, regex literals and comments) on the non-comment lines this change added to scripts/egress-path-lib.mjs before its self-test, each changed once in its own copy of the library, the self-test run on that copy, two at a time.
+The self-test is not mutated. Not applied, so not covered by this census: arithmetic, ternary branches, string contents, await, and method swaps other than some/every and Math.min/max (the added lines use none of those two).
+
+On the library at 370da1a7 (147 checks):
+checked 93 of 93 generic mutants; killed 83 by a check, crashed or hung 3, survived 7
+  CRASHED   line 311 [logic] && -> ||
+  CRASHED   line 333 [not] ! -> (removed)
+  CRASHED   line 353 [bool] false -> true
+  SURVIVED  line 356 [bool] true -> false
+  SURVIVED  line 367 [bool] false -> true
+  SURVIVED  line 491 [cmp] >= -> >
+  SURVIVED  line 504 [eq] === -> !==
+  SURVIVED  line 507 [logic] && -> ||
+  SURVIVED  line 513 [logic] && -> ||
+  SURVIVED  line 529 [eq] === -> !==
+
+Triage, and what was done. Two were real gaps in new code and are closed (a check each, a registry entry each, applied by hand and seen red on a copy, then run by the harness: 1580 of 1583 anchors, 0 stale, and both PASS). One is equivalent. Four are lines from the previous CC-CMD
+(ebca26e5) that this change did not write; they are reported and left alone.
+
+The two entries, applied twice. By the script (the appendix A script with './muts-live2.mjs' in place of './muts-tls.mjs'), each on a copy:
+unmutated copy: exit 0, 0 failing, "148/148 checks passed"
+RED  egress-path-tls-sync-throw-as-ok: exit 1, 1 check(s) failing; first: REAL makeTlsConnect, a port out of range: tls.connect throws before any connect, and that is a named failure a
+RED  egress-path-live-real-one-address-fails: exit 1, 1 check(s) failing; first: LIVE_ADDRESSES.real: one address found (one is enough) or more, and every probed one settled, passes; none fou
+caught 2 of 2 when applied by this script to a copy
+
+By the harness: node scripts/mutation-check.mjs --ids egress-path-tls-sync-throw-as-ok,egress-path-live-real-one-address-fails
+Mutation testing 2 invariant(s)
+  baseline: ran 1 of 1 distinct expectation(s) from 2 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+PASS  [egress-path-tls-sync-throw-as-ok] a handshake that throws before it starts is a named failure, not a completed one
+PASS  [egress-path-live-real-one-address-fails] the real host passes with one address found: one is enough
+3/3 checks passed
+
+anchors: node scripts/mutation-check.mjs --anchors   ->   checked 1580 of 1583 mutation anchors; 0 stale
+
+On the library after the two checks (148 checks):
+checked 93 of 93 generic mutants; killed 85 by a check, crashed or hung 3, survived 5
+  CRASHED   line 311 [logic] && -> ||: failed the self-test by an uncaught exception or a hang, not by a named check
+      const addrs = Array.isArray(answer) ? answer.filter(a => isObj(a) && get(a, 'type') === 1 && typeof get(a, 'data') === 'string' && net.isIP(a.data) === 4).map(a => a.data
+  CRASHED   line 333 [not] ! -> (removed): failed the self-test by an uncaught exception or a hang, not by a named check
+      if (!Array.isArray(addrs)) continue
+  CRASHED   line 353 [bool] false -> true: failed the self-test by an uncaught exception or a hang, not by a named check
+      let done = false
+  SURVIVED  line 356 [bool] true -> false: equivalent. done is only a guard against settling twice; a Promise resolves once whatever settle does again, so the result cannot differ
+      done = true
+  SURVIVED  line 504 [eq] === -> !==: pre-existing line, not changed (TOUCH-ONLY). the real shape's ok predicate from ebca26e5: r.status is undefined (the status is under r.got), so its first disjunct never fires and it passes whenever probeFacts(null).stage ("none") is not "unclassified"; an HTTP 500 from the real host would pass it too
+      expect: 'HTTP 200, or a failure whose stage the table places', ok: r => r.status === 200 || r.facts.stage !== 'unclassified',
+  SURVIVED  line 507 [logic] && -> ||: pre-existing line, not changed (TOUCH-ONLY). the nxdomain shape's ok predicate from ebca26e5: no input in the self-test separates its two clauses
+      expect: 'stage dns, code ENOTFOUND or EAI_AGAIN', ok: r => r.facts.stage === 'dns' && ['ENOTFOUND', 'EAI_AGAIN'].includes(r.facts.code),
+  SURVIVED  line 513 [logic] && -> ||: pre-existing line, not changed (TOUCH-ONLY). the refused shape's ok predicate from ebca26e5: no input in the self-test separates its two clauses
+      expect: 'stage connect, code ECONNREFUSED', ok: r => r.facts.stage === 'connect' && r.facts.code === 'ECONNREFUSED',
+  SURVIVED  line 529 [eq] === -> !==: pre-existing line, not changed (TOUCH-ONLY). the observed: line of the live artifact from ebca26e5: no check reads it
+      `   observed: ${r.got.error === null ? `HTTP ${r.got.status}` : `stage ${r.facts.stage}, code ${r.facts.code}`}`,
+
+93 of 93 were run; 85 were killed by a named check. The 8 that were not are the ones above. The scanner was checked against a naive count of the same operators on the same lines: logic 20 of 20, eq 44 of 44, bool 18 of 18, and no line with an operator and no mutant.
+
 --- appendix: the script that applied each entry to a copy (scratchpad muts-by-hand.mjs; it reads the entries from the harness's own list, ENTRIES, which is the list inserted into scripts/mutation-check.mjs) ---
 
 // An application of every entry that does not use the harness: a copy of the library in a temp directory, the replacement made by this script (anchor asserted unique and applied), the self-test run on the copy.
@@ -182,3 +242,138 @@ for (const [id, , find, replace] of ENTRIES) {
 }
 console.log(`caught ${caught} of ${ENTRIES.length} when applied by this script to a copy`)
 fs.rmSync(dir, { recursive: true, force: true })
+
+
+--- appendix B: the two scripts of section 4 (scratchpad sweep-gen.mjs and sweep-run.mjs; run from the laboratory root: node sweep-gen.mjs scripts/egress-path-lib.mjs added-lines.txt mutants.json, then node sweep-run.mjs scripts/egress-path-lib.mjs mutants.json results.json;
+    added-lines.txt is the added line numbers of git diff -U0 origin/main...HEAD -- scripts/egress-path-lib.mjs, one per line) ---
+
+// Generic operator mutants of the lines this change added to scripts/egress-path-lib.mjs (the library part, before the self-test), as data.
+//   node sweep-gen.mjs <lib file> <added-lines file> <out json>
+// The scanner walks the WHOLE file once and marks every character as code or not (strings, template text, regex literals and comments are not), so a multi-line template cannot be misread.
+import fs from 'node:fs'
+const [libFile, addedFile, outFile] = process.argv.slice(2)
+const src = fs.readFileSync(libFile, 'utf8')
+const added = new Set(fs.readFileSync(addedFile, 'utf8').split('\n').filter(Boolean).map(Number))
+const isCode = new Uint8Array(src.length)
+let i = 0
+const stack = [] // 'tpl-expr' brace depths for ${ }
+let braceDepth = []
+const REGEX_PREV = new Set(['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '<', '>', '~', '^'])
+const lastSignificant = () => { let k = i - 1; while (k >= 0 && /\s/.test(src[k]) && isCode[k] !== 2) k--; return k }
+const prevWord = k => { let j = k; while (j >= 0 && /[A-Za-z_$]/.test(src[j])) j--; return src.slice(j + 1, k + 1) }
+let mode = 'code' // code | sq | dq | tpl | line | block
+const modes = []
+while (i < src.length) {
+  const c = src[i], n = src[i + 1]
+  if (mode === 'code') {
+    if (c === '/' && n === '/') { mode = 'line'; i += 2; continue }
+    if (c === '/' && n === '*') { mode = 'block'; i += 2; continue }
+    if (c === "'") { mode = 'sq'; i++; continue }
+    if (c === '"') { mode = 'dq'; i++; continue }
+    if (c === '`') { modes.push(mode); mode = 'tpl'; i++; continue }
+    if (c === '{' && braceDepth.length) { braceDepth[braceDepth.length - 1]++ }
+    if (c === '}' && braceDepth.length) {
+      if (braceDepth[braceDepth.length - 1] === 0) { braceDepth.pop(); mode = 'tpl'; i++; continue }
+      braceDepth[braceDepth.length - 1]--
+    }
+    if (c === '/') {
+      const k = lastSignificant()
+      const p = k >= 0 ? src[k] : ';'
+      const w = /[A-Za-z_$]/.test(p) ? prevWord(k) : ''
+      if (REGEX_PREV.has(p) || ['return', 'typeof', 'case', 'in', 'of'].includes(w)) {
+        // regex literal: to the next unescaped slash outside a class
+        let j = i + 1, cls = false
+        while (j < src.length && src[j] !== '\n') { if (src[j] === '\\') { j += 2; continue } if (src[j] === '[') cls = true; else if (src[j] === ']') cls = false; else if (src[j] === '/' && !cls) break; j++ }
+        i = j + 1; while (/[a-z]/.test(src[i] ?? '')) i++
+        continue
+      }
+    }
+    isCode[i] = 1; i++; continue
+  }
+  if (mode === 'line') { if (c === '\n') mode = 'code'; i++; continue }
+  if (mode === 'block') { if (c === '*' && n === '/') { mode = 'code'; i += 2; continue } i++; continue }
+  if (mode === 'sq' || mode === 'dq') { if (c === '\\') { i += 2; continue } if ((mode === 'sq' && c === "'") || (mode === 'dq' && c === '"') || c === '\n') mode = 'code'; i++; continue }
+  if (mode === 'tpl') {
+    if (c === '\\') { i += 2; continue }
+    if (c === '`') { mode = modes.pop() ?? 'code'; i++; continue }
+    if (c === '$' && n === '{') { braceDepth.push(0); mode = 'code'; i += 2; continue }
+    i++; continue
+  }
+}
+// the ${ } bookkeeping above pushes a marker per expression; they are popped implicitly by the closing brace, so clean the stack of markers
+// line starts, to map offsets to line numbers
+const lineStarts = [0]; for (let k = 0; k < src.length; k++) if (src[k] === '\n') lineStarts.push(k + 1)
+const lineOf = off => { let lo = 0, hi = lineStarts.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (lineStarts[mid] <= off) lo = mid; else hi = mid - 1 } return lo + 1 }
+const selfTestStart = src.split('\n').findIndex(l => l.startsWith("if (isMain(import.meta.url) && process.argv.includes('--self-test'))")) + 1
+const OPS = [
+  ['&&', ['||']], ['||', ['&&']],
+  ['===', ['!==']], ['!==', ['===']],
+  ['>=', ['>', '<']], ['<=', ['<', '>']],
+]
+const mutants = []
+const push = (off, from, to, label) => {
+  const ln = lineOf(off)
+  if (!added.has(ln) || ln >= selfTestStart) return
+  mutants.push({ off, ln, from, to, label })
+}
+for (let k = 0; k < src.length; k++) {
+  if (!isCode[k]) continue
+  const three = src.slice(k, k + 3), two = src.slice(k, k + 2), one = src[k]
+  if (three === '===' || three === '!==') { if (isCode[k + 1] && isCode[k + 2]) push(k, three, three === '===' ? '!==' : '===', 'eq'); k += 2; continue }
+  if (two === '&&' || two === '||') { push(k, two, two === '&&' ? '||' : '&&', 'logic'); k += 1; continue }
+  if (two === '>=' || two === '<=') { for (const to of two === '>=' ? ['>', '<'] : ['<', '>']) push(k, two, to, 'cmp'); k += 1; continue }
+  if (two === '=>' || two === '==' || two === '!=' || two === '??' || two === '++' || two === '--' || two === '<<' || two === '>>') { k += 1; continue }
+  if (one === '>' || one === '<') { const p = src[k - 1], nx = src[k + 1]; if (p === '=' || p === '-' || nx === '=') continue; for (const to of one === '>' ? ['>=', '<='] : ['<=', '>=']) push(k, one, to, 'cmp'); continue }
+  if (one === '!' && src[k + 1] !== '=' && src[k + 1] !== undefined) { push(k, '!', '', 'not'); continue }
+  const tx = src.slice(k, k + 10)
+  const sw = /^(Math\.min\(|Math\.max\(|\.some\(|\.every\()/.exec(tx)
+  if (sw && (isCode[k + 1] || sw[1].length < 2)) { const swap = { 'Math.min(': 'Math.max(', 'Math.max(': 'Math.min(', '.some(': '.every(', '.every(': '.some(' }[sw[1]]; push(k, sw[1], swap, 'call'); k += sw[1].length - 1; continue }
+  const m = /^(true|false)\b/.exec(src.slice(k, k + 6))
+  if (m && !/[\w$.]/.test(src[k - 1] ?? ' ')) { push(k, m[1], m[1] === 'true' ? 'false' : 'true', 'bool'); k += m[1].length - 1; continue }
+}
+fs.writeFileSync(outFile, JSON.stringify({ selfTestStart, codeChars: isCode.reduce((a, b) => a + b, 0), mutants }, null, 0))
+const by = {}; for (const m of mutants) by[m.label] = (by[m.label] ?? 0) + 1
+console.log(`added library lines considered: ${[...added].filter(l => l < selfTestStart).length}; mutants: ${mutants.length} ${JSON.stringify(by)}; self-test starts at line ${selfTestStart}`)
+
+// ---- sweep-run.mjs ----
+// Run every generic mutant of sweep-gen.mjs against the library's own self-test, in its own copy, two at a time.
+//   node sweep-run.mjs <lib file> <mutants.json> <out json>
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { spawn } from 'node:child_process'
+const [libFile, mutFile, outFile] = process.argv.slice(2)
+const root = path.dirname(libFile)
+const src = fs.readFileSync(libFile, 'utf8')
+const { mutants } = JSON.parse(fs.readFileSync(mutFile, 'utf8'))
+const lines = src.split('\n')
+const WORKERS = 2
+const dirs = Array.from({ length: WORKERS }, () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'sweep-')); for (const f of ['checks.mjs', 'render-check.mjs']) fs.copyFileSync(path.join(root, f), path.join(d, f)); return d })
+const runIn = (dir, text) => new Promise(resolve => {
+  fs.writeFileSync(path.join(dir, 'egress-path-lib.mjs'), text)
+  const p = spawn(process.execPath, [path.join(dir, 'egress-path-lib.mjs'), '--self-test'], { stdio: ['ignore', 'pipe', 'pipe'] })
+  let out = ''; p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d)
+  const timer = setTimeout(() => p.kill('SIGKILL'), 90000)
+  p.on('close', (code, sig) => { clearTimeout(timer); resolve({ code, sig, failing: out.split('\n').filter(l => l.startsWith('FAIL  ')).map(l => l.slice(6)), tail: out.trim().split('\n').slice(-1)[0] }) })
+})
+const base = await runIn(dirs[0], src)
+if (base.code !== 0) { console.log(`the unmutated copy does not pass (${base.tail}); nothing was run`); process.exit(2) }
+console.log(`unmutated copy: exit 0, "${base.tail}"`)
+const results = new Array(mutants.length)
+let next = 0
+await Promise.all(dirs.map(async dir => {
+  for (;;) {
+    const i = next++; if (i >= mutants.length) return
+    const m = mutants[i]
+    if (src.slice(m.off, m.off + m.from.length) !== m.from) { results[i] = { ...m, status: 'ANCHOR-MOVED' }; continue }
+    const text = src.slice(0, m.off) + m.to + src.slice(m.off + m.from.length)
+    if (text === src) { results[i] = { ...m, status: 'NOT-APPLIED' }; continue }
+    const r = await runIn(dir, text)
+    results[i] = { ...m, status: r.code === 0 ? 'survived' : r.failing.length ? 'killed' : 'crashed', failing: r.failing.length, first: r.failing[0] ?? r.tail, sig: r.sig }
+  }
+}))
+for (const d of dirs) fs.rmSync(d, { recursive: true, force: true })
+const by = {}; for (const r of results) by[r.status] = (by[r.status] ?? 0) + 1
+fs.writeFileSync(outFile, JSON.stringify(results.map(r => ({ ...r, text: lines[r.ln - 1].trim().slice(0, 200) }))))
+console.log(`checked ${results.length} of ${mutants.length} generic mutants; ${JSON.stringify(by)}`)
+for (const r of results.filter(r => r.status !== 'killed')) console.log(`${r.status.toUpperCase().padEnd(9)} line ${r.ln} [${r.label}] ${r.from} -> ${r.to || '(removed)'} : ${lines[r.ln - 1].trim().slice(0, 140)}`)

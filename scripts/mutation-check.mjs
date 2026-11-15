@@ -13610,6 +13610,23 @@ const MUTATIONS = [
     replace: "",
     expect: "node scripts/egress-path-lib.mjs --self-test",
   },
+  // From a generic operator sweep of the lines this change added (outbox/egress-path-tls-mutations-2026-11-14.txt, section 4): the two survivors that were real gaps in new code.
+  {
+    id: "egress-path-tls-sync-throw-as-ok",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "a handshake that throws before it starts is a named failure, not a completed one",
+    find: "} catch (e) { settle({ ok: false, code: codeOf(e) }) }",
+    replace: "} catch (e) { settle({ ok: true, code: codeOf(e) }) }",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-real-one-address-fails",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the real host passes with one address found: one is enough",
+    find: "a.found >= 1 && a.settled === a.probed,",
+    replace: "a.found > 1 && a.settled === a.probed,",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

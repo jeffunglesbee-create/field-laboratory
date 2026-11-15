@@ -807,7 +807,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('tlsLine: the addresses left unprobed are counted, and no address at all is said', tlsLine(sampleEntries.slice(0, 1), 443, 4, 'LATE').endsWith(' ; +4 not probed') && tlsLine([], 443, 0, 'LATE') === 'none (no address from any source)')
   check('addressesLine: the counts, a cap shown, and an unknown total named', addressesLine({ found: 2, probed: 2, settled: 2 }) === 'addresses: 2 found, 2 with a settled TLS verdict' && addressesLine({ found: 9, probed: 6, settled: 6 }) === 'addresses: 9 found, 6 with a settled TLS verdict (6 probed)' && addressesLine({ found: undefined, probed: 0, settled: 0 }) === 'addresses: unreadable (the sources had not all answered) found, 0 with a settled TLS verdict', `${addressesLine({ found: 9, probed: 6, settled: 6 })} | ${addressesLine({ found: undefined, probed: 0, settled: 0 })}`)
   const A = (found, probed, settled) => ({ found, probed, settled })
-  check('LIVE_ADDRESSES.real: an address found and every probed one settled passes; none found, an unknown total, or one unsettled does not', LIVE_ADDRESSES.real(A(2, 2, 2)) && LIVE_ADDRESSES.real(A(9, 6, 6)) && !LIVE_ADDRESSES.real(A(0, 0, 0)) && !LIVE_ADDRESSES.real(A(undefined, 0, 0)) && !LIVE_ADDRESSES.real(A(2, 2, 1)))
+  check('LIVE_ADDRESSES.real: one address found (one is enough) or more, and every probed one settled, passes; none found, an unknown total, or one unsettled does not', LIVE_ADDRESSES.real(A(1, 1, 1)) && LIVE_ADDRESSES.real(A(2, 2, 2)) && LIVE_ADDRESSES.real(A(9, 6, 6)) && !LIVE_ADDRESSES.real(A(0, 0, 0)) && !LIVE_ADDRESSES.real(A(undefined, 0, 0)) && !LIVE_ADDRESSES.real(A(2, 2, 1)))
   check('LIVE_ADDRESSES.nxdomain: none found passes, one found does not', LIVE_ADDRESSES.nxdomain(A(0, 0, 0)) && !LIVE_ADDRESSES.nxdomain(A(1, 1, 1)) && !LIVE_ADDRESSES.nxdomain(A(undefined, 0, 0)))
   check('LIVE_ADDRESSES.blackhole and .refused: exactly one literal with a verdict passes; none, two, or an unsettled one does not', ['blackhole', 'refused'].every(k => LIVE_ADDRESSES[k](A(1, 1, 1)) && !LIVE_ADDRESSES[k](A(0, 0, 0)) && !LIVE_ADDRESSES[k](A(2, 2, 2)) && !LIVE_ADDRESSES[k](A(1, 1, 0))))
   check('the view keys the line prints are the vantages\' keys, in order, and every vantage is a /24 with a unique id', JSON.stringify(LINE_KEYS.filter(k => /^view-/.test(k))) === JSON.stringify(VANTAGES.map(v => `view-${v.id}-v4`)) && new Set(VANTAGES.map(v => v.id)).size === VANTAGES.length && VANTAGES.every(v => /^\d{1,3}(\.\d{1,3}){2}\.0\/24$/.test(v.subnet)), JSON.stringify(VANTAGES))
@@ -919,13 +919,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const loopServers = []
   const listen = server => new Promise(r => { server.listen(0, '127.0.0.1', () => r(server.address().port)) })
   const tlsc = makeTlsConnect()
-  const loopbackPlanned = 6
+  const loopbackPlanned = 7
   let loopbackRan = 0
   const silentTcp = net.createServer(s => held.push(s)); loopServers.push(silentTcp)
   const rSilentTls = await tlsc({ host: '127.0.0.1', port: await listen(silentTcp), timeoutMs: 300 }); loopbackRan++
   check('REAL loopback, a listener that accepts and says nothing: the connect completed and no handshake did, and the verdict says so', rSilentTls.ok === false && rSilentTls.code === 'no-tls-in-300ms' && typeof rSilentTls.tcpMs === 'number' && /^no-tls-in-300ms \(tcp \d+ms\)$/.test(tlsVerdict(rSilentTls)), JSON.stringify(rSilentTls))
   const rClosedTls = await tlsc({ host: '127.0.0.1', port: await closedPort(), timeoutMs: 1000 }); loopbackRan++
   check('REAL loopback, a closed port: ECONNREFUSED, and the connect did not complete', rClosedTls.ok === false && rClosedTls.code === 'ECONNREFUSED' && rClosedTls.tcpMs === undefined && tlsVerdict(rClosedTls) === 'ECONNREFUSED (tcp not completed)', JSON.stringify(rClosedTls))
+  // The one shape that needs no listener: tls.connect throws before any connect, and that must come back as a named failure.
+  const rBadPort = await tlsc({ host: '127.0.0.1', port: 70000, timeoutMs: 1000 }); loopbackRan++
+  check('REAL makeTlsConnect, a port out of range: tls.connect throws before any connect, and that is a named failure and not a completed handshake', rBadPort.ok === false && rBadPort.code === 'ERR_SOCKET_BAD_PORT' && rBadPort.tcpMs === undefined && tlsVerdict(rBadPort) === 'ERR_SOCKET_BAD_PORT (tcp not completed)', JSON.stringify(rBadPort))
   const plainTcp = net.createServer(s => { held.push(s); s.on('error', () => {}); s.end('HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n') }); loopServers.push(plainTcp)
   const rNotTls = await tlsc({ host: '127.0.0.1', port: await listen(plainTcp), timeoutMs: 2000 }); loopbackRan++
   check('REAL loopback, a listener that answers in bytes that are not TLS: the connect completed and the handshake failed with a code, not by the clock', rNotTls.ok === false && typeof rNotTls.tcpMs === 'number' && settledTls(rNotTls) && !/^no-/.test(rNotTls.code), JSON.stringify(rNotTls))
