@@ -87,5 +87,19 @@ npm run --silent check:short-circuit
 # written from a session, but the text someone copies from can be. Docs-only
 # scan, no network, instant, so it belongs at the door.
 npm run --silent check:setup-script
+# Added 2026-11-15. Two guards read .github/workflows/*.yml with PyYAML and had no
+# caller but verify.yml, so a bad workflow edit was found in CI after the commit
+# existed: check-push-lands.py on 2026-10-28 (verify run 40649230876, the first
+# landing of the baseline-step fix) and check-browser-gate.py on 2026-11-14
+# (a69191d5, the first form of the TLS workflow guard). They run on EVERY commit
+# and not when a workflow is staged, because the browser guard classifies a step
+# by reading the entry script it runs: one chromium.launch() added to an ungated
+# step's script turns it red with no workflow touched, and a comment naming
+# playwright does not (outbox/brief-hook-premises-2026-11-15.txt, B4). Both read
+# files and run nothing: no network, no build, no browser. Needs PyYAML (python3 -m
+# pip install pyyaml). Without it the browser guard says so, check-push-lands.py
+# stops on ModuleNotFoundError, and either way the commit stops, which is the point.
+npm run --silent check:browser-gate
+npm run --silent check:push-lands
 
 echo "pre-commit: ok"
