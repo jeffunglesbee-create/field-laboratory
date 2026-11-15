@@ -12,7 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5ea7b98` | 2026-11-15 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: open item 1 of the Chromium gate is landed: the scored gate, 530 of 530 |
+| `c7ed523` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ef2afa8 [skip ci] |
+| `266b414` | 2026-11-14 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | ci: browser-gate generalization, final: the fixes from two independent reviews, sweep 295 of 295 |
+| `266b414` | 2026-11-14 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | ci: browser-gate generalization, final: the fixes from two independent reviews, sweep 295 of 295 |
+| `266b414` | 2026-11-14 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | ci: browser-gate generalization, final: the fixes from two independent reviews, sweep 295 of 295 |
 | `2bb2593` | 2026-11-14 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-14T22:44 [skip ci] |
+| `05ef1a1` | 2026-11-14 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | ci: browser-gate generalization, response to the independent review (work in progress: sweep and record numbers not yet filled) |
+| `05ef1a1` | 2026-11-14 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | ci: browser-gate generalization, response to the independent review (work in progress: sweep and record numbers not yet filled) |
+| `266f5f8` | 2026-11-14 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | ci: guard the other 11 browser-install sites (live-check gets the verify shape; ten annotated exemptions) |
+| `266f5f8` | 2026-11-14 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | ci: guard the other 11 browser-install sites (live-check gets the verify shape; ten annotated exemptions) |
+| `266f5f8` | 2026-11-14 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | ci: guard the other 11 browser-install sites (live-check gets the verify shape; ten annotated exemptions) |
 | `b47686e` | 2026-11-14 | [cc-session-2026-11-14-egress-diagnostics.md](cc-session-2026-11-14-egress-diagnostics.md) | docs: session record for the weather failure message that names its cause, closed out |
 | `4acd8f0` | 2026-11-14 | [egress-path-e2e-20261114T203623Z.txt](egress-path-e2e-20261114T203623Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `4acd8f0` | 2026-11-14 | [egress-path-live-20261114T203623Z.txt](egress-path-live-20261114T203623Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
