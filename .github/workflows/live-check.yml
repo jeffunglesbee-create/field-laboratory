@@ -19,6 +19,16 @@ on:
     workflows: [deploy]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      # ADDED 2026-11-15, for one step. The brief-phase step needs a day with
+      # finished games that carry both phases, and a dispatch lands wherever the
+      # clock is: Sunday morning has none and the step said NOT OBSERVABLE. The
+      # page renders any day it is given as `?date=`, so a finished day can be
+      # replayed. Empty means today, which is every other trigger.
+      brief_date:
+        description: 'Day (YYYY-MM-DD, ET) for the brief-phase step to render and check; empty means today'
+        type: string
+        default: ''
   # A daily beat catches the other direction: the artifact is fine but the
   # relay's shape moved under it.
   #
@@ -239,9 +249,15 @@ jobs:
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
         if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
+        # The input is text a person typed: it reaches the shell through `env`,
+        # never through the command line, and the URL only gains `?date=` when it
+        # is set. A value that is not a date shows as the page's own #viewed-date
+        # and the step's first check fails on it.
+        env:
+          BRIEF_DATE: ${{ inputs.brief_date }}
         run: |
           node scripts/brief-phase-live-check.mjs --self-test
-          URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/brief-phase-live-check.mjs
+          URL="https://field-laboratory.jeffunglesbee.workers.dev/${BRIEF_DATE:+?date=$BRIEF_DATE}" node scripts/brief-phase-live-check.mjs
 
       - name: The deployed page serves both pick tabs
         # Runs even if a SIBLING assertion failed, but not if the artifact under
