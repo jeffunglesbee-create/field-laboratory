@@ -35,13 +35,15 @@ export const actionFor = (mode, row) =>
 
 /** How a finished gate run exits. Every exit of scripts/confidence.mjs after the record is written goes through this one function (the self-test reads its source for that), so a failing row exits 1 in
  *  every mode whatever the score: the browserless mode must not turn a failed row into a green step (review 2026-11-15, finding 8: three one-line regressions of the wiring, each exiting 0 with a failing row,
- *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score. */
-export const exitFor = ({ mode, failed, total, bar }) => (failed > 0 || (mode !== 'quick' && total < bar) ? 1 : 0)
+ *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score. A score that is not a number (`NaN`: a run that
+ *  measured nothing) is a failure in every mode, since `NaN < bar` is false and a comparison alone read it as a pass (round 4, finding 8). */
+export const exitFor = ({ mode, failed, total, bar }) => (failed > 0 || !Number.isFinite(total) || (mode !== 'quick' && total < bar) ? 1 : 0)
 
 /** The closing line of a browserless run. It counts the rows that were not run FOR WANT OF A BROWSER (`why: 'browser'`), not every not-applicable row: on the weekly schedule the outbox row has no subject and is
  *  not applicable too, and is no row that needs a browser (review 2026-11-15, finding 9: it said 7 rows / 190 points where 6 / 180 were not run). */
 export const browserlessLine = results => {
-  const ran = results.filter(r => r.state === 'PASS').length
+  // The rows that RAN: those that passed, and the row that ran and found no subject (`why: 'no-subject'`, the outbox row on a scheduled run). A browserless run has no failing row when this is written.
+  const ran = results.filter(r => r.state === 'PASS' || (r.state === 'N/A' && r.why === 'no-subject')).length
   const missing = results.filter(r => r.state === 'N/A' && r.why === 'browser')
   return `--browserless: no failures among the ${ran} rows that ran. ${missing.length} row(s) that need a browser were NOT run (${missing.reduce((a, r) => a + r.weight, 0)} points). This is NOT a pass.`
 }
@@ -87,12 +89,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     recordId('browserless', 'aaaaaaaaaaaa-bbbbbbbbbbbb') === 'aaaaaaaaaaaa-bbbbbbbbbbbb-browserless' && recordId('full', 'x') === 'x' && recordId('quick', 'x') === 'x', 'the CI step that lands a ledger line skips an id already in the ledger')
   check('the declared modes are the three the gate knows', MODES.join() === 'full,quick,browserless', MODES.join())
   // THE EXIT, as a truth table: a failing row exits 1 in every mode, at any score (a weight-10 row fails and leaves 97), and a run with no failing row exits 0 unless a whole-table score is below the bar.
-  const exits = Object.fromEntries(MODES.map(m => [m, [exitFor({ mode: m, failed: 0, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, total: 40, bar: 95 }), exitFor({ mode: m, failed: 0, total: 94, bar: 95 })]]))
-  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, and a score under the bar exits 1 except in quick (which skipped rows)',
-    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1], quick: [0, 1, 1, 0], browserless: [0, 1, 1, 1] }), JSON.stringify(exits))
+  const exits = Object.fromEntries(MODES.map(m => [m, [exitFor({ mode: m, failed: 0, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, total: 40, bar: 95 }), exitFor({ mode: m, failed: 0, total: 94, bar: 95 }), exitFor({ mode: m, failed: 0, total: NaN, bar: 95 })]]))
+  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, a score under the bar exits 1 except in quick (which skipped rows), and a score that is not a number exits 1 in every mode',
+    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1, 1], quick: [0, 1, 1, 0, 1], browserless: [0, 1, 1, 1, 1] }), JSON.stringify(exits))
   const sched = [{ state: 'PASS', weight: 20 }, { state: 'PASS', weight: 30 }, ...Array.from({ length: 6 }, () => ({ state: 'N/A', weight: 30, why: 'browser' })), { state: 'N/A', weight: 10, why: 'no-subject' }]
-  check('THE CLOSING LINE of a browserless run counts the rows not run for want of a browser: on a scheduled run the outbox row is not applicable as well, and is not one of them (6 rows, 180 points, not 7 and 190)',
-    /among the 2 rows that ran\. 6 row\(s\) that need a browser were NOT run \(180 points\)\. This is NOT a pass\./.test(browserlessLine(sched)), browserlessLine(sched))
+  check('THE CLOSING LINE of a browserless run counts the rows not run for want of a browser, and the rows that RAN: on a scheduled run the outbox row ran and found no subject, so it is one of the 3 that ran and is not one of the 6 (180 points) that were not run; without it, 2 ran',
+    /among the 3 rows that ran\. 6 row\(s\) that need a browser were NOT run \(180 points\)\. This is NOT a pass\./.test(browserlessLine(sched)) && /among the 2 rows that ran\. 6 row\(s\)/.test(browserlessLine(sched.slice(0, 8))), browserlessLine(sched))
   // The lines `ok` keeps for a failing command (what run-row.mjs prints and mutation-check.mjs --no-browser reads): a launch with no browser prints Playwright's message among lines that match the
   // salient filter for other reasons (`name: 'Error'`), and the message has to be one of the lines kept (probed 2026-11-15, PLAYWRIGHT_BROWSERS_PATH=/nonexistent: only `name: 'Error'` was).
   const before = failures.length
@@ -126,10 +128,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   const exitCalls = [...gateSource.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
   check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...): six of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, total, bar: BAR \}\)$/.test(c)).length === 6 && exitCalls.length === 9,
     JSON.stringify(exitCalls))
-  // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, round 2, finding 8). The wiring checks above pin where the exits are and that they go through exitFor, not what is
+  // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, rounds 2 and 4). The wiring checks above pin where the exits are and that they go through exitFor, not what is
   // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
   // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the inventory, the rows, the identity,
-  // the stranded-mutation check) and run for real in each mode, with and without a failing row whose weight leaves the score above the bar (990 + 5 of 1005 = 99). The real gate is never run here.
+  // the stranded-mutation check) and run for real in each mode. The rows log their own calls (`ran.log`), so what a mode does NOT run is observable; the identity and the inventory answer from the
+  // environment, so the record's identity fields and the inventory's refusal are observable too. The real gate is never run here.
   {
     const fs = await import('node:fs'), { tmpdir } = await import('node:os'), { join } = await import('node:path'), { spawnSync } = await import('node:child_process')
     const scratch = fs.mkdtempSync(join(tmpdir(), 'confidence-e2e-'))
@@ -137,33 +140,96 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       fs.mkdirSync(join(scratch, 'scripts')); fs.mkdirSync(join(scratch, 'docs'))
       const here = fileURLToPath(new URL('.', import.meta.url))
       for (const f of ['confidence.mjs', 'gate-mode.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
-      fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => []\n`)
-      fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: 'a'.repeat(40), dirty: false, id: 'standin' })\n`)
+      // The names confidence.mjs imports from the two modules that are stood in for, against the names the stand-ins export (a LITERAL list): a new import in confidence.mjs is then a named failure here,
+      // not a crash in every run below (round 4, finding 15).
+      const STANDIN_EXPORTS = { 'gate-inventory.mjs': ['INVENTORY_PATH', 'readInventory', 'diffAgainst'], 'checks.mjs': ['runIdentity'] }
+      const imported = mod => (new RegExp(`import \\{([^}]*)\\} from './${mod.replace('.', '\\.')}'`).exec(gateSource)?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean)
+      const missing = Object.entries(STANDIN_EXPORTS).flatMap(([mod, have]) => imported(mod).filter(n => !have.includes(n)).map(n => `${n} from ${mod}`))
+      check('THE STAND-INS COVER WHAT confidence.mjs IMPORTS from the modules they replace (gate-inventory.mjs, checks.mjs): a new import is named here, not found as a crash in every run below',
+        missing.length === 0 && imported('gate-inventory.mjs').length === 3 && imported('checks.mjs').length === 1, `no stand-in for: ${missing.join(', ')}`)
+      fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => (process.env.STANDIN_INVENTORY ? ['row good is not in docs/gate-rows.txt'] : [])\n`)
+      fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`)
       fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
-      const standIn = (failing, extra = '') => `export const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\nexport const rows = [\n  { name: 'good', weight: 990, run: () => true },\n`
-        + `${failing ? "  { name: 'bad', weight: 10, run: () => false },\n" : ''}${extra}  { name: 'browser', weight: 5, skipQuick: true, browser: true, run: () => true },\n]\n`
-      const go = (failing, flags = [], extra = '') => {
-        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(failing, extra))
-        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true })
-        const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000 })
+      const ROW = {
+        good: "  { name: 'good', weight: 990, run: ran('good') },\n",
+        bad: "  { name: 'bad', weight: 10, run: ran('bad', false) },\n",
+        build: "  { name: 'build', weight: 5, skipQuick: true, run: ran('build') },\n",
+        browser: "  { name: 'browser', weight: 5, skipQuick: true, browser: true, run: ran('browser') },\n",
+        boom: "  { name: 'boom', weight: 10, run: () => { throw new Error('x') } },\n",
+        na: "  { name: 'na', weight: 10, run: () => NOT_APPLICABLE },\n",
+        na2: "  { name: 'na2', weight: 10, run: () => NOT_APPLICABLE },\n",
+        sq: "  { name: 'sq', weight: 20, skipQuick: true, run: ran('sq', false) },\n",
+        br: "  { name: 'br', weight: 20, skipQuick: true, browser: true, run: ran('br', false) },\n",
+        async: "  { name: 'async', weight: 10, run: async () => false },\n",
+        string: "  { name: 'string', weight: 10, run: () => 'yes' },\n",
+        number: "  { name: 'number', weight: 10, run: () => 1 },\n",
+        object: "  { name: 'object', weight: 10, run: () => ({}) },\n",
+        undef: "  { name: 'undef', weight: 10, run: () => undefined },\n",
+      }
+      const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\n`
+        + `const ran = (n, v = true) => () => { appendFileSync('ran.log', n + '\\n'); return v }\nexport const rows = [\n${names.map(n => ROW[n]).join('')}]\n`
+      const go = (names, flags = [], env = {}) => {
+        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names))
+        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true })
+        const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000, env: { ...process.env, ...env } })
         let rec = null
         try { rec = JSON.parse(fs.readFileSync(join(scratch, 'docs', 'confidence-log.jsonl'), 'utf8').trim().split('\n').pop()) } catch { rec = null }
-        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec }
+        let ran = []
+        try { ran = fs.readFileSync(join(scratch, 'ran.log'), 'utf8').split('\n').filter(Boolean) } catch { ran = [] }
+        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran }
       }
-      const red = { full: go(true), quick: go(true, ['--quick']), browserless: go(true, ['--browserless']) }
-      check('THE REAL confidence.mjs OVER STAND-IN ROWS, with a failing row that leaves the score at 99 (above the bar): it exits 1 in every mode, names the row, and records it as failing',
-        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && JSON.stringify(red[m].rec?.failing) === '["bad"]'), JSON.stringify(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.total, m === 'full' ? r.out.slice(-200) : '']]))))
-      const thrown = go(false, [], "  { name: 'boom', weight: 10, run: () => { throw new Error('x') } },\n")
-      check('...a row that THROWS is a failing row, recorded and exited on like any other (the gate does not crash on it)', thrown.status === 1 && JSON.stringify(thrown.rec?.failing) === '["boom"]', `exit ${thrown.status}; ${thrown.out.slice(-300)}`)
-      const na = go(false, [], "  { name: 'na', weight: 10, run: () => NOT_APPLICABLE },\n")
-      check('...a row with no subject on this run (NOT_APPLICABLE) is out of the score, named in the record, and is no failure: 995 possible, exit 0', na.status === 0 && na.rec?.possible === 995 && JSON.stringify(na.rec?.notApplicable) === '["na"]' && JSON.stringify(na.rec?.failing) === '[]', `exit ${na.status}; ${JSON.stringify([na.rec?.possible, na.rec?.notApplicable])} ${na.out.slice(-300)}`)
-      const green = { full: go(false), quick: go(false, ['--quick']), browserless: go(false, ['--browserless']) }
+      const J = JSON.stringify
+      const FOUR = ['good', 'bad', 'build', 'browser']
+      // A failing row whose weight leaves the score above the bar (a weight-10 row of 1010 points: 99): only the conjunction of failing rows can keep it red.
+      const red = { full: go(FOUR), quick: go(FOUR, ['--quick']), browserless: go(FOUR, ['--browserless']) }
+      check('THE REAL confidence.mjs OVER STAND-IN ROWS, with a failing row that leaves the score at 99 (above the bar): it exits 1 in every mode, names the row, and records it as failing, with the score of that mode (earned, possible, total)',
+        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && J(red[m].rec?.failing) === '["bad"]')
+          && J(['full', 'quick', 'browserless'].map(m => [red[m].rec?.earned, red[m].rec?.possible, red[m].rec?.total])) === '[[1000,1010,99],[990,1000,99],[995,1005,99]]',
+        J(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.earned, r.rec?.possible, r.rec?.total]]))))
+      const thrown = go(['good', 'boom'])
+      check('...a row that THROWS is a failing row, recorded and exited on like any other (the gate does not crash on it)', thrown.status === 1 && J(thrown.rec?.failing) === '["boom"]', `exit ${thrown.status}; ${thrown.out.slice(-300)}`)
+      const na = go(['good', 'na'])
+      check('...a row with no subject on this run (NOT_APPLICABLE) is out of the score, named in the record, and is no failure: 990 possible, exit 0', na.status === 0 && na.rec?.possible === 990 && J(na.rec?.notApplicable) === '["na"]' && J(na.rec?.failing) === '[]', `exit ${na.status}; ${J([na.rec?.possible, na.rec?.notApplicable])} ${na.out.slice(-300)}`)
+      // A ROW PASSES ONLY BY RETURNING true (round 4, finding 11): an async row, a string, a number and an object are truthy and were scored as passes; undefined is falsy and always failed.
+      const nonBool = Object.fromEntries(['async', 'string', 'number', 'object', 'undef'].map(n => [n, go(['good', n])]))
+      check('A ROW THAT RETURNS A TRUTHY VALUE THAT IS NOT true IS A FAILING ROW: an async function (a Promise), a string, a number and an object each exit 1 and are recorded as failing, and the line says what was returned',
+        Object.entries(nonBool).every(([n, r]) => r.status === 1 && J(r.rec?.failing) === J([n])) && /\(returned object, which is not true/.test(nonBool.async.out) && /\(returned string, which is not true/.test(nonBool.string.out) && /\(returned number, which is not true/.test(nonBool.number.out),
+        J(Object.fromEntries(Object.entries(nonBool).map(([n, r]) => [n, [r.status, r.rec?.failing]]))))
+      // A RUN THAT MEASURED NOTHING (every row NOT_APPLICABLE: possible 0) is a failure, and says 0, not NaN (round 4, finding 8): the guard in confidence.mjs and the exit in exitFor are both pinned.
+      const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']) }
+      check('A RUN THAT MEASURED NOTHING (every row not applicable, 0 points possible) EXITS 1 in full and browserless, records a total of 0 (not NaN), prints `0/0 points = 0/100` and never says the gate passed',
+        ['full', 'browserless'].every(m => nothing[m].status === 1 && nothing[m].rec?.possible === 0 && nothing[m].rec?.total === 0 && /0\/0 points = 0\/100/.test(nothing[m].out) && !/Gate passed/.test(nothing[m].out)),
+        J(Object.fromEntries(Object.entries(nothing).map(([m, r]) => [m, [r.status, r.rec?.possible, r.rec?.total]]))))
+      // A FAILING ROW IS RED WHATEVER FLAGS IT CARRIES (round 4, finding 9): `sq` is skipQuick without browser (the F# build and compiler-verified doc rows are such), `br` is skipQuick and browser.
+      const sq = { full: go(['good', 'sq', 'browser']), browserless: go(['good', 'sq', 'browser'], ['--browserless']), quick: go(['good', 'sq', 'browser'], ['--quick']) }
+      const br = { full: go(['good', 'br']), browserless: go(['good', 'br'], ['--browserless']), quick: go(['good', 'br'], ['--quick']) }
+      check('A FAILING skipQuick ROW THAT IS NO BROWSER ROW (weight 20, the score stays 98) is red in full and in browserless, and is skipped, not failing, in quick; a failing BROWSER row is red in full, not applicable (not failing) in browserless, and skipped in quick',
+        sq.full.status === 1 && J(sq.full.rec?.failing) === '["sq"]' && sq.browserless.status === 1 && J(sq.browserless.rec?.failing) === '["sq"]' && sq.quick.status === 0 && J(sq.quick.rec?.skipped) === '["sq","browser"]' && J(sq.quick.rec?.failing) === '[]'
+          && br.full.status === 1 && J(br.full.rec?.failing) === '["br"]' && br.browserless.status === 0 && J(br.browserless.rec?.notApplicable) === '["br"]' && J(br.browserless.rec?.failing) === '[]' && br.quick.status === 0 && J(br.quick.rec?.skipped) === '["br"]',
+        J({ sq: Object.fromEntries(Object.entries(sq).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.skipped]])), br: Object.fromEntries(Object.entries(br).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.notApplicable]])) }))
+      const green = { full: go(['good', 'build', 'browser']), quick: go(['good', 'build', 'browser'], ['--quick']), browserless: go(['good', 'build', 'browser'], ['--browserless']) }
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
         ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
-          && JSON.stringify(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full',
-        JSON.stringify(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]]))))
-      const both = go(false, ['--quick', '--browserless'])
-      check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null, `exit ${both.status}; ${both.out.slice(-200)}`)
+          && J(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full' && green.quick.rec?.mode === 'quick',
+        J(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]]))))
+      // WHAT EACH MODE RUNS is observable, not only what it records (round 4, finding 12): a row that must not run is not called.
+      check('WHAT A MODE RUNS: full calls all three rows, quick calls only the one that is neither browser nor build, browserless calls everything but the browser row (the build row included)',
+        J(green.full.ran) === '["good","build","browser"]' && J(green.quick.ran) === '["good"]' && J(green.browserless.ran) === '["good","build"]', J({ full: green.full.ran, quick: green.quick.ran, browserless: green.browserless.ran }))
+      // THE RECORD'S SCORE AND IDENTITY (round 4, finding 10): earned, possible, total and the identity the stand-in reports, dirty and clean.
+      const dirty = go(['good', 'build', 'browser'], [], { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' })
+      const dirtyBl = go(['good', 'build', 'browser'], ['--browserless'], { STANDIN_ID: 'run-xyz' })
+      check('THE RECORD CARRIES WHAT WAS MEASURED: score (earned, possible, total), the sha and id the run had, whether the tree was dirty (and the line says so), seconds and a per-row duration for every row that ran and none for a skipped one; a browserless run\'s id has its suffix',
+        J([green.full.rec?.earned, green.full.rec?.possible, green.full.rec?.total]) === '[1000,1000,100]' && green.full.rec?.dirty === false && green.full.rec?.sha === 'a'.repeat(40) && green.full.rec?.id === 'standin'
+          && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
+          && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
+        J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
+      // THE INVENTORY REFUSAL (round 4, finding 13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing recorded or run.
+      const inventory = go(['good', 'build'], [], { STANDIN_INVENTORY: '1' })
+      check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED: exit 2, the mismatch printed, `Refusing to score`, no row run and nothing recorded',
+        inventory.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(inventory.out) && /row good is not in docs\/gate-rows\.txt/.test(inventory.out) && /Refusing to score/.test(inventory.out) && inventory.rec === null && inventory.ran.length === 0,
+        `exit ${inventory.status}; ${inventory.out.slice(-300)}`)
+      const both = go(['good'], ['--quick', '--browserless'])
+      check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null && both.ran.length === 0, `exit ${both.status}; ${both.out.slice(-200)}`)
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
   }
   finish(summarize())

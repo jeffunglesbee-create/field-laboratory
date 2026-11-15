@@ -166,10 +166,14 @@ for (const row of rows) {
     console.log(`  [${String(seconds).padStart(4)}s] N/A   ${row.name}`)
     continue
   }
+  // A ROW PASSES BY RETURNING `true`, and by nothing else that is truthy (review 2026-11-15, round 4, finding 11): `async () => false` returns a Promise, and a row that returns a string or a number returns
+  // something truthy, and `if (passed)` scored each of those as a full pass with the gate exiting 0. NOT_APPLICABLE, handled above, is the only other answer a row may give. Every row in gate-checks.mjs
+  // returns a boolean (`ok`, `fails`, `all`, `shardedSuite`, and the two outbox functions do).
+  const pass = passed === true
   possible += row.weight
-  if (passed) earned += row.weight
-  results.push({ ...row, state: passed ? 'PASS' : 'FAIL', seconds })
-  console.log(`  [${String(seconds).padStart(4)}s] ${passed ? 'PASS' : 'FAIL'}  ${row.name}`)
+  if (pass) earned += row.weight
+  results.push({ ...row, state: pass ? 'PASS' : 'FAIL', seconds })
+  console.log(`  [${String(seconds).padStart(4)}s] ${pass ? 'PASS' : 'FAIL'}  ${row.name}${pass || passed === false ? '' : `  (returned ${typeof passed}, which is not true: a row passes only by returning true)`}`)
 }
 const totalSeconds = Math.round((Date.now() - startedAll) / 1000)
 
