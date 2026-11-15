@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-15 by CC, on the owner's word ("Brief and hook", Sun 2026-11-15 06:53 ET), as the residual named in `outbox/cc-session-2026-11-14-tls-stage.md` (the browser guard ran only in `verify.yml`'s job `browser-gate`, and the first form of the TLS workflow guard went red there)
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** IN PROGRESS 2026-11-15. Built and proven on the work branch `brief-hook`, not landed; the premises below were tested before filing (`outbox/brief-hook-premises-2026-11-15.txt`, sections B), and the PyYAML row and the hook's timing were corrected during the build.
+**Status:** DONE 2026-11-15. Approved by the owner ("Brief and hook", Sun 2026-11-15 06:53 ET). Built on the work branch `brief-hook` and landed on `main` as `4b66f5d7` with the brief-phase CC-CMD, after a scored `verify-full`, 43716154931, at 530 of 530 (ledger id `58e81d25cca8-9ac77ec85710`) on `58e81d25`, the commit that carries the hook change; `verify` 43721275726 on the branch head `d5ef64d0`, and `verify` 43721845406 and `guards` 43721845434 on the landing, are green. All five done conditions are met, each with its artifact in the Outcome. Three things differ from the plan and are in the Outcome: the hook runs the guards on every commit and not when a workflow file is staged, `check-push-lands.py` is a second guard in it, and Task 2b (the second guard's missing-PyYAML message) was added during the build. Whether a fresh cloud session has PyYAML is not established. The premises were tested before filing (`outbox/brief-hook-premises-2026-11-15.txt`, sections B), and the PyYAML row and the hook's timing were corrected during the build. Session record: `outbox/cc-session-2026-11-15-brief-hook.md`.
 
 ---
 
@@ -85,6 +85,27 @@ On the work branch with the brief CC-CMD's commits (`docs/CC-CMD-2026-11-15-brie
 3. The hook change's commit and the commits after it ran the two lines in their own hook (their output shows `verdict: gated` and `OK: all 26 push-retry loop(s) verify that the push landed.`); `verify-full` at 530 of 530 on the commit that carries the hook change; `verify` green on the branch head and on the landing, and `guards` green on the landing.
 4. The pointer line is in `docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md` and that file's guards are green.
 5. Task 2b's check fails on the committed `check-push-lands.py`, passes on the fixed one, and fails on its three mutants; the whole hook with PyYAML unreachable exits 1 on a guard's install message.
+
+## Outcome, 2026-11-15
+
+Landed with the brief-phase CC-CMD in one merge, `4b66f5d7` (the run ids are in that CC-CMD's Outcome). The hook change is `58e81d25`; Task 2b's fix is `3aea19d0`. `verify-full` 43716154931 scored `58e81d25` at 530 of 530 (ledger id `58e81d25cca8-9ac77ec85710`, 3,279 s). `verify` 43721275726 on the branch head `d5ef64d0` is green, all six jobs, `browser-gate` and `push-lands` among them; on the landing `verify` 43721845406 and `guards` 43721845434 are green.
+
+| # | result | artifact |
+|---|---|---|
+| 1 | met: the hook's exit codes over the three cases before the lines are `0 0 0` (a clean tree, a script-only mutation staged, a workflow mutation staged: the gap, shown) and after them `0 1 1`; the script-only case stops on the browser guard (`needs a browser and must carry`) and the workflow case on `FAIL: 1 push-retry loop(s) with nothing after them that checks the push landed`; each mutation proved it was applied and the tree was restored | `outbox/hook-runs-the-workflow-guards-proof-2026-11-15.txt`, sections 2 and 3 |
+| 2 | met: the clean tree ends `pre-commit: ok`; the whole hook took 43.9 to 45.3 s before the lines (3 runs) and 47.2 to 48.0 s after (3 runs), a second or two of noise not separated; the two lines run alone took 3.845, 4.000 and 4.141 s (`check:browser-gate`) and 0.412, 0.355 and 0.396 s (`check:push-lands`) | the same file, section 4 |
+| 3 | met, with one part not kept: `verify-full` is 530/530 on `58e81d25`; `verify` is green on the branch head and on the landing, `guards` on the landing. The hook output of the commits after the hook change was kept for `b8b43f07` (47.153 s, ending `OK: all 26 push-retry loop(s) verify that the push landed.`) and for the hook run by hand on the merged tree `d5ef64d0` (46.7 s, exit 0, `verdict: gated` and the same OK line). The output of `58e81d25`, `3aea19d0`, `80f99a70` and `1c612af3` was not kept. What is known: the hook at each of the seven commits from `58e81d25` to `4b66f5d7` carries both lines (`git show <sha>:.githooks/pre-commit`, 2 of 2 at each), `core.hooksPath` is `.githooks` in this clone and `scripts/install_pkgs.sh` sets it, and no commit message on the branch carries the `[no-verify: reason]` marker a bypass requires (`grep -ci no-verify` over the messages: 0). That those four ran the hook is inferred from these three facts and not read from output | the run ids above; the session record |
+| 4 | met: the pointer is at `docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md:96` (commit `1b4459d9`); `guards` and `verify` are green on the landing | `git show 4b66f5d7:docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md` |
+| 5 | met: with every site-packages disabled the committed guard fails the check (expected), the fixed guard passes, the browser guard passes as the reference, 3 of 3 mutants are caught, and the whole hook with PyYAML unreachable exits 1 on the browser guard's message; with PyYAML present the guard's self-test is `12/12`, its scan is OK on 26 loops and `scripts/mutate-push-lands.py` catches 6 of 6 | `outbox/push-lands-pyyaml-message-2026-11-15.txt` |
+
+Differences from the plan.
+
+- The hook runs the two guards on every commit. The wording that started this work was one line when a workflow file is staged. Measured before building: a script-only edit turns the browser guard red with no workflow staged, because it classifies a step by the entry script it runs, so a trigger on staged workflow files misses it (`outbox/brief-hook-premises-2026-11-15.txt`, B4).
+- `check-push-lands.py` is a second guard in the hook. It is the same class (it reads workflow YAML with PyYAML, and its only caller was `verify.yml`) and it was red in CI after the commit existed, in verify run 40649230876 on 2026-10-28.
+- Task 2b was added during the build. Design 3 assumed a guard without PyYAML says what to install; run under `python3 -S`, `check-push-lands.py` died on a `ModuleNotFoundError` and named no remedy. It now carries the browser guard's handling of the missing import.
+- The PyYAML row and the hook's timing in the premises were corrected during the build (the premises table above reads as corrected).
+
+Not established. Whether a fresh cloud session has PyYAML: here it was present in two copies older than this container's boot, and neither `scripts/install_pkgs.sh` nor `docs/SETUP-SCRIPT.md` installs it. A box without it stops the commit with the install line, which is the intended behaviour and not a fix for the box. The session record is `outbox/cc-session-2026-11-15-brief-hook.md`.
 
 ## What this does not establish (said before it is built)
 
