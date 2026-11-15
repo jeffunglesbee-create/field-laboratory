@@ -12,10 +12,20 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f30d2b9` | 2026-11-15 | [egress-path-e2e-20261115T041303Z.txt](egress-path-e2e-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [egress-path-live-20261115T041303Z.txt](egress-path-live-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [egress-path-survey-20261115T041303Z.txt](egress-path-survey-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [open-meteo-egress-2026-11-15T04-12-58-684Z.json](open-meteo-egress-2026-11-15T04-12-58-684Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `22bc415` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 5c2021b [skip ci] |
+| `226a9ba` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8807ffb` | 2026-11-15 | [outlet-registry-2026-11-15.md](outlet-registry-2026-11-15.md) | feat: Scout's broadcast registry knows every outlet on the 11-14 slate, by the owner's classification |
 | `2e4c205` | 2026-11-15 | [drama-not-scored-2026-11-15.md](drama-not-scored-2026-11-15.md) | fix: the relay's drama 0 is read as its "cannot be scored" mark, and the stats panel says so |
 | `ecae613` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `247ec33` | 2026-11-15 | [pick-pass-closest-2026-11-15.md](pick-pass-closest-2026-11-15.md) | feat: on a pass night Field's Pick shows what came closest, from the relay's own ranked list |
+| `5c2021b` | 2026-11-15 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | fix: two gaps a generic operator sweep found in the TLS stage's new code are closed |
+| `370da1a` | 2026-11-15 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | fix: runLive's address clause and the live artifact's address lines are failed on purpose |
+| `f3c9f80` | 2026-11-14 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | feat: the weather failure message names every address the host has and whether a TLS handshake to each completes |
 | `461ff94` | 2026-11-14 | [tls-stage-premise-2026-11-14.txt](tls-stage-premise-2026-11-14.txt) | docs: CC-CMD for the weather failure's TLS stage and every address, filed on 14 runner runs of premises |
 | `c7c2927` | 2026-11-15 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the render-check race is fixed on main, the first proof slot's match is on the relay's slate, and soccer's pre shape is read |
 | `33ce43f` | 2026-11-15 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: open item 1 of the Chromium gate: the landing runs and the first healthy live-check |
