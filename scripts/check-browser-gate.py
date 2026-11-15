@@ -2397,6 +2397,15 @@ def self_test():
           needs_browser({"run": "node scripts/confidence.mjs"}, pkg, read_rows) is True and needs_browser({"run": "node scripts/run-row.mjs x"}, pkg, read_rows) is True and
           read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows)["browser"] is True and
           read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows, no_browser_ok=True)["browser"] is False)
+    # The declaration alone: a runner of the rows whose text names neither gate-checks.mjs nor a row's `run` (a text rule cannot see it) is a browser step by RUNS_ROWS, and by nothing else.
+    read_decl = lambda q: "console.log(1)\n" if q in RUNS_ROWS else files[q]
+    # LITERAL lists below, each checked equal to the constant: a loop over the constant itself loses a fixture with every member a mutation deletes (found by the third review's evidence pass:
+    # 15 of the 20 wrapper heads, 8 of 9 not-work flags and the RUNS_ROWS entries could be deleted with the self-test green).
+    PINNED_RUNNERS = ("scripts/confidence.mjs", "scripts/run-row.mjs")
+    check("every runner of the rows that RUNS_ROWS declares is pinned by a fixture of its own (the list below is literal)", set(PINNED_RUNNERS) == set(RUNS_ROWS), sorted(RUNS_ROWS))
+    for runner in PINNED_RUNNERS:
+        check(f"{runner} is a browser step by DECLARATION even when its text shows no row being run (the content rule cannot see it)", needs_browser({"run": f"node {runner} x"}, pkg, read_decl) is True, runner)
+    check("...and a script that is not declared and shows no row being run is not", needs_browser({"run": "node scripts/pure.mjs"}, pkg, read_decl) is False)
     op_step = {"name": "ledger", "if": "always()", "run": "node -e \"console.log(1)\""}
     op_browser = {"name": "ledger", "if": "always()", "run": "node scripts/shot.mjs\nnode -e \"console.log(1)\""}
     w_op = wf([{"name": "build", "run": "npm run pure"}, inst, op_step, {"name": "pure", "run": "npm run pure"}, final])
@@ -2559,9 +2568,14 @@ def self_test():
                 "npx tsx scripts/shot.mjs", "/usr/bin/timeout 60 node scripts/shot.mjs", "su -c 'node scripts/shot.mjs'"):
         res = unread(cmd)
         check(f"an unknown head (`{cmd[:40]}`) is not on the allowlist of what may stay unread: refused, not kept as opaque", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
+    # A `uses:` step is never the ledger kind. Its reason is built from the action's own name, so a name that ends in the words of a benign reason would be kept as opaque by the reason test alone.
+    res = audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "uses": "./local/action: git x is not a subcommand this guard reads"}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
+    check("an unreadable `uses:` step under always() is refused, not kept as opaque, even when the action's name ends in the words of a benign reason", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
     res = unread('D=$(mktemp -d); grep -c x "$D/f" | sed s/a/b/; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
     check("...while a step made of text and file tools, substitutions, arithmetic and inline node (the ledger kind) stays opaque", res[0] == [] and res[1]["opaque"] == 1, res)
-    for h in sorted(WRAPPER_HEADS):
+    PINNED_WRAPPERS = ("timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot")
+    check("every wrapper head the guard knows is pinned by a fixture of its own (the list is literal: a loop over WRAPPER_HEADS would lose a fixture with the head a change deleted)", set(PINNED_WRAPPERS) == set(WRAPPER_HEADS), sorted(WRAPPER_HEADS))
+    for h in PINNED_WRAPPERS:
         res = unread(f'{h} node scripts/pure.mjs --out "$(date)"')
         check(f"the wrapper `{h}` in front of a command the splitter cannot read is refused (the text of the line is scanned for it)", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
     check("a division after a name or a `)` is not the start of a regular expression: `(Date.now() - 0) / 1000 > 0 && ok('node scripts/shot.mjs')` drives a browser and is not flagged",
@@ -2589,11 +2603,28 @@ def self_test():
                         ("an `rm` line", f"rm -rf x\n{full_form}"), ("`set -x` first", f"set -x\n{full_form}"), ("an empty else branch", f'if [ -n "$IDS" ]; then\n  {ids_line}\n  {shard_line}\nelse\nfi')]:
         res = run_req(w_nb(nbv(text)))
         check(f"...and refused with {label}", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
-    for flag in NOT_WORK["scripts/mutation-check.mjs"]:
+    PINNED_MC_MODES, PINNED_CONF_MODES = ("--self-test", "--list-ids", "--anchors", "--stranded", "--heal", "--only"), ("--quick", "--self-test", "--help")
+    check("every mode that does no work (NOT_WORK) is pinned by a fixture of its own (the lists are literal)", set(PINNED_MC_MODES) == set(NOT_WORK["scripts/mutation-check.mjs"]) and set(PINNED_CONF_MODES) == set(NOT_WORK["scripts/confidence.mjs"]), NOT_WORK)
+    for flag in PINNED_MC_MODES:
         res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + " " + flag).replace(shard_line, shard_line + " " + flag))))
         check(f"...the mode flag {flag} on both commands is a step that does not do the work: refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    for label, tail in [("`;`", "; true"), ("`||`", " || true"), ("`&&`", " && true"), ("a pipe", " | tee x.log"), ("a background `&`", " &"), ("a redirect `>`", " > out.txt"), ("a redirect `<`", " < in.txt"),
+                        ("a backtick", " `date`"), ("`$(`", ' "$(date)"'), ("a bare `$(` word", " $(date)"), ("a `$(` glued to the argument", "$(date)")]:
+        res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + tail, 1))))
+        check(f"...a command line that ends in {label} (the step could swallow the spawner's failure) is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    for lead in ("echo `date`", 'echo "`date`"', "echo $(date)", 'echo "$(date)"'):
+        res = run_req(w_nb(nbv(f"{lead}\n{full_form}")))
+        check(f"...an echo line that runs a command (`{lead}`) is refused: it is work the step does, not text it prints", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    res = run_req(w_nb(nbv(f'if [ -n "$IDS" ]; then\n  {ids_line}\nelse\n  {ids_line}\nfi')))
+    check("...a step whose default branch (no ids) is `--ids` again, so it never runs `--shard`, is not the work: refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    for lead in ("true", "cd .", "export A=1", "mkdir -p x", "sleep 1", "exit 0"):
+        res = run_req(w_nb(nbv(f"{lead}\n{full_form}")))
+        check(f"...a line that is not `node`, `npm` or an echo (`{lead}`) before the commands is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     pkg3 = {**pkg, "gate:bl": "node scripts/confidence.mjs --browserless"}
     conf = lambda text: audit(w_nb(nbv(text)), pkg3, read, final_timeout=5, flagged=("scripts/confidence.mjs",))[0]
+    for flag in PINNED_CONF_MODES:
+        check(f"...`scripts/confidence.mjs --browserless {flag}` is a run that does not do the gate's work: refused", any_of("must run `scripts/confidence.mjs --browserless`", conf(f"node scripts/confidence.mjs --browserless {flag}")), conf(f"node scripts/confidence.mjs --browserless {flag}"))
+    check("...and `scripts/confidence.mjs --browserless` alone is the gate's work: accepted", conf("node scripts/confidence.mjs --browserless") == [], conf("node scripts/confidence.mjs --browserless"))
     check("`npm run gate:bl` is the gate's work; `npm run gate:bl -- --quick` (the pass-through argument the reader drops) is not", conf("npm run gate:bl") == [] and any_of("must run `scripts/confidence.mjs --browserless`", conf("npm run gate:bl -- --quick")), conf("npm run gate:bl -- --quick"))
 
     # the mutants the second review's reviewer found surviving, one fixture each

@@ -93,6 +93,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const bad = (list, re) => { const p = plan(list); return p.ok.length === 0 && p.refused.some(r => re.test(r.why)) }
     check('a list of proof branches is planned whole, in order', JSON.stringify(plan('proof-a, proof-b-2,proof-c').ok) === '["proof-a","proof-b-2","proof-c"]' && plan('proof-a').refused.length === 0)
     check('THE DEFAULT BRANCH IS REFUSED, whatever else is listed with it, and nothing of the list is planned', bad('proof-a,main', /default branch/) && bad('master', /default branch/) && bad('proof-a,develop', /default branch|not a throwaway/) === true && plan('proof-a,main').ok.length === 0)
+    // A default branch that is itself named like a proof branch: the PROOF test lets it through, so only the `defaultBranch` argument stands between it and the deletion.
+    // (`main` and `master` are refused by the PROOF test as well, so the check above cannot tell whether `name === defaultBranch` is there.)
+    check('A DEFAULT BRANCH NAMED LIKE A PROOF BRANCH IS REFUSED (the argument, not the pattern, decides it), and the list is not planned',
+      (() => { const p = plan('proof-a,proof-keep', 'proof-keep'); return p.ok.length === 0 && p.refused.some(r => r.name === 'proof-keep' && /default branch/.test(r.why)) })()
+      && plan('proof-a,proof-keep', 'main').ok.length === 2)
     check('a branch that is not a proof branch is refused (a claude/ branch, a feature branch, a flag, a path, a glob, upper case, a bare `proof-`)',
       ['claude/x', 'feature-x', '--force', 'proof-', 'proof-A', 'proof-a/b', 'proof-*', ':proof-a', 'refs/heads/proof-a', 'proof-a;rm'].every(n => bad(`proof-ok,${n}`, /not a throwaway|default/) || bad(n, /not a throwaway|default/)))
     check('an empty list and a repeated name are refused', bad('', /no branch name/) && bad(' , ', /no branch name/) && bad('proof-a,proof-a', /twice/))

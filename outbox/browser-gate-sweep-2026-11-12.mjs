@@ -38,7 +38,7 @@ import { join } from 'node:path'
 
 const here = new URL('..', import.meta.url).pathname
 const GATE = "        if: steps.chromium.outcome == 'success'\n"
-const EXCLUDED = 8
+const EXCLUDED = 10
 
 const CODE = [
   ['a launch is only an import of playwright', "r\"\"\"from\\s+['\"]playwright(?:-core)?['\"]|", 'r"""'],
@@ -240,7 +240,6 @@ const CODE = [
   ["a comparison with an unknown operand is decided", "if a[0] != \"lit\" or b[0] != \"lit\":\n        return UNK", "if False:\n        return UNK"],
   ["an expression that does not parse is read as running", "except (_Unreadable, RecursionError):\n        return UNKNOWN", "except (_Unreadable, RecursionError):\n        return RUNS"],
   ["a nesting too deep to parse crashes the guard", "except (_Unreadable, RecursionError):", "except _Unreadable:"],
-  ["text after the expression is ignored", "if ev.i != len(ev.t):\n            raise _Unreadable(\"text after the expression\")", "if False:\n            raise _Unreadable(\"text after the expression\")"],
   ["an unknown truthiness is read as running", "return UNKNOWN if k is None else RUNS if k else SKIPPED", "return RUNS if k is None or k else SKIPPED"],
   ["an unknown truthiness is read as skipped", "return UNKNOWN if k is None else RUNS if k else SKIPPED", "return SKIPPED if k is None or not k else RUNS"],
   ["an index that is an expression is read as an identifier", "if not _BRACKET.match(inner):\n                    raise _Unreadable(\"an index that is an expression\")", "if False:\n                    raise _Unreadable(\"an index that is an expression\")"],
@@ -311,7 +310,7 @@ const CODE = [
   ["a spawned script is not looked for by file name under scripts/", "for cand in (bare, os.path.join(os.path.dirname(path), token), \"scripts/\" + os.path.basename(token)):", "for cand in (bare, os.path.join(os.path.dirname(path), token)):"],
   ["a name that leaves the repository is read", "        if not cand.startswith(\"..\") and not os.path.isabs(cand):\n            out.add(cand)", "        if True:\n            out.add(cand)"],
   ["a leading ${VAR}/ is not dropped", "bare = re.sub(r\"^\\$\\{?\\w+\\}?/\", \"\", token)", "bare = token"],
-  ["a script that runs the gate rows is not a browser step by declaration", "    if runs_gate_rows(entry, read):\n        return [\"scripts/gate-checks.mjs\"]", "    if False:\n        return [\"scripts/gate-checks.mjs\"]"],
+  ["a script that runs the gate rows is not a browser step (the declaration and the content rule are both skipped)", "    if runs_gate_rows(entry, read):\n        return [\"scripts/gate-checks.mjs\"]", "    if False:\n        return [\"scripts/gate-checks.mjs\"]"],
   ["run-row.mjs does not run the gate rows", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\"})"],
   ["an unreadable always() step is opaque even when it launches a browser", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"], run_text(s)):", "if always_if(if_text(s)) and i != last and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"], run_text(s)):"],
   ["an unreadable always() `uses:` step is opaque", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"], run_text(s)):", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not hides_a_launcher(r[\"unresolved\"], run_text(s)):"],
@@ -378,7 +377,6 @@ const CODE = [
   ["the strings of shardedSuite are not read as commands", "            cmds += [x or y for x, y in re.findall(r\"\"\"(?:'([^']*)'|\"([^\"]*)\")\"\"\", rest[lp:close]) if SCRIPTISH.search(x or y)]", "            pass"],
   ["a string that names a command outside the known calls is accepted", "            if lit and lit[0] in \"'\\\"\" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:", "            if False:"],
   ["a command a row cannot be read from is accepted", "            if r[\"unresolved\"]:\n                bad.append(f\"gate row {name!r}: the command", "            if False:\n                bad.append(f\"gate row {name!r}: the command"],
-  ["a plain `weight` key count is not compared", "if n_weight != len(starts):", "if False:"],
   ["a network-exempt check is read as a row runner", "\"scripts/network-exempt-check.mjs\": (\"*\",)}", "}"],
   ["a browser command before a browser-free one in a row is not counted (the last decides)", "            reads = reads or r[\"browser\"]", "            reads = r[\"browser\"]"],
   ["the required step may run the mode --self-test", "(\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\")", "(\"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\")"],
@@ -450,6 +448,26 @@ const CODE = [
   ["an echo line is not allowed in the required step", "        if re.match(r\"echo \", line) and not FORBIDDEN_IN_LINE.search(line):\n            continue\n", ""],
   ["an if without its else is accepted in the required step", "            if depth != 1 or not has_else or branch_cmds == 0:\n                return False", "            if depth != 1:\n                return False"],
   ["an if that never closes is accepted in the required step", "    if depth != 0:\n        return False", "    pass"],
+  ["the required step may hold a line with `;` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[|&<>`]|\\$\\(\")"],
+  ["the required step may hold a line with `|` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;&<>`]|\\$\\(\")"],
+  ["the required step may hold a line with `&` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|<>`]|\\$\\(\")"],
+  ["the required step may hold a line with `<` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&>`]|\\$\\(\")"],
+  ["the required step may hold a line with `>` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<`]|\\$\\(\")"],
+  ["the required step may hold a line with ``` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>]|\\$\\(\")"],
+  ["the required step may hold a line with `$(` (the forbidden set lacks it)", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]|\\$\\(\")", "FORBIDDEN_IN_LINE = re.compile(r\"\\|\\||&&|[;|&<>`]\")"],
+  ["mutation-check.mjs --self-test is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["mutation-check.mjs --list-ids is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["mutation-check.mjs --anchors is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["mutation-check.mjs --stranded is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["mutation-check.mjs --heal is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["mutation-check.mjs --only is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}"],
+  ["confidence.mjs --quick is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--self-test\", \"--help\")}"],
+  ["confidence.mjs --self-test is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--help\")}"],
+  ["confidence.mjs --help is not a mode that does no work", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\", \"--help\")}", "NOT_WORK = {\"scripts/mutation-check.mjs\": (\"--self-test\", \"--list-ids\", \"--anchors\", \"--stranded\", \"--heal\", \"--only\"), \"scripts/confidence.mjs\": (\"--quick\", \"--self-test\")}"],
+  ["the required mutation-check step need not carry --ids", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--ids\", \"--shard\", \"--out\"), \"scripts/confidence.mjs\": ()}", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--shard\", \"--out\"), \"scripts/confidence.mjs\": ()}"],
+  ["the required mutation-check step need not carry --shard", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--ids\", \"--shard\", \"--out\"), \"scripts/confidence.mjs\": ()}", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--ids\", \"--out\"), \"scripts/confidence.mjs\": ()}"],
+  ["the required mutation-check step need not carry --out", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--ids\", \"--shard\", \"--out\"), \"scripts/confidence.mjs\": ()}", "WORK_ARGS = {\"scripts/mutation-check.mjs\": (\"--ids\", \"--shard\"), \"scripts/confidence.mjs\": ()}"],
+  ["confidence.mjs does not run the gate rows (the declaration alone)", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/run-row.mjs\"})"],
 ]
 
 // anchors that exist exactly once in verify.yml (the sweep asserts it). `ins` puts text directly under a step's name.
@@ -615,12 +633,22 @@ console.log(`unmutated copy: self-test exit ${c1.status} (${(c1.stdout.match(/(\
 rmSync(d0, { recursive: true, force: true })
 if (c1.status !== 0 || c2.status !== 0) bail(null, 'the unmutated copy is not green on both paths: nothing to sweep')
 
+// A table that holds the same mutation twice counts it twice (found by the third review: 467 entries were 465 distinct mutants). Refuse it before anything runs.
+{
+  const seen = new Map()
+  const note = (file, name, from, to) => { const k = [file, from, to].join('\0'); if (seen.has(k)) { console.log(`DUPLICATE  [${name}] is the same mutation of ${file} as [${seen.get(k)}]`); process.exit(1) } seen.set(k, name) }
+  for (const [name, from, to] of CODE) note('check-browser-gate.py', name, from, to)
+  for (const [name, from, to] of WORKFLOW) note('verify.yml', name, from, to)
+  for (const [file, name, from, to] of OTHERS) note(file, name, from, to)
+}
 let caught = 0, total = 0, skippedByFilter = 0
+const ranBy = { code: 0, verify: 0, others: 0 }
 const ONLY = process.env.SWEEP_ONLY ? new RegExp(process.env.SWEEP_ONLY) : null
-const sweep = (kind, list, file, judge) => {
+const sweep = (kind, list, file, judge, group) => {
   for (const [name, from, to] of list) {
     if (ONLY && !ONLY.test(name)) { skippedByFilter++; continue }
     total++
+    ranBy[group]++
     const dir = prep()
     const f = join(dir, file)
     const src = readFileSync(f, 'utf8')
@@ -638,10 +666,10 @@ const sweep = (kind, list, file, judge) => {
     rmSync(dir, { recursive: true, force: true })
   }
 }
-sweep('CODE', CODE, join('scripts', 'check-browser-gate.py'), selfTest)
-sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree)
-for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree)
+sweep('CODE', CODE, join('scripts', 'check-browser-gate.py'), selfTest, 'code')
+sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree, 'verify')
+for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree, 'others')
 if (ONLY) console.log(`\nSLICE /${process.env.SWEEP_ONLY}/: ran ${total} of ${total + skippedByFilter} mutations; ${skippedByFilter} were NOT run (a slice proves only what it ran)`)
-console.log(`\ncaught ${caught} of ${total} mutations (${CODE.length} of the guard's code, ${WORKFLOW.length} of verify.yml, ${OTHERS.length} of the other workflows it reads); ${EXCLUDED} more were NOT run, each named in this file's header as equivalent or as a crash`)
+console.log(`\ncaught ${caught} of ${total} mutations RUN (${ranBy.code} of the guard's code, ${ranBy.verify} of verify.yml, ${ranBy.others} of the other workflows it reads; the tables hold ${CODE.length}, ${WORKFLOW.length} and ${OTHERS.length}, all distinct); ${EXCLUDED} more were NOT run in any run, each named in this file's header as equivalent or as a crash`)
 if (total === 0) { console.log('NOTHING RAN: the slice filter matched no mutation, which is not a pass'); process.exit(1) }
 process.exit(caught === total ? 0 : 1)

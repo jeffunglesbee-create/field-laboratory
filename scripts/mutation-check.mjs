@@ -5526,6 +5526,14 @@ const MUTATIONS = [
     expect: "node scripts/delete-branches.mjs --self-test",
   },
   {
+    id: "delete-branches-default-branch-argument-ignored",
+    file: "scripts/delete-branches.mjs",
+    claim: "a default branch named like a proof branch is refused: the defaultBranch argument is what decides it (main and master are refused by the pattern as well)",
+    find: "if (name === defaultBranch || name === 'main'",
+    replace: "if (name === 'main'",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
     id: "delete-branches-any-name-allowed",
     file: "scripts/delete-branches.mjs",
     claim: "the deletion script plans only proof-* names",
