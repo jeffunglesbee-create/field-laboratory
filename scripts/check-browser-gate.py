@@ -2222,15 +2222,18 @@ def self_test():
     w_use = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "local", "if": "always()", "uses": "./.github/actions/x"}, {"name": "pure", "run": "npm run pure"}, final])
     check("an action the guard cannot read with `if: always()` is refused, not kept: a local composite action may hold a browser step, and with none it fails and skips the steps behind it",
           any_of("cannot be read", bad_of(w_use)) and audit(w_use, pkg, read)[1]["opaque"] == 0, bad_of(w_use))
-    final2 = {"name": "Chromium did not install", "if": "always() && steps.chromium.outcome != 'success'", "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "GATE_OUTCOME": "${{ steps.gate.outcome }}"},
+    final2 = {"name": "Chromium did not install", "if": "always() && steps.chromium.outcome != 'success'", "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "GATE_OUTCOME": "${{ steps.browserless-gate.outcome }}"},
               "run": "if [ \"$INSTALL_OUTCOME\" = skipped ]; then\n  echo \"::error::skipped\"\nelif [ \"$GATE_OUTCOME\" = success ]; then\n  echo \"::error::the gate ran\"\nelse\n  echo \"::error::the gate did not finish\"\nfi\nexit 1"}
-    w_f2 = lambda f: wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "gate", "id": "gate", "if": "steps.chromium.outcome != 'success'", "run": "node scripts/mutation-check.mjs --no-browser"}, f])
+    w_f2 = lambda f: wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "gate", "id": "browserless-gate", "if": "steps.chromium.outcome != 'success'", "run": "node scripts/mutation-check.mjs --no-browser"}, f])
     final3 = {**final2, "run": "if [ \"$GATE_OUTCOME\" = success ]; then\n  echo \"::error::the gate ran\"\n  exit 1\nfi"}
+    final5 = {**final2, "run": "if [ \"$GATE_OUTCOME\" = \"\" ]; then\n  echo \"no outcome\"\nelse\n  echo \"::error::x\"\n  exit 1\nfi"}
     final4 = {**final2, "env": {**final2["env"], "GATE_OUTCOME": "${{ steps.nothing.outcome }}"}}
     check("a final step may read another step's outcome (`GATE_OUTCOME: ${{ steps.gate.outcome }}`): it is run for each outcome of the install and of that step, and passes when it fails for all 20",
           bad_of(w_f2(final2)) == [], bad_of(w_f2(final2)))
     check("...one that fails for some outcome of the other step only (no `else`, so a skipped gate exits 0) is refused, naming the outcome pair",
           any_of("GATE_OUTCOME='skipped'", bad_of(w_f2(final3))) and any_of("exit 0", bad_of(w_f2(final3))), bad_of(w_f2(final3)))
+    check("...each outcome of the other step is the value the script gets: one that exits 0 only for an EMPTY outcome is refused for that one alone",
+          any_of("GATE_OUTCOME=''", bad_of(w_f2(final5))) and not any_of("GATE_OUTCOME='success'", bad_of(w_f2(final5))) and not any_of("GATE_OUTCOME='failure'", bad_of(w_f2(final5))), bad_of(w_f2(final5)))
     check("...and one that reads the outcome of a step that does not exist is refused like an `if` that does (it would evaluate to null)", any_of("no earlier step has id `nothing`", bad_of(w_f2(final4))), bad_of(w_f2(final4)))
     nb_if = "always() && steps.chromium.outcome != 'success'"
     w_nb = lambda step: wf([{"name": "build", "run": "npm run pure"}, inst, step, {"name": "pure", "run": "npm run pure"}, final])

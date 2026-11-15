@@ -1,0 +1,30 @@
+distinct expectations 108 | --self-test, not probed 41 | probed 67 | PASS 50 | N/A 17 | FAILURE 0
+--- N/A (a hole under --no-browser)
+   URL='http://localhost:8080/' node scripts/metrics-render-check.mjs
+   URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs
+   URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs
+   URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs
+   URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs
+   node scripts/brief-flip-check.mjs
+   node scripts/forecast-render-check.mjs
+   node scripts/lineups-render-check.mjs
+   node scripts/live-score-probe.mjs --e2e
+   node scripts/live-score-render-check.mjs
+   node scripts/outlet-scan-check.mjs
+   node scripts/pickem-check.mjs
+   node scripts/run-row.mjs "games on a panel are separated from each other"
+   node scripts/run-row.mjs "grouping and date navigation pass"
+   node scripts/run-row.mjs "pick'em grades only finished games"
+   node scripts/run-row.mjs "render checks pass on both captures"
+   node scripts/spark-check.mjs
+--- FAILURE (not classed n/a)
+without --no-browser, expectations classed n/a other than by exit 3: 0
+
+CONTROL (the pre-fix tree, 378eb9e, same private mount, `node scripts/run-row.mjs "<row>"`; the count is the lines of output carrying Playwright's launch text):
+  games on a panel are separated from each other   exit 1, launch text in 0 lines
+  grouping and date navigation pass                exit 1, launch text in 0 lines
+  pick'em grades only finished games               exit 1, launch text in 0 lines
+  render checks pass on both captures              exit 1, launch text in 0 lines
+So before the fix those four were plain failures under --no-browser (review 2026-11-15, finding 4); on this tree all four are in the N/A list above.
+
+COVERAGE (Rule 91): this probes the 67 distinct expectation commands of the mutation table that are not `--self-test` (108 distinct in all; the 41 `--self-test` ones never launch a browser: measured by scripts/no-launch-check.mjs, 69 commands, 0 launches). It runs each command ONCE, with no browser on disk (/opt/pw-browsers hidden by a private mount; PW_CHROMIUM unset), and classifies its output with the harness's own classifier. It does NOT run the harness's shard path end to end with all 17 (the runner proof of item 7, run 43663285849, did that for 2 ids); the classification is what the harness decides per expectation, and what was wrong was that for four of them the text never came out.

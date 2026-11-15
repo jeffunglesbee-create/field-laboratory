@@ -341,6 +341,13 @@ const CODE = [
   ["a browser flag written `true` is not a flag", "flagged = value.startswith(\"true\") or value.startswith(\"(\")", "flagged = value.startswith(\"(\")"],
   ["`browser: false` is a flag", "flagged = value.startswith(\"true\") or value.startswith(\"(\")", "flagged = bool(flag)"],
   ["an unrecognised browser value is accepted", "if not (flagged or value.startswith(\"false\")):", "if False:"],
+  ["another step's outcome is never varied for the final step", "combos = [dict(zip(keys, vals)) for vals in itertools.product(ANY_OUTCOMES, repeat=len(keys))]", "combos = [{}]"],
+  ["another step's outcome is always empty in the final step's env", "env[str(k)] = (others or {}).get(str(k), \"\")", "env[str(k)] = \"\""],
+  ["a skipped outcome of another step is not tried", "ANY_OUTCOMES = (\"success\", \"failure\", \"skipped\", \"cancelled\", \"\")", "ANY_OUTCOMES = (\"success\", \"failure\", \"cancelled\", \"\")"],
+  ["the outcome of a step with a hyphenated id is not read in an env value", "STEP_OUTCOME = re.compile(r\"\\$\\{\\{\\s*steps\\.([\\w-]+)\\.outcome\\s*\\}\\}\")", "STEP_OUTCOME = re.compile(r\"\\$\\{\\{\\s*steps\\.(\\w+)\\.outcome\\s*\\}\\}\")"],
+  ["a hyphenated step id is not read in an `if`", "OUTCOME = re.compile(r\"steps\\.([\\w-]+)\\.outcome\")", "OUTCOME = re.compile(r\"steps\\.(\\w+)\\.outcome\")"],
+  ["an env value that reads a missing step is not refused", "for ref in OUTCOME.findall(if_text(s) + \" \" + \" \".join(str(v) for v in (s.get(\"env\") or {}).values())):", "for ref in OUTCOME.findall(if_text(s)):"],
+  ["no env variable of the final step is another step's outcome", "        if m and m.group(1) != INSTALL_ID:\n            out.append(str(k))", "        if False:\n            out.append(str(k))"],
 ]
 
 // anchors that exist exactly once in verify.yml (the sweep asserts it). `ins` puts text directly under a step's name.
