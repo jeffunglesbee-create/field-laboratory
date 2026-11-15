@@ -906,6 +906,11 @@ jobs:
       - name: Broadcast registry against a real slate
         run: npm run check:outlet-registry
 
+      # Scout's Gate E: a level pre-game market qualifies, by the real 11-14
+      # lines with hand-computed expectations; Gate 0 still vetoes national.
+      - name: Scout coin-flip gate against real lines
+        run: npm run check:scout-coinflip
+
       # A row the desk cannot name both sides of must cost exactly that row.
       # `Decode.list` is all-or-nothing, so on 2026-08-13 one PGA Tour row with
       # NULL sides took the whole deployed slate down and live-check reported

@@ -1607,7 +1607,7 @@ let winProbabilityFrom (isSoccer: bool) (homeML: int option) (drawML: int option
 
 /// The best available odds snapshot for a game — closing preferred over opening,
 /// and only a decoded one.
-let private bestOdds (g: Game) : Odds option =
+let bestOdds (g: Game) : Odds option =
     match g.ClosingOdds, g.OpeningOdds with
     | Decoded c, _ -> Some c
     | _, Decoded o -> Some o

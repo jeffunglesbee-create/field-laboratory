@@ -341,6 +341,12 @@
     .pk-side:hover { color: var(--text); }
   }
   .pk-side--chosen { color: var(--discovery); border-color: var(--must); }
+  /* The served moneyline beside the name. Tabular so a column of lines aligns. */
+  .pk-side__line { margin-left: .4em; color: var(--dim-text); font-variant-numeric: tabular-nums; }
+  /* Locked once under way. The group heading above says why, so this is not
+     the unexplained grey the note below records; the chosen side keeps its
+     colour, because what was picked is still the point of the row. */
+  .pk-side:disabled { cursor: default; }
   .pk-side:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   /* An event has no sides to pick between. Deliberately NOT styled as a
      disabled button: a greyed-out control still draws the contest this case

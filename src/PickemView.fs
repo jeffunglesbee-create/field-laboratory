@@ -50,8 +50,24 @@ let private pickedSide (status: PickStatus) =
     | NotPicked -> None
     | Pending side | Live side | Undecidable side | Decided(side, _) -> Some side
 
-/// One game row. `onPick` is called with the chosen side.
-let private renderRow (mount: HTMLElement) (game: Game) (status: PickStatus) (onPick: Side -> unit) =
+/// The served moneyline for one side, closing preferred over opening
+/// (`Desk.bestOdds`). The market's own number, not a derived one.
+let private lineFor (game: Game) (side: Side) : (string * string) option =
+    match bestOdds game with
+    | None -> None
+    | Some o ->
+        let snapshot =
+            match game.ClosingOdds with
+            | Decoded _ -> "closing moneyline"
+            | _ -> "opening moneyline"
+        match side with
+        | Home -> o.MoneylineHome
+        | Away -> o.MoneylineAway
+        |> Option.map (fun ml -> moneylineText ml, snapshot)
+
+/// One game row. `onPick` is called with the chosen side, and only while the
+/// pick is open.
+let private renderRow (mount: HTMLElement) (game: Game) (status: PickStatus) (isOpen: bool) (onPick: Side -> unit) =
     let row = child mount (el "div" "pk-row" "")
     row.setAttribute ("data-game", game.Id)
 
@@ -73,12 +89,22 @@ let private renderRow (mount: HTMLElement) (game: Game) (status: PickStatus) (on
         for side, name in [ firstSide; secondSide ] do
             let button = child sides (el "button" "pk-side" name)
             button.setAttribute ("type", "button")
+            match lineFor game side with
+            | Some(text, snapshot) ->
+                let line = child button (el "span" "pk-side__line" text)
+                line.setAttribute ("title", snapshot)
+                button.setAttribute ("aria-label", sprintf "%s, %s %s" name snapshot text)
+            | None -> ()
+            // Locked once the game is under way: a side picked with the score
+            // in view is not a pick. Disabled, so it is neither clickable nor
+            // announced as actionable.
+            if not isOpen then button.setAttribute ("disabled", "")
             let chosen = pickedSide status = Some side
             if chosen then button.classList.add "pk-side--chosen"
             // The pressed state is the whole meaning of this control, so it is
             // announced rather than only coloured.
             button.setAttribute ("aria-pressed", (if chosen then "true" else "false"))
-            button.addEventListener ("click", fun _ -> onPick side)
+            button.addEventListener ("click", fun _ -> if isOpen then onPick side)
     | Event _ ->
         // No buttons, and the reason stated rather than an empty cell. A pick
         // is a choice between two sides; an event has none, so there is nothing
@@ -183,8 +209,20 @@ let rec render (mount: HTMLElement) (date: string) (games: Game list) (activeSpo
         match sportGames with
         | None -> ()
         | Some(_, gs) ->
-            for game in gs |> List.sortBy (fun g -> g.Id) do
-                renderRow rows game (statusFor game) (fun side ->
+            // Three groups, in the order a slate runs: open, under way, settled.
+            // Each says how many it holds, so an empty group is visible as 0
+            // rather than missing.
+            let kickoffPassed (g: Game) = startTimePassed g
+            let grouped =
+                gs |> List.groupBy (fun g -> groupOf (kickoffPassed g) (gameState g)) |> Map.ofList
+            for group in [ Open; UnderWay; Settled ] do
+              let members = grouped |> Map.tryFind group |> Option.defaultValue []
+              if not members.IsEmpty then
+                let heading = child rows (el "h3" "pick-panel__what pk-group" (sprintf "%s · %d" (groupLabel group) (List.length members)))
+                heading.setAttribute ("data-group", (match group with Open -> "open" | UnderWay -> "under-way" | Settled -> "settled"))
+              for game in members |> List.sortBy (fun g -> g.Id) do
+                let isOpen = pickOpen (kickoffPassed game) (gameState game)
+                renderRow rows game (statusFor game) isOpen (fun side ->
                     // Clicking the chosen side again clears it. Without that,
                     // a misclick is permanent, and "no pick" is a state the
                     // model already has.
