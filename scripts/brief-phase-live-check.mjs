@@ -179,6 +179,54 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('THE BUG IS DETECTED: a during-play kind on a final game is not the expectation',
     expectedKind(g, [live, recap]) !== 'game_live',
     'the screenshot that prompted this showed GAME_LIVE on a 3-3 final')
+
+  // THE 2026-11-14 SLATE, and the predicate this check used to find a game's cards.
+  //
+  // `live-check` went red on three games in six renders from 2026-11-14 23:06Z. These are the cards the 00:32Z render
+  // (run 43658647710) printed for them and for the games whose names sit inside theirs: `Alabama` is inside
+  // `South Alabama`, `Michigan` inside `Michigan St`, `Oregon` inside `Oregon St`, `Virginia` inside `West Virginia`
+  // and `Virginia Tech`. Ids, team lines and statuses are from that log. The log's evidence line printed only the
+  // game's OWN card, so the other cards' kinds are in the verdict text and not in the log: `Alabama @ Vanderbilt` has
+  // one other card and failed with one `game_live`, `Michigan @ Oregon` failed with `game_live, game_live` against two,
+  // so those three kinds are certain. `Stanford @ Virginia Tech` and `Kansas @ West Virginia` are DEDUCED: one
+  // `game_live` sat between them, and the one reading Final is not during-play.
+  const SP = 'Start time passed, no score served'
+  const slate = [
+    { id: 'CFB_2026-11-14_e401856889', teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401871100', teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401858523', teams: 'Michigan @ Oregon',        status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401858521', teams: 'Washington @ Michigan St', status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401860914', teams: 'Oregon St @ Boise St',     status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401858295', teams: 'California @ Virginia',    status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401856861', teams: 'Kansas @ West Virginia',   status: 'Final', kind: 'game_recap' },  // kind deduced
+    { id: 'CFB_2026-11-14_e401858299', teams: 'Stanford @ Virginia Tech', status: SP,      kind: 'game_live' },   // kind deduced
+  ]
+  const redGames = [
+    { id: 'CFB_2026-11-14_e401856889', away: 'Alabama',    home: 'Vanderbilt' },
+    { id: 'CFB_2026-11-14_e401858523', away: 'Michigan',   home: 'Oregon' },
+    { id: 'CFB_2026-11-14_e401858295', away: 'California', home: 'Virginia' },
+  ]
+  // TEST-ONLY copy of the predicate this check used until 2026-11-15. It is here to prove the slate above still
+  // collides: if it stopped colliding, every check below that rests on the slate would prove nothing.
+  const substringCards = (cards, game) => cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))
+  const bySubstring = redGames.map(game => substringCards(slate, game))
+
+  check('2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games',
+    bySubstring.map(m => m.length).join() === '2,3,3',
+    `took ${bySubstring.map(m => m.length).join()}`)
+  check('...each of those games has its OWN card among them, and it reads Final / game_recap',
+    redGames.every((game, i) => {
+      const own = bySubstring[i].filter(c => c.id === game.id)
+      return own.length === 1 && own[0].status === 'Final' && own[0].kind === 'game_recap'
+    }),
+    'the page was right')
+  check('...and the unchanged verdict fails all three, on a card of ANOTHER game',
+    redGames.every((game, i) => {
+      const culprits = bySubstring[i].filter(c => D.has(c.kind))
+      return verdictForCards(bySubstring[i], 'game_recap', D).ok === false &&
+        culprits.length > 0 && culprits.every(c => c.id !== game.id)
+    }),
+    'the matcher took the wrong cards')
   process.exit(summarize() === 0 ? 0 : 1)
 }
 

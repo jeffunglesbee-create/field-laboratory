@@ -1,0 +1,201 @@
+Proof record for docs/CC-CMD-2026-11-15-brief-phase-card-identity.md, built 2026-11-15 on branch brief-hook.
+Every block below is a command and its output, verbatim, colour codes stripped; section Z holds the harness. run.sh prints the script's own exit code as [exit N]; a second [exit N] after it is the wrapper's.
+The fixture is reconstructed from the log of live-check run 43658647710: ids, team lines and statuses are from that log, two kinds are deduced and marked in serve.mjs. It shows what the check does with those cards, not what the live page does; the live page is Task 6.
+
+
+==== 1. BEFORE ANY CHANGE: the committed script at 1b4459d9, run end to end on the fixture (harness in section Z) ====
+The copy is the committed file: blob 617cb3be97895eeae77359ca36e20239495cad55 in the commit; the copy hashes to 617cb3be97895eeae77359ca36e20239495cad55.
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/head/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+      evidence: game.id="CFB_2026-11-14_e401856889" espn_event_id=401856889
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401856889" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401856889" type="game_recap" text=22ch
+                card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858523" espn_event_id=401858523
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858523" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858523" type="game_recap" text=22ch
+                card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+                card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → Alabama @ Vanderbilt: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live | Michigan @ Oregon: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | California @ Virginia: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+
+==== 2. STEP 1: the 2026-11-14 slate in the self-test, and the mutation run that shows each new check can fail ====
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -6
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+
+22/22 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-A.mjs
+baseline, no mutation: exit 0; 22/22 checks passed
+CAUGHT      the slate stops colliding: Troy's team line no longer contains Alabama
+             exit 1; 2 check(s) red
+               - 2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the old predicate is tightened to BOTH teams (&&)
+             exit 1; 2 check(s) red
+               - 2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the partner of Alabama @ Vanderbilt is not during-play
+             exit 1; 1 check(s) red
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the game's OWN card is the one reading game_live
+             exit 1; 2 check(s) red
+               - ...each of those games has its OWN card among them, and it reads Final / game_recap
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+
+caught 4 of 4
+[exit 0]
+
+
+==== Z. The harness, verbatim ====
+
+---- serve.mjs
+// Serves a page and a relay for scripts/brief-phase-live-check.mjs, so its executable half runs end to end
+// (browser, DOM read, relay fetch, verdict, print) against a fixture reconstructed from the 2026-11-14 00:32Z
+// live-check render (run 43658647710). Ids, team lines and statuses are from that run's log. Two kinds are NOT in the
+// log and are deduced (marked below); everything else the page and relay carry is built here, not observed.
+//
+//   node serve.mjs <port> [variant]
+//   variants:  ok          every card carries its game's id
+//              idmismatch  the `California @ Virginia` card carries another id than its game's
+import http from 'node:http'
+
+const [port, variant = 'ok'] = process.argv.slice(2)
+const S = 'Start time passed, no score served'
+const cards = [
+  { id: 'CFB_2026-11-14_e401856889', teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401871100', teams: 'Troy @ South Alabama',     status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401858523', teams: 'Michigan @ Oregon',        status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401858521', teams: 'Washington @ Michigan St', status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401860914', teams: 'Oregon St @ Boise St',     status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401858295', teams: 'California @ Virginia',    status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401856861', teams: 'Kansas @ West Virginia',   status: 'Final', kind: 'game_recap' },   // kind deduced
+  { id: 'CFB_2026-11-14_e401858299', teams: 'Stanford @ Virginia Tech', status: S,       kind: 'game_live' },    // kind deduced
+]
+const testable = new Set(['Alabama @ Vanderbilt', 'Michigan @ Oregon', 'California @ Virginia'])
+
+const shownId = c => (variant === 'idmismatch' && c.teams === 'California @ Virginia') ? 'CFB_2026-11-14_WRONG' : c.id
+const page = `<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>fixture</title></head><body>
+<span id="viewed-date">2026-11-14</span>
+${cards.map(c => `<div class="desk-card" data-game-id="${shownId(c)}"><div class="desk-card__teams">${c.teams}</div><div class="desk-card__status">${c.status}</div>${c.kind ? `<div class="desk-card__brief-kind">${c.kind}</div>` : ''}</div>`).join('\n')}
+</body></html>`
+
+const games = cards.map(c => {
+  const [away, home] = c.teams.split(' @ ')
+  const final = testable.has(c.teams) || c.teams === 'Kansas @ West Virginia'
+  return { id: c.id, away, home, espn_event_id: Number(c.id.split('_e')[1]), finalized_at: final ? '2026-11-14 23:30:00' : null, sport: 'CFB' }
+})
+const briefs = []
+for (const c of cards) {
+  const live = { game_id: c.id, brief_type: 'game_live', brief_text: 'written while it was on' }
+  const recap = { game_id: c.id, brief_type: 'game_recap', brief_text: 'written after it ended' }
+  if (testable.has(c.teams)) briefs.push(live, recap)
+  else briefs.push(c.kind === 'game_live' ? live : recap)
+}
+const payload = JSON.stringify({ games: { regular: games, postseason: [] }, briefs })
+
+http.createServer((req, res) => {
+  if (req.url === '/' || req.url.startsWith('/?')) { res.setHeader('content-type', 'text/html'); res.end(page) }
+  else if (req.url === '/context/date/2026-11-14') { res.setHeader('content-type', 'application/json'); res.end(payload) }
+  else { res.statusCode = 404; res.end('not found') }
+}).listen(Number(port), '127.0.0.1')
+
+---- run.sh
+#!/usr/bin/env bash
+# Runs scripts/brief-phase-live-check.mjs end to end against serve.mjs. Run from the repository root.
+#   [SCRIPT=<path to a copy of the script>] bash run.sh <variant>
+set -u
+D=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e
+PORT=${PORT:-18765}
+node "$D/serve.mjs" "$PORT" "${1:-ok}" & SP=$!
+sleep 1
+URL="http://127.0.0.1:$PORT/" RELAY="http://127.0.0.1:$PORT" node "${SCRIPT:-scripts/brief-phase-live-check.mjs}"
+E=$?
+kill $SP 2>/dev/null; wait $SP 2>/dev/null
+echo "[exit $E]"
+
+---- mut.mjs
+// Mutation run for the self-test of scripts/brief-phase-live-check.mjs, on a COPY outside the repository.
+//   node mut.mjs <spec.mjs>      (run from the repository root; the spec default-exports { file, mutants: [{ name, anchor, with }] })
+// Every mutant is refused, and the whole run with it (exit 2), unless its anchor occurs exactly once in the file and the
+// mutated text differs from the original. A baseline run of the unmutated copy must exit 0 first. A mutant counts as
+// caught when the self-test of the mutated copy exits non-zero. The last line is `caught K of N`.
+import fs from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { spawnSync } from 'node:child_process'
+
+const specPath = path.resolve(process.argv[2])
+const spec = (await import(pathToFileURL(specPath).href)).default
+const src = fs.readFileSync(spec.file, 'utf8')
+const root = path.join(path.dirname(specPath), 'mutwt')
+fs.rmSync(root, { recursive: true, force: true })
+fs.mkdirSync(path.join(root, 'scripts'), { recursive: true })
+fs.copyFileSync(path.join(path.dirname(spec.file), 'checks.mjs'), path.join(root, 'scripts/checks.mjs'))
+fs.symlinkSync(path.resolve('node_modules'), path.join(root, 'node_modules'))
+const target = path.join(root, 'scripts/brief-phase-live-check.mjs')
+const run = text => { fs.writeFileSync(target, text); return spawnSync('node', [target, '--self-test'], { encoding: 'utf8' }) }
+
+const base = run(src)
+console.log(`baseline, no mutation: exit ${base.status}; ${(base.stdout.match(/\d+\/\d+ checks passed/) ?? ['no summary'])[0]}`)
+if (base.status !== 0) { console.log('REFUSED: the unmutated copy does not pass'); process.exit(2) }
+
+let caught = 0
+for (const m of spec.mutants) {
+  const n = src.split(m.anchor).length - 1
+  if (n !== 1) { console.log(`REFUSED: the anchor of "${m.name}" occurs ${n} times, not 1`); process.exit(2) }
+  const mutated = src.replace(m.anchor, () => m.with)
+  if (mutated === src) { console.log(`REFUSED: "${m.name}" changed nothing`); process.exit(2) }
+  const r = run(mutated)
+  const red = (r.stdout.match(/^FAIL {2}.*$/gm) ?? []).map(l => l.slice(6))
+  const isCaught = r.status !== 0
+  if (isCaught) caught++
+  console.log(`${isCaught ? 'CAUGHT    ' : 'NOT CAUGHT'}  ${m.name}\n             exit ${r.status}; ${red.length} check(s) red${red.map(f => `\n               - ${f.slice(0, 100)}`).join('')}`)
+}
+console.log(`\ncaught ${caught} of ${spec.mutants.length}`)
+process.exit(caught === spec.mutants.length ? 0 : 1)
+
+---- spec-A.mjs
+// Mutants of the three checks added for the 2026-11-14 slate (step 1 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'the slate stops colliding: Troy\'s team line no longer contains Alabama',
+      anchor: "'Troy @ South Alabama'", with: "'Troy @ Southern Miss'" },
+    { name: 'the old predicate is tightened to BOTH teams (&&)',
+      anchor: 'c.teams.includes(game.away) || c.teams.includes(game.home))', with: 'c.teams.includes(game.away) && c.teams.includes(game.home))' },
+    { name: 'the partner of Alabama @ Vanderbilt is not during-play',
+      anchor: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_live' }", with: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_recap' }" },
+    { name: 'the game\'s OWN card is the one reading game_live',
+      anchor: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' }", with: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_live' }" },
+  ],
+}
