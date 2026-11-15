@@ -644,9 +644,13 @@ if (c1.status !== 0 || c2.status !== 0) bail(null, 'the unmutated copy is not gr
 let caught = 0, total = 0, skippedByFilter = 0
 const ranBy = { code: 0, verify: 0, others: 0 }
 const ONLY = process.env.SWEEP_ONLY ? new RegExp(process.env.SWEEP_ONLY) : null
+// SWEEP_SLICE=k/n runs the mutations whose position in the whole run (CODE, then verify.yml, then OTHERS) is k modulo n, so n processes can split the work; the n slices together are the whole run.
+const SLICE = (() => { const m = /^(\d+)\/(\d+)$/.exec(process.env.SWEEP_SLICE ?? ''); if (!process.env.SWEEP_SLICE) return null; if (!m || +m[2] < 1 || +m[1] >= +m[2]) { console.log(`SWEEP_SLICE must be k/n with 0 <= k < n, not ${process.env.SWEEP_SLICE}`); process.exit(1) } return { k: +m[1], n: +m[2] } })()
+let position = 0
 const sweep = (kind, list, file, judge, group) => {
   for (const [name, from, to] of list) {
-    if (ONLY && !ONLY.test(name)) { skippedByFilter++; continue }
+    const here_ = position++
+    if ((ONLY && !ONLY.test(name)) || (SLICE && here_ % SLICE.n !== SLICE.k)) { skippedByFilter++; continue }
     total++
     ranBy[group]++
     const dir = prep()
@@ -669,7 +673,7 @@ const sweep = (kind, list, file, judge, group) => {
 sweep('CODE', CODE, join('scripts', 'check-browser-gate.py'), selfTest, 'code')
 sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree, 'verify')
 for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree, 'others')
-if (ONLY) console.log(`\nSLICE /${process.env.SWEEP_ONLY}/: ran ${total} of ${total + skippedByFilter} mutations; ${skippedByFilter} were NOT run (a slice proves only what it ran)`)
+if (ONLY || SLICE) console.log(`\nSLICE ${[ONLY && `/${process.env.SWEEP_ONLY}/`, SLICE && `${SLICE.k}/${SLICE.n}`].filter(Boolean).join(' ')}: ran ${total} of ${total + skippedByFilter} mutations; ${skippedByFilter} were NOT run (a slice proves only what it ran)`)
 console.log(`\ncaught ${caught} of ${total} mutations RUN (${ranBy.code} of the guard's code, ${ranBy.verify} of verify.yml, ${ranBy.others} of the other workflows it reads; the tables hold ${CODE.length}, ${WORKFLOW.length} and ${OTHERS.length}, all distinct); ${EXCLUDED} more were NOT run in any run, each named in this file's header as equivalent or as a crash`)
 if (total === 0) { console.log('NOTHING RAN: the slice filter matched no mutation, which is not a pass'); process.exit(1) }
 process.exit(caught === total ? 0 : 1)
