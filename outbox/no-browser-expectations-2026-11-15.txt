@@ -1,4 +1,5 @@
-distinct expectations 108 | --self-test, not probed 41 | probed 67 | PASS 50 | N/A 17 | FAILURE 0
+distinct expectations 110; accounted {"trap":30,"probed":67,"self-test":11,"harness":2} (trap = a --self-test the launch trap measures, harness = runs the mutation harness itself, neither is run here)
+run here with no browser: 78 | PASS 61 | N/A 17 | FAILURE 0   (browser directory seen by the commands: [])
 --- N/A (a hole under --no-browser)
    URL='http://localhost:8080/' node scripts/metrics-render-check.mjs
    URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs
@@ -25,6 +26,11 @@ CONTROL (the pre-fix tree, 378eb9e, same private mount, `node scripts/run-row.mj
   grouping and date navigation pass                exit 1, launch text in 0 lines
   pick'em grades only finished games               exit 1, launch text in 0 lines
   render checks pass on both captures              exit 1, launch text in 0 lines
-So before the fix those four were plain failures under --no-browser (review 2026-11-15, finding 4); on this tree all four are in the N/A list above.
+So before the fix those four were plain failures under --no-browser (review 2026-11-15, finding 4); on this tree all four are in the N/A list above. (A second review reproduced the control and the four rows' launch text on this tree: 1, 1, 1 and 2 lines.)
 
-COVERAGE (Rule 91): this probes the 67 distinct expectation commands of the mutation table that are not `--self-test` (108 distinct in all; the 41 `--self-test` ones never launch a browser: measured by scripts/no-launch-check.mjs, 69 commands, 0 launches). It runs each command ONCE, with no browser on disk (/opt/pw-browsers hidden by a private mount; PW_CHROMIUM unset), and classifies its output with the harness's own classifier. It does NOT run the harness's shard path end to end with all 17 (the runner proof of item 7, run 43663285849, did that for 2 ids); the classification is what the harness decides per expectation, and what was wrong was that for four of them the text never came out.
+COVERAGE (Rule 91). The mutation table has 110 distinct expectation commands. They are accounted for in four classes (the line at the top): 30 `--self-test` commands that scripts/no-launch-check.mjs measures (70 commands, 0 launches, 3 of 3 controls), 67 commands run
+here once with no browser on disk, 11 `--self-test` commands the trap does not measure, run here too, and 2 that run the mutation harness itself (`mutation-check.mjs --only known-survivor`, `--only no-such-mutation-id`: they mutate the tree, so they are not run; neither
+launches a browser by construction, and that is the one claim in this file read, not measured). 78 commands were run here: 61 pass (they need no browser), 17 are N/A (the holes), 0 are failures. The N/A and FAILURE classes are the harness's own classifier's (scripts/mutation-lib.mjs).
+This does NOT run the harness's shard path end to end with all 17 (the runner proof of item 7, run 43663285849, did that for 2 ids): what is measured is what the harness decides per expectation, and what was wrong was that for four of them the text never came out.
+PREREQUISITES of "0 FAILURE" (outbox/no-browser-probe-2026-11-15.py says them too): a full clone with `git config core.hooksPath .githooks`, `npm ci`, the build, and `dotnet restore src/Laboratory.fsproj`. In a bare `git archive` copy 8 commands fail for reasons that are not the browser (five
+`proof-check.mjs --only *-PROOF` and `run-row` rows that need the restore, the hooks path or history), a second review measured; the raw results of this run are outbox/no-browser-results-2026-11-15.json.

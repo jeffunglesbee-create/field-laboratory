@@ -2309,6 +2309,10 @@ def self_test():
     check("the second target's floors are 8 steps, 5 browser steps and 2 browser-free steps (pinned, not read from TARGETS)",
           len(coverage_problems({"steps": 7, "browser": 4, "plain": 1}, (8, 5, 2))) == 3 and coverage_problems({"steps": 8, "browser": 5, "plain": 2}, (8, 5, 2)) == [] and
           TARGETS[1]["floors"] == (8, 5, 2) and TARGETS[1]["job"] == "live" and TARGETS[1]["file"] == ".github/workflows/live-check.yml" and TARGETS[0]["floors"] == (60, 10, 30))
+    nec_files = {**files, "scripts/network-exempt-check.mjs": "import { spawnSync } from 'node:child_process'\nspawnSync('node', ['scripts/run-row.mjs', 'x'])\n",
+                 "scripts/other-row-spawner.mjs": "import { spawnSync } from 'node:child_process'\nspawnSync('node', ['scripts/run-row.mjs', 'x'])\n"}
+    check("`network-exempt-check.mjs` names scripts/run-row.mjs but runs only browser-free rows (declared read-only): it is not a browser step; another script that names run-row.mjs is",
+          needs_browser({"run": "node scripts/network-exempt-check.mjs"}, pkg, lambda q: nec_files[q]) is False and needs_browser({"run": "node scripts/other-row-spawner.mjs"}, pkg, lambda q: nec_files[q]) is True)
     check("the shard action's floors are 5 steps, 1 browser step and 3 browser-free steps and verify-full's `full` job's are 7, 2 and 4 (pinned, not read from TARGETS); each must run its no-browser spawner",
           TARGETS[2]["floors"] == (5, 1, 3) and TARGETS[2]["job"] is None and TARGETS[2]["flagged"] == ("scripts/mutation-check.mjs",) and
           TARGETS[3]["floors"] == (7, 2, 4) and TARGETS[3]["job"] == "full" and TARGETS[3]["flagged"] == ("scripts/confidence.mjs",))
@@ -2459,6 +2463,8 @@ def self_test():
           any_of("must run `scripts/confidence.mjs --browserless`", audit(w_nb(nbv("node scripts/confidence.mjs --quick --browserless")), pkg, read, final_timeout=5, flagged=("scripts/confidence.mjs",))[0])
           and audit(w_nb(nbv("node scripts/confidence.mjs --browserless")), pkg, read, final_timeout=5, flagged=("scripts/confidence.mjs",))[0] == [])
 
+    check("the required no-browser step runs only after a failed install: the closed form with no `if` is refused as not the required step (the `if` is part of what is required)",
+          any_of("must run `scripts/mutation-check.mjs --no-browser`", run_req(w_nb({"name": "nb", "run": full_form}))), run_req(w_nb({"name": "nb", "run": full_form})))
     # the sweep's survivors of the first fix round
     check("a required no-browser step that runs the read-only mode of the spawner (`--anchors`, no flag) is refused as not the work (the flag is part of what is required)",
           any_of("must run `scripts/mutation-check.mjs --no-browser`", run_req(w_nb({"name": "nb", "if": nb_if, "run": "node scripts/mutation-check.mjs --anchors"}))))

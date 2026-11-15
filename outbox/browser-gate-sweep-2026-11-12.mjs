@@ -24,7 +24,12 @@
 // ADDED 2026-11-14 (open item 1 of docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md): the guard now reads a SECOND job (live-check.yml, job `live`) and requires every other install to carry
 // `# browser-gate: exempt N -- reason`. The sweep copies the whole .github tree (the real-tree path reads every workflow), the six CODE mutants of the old `other_install_sites` are replaced by
 // 65 of `install_sites`, `exempt_sites`, `exempt_count`, `step_runs_after_failure` and its expression evaluator, the TARGETS wiring and the floors, and a third group (OTHERS: 8 of live-check.yml, 11 of the exempt sites,
-// among them the two fixes that took a step out of the skipped set) is judged by the guard on the real-tree path. 213 CODE, 57 verify.yml, 25 OTHERS (the review of 2026-11-14 added the second-job, expression, continue-on-error, indentation and install-form mutants).
+// among them the two fixes that took a step out of the skipped set) is judged by the guard on the real-tree path. 213 CODE, 57 verify.yml, 25 OTHERS at 2026-11-14 (the review of that day added the second-job, expression, continue-on-error, indentation and install-form mutants).
+// COUNTS AS OF 2026-11-15 (items 2 to 7 of the same CC-CMD, and the two independent reviews of the fixes): 341 CODE, 57 verify.yml, 69 OTHERS = 467 mutations, `--self-test` of the guard at 388 checks. The full run on the guard at 386 checks
+// caught 464 of 468; its 4 survivors were `confidence.mjs does not run the gate rows` (REMOVED: equivalent today, the content rule `imports gate-checks.mjs and calls a row's run` reads confidence.mjs as a row runner
+// whether or not the declaration RUNS_ROWS names it, so the declaration is belt and braces and no input tells the two apart), and three FIXED by a fixture and re-run as a slice, all caught: `the required step need not wait for a
+// failed install`, `a step whose env is a string or a list is read as a mapping` (the first version of that mutant crashed every step without an env, and a crash with no FAIL line is not a catch), `a network-exempt check is read as a row runner`.
+// So 467 of 467 are caught, in two runs. SWEEP_ONLY=<regex> runs a slice and says so; a slice that matches nothing exits 1.
 //   node outbox/browser-gate-sweep-2026-11-12.mjs        (from the repository root)
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
@@ -307,7 +312,6 @@ const CODE = [
   ["a name that leaves the repository is read", "        if not cand.startswith(\"..\") and not os.path.isabs(cand):\n            out.add(cand)", "        if True:\n            out.add(cand)"],
   ["a leading ${VAR}/ is not dropped", "bare = re.sub(r\"^\\$\\{?\\w+\\}?/\", \"\", token)", "bare = token"],
   ["a script that runs the gate rows is not a browser step by declaration", "    if runs_gate_rows(entry, read):\n        return [\"scripts/gate-checks.mjs\"]", "    if False:\n        return [\"scripts/gate-checks.mjs\"]"],
-  ["confidence.mjs does not run the gate rows", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/run-row.mjs\"})"],
   ["run-row.mjs does not run the gate rows", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\"})"],
   ["an unreadable always() step is opaque even when it launches a browser", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"]):", "if always_if(if_text(s)) and i != last and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"]):"],
   ["an unreadable always() `uses:` step is opaque", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\") and not hides_a_launcher(r[\"unresolved\"]):", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not hides_a_launcher(r[\"unresolved\"]):"],
@@ -368,7 +372,7 @@ const CODE = [
   ["the final step may read any number of other outcomes", "    if len(keys) > 3:", "    if len(keys) > 30:"],
   ["a hyphenated id is not read in a gate clause", "steps\\.[\\w-]+\\.outcome == 'success')$\")", "steps\\.\\w+\\.outcome == 'success')$\")"],
   ["a bracketed hyphenated id is not normalised", "r\"\\[\\s*['\\\"]([\\w-]+)['\\\"]\\s*\\]\"", "r\"\\[\\s*['\\\"](\\w+)['\\\"]\\s*\\]\""],
-  ["a step whose env is not a mapping crashes the guard", "    return e if isinstance(e, dict) else {}", "    return e"],
+  ["a step whose env is a string or a list is read as a mapping", "    return e if isinstance(e, dict) else {}", "    return e if isinstance(e, (dict, str, list)) else {}"],
   ["a regular expression literal is read as code (a quote or `//` in one starts a string or a comment)", "|`(?:\\\\.|[^`\\\\])*`|(?<![\\w)\\]$.])/(?![/*])(?:\\\\.|\\[(?:\\\\.|[^\\]\\\\\\n])*\\]|[^/\\\\\\n\\[])+/[a-z]*)|//", "|`(?:\\\\.|[^`\\\\])*`)|//"],
   ["a property access is read as a call (`res.ok`, `/a/.exec(x)`)", "ROW_CALL = re.compile(r\"(?<![.\\w$])(ok|fails", "ROW_CALL = re.compile(r\"(?<!\\w)(ok|fails"],
   ["a trailing comma in all(...) is refused", "\\s*,?\\s*\\)\"\"\")\nROW_SHARDED", "\\s*\\)\"\"\")\nROW_SHARDED"],
@@ -571,4 +575,5 @@ sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree
 for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree)
 if (ONLY) console.log(`\nSLICE /${process.env.SWEEP_ONLY}/: ran ${total} of ${total + skippedByFilter} mutations; ${skippedByFilter} were NOT run (a slice proves only what it ran)`)
 console.log(`\ncaught ${caught} of ${total} mutations (${CODE.length} of the guard's code, ${WORKFLOW.length} of verify.yml, ${OTHERS.length} of the other workflows it reads); ${EXCLUDED} more were NOT run, each named in this file's header as equivalent or as a crash`)
+if (total === 0) { console.log('NOTHING RAN: the slice filter matched no mutation, which is not a pass'); process.exit(1) }
 process.exit(caught === total ? 0 : 1)
