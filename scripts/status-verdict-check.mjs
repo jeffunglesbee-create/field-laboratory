@@ -62,6 +62,12 @@ const mixed = verifyVerdict(failed, HEAD, null, { total: 44, ran: 0, skipped: 44
 check('a failed job with no named step still reports its tail',
   /failing step unknown/.test(mixed) && /44 of 44 steps did not run/.test(mixed), mixed)
 
+// ITEM 4: a failing LAST step (the Chromium gate's) has nothing behind it, and the checks skipped before it are said in the clause, not dropped.
+const gateClause = stepClause({ total: 100, ran: 80, skipped: 0, skippedBefore: 20, failedStep: 'Install Chromium did not succeed', failedNumber: 100 })
+check('a failing last step says nothing was skipped behind it, and how many were skipped before it',
+  /nothing was skipped behind it/.test(gateClause) && /20 steps before it were skipped/.test(gateClause), gateClause)
+check('...and a summary with no before-count adds nothing', !/before it/.test(stepClause({ total: 30, ran: 3, skipped: 27, failedStep: 'x', failedNumber: 3 })))
+
 // And the clause in isolation, so a template change cannot hide a state change.
 check('clause: nothing skipped says so rather than going silent',
   / — nothing was skipped behind it/.test(stepClause({ total: 5, ran: 5, skipped: 0, failedStep: 'X', failedNumber: 1 })),

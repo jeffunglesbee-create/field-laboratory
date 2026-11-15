@@ -94,9 +94,14 @@ playwright or calls chromium.launch, and the arguments do not include `--self-te
     scripts used by the 76 browser-free steps); and for the five split out of the gated steps,
     outbox/self-tests-no-launch-2026-11-12.txt. NOT enforced by this file: a one-token edit to a script could change it, and
     docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md carries that item.
-  - A SCRIPT THAT SPAWNS ONE IS NOT SEEN. Only the entry script is read, so `scripts/mutation-check.mjs`, which runs each
-    mutation's `expect:` command (for example `node scripts/spark-check.mjs`) in a child, reads as browser-free. No step in
-    the real workflow runs it today. NOT enforced by this file; the CC-CMD carries that item too.
+  - A SCRIPT THAT SPAWNS ONE IS A BROWSER STEP. An entry script that imports child_process and names, by file name, a script that
+    launches a browser (directly, or through another such spawner, to a depth of SPAWN_DEPTH) is read as launching one:
+    `scripts/mutation-check.mjs` runs each mutation's `expect:` command (for example `node scripts/spark-check.mjs`) in a child.
+    It over-approximates (a name in a table that is never run) and fails closed. The arguments with which a spawner runs none of
+    what it names are READONLY_MODES (`--anchors`, `--stranded` of mutation-check, the only ones a workflow uses), and
+    scripts/no-launch-check.mjs is TRAPPED (it runs browser scripts only under a trap). Those claims, and every `--self-test`, are
+    kept true at run time by scripts/no-launch-check.mjs, which reads the commands from `--plain-commands`. Not read: a spawn
+    whose script name is built at run time, and a python script that spawns a browser script.
   - A WORD IS NOT A USE. Comment lines and trailing comments are dropped before looking, and `playwright install` is
     the install itself.
   - FAIL CLOSED. The reader tokenizes each command line like a shell and understands `node`, `npm run`/`test`/`ci`,
@@ -166,6 +171,21 @@ LAUNCH = re.compile(
     r"""^\s*(?:import|from)\s+playwright\b""",
     re.MULTILINE,
 )
+# A SCRIPT THAT SPAWNS A BROWSER SCRIPT launches one without ever importing playwright: it imports child_process and names the script (`scripts/mutation-check.mjs`
+# runs each mutation's `expect:` command, for example `node scripts/spark-check.mjs`, in a child). Reading only the entry script called such a step browser-free
+# (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 2). A script is a SPAWNER when its code imports child_process, and it spawns a browser when it names, by file
+# name, a script that launches one directly or through another spawner. That over-approximates (a name in a table that is never run) and fails closed.
+CHILD_PROCESS = re.compile(r"""from\s+['"](?:node:)?child_process['"]|require\(\s*['"](?:node:)?child_process['"]\s*\)|import\(\s*['"](?:node:)?child_process['"]""")
+SCRIPT_NAME = re.compile(r"""(?<![\w./-])((?:scripts/)?[\w.-]+\.(?:mjs|cjs|py))\b""")
+SPAWN_DEPTH = 6
+# The arguments with which a spawner runs none of the scripts it names. Each entry is a claim, kept true at run time by scripts/no-launch-check.mjs (which runs these
+# commands under a trap that logs any browser launch, children included) and read from this table by `--plain-commands`.
+# `*` is every argument: scripts/import-purity-check.mjs imports each exporting module in a child to prove that importing runs nothing, and names scripts/mutation-check.mjs as
+# DATA in its own self-test; importing a browser script must launch nothing, which is the property it checks.
+READONLY_MODES = {"scripts/mutation-check.mjs": ("--anchors", "--stranded"), "scripts/import-purity-check.mjs": ("*",)}
+# A script that runs browser scripts only under that trap: it never launches a real browser, whatever its arguments. Its own text embeds launch calls (its fixtures), so the text
+# rule is skipped for it as well as the spawner rule.
+TRAPPED = frozenset({"scripts/no-launch-check.mjs"})
 INSTALL_CMD = re.compile(r"(?:\bplaywright(?:-core)?(?:/cli\.js)?|@playwright/test)(?:@[^\s'\"]+)?['\"]?\s+install\b")
 
 
@@ -533,6 +553,44 @@ def entry_launches(path, read):
     return bool(LAUNCH.search(strip_comments(src))), None
 
 
+def spawned_browser_scripts(path, read, depth=SPAWN_DEPTH, seen=()):
+    """The scripts a script RUNS (it imports child_process and names them by file name) that launch a browser, directly or through another spawner."""
+    path = os.path.normpath(path)
+    if path in seen or depth <= 0:
+        return []
+    try:
+        src = strip_comments(read(path))
+    except (OSError, KeyError):
+        return []
+    if not CHILD_PROCESS.search(src):
+        return []
+    out = []
+    for name in sorted(set(SCRIPT_NAME.findall(src))):
+        cand = os.path.normpath(name if name.startswith("scripts/") else "scripts/" + name)
+        if cand == path:
+            continue
+        try:
+            read(cand)
+        except (OSError, KeyError):
+            continue
+        if entry_launches(cand, read)[0] or spawned_browser_scripts(cand, read, depth - 1, seen + (path,)):
+            out.append(cand)
+    return out
+
+
+def readonly_mode(entry, args):
+    modes = READONLY_MODES.get(os.path.normpath(entry), ())
+    return "*" in modes or bool(set(args) & set(modes))
+
+
+def spawns_browser(entry, args, read):
+    """The browser scripts an entry spawns with these arguments: none for a TRAPPED script and for the arguments READONLY_MODES declares."""
+    entry = os.path.normpath(entry)
+    if entry in TRAPPED or readonly_mode(entry, args):
+        return []
+    return spawned_browser_scripts(entry, read)
+
+
 def read_step(step, pkg, read):
     """{browser: bool, unresolved: [why]} for one step."""
     res = {"browser": False, "unresolved": []}
@@ -558,11 +616,13 @@ def read_step(step, pkg, read):
     res["unresolved"] += out["unresolved"]
     res["browser"] = out["direct"]
     for entry, args in out["entries"]:
-        if "--self-test" in args:
+        if "--self-test" in args or os.path.normpath(entry) in TRAPPED:     # a TRAPPED script embeds launch calls as test fixtures, which only ever run under its trap
             continue
         hit, why = entry_launches(entry, read)
         if why:
             res["unresolved"].append(why)
+        if not hit and spawns_browser(entry, args, read):
+            hit = True
         res["browser"] = res["browser"] or hit
     if LAUNCH.search(strip_comments(script)):       # an inline use in the step's own text
         res["browser"] = True
@@ -1181,6 +1241,19 @@ def self_test():
         "scripts/l-env.mjs": "const exe = process.env.PW_CHROMIUM\n",
         "scripts/l-env.py": "import os\nexe = os.environ.get('PW_CHROMIUM')\n",
         "scripts/late.py": "# header\n\nimport os\nfrom playwright.sync_api import sync_playwright\n",
+        "scripts/spawner.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/shot.mjs')\n",
+        "scripts/spawn2.mjs": "import { spawnSync } from 'child_process'\nspawnSync('node', ['scripts/spawner.mjs'])\n",
+        "scripts/spawn3.mjs": "const { execFileSync } = require('node:child_process')\nexecFileSync('node', ['scripts/spawn2.mjs'])\n",
+        "scripts/spawn-bare.mjs": "import { execSync } from 'node:child_process'\nexecSync('node shot.mjs')\n",
+        "scripts/spawn-dyn.mjs": "import('node:child_process').then(c => c.execSync('node scripts/shot.mjs'))\n",
+        "scripts/mentions.mjs": "// no child process: shot.mjs is only a name here\nconst name = 'scripts/shot.mjs'\n",
+        "scripts/spawn-pure.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/pure.mjs')\n",
+        "scripts/spawn-comment.mjs": "import { execSync } from 'node:child_process'\n// this once ran scripts/shot.mjs\nexecSync('node scripts/pure.mjs')\n",
+        "scripts/cyc-a.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/cyc-b.mjs')\n",
+        "scripts/cyc-b.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/cyc-a.mjs')\n",
+        "scripts/mutation-check.mjs": "import { execSync } from 'node:child_process'\nconst rows = [\"node scripts/shot.mjs\"]\nif (process.argv.includes('--anchors')) {} else rows.forEach(r => execSync(r))\n",
+        "scripts/import-purity-check.mjs": "import { execFileSync } from 'node:child_process'\nconst imported = ['scripts/shot.mjs']\n",
+        "scripts/no-launch-check.mjs": "import { spawnSync } from 'node:child_process'\nspawnSync('node', ['scripts/shot.mjs'])\nconst fixture = \"await chromium.launch()\"\n",
         "scripts/prose.py": '"""Mentions chromium.launch and PW_CHROMIUM and from playwright in prose."""\nPATTERN = r"chromium\\.launch|PW_CHROMIUM"\n',
         "scripts/l-core.mjs": "import { chromium } from 'playwright-core'\n",
         "pre.cjs": "console.log('a preload')\n",
@@ -1378,6 +1451,20 @@ def self_test():
     check("a heredoc is unresolved (its body is lines of code)", unresolved("node - <<EOF\nconsole.log(1)\nEOF") != [])
     check("a command substitution INSIDE quotes is unresolved", unresolved('echo "$(node scripts/shot.mjs)"') != [] and unresolved("echo `node scripts/shot.mjs`") != [])
     check("unbalanced quoting is unresolved", unresolved("echo 'a") != [])
+    # ---- A SCRIPT THAT SPAWNS A BROWSER SCRIPT (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 2)
+    for name in ("spawner", "spawn2", "spawn3", "spawn-bare", "spawn-dyn"):
+        check(f"`node scripts/{name}.mjs` imports child_process and names a browser script (one hop, two, three, a bare name, a dynamic import): a browser step", browser(f"node scripts/{name}.mjs") is True, name)
+    check("...unless it is run with --self-test, which never launches", browser("node scripts/spawner.mjs --self-test") is False)
+    check("a script that names a browser script but spawns nothing is not a spawner (the name is data)", browser("node scripts/mentions.mjs") is False)
+    check("a spawner of scripts that launch nothing is browser-free", browser("node scripts/spawn-pure.mjs") is False)
+    check("a browser script named only in a comment is not named", browser("node scripts/spawn-comment.mjs") is False)
+    check("two scripts that spawn each other terminate, and are browser-free", browser("node scripts/cyc-a.mjs") is False)
+    check("a DECLARED read-only mode of a spawner is browser-free: mutation-check --anchors and --stranded", browser("node scripts/mutation-check.mjs --anchors") is False and browser("node scripts/mutation-check.mjs --stranded") is False)
+    check("...and its other modes are browser steps (no arguments, --only, a shard)", all(browser(f"node scripts/mutation-check.mjs{a}") is True for a in ("", " --only x", " --shard 1/8")))
+    check("...and a declared mode written with the flag after another is still declared", browser("node scripts/mutation-check.mjs --build watch --anchors") is False)
+    check("a spawner declared for EVERY argument (import-purity-check) is browser-free with none, and with any", browser("node scripts/import-purity-check.mjs") is False and browser("node scripts/import-purity-check.mjs --x") is False)
+    check("a script that runs browser scripts only under the launch trap (no-launch-check) is browser-free whatever its arguments", browser("node scripts/no-launch-check.mjs") is False and browser("node scripts/no-launch-check.mjs --whatever") is False)
+    check("an npm script that reaches a spawner is a browser step too", read_step({"run": "npm run spawn"}, {**pkg, "spawn": "node scripts/spawner.mjs"}, read)["browser"] is True)
     check("node with a separate-value flag (`--max-old-space-size 4096`) is unresolved, not read as the entry",
           unresolved("node --max-old-space-size 4096 scripts/shot.mjs") != [])
     check("...and with the `=` form it is read", browser("node --max-old-space-size=4096 scripts/shot.mjs") is True and unresolved("node --max-old-space-size=4096 scripts/shot.mjs") == [])
@@ -1746,6 +1833,26 @@ def self_test():
     check("an N of five digits is not an annotation (and cannot crash the guard)", any_of("0 found", bad_x), bad_x)
     bad_c2, _ = sites({"c.yml": PROBE + "      - name: Install\n        run: |\n          npx playwright \\\n            install chromium\n" + AFTER})
     check("the refusal of an install it cannot pair names the lines and the steps", any_of("line(s) none the text can match", bad_c2) and any_of("['Install']", bad_c2), bad_c2)
+    # ---- THE COMMANDS WHOSE BROWSER-FREE-NESS IS A CLAIM, for scripts/no-launch-check.mjs
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / ".github" / "workflows").mkdir(parents=True)
+        (root / "package.json").write_text(json.dumps({"scripts": pkg}))
+        for f, src in files.items():
+            if "/" in f:
+                (root / f).parent.mkdir(parents=True, exist_ok=True)
+                (root / f).write_text(src)
+        (root / ".github" / "workflows" / "verify.yml").write_text(yaml.safe_dump(wf([
+            {"name": "before", "run": "node scripts/pure.mjs --self-test"}, inst,
+            {"name": "st", "run": "node scripts/pure.mjs --self-test"}, {"name": "st2", "run": "node scripts/pure.mjs --self-test"},
+            {"name": "ro", "run": "node scripts/mutation-check.mjs --anchors"}, {"name": "br", "run": "node scripts/shot.mjs"},
+            {"name": "brself", "run": "node scripts/shot.mjs --self-test"}, {"name": "plain", "run": "node scripts/pure.mjs"}, final])))
+        (root / ".github" / "workflows" / "probe.yml").write_text(PROBE + NOTE.format(n=1, why="x") + NAME + "      - name: s\n        run: node scripts/uses-lib.mjs --self-test\n")
+        cmds = plain_commands(str(root))
+    got = [(c["cmd"][1:], c["why"]) for c in cmds]
+    check("plain_commands lists each self-test and read-only mode of a browser-free step after an install, once, from the target job and from an exempt site, and nothing else",
+          got == [(["scripts/mutation-check.mjs", "--anchors"], "read-only mode"), (["scripts/pure.mjs", "--self-test"], "self-test"), (["scripts/shot.mjs", "--self-test"], "self-test"),
+                  (["scripts/uses-lib.mjs", "--self-test"], "self-test")], got)
     bad_q, tab_q = sites({"q.yml": site(2, steps_after="      - name: one\n        run: npm run pure\n      - name: two\n        run: npm run pure\n")})
     check("two skipped steps are BOTH counted", bad_q == [] and tab_q and tab_q[0][2] == 2, (bad_q, tab_q))
     check("the second target's floors are 8 steps, 5 browser steps and 2 browser-free steps (pinned, not read from TARGETS)",
@@ -1766,6 +1873,41 @@ def self_test():
 
 
 # ---------------------------------------------------------------- the real tree
+def plain_commands(root="."):
+    """The commands of the browser-free steps whose browser-free-ness rests on a CLAIM this guard cannot check by reading: every `--self-test` (it never launches) and every
+    READONLY_MODES entry (it spawns none of what it names). Read from the target jobs and from every exempt site's steps after its install. scripts/no-launch-check.mjs
+    runs them under a trap that logs any browser launch."""
+    pkg = json.loads(Path(root, "package.json").read_text()).get("scripts", {})
+    read = lambda p: Path(root, p).read_text()
+    lists = []
+    for tg in TARGETS:
+        path = Path(root, tg["file"])
+        if path.exists():
+            doc = yaml.safe_load(path.read_text(errors="replace"))
+            steps = job_steps(doc, tg["job"])
+            at = next((i for i, s in enumerate(steps) if is_install(s)), -1)
+            lists.append(steps[at + 1:])
+    sites, _ = install_sites(root)
+    lists += [steps[at + 1:] for _, _, steps, at, _, _ in sites]
+    seen, out = set(), []
+    for steps in lists:
+        for s in steps:
+            if not isinstance(s, dict) or not run_text(s):
+                continue
+            r = read_step(s, pkg, read)
+            if r["browser"] or r["unresolved"]:
+                continue
+            for entry, args in read_commands(run_text(s), pkg, read)["entries"]:
+                entry = os.path.normpath(entry)
+                if not entry.endswith((".mjs", ".cjs", ".js")):
+                    continue
+                why = "self-test" if "--self-test" in args else "read-only mode" if readonly_mode(entry, args) else None
+                if why and (entry, tuple(args)) not in seen:
+                    seen.add((entry, tuple(args)))
+                    out.append({"cmd": ["node", entry, *args], "why": why})
+    return sorted(out, key=lambda c: c["cmd"])
+
+
 def real_tree(root="."):
     pkg = json.loads(Path(root, "package.json").read_text()).get("scripts", {})
     read = lambda p: Path(root, p).read_text()
@@ -1810,4 +1952,7 @@ def real_tree(root="."):
 if __name__ == "__main__":
     if "--self-test" in sys.argv:
         sys.exit(0 if self_test() else 1)
+    if "--plain-commands" in sys.argv:
+        print(json.dumps(plain_commands(), indent=1))
+        sys.exit(0)
     sys.exit(0 if real_tree() else 1)

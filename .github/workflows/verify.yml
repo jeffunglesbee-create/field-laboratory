@@ -361,6 +361,13 @@ jobs:
           node scripts/metrics-render-check.mjs --self-test
           node scripts/team-tint-render-check.mjs --self-test
 
+      # THE TWO CLAIMS THE CLASSIFICATION OF THE STEPS ABOVE AND BELOW RESTS ON, MEASURED. scripts/check-browser-gate.py decides which steps need a browser by reading the scripts they
+      # run; it cannot read that `--self-test` never launches, nor that `scripts/mutation-check.mjs --anchors` runs none of the browser scripts it names. This runs those commands
+      # (the guard's `--plain-commands`: every self-test and read-only mode of a browser-free step in this job and in every exempt site) with `playwright` replaced, for each command and
+      # each Node child it starts, by a stub that logs a launch and throws, and fails on a single line in the log. It needs no browser. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, items 2 and 3.
+      - name: The browser-free steps' self-tests and read-only modes launch no browser (a trap, not a reading)
+        run: npm run check:no-launch
+
       - name: Render checks (both captures, including the state transition)
         if: steps.chromium.outcome == 'success'
         run: |

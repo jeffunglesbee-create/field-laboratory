@@ -27,7 +27,7 @@ const MUTATIONS = [
    'THE ONE THAT MATTERS: "nothing was skipped" and "I could not tell" become the same sentence, and a run nobody could read files as a clean bill'],
 
   ['S2 the skip tail is never counted',
-   "    skipped: real.filter(s => s.conclusion === 'skipped').length,",
+   "    skipped: failed ? real.slice(at + 1).filter(isSkipped).length : real.filter(isSkipped).length,",
    "    skipped: 0,",
    'THE OTHER ONE: the issue reports a red with no cost attached — exactly the seven runs this module was written from'],
 
@@ -52,7 +52,7 @@ const MUTATIONS = [
   // matched and the mutation reported NOT CAUGHT against a check that was
   // working. The harness was wrong, not the module.
   ['S6 a zero tail goes quiet instead of saying so',
-   "    return `**First failing step:** ${summary.failedStep} (${where}). ` +\n      `Nothing was skipped behind it — the other ${summary.total - 1} steps ran.`",
+   "    return `**First failing step:** ${summary.failedStep} (${where}). ` +\n      `Nothing was skipped behind it — ${summary.ran - 1} other steps ran.${before}`",
    "    return ''",
    'silence is indistinguishable from the tool not having run, which is the failure mode one layer up'],
 
@@ -60,6 +60,32 @@ const MUTATIONS = [
    "    `**${summary.skipped} of ${summary.total} steps did not run behind it.** ` +",
    "    `**${summary.skipped} steps did not run behind it.** ` +",
    'Rule 91: a count without its denominator is read as completeness — 44 means nothing without 69'],
+
+  // ITEM 4 (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md): the skips BEHIND the failing step and the skips BEFORE it are different facts.
+  ['S8 every skipped step is counted as behind the failing one (the old reading)',
+   "    skipped: failed ? real.slice(at + 1).filter(isSkipped).length : real.filter(isSkipped).length,",
+   "    skipped: real.filter(isSkipped).length,",
+   'with the Chromium gate the failing step is the last one and the twenty browser checks before it are reported as "did not run behind it"'],
+
+  ['S9 the skips before the failing step are never counted',
+   "    skippedBefore: failed ? real.slice(0, at).filter(isSkipped).length : 0,",
+   "    skippedBefore: 0,",
+   'the twenty browser checks that did not run are in neither count, so the red reads as "nothing was skipped"'],
+
+  ['S10 the before-count is left out of a zero-tail line',
+   "      `Nothing was skipped behind it — ${summary.ran - 1} other steps ran.${before}`",
+   "      `Nothing was skipped behind it — ${summary.ran - 1} other steps ran.`",
+   'the one line a reader of the red-main issue sees says nothing about the twenty checks that never ran'],
+
+  ['S11 the other-steps-ran figure counts every step but the failing one',
+   "      `Nothing was skipped behind it — ${summary.ran - 1} other steps ran.${before}`",
+   "      `Nothing was skipped behind it — ${summary.total - 1} other steps ran.${before}`",
+   'the skipped steps are counted as having run'],
+
+  ['S12 the failing step is found by its number, not its place in the job',
+   "  const at = real.findIndex(s => s.conclusion === 'failure')",
+   "  const at = real.findIndex(s => s.conclusion === 'failure' && s.number > 1000)",
+   'a job whose steps carry no usable number loses its failing step, and with it the whole tail'],
 ]
 
 // THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/run-steps.mjs is only read, as mutate-ppubs-probe.py,

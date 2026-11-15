@@ -134,8 +134,9 @@ export const stepClause = (summary) => {
   if (summary === null) return ' — failing step unknown: the run\'s steps could not be read'
   const where = summary.failedStep ? ` at "${summary.failedStep}"` : ' — failing step unknown'
   if (typeof summary.skipped !== 'number') return `${where}, and the skip tail could not be read`
-  if (summary.skipped === 0) return `${where} — nothing was skipped behind it`
-  return `${where} — ${summary.skipped} of ${summary.total} steps did not run behind it`
+  const before = summary.skippedBefore > 0 ? `; ${summary.skippedBefore} steps before it were skipped by their own \`if\`` : ''
+  if (summary.skipped === 0) return `${where} — nothing was skipped behind it${before}`
+  return `${where} — ${summary.skipped} of ${summary.total} steps did not run behind it${before}`
 }
 
 /**
