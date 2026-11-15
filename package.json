@@ -31,6 +31,7 @@
     "check:confidence-record": "node scripts/confidence-record-check.mjs --self-test && node scripts/confidence-record-check.mjs",
     "check:outbox-row": "node scripts/outbox-row-check.mjs --self-test",
     "check:gate-mode": "node scripts/gate-mode.mjs --self-test",
+    "check:delete-branches": "node scripts/delete-branches.mjs --self-test",
     "check:secrets": "node scripts/exposed-secret-check.mjs --self-test && node scripts/exposed-secret-check.mjs",
     "check:import-purity": "node scripts/import-purity-check.mjs --self-test && node scripts/import-purity-check.mjs",
     "check:harness": "node scripts/checks.mjs --self-test",

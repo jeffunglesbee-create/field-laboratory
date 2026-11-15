@@ -1,0 +1,102 @@
+// Deletes THROWAWAY branches from the remote, by name, from a runner.
+//
+// WHY A RUNNER. The sandbox's git proxy does not carry a ref deletion: `git push origin --delete proof-fastfail` ends `the remote end hung up unexpectedly` (measured 2026-11-15). The proof
+// branches of this repository's CI-as-proxy runs (`proof-*`: a throwaway branch with one workflow sabotaged on purpose, never merged) therefore piled up, and the owner approved deleting them
+// (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 5). `.github/workflows/delete-branches.yml` runs this on a runner, whose token can.
+//
+// WHAT IT WILL DELETE, closed by construction: a name must match PROOF (`proof-` and lower-case letters, digits, dashes), must not be the default branch, and must be unique. ONE name that does not
+// qualify refuses the whole list: nothing is deleted, exit 2. It deletes nothing without `--apply` (the workflow's first step is that dry run, so the plan is in the log before the deletion is).
+// After deleting it asks the remote which of the names still exist, and exits 1 if any does.
+//
+// Usage:  node scripts/delete-branches.mjs "proof-a,proof-b"            the plan, nothing deleted
+//         node scripts/delete-branches.mjs "proof-a,proof-b" --apply    the deletion
+//         node scripts/delete-branches.mjs --self-test
+import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+export const PROOF = /^proof-[a-z0-9][a-z0-9-]*$/
+
+/** Which of a list of names may be deleted: `{ ok: [names], refused: [{ name, why }] }`. Any refused name means none may be. */
+export const plan = (list, defaultBranch = 'main') => {
+  const names = String(list ?? '').split(/[\s,]+/).filter(Boolean)
+  const refused = []
+  if (names.length === 0) refused.push({ name: '(none)', why: 'no branch name was given' })
+  const seen = new Set()
+  for (const name of names) {
+    if (name === defaultBranch || name === 'main' || name === 'master') refused.push({ name, why: 'it is the default branch' })
+    else if (!PROOF.test(name)) refused.push({ name, why: 'it is not a throwaway proof branch (proof-<lower-case letters, digits, dashes>)' })
+    else if (seen.has(name)) refused.push({ name, why: 'it is listed twice' })
+    seen.add(name)
+  }
+  return { ok: refused.length === 0 ? names : [], refused }
+}
+
+const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+/** The names, among `names`, that exist as branches on `remote`. */
+export const existing = (names, remote, cwd) => {
+  const out = git(['ls-remote', '--heads', remote], cwd)
+  const have = new Set(out.split('\n').filter(Boolean).map(l => l.split('\t')[1]?.replace(/^refs\/heads\//, '')))
+  return names.filter(n => have.has(n))
+}
+
+/** Deletes the planned names that exist; returns `{ deleted, absent, left }`. `left` is what the remote still has afterwards. `push` is the command that deletes (a stand-in in the self-test). */
+export const apply = (names, remote, cwd, push = git) => {
+  const before = existing(names, remote, cwd)
+  const absent = names.filter(n => !before.includes(n))
+  for (const name of before) push(['push', remote, '--delete', name], cwd)
+  const left = existing(names, remote, cwd)
+  return { deleted: before.filter(n => !left.includes(n)), absent, left }
+}
+
+const main = () => {
+  const args = process.argv.slice(2)
+  const list = args.find(a => !a.startsWith('--'))
+  const p = plan(list)
+  if (p.refused.length > 0) {
+    for (const r of p.refused) console.log(`REFUSED  ${r.name}: ${r.why}`)
+    console.log('\nNothing was deleted: one name that does not qualify refuses the whole list.')
+    process.exit(2)
+  }
+  console.log(`plan: ${p.ok.length} throwaway branch(es): ${p.ok.join(', ')}`)
+  if (!args.includes('--apply')) { console.log('dry run (no --apply): nothing deleted'); return }
+  const r = apply(p.ok, 'origin')
+  console.log(`deleted ${r.deleted.length} of ${p.ok.length}: ${r.deleted.join(', ') || '(none)'}${r.absent.length ? `; already absent: ${r.absent.join(', ')}` : ''}`)
+  if (r.left.length > 0) { console.log(`STILL THERE: ${r.left.join(', ')}`); process.exit(1) }
+}
+
+// --- self-test -----------------------------------------------------------------------
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  if (process.argv.includes('--self-test')) {
+    const { createChecks, finish } = await import('./checks.mjs')
+    const { mkdtempSync, rmSync } = await import('node:fs')
+    const { tmpdir } = await import('node:os')
+    const { join } = await import('node:path')
+    const { check, summarize } = createChecks()
+    const bad = (list, re) => { const p = plan(list); return p.ok.length === 0 && p.refused.some(r => re.test(r.why)) }
+    check('a list of proof branches is planned whole, in order', JSON.stringify(plan('proof-a, proof-b-2,proof-c').ok) === '["proof-a","proof-b-2","proof-c"]' && plan('proof-a').refused.length === 0)
+    check('THE DEFAULT BRANCH IS REFUSED, whatever else is listed with it, and nothing of the list is planned', bad('proof-a,main', /default branch/) && bad('master', /default branch/) && bad('proof-a,develop', /default branch|not a throwaway/) === true && plan('proof-a,main').ok.length === 0)
+    check('a branch that is not a proof branch is refused (a claude/ branch, a feature branch, a flag, a path, a glob, upper case, a bare `proof-`)',
+      ['claude/x', 'feature-x', '--force', 'proof-', 'proof-A', 'proof-a/b', 'proof-*', ':proof-a', 'refs/heads/proof-a', 'proof-a;rm'].every(n => bad(`proof-ok,${n}`, /not a throwaway|default/) || bad(n, /not a throwaway|default/)))
+    check('an empty list and a repeated name are refused', bad('', /no branch name/) && bad(' , ', /no branch name/) && bad('proof-a,proof-a', /twice/))
+    // The deletion itself, against a real bare repository standing in for the remote.
+    const dir = mkdtempSync(join(tmpdir(), 'delete-branches-'))
+    try {
+      const remote = join(dir, 'remote.git'), work = join(dir, 'work')
+      const g = (a, cwd) => execFileSync('git', a, { cwd, encoding: 'utf8', stdio: 'pipe' })
+      g(['init', '-q', '--bare', '-b', 'main', remote]); g(['init', '-q', '-b', 'main', work])
+      g(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], work)
+      g(['remote', 'add', 'origin', remote], work)
+      for (const b of ['main', 'proof-a', 'proof-b', 'claude-keep']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
+      const r = apply(['proof-a', 'proof-b', 'proof-gone'], 'origin', work)
+      check('THE DELETION: the named proof branches are gone from the remote, one that was never there is reported absent, and the others are untouched',
+        JSON.stringify(r.deleted) === '["proof-a","proof-b"]' && JSON.stringify(r.absent) === '["proof-gone"]' && r.left.length === 0
+          && JSON.stringify(existing(['main', 'proof-a', 'proof-b', 'claude-keep'], 'origin', work)) === '["main","claude-keep"]', JSON.stringify(r))
+      for (const b of ['proof-c']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
+      const silent = apply(['proof-c'], 'origin', work, () => '')
+      check('A DELETION THAT CLAIMS TO HAVE WORKED AND DID NOT is caught by asking the remote afterwards: the branch is reported left, not deleted', silent.left.length === 1 && silent.deleted.length === 0, JSON.stringify(silent))
+      const again = apply(['proof-a'], 'origin', work)
+      check('...and running it again deletes nothing and fails nothing', again.deleted.length === 0 && again.absent.length === 1 && again.left.length === 0, JSON.stringify(again))
+    } finally { rmSync(dir, { recursive: true, force: true }) }
+    finish(summarize())
+  } else main()
+}

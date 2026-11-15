@@ -1262,6 +1262,12 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:gate-mode
 
+      # The script a runner uses to delete throwaway proof branches (.github/workflows/delete-branches.yml): what qualifies, that one bad name refuses the list, and the deletion itself against a
+      # real bare repository. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 5.
+      - name: The branch-deletion script refuses anything but a proof branch
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:delete-branches
+
       # Hash-pinned tripwire for credentials known to be exposed. It exists
       # because a refusal is a promise and a promise does not scan files: across
       # this project I said repeatedly that the relay's X-FIELD-Relay value would

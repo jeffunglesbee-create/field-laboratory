@@ -1,0 +1,38 @@
+# Delete throwaway `proof-*` branches from the remote. scripts/delete-branches.mjs says what qualifies and refuses the whole list over one name that does not.
+#
+# WHY IT RUNS HERE. The sandbox's git proxy does not carry a ref deletion (`git push origin --delete` ends "the remote end hung up unexpectedly", measured 2026-11-15), so the proof branches of this
+# repository's CI-as-proxy runs, throwaway branches that are never merged, could not be removed from a session. The owner approved their deletion (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 5).
+# Dispatched by hand, with the names; no schedule and no push trigger: a deletion is something a person asks for.
+name: delete-branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        description: 'Comma-separated throwaway branch names, each proof-<lower-case letters, digits, dashes>. Anything else, the default branch included, refuses the whole list.'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The plan first, so the names are in the log before anything is deleted. A refusal here (exit 2) ends the job and deletes nothing.
+      - name: Plan (dry run)
+        env:
+          BRANCHES: ${{ inputs.branches }}
+        run: node scripts/delete-branches.mjs "$BRANCHES"
+
+      - name: Delete
+        env:
+          BRANCHES: ${{ inputs.branches }}
+        run: node scripts/delete-branches.mjs "$BRANCHES" --apply
