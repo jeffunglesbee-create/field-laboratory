@@ -2640,6 +2640,54 @@ def self_test():
     res = audit(wf([{"name": "build", "run": "npm run pure"}] + [{"name": f"s{n}", "id": f"s{n}", "run": "npm run pure"} for n in range(3)] + [inst, three]), pkg, read, final_timeout=5)[0]
     check("a final step that reads three other outcomes is run for every combination and accepted (the cap is above three)", res == [], res)
 
+    # ---- ROUND 4: ONE FIXTURE FOR EVERY MEMBER OF THE GUARD'S VOCABULARY (outbox/guard-constants-probe-2026-11-15.py deleted each of the 247 string members in turn: 127 left the self-test green,
+    # 114 of them green on the real tree as well). Each family below is a LITERAL list, checked equal to the constant (a loop over the constant itself loses a fixture with every member a change
+    # deletes), and each member is then made to do its job on an input where its absence changes the verdict.
+    vp = {}
+    vfiles = {"scripts/shot.mjs": "import { chromium } from 'playwright'\nawait chromium.launch()\n", "scripts/shot.py": "from playwright.sync_api import sync_playwright\nsync_playwright().start().chromium.launch()\n"}
+    vread = lambda q: vfiles.get(q, "console.log(1)\n")
+    unresolved = lambda cmd: read_step({"run": cmd}, vp, vread)["unresolved"]
+    def vocab(family, const, literal, job):
+        check(f"{family}: the members the guard knows are exactly the {len(literal)} pinned (a literal list, so a loop cannot lose a fixture with the member a change deletes)", set(literal) == set(const), sorted(const))
+        broken = [m for m in literal if not job(m)]
+        check(f"{family}: every member does its job on an input where its absence changes the verdict", not broken, broken)
+    vocab("BENIGN_HEADS", BENIGN_HEADS, ("mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
+                                         "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"), lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
+    vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr"), lambda h: unresolved(f"{h} x") == [])
+    vocab("GIT_SUBS", GIT_SUBS, ("config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch", "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"),
+          lambda s: unresolved(f"git {s} x") == [])
+    vocab("DOTNET_SUBS", DOTNET_SUBS, ("fable", "build", "restore"), lambda s: unresolved(f"dotnet {s} x") == [])
+    vocab("ACTIONS_OK", ACTIONS_OK, ("actions/checkout@", "actions/setup-node@", "actions/setup-dotnet@", "actions/setup-python@", "actions/upload-artifact@", "actions/download-artifact@", "actions/cache@"),
+          lambda a: read_step({"uses": a + "v4"}, vp, vread)["unresolved"] == [] and read_step({"uses": "x/" + a + "v4"}, vp, vread)["unresolved"] != [])
+    vocab("NODE_ARG", NODE_ARG, ("--input-type", "-C", "--conditions", "--env-file", "--title", "--stack-trace-limit"), lambda a: needs_browser({"run": f"node {a} val scripts/shot.mjs"}, vp, vread) is True)
+    vocab("NODE_INLINE", NODE_INLINE, ("-e", "--eval", "-p", "--print", "-i", "--interactive", "-", "--run"), lambda a: any_of("inline code", unresolved(f"node {a} x")))
+    vocab("PY_FLAGS", PY_FLAGS, ("-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"), lambda a: needs_browser({"run": f"python3 {a} scripts/shot.py"}, vp, vread) is True)
+    vocab("NPM_FLAGS", NPM_FLAGS, ("-s", "--silent", "-q", "--quiet", "--no-audit", "--no-fund", "--no-update-notifier", "--if-present"), lambda a: not any_of("npm flag", unresolved(f"npm {a} run pure")))
+    vocab("SEPARATORS", SEPARATORS, ("&&", "||", "|&", ";;", ";", "|", "&", "(", ")"), lambda s: split_commands(f"a {s} b") == [["a"], ["b"]])
+    vocab("REDIRECTS", REDIRECTS, (">", ">>", ">&", "<", "<<<"), lambda r: split_commands(f"echo a {r} b c") == [["echo", "a", "c"]])
+    vocab("PREFIX_WORDS", PREFIX_WORDS, ("if", "then", "else", "elif", "do", "while", "until", "!", "{", "}", "fi", "done", "esac"), lambda w: command_words([w, "x"]) == ["x"])
+    vocab("DANGEROUS_VARS", DANGEROUS_VARS, ("NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME"),
+          lambda k: any_of(f"env: {k} changes what the commands of this step run", read_step({"run": "node scripts/pure.mjs", "env": {k: "x"}}, vp, vread)["unresolved"]))
+    # an opaque reason (one that leaves an unreadable always() step opaque) is one of these; each input below yields that reason and no other
+    vocab("OPAQUE_REASON_OK", [p.pattern for p in OPAQUE_REASON_OK], (": a command substitution inside a word$", ": a process substitution$", ": a heredoc$", ": unbalanced quoting", ": git \\S+ is not a subcommand this guard reads", ": node with inline code"),
+          lambda pat: not hides_a_launcher(unresolved({": a command substitution inside a word$": "echo `date`", ": a process substitution$": "cat <(date)", ": a heredoc$": "cat <<true\necho hi\ntrue", ": unbalanced quoting": 'echo "x',
+                                                       ": git \\S+ is not a subcommand this guard reads": "git foo x", ": node with inline code": "node -e x"}[pat]), "x"))
+    vocab("ROW_HELPERS", ROW_HELPERS, ("outboxToday", "outboxAccompaniesSource"), lambda h: row_problems(f"  {{ name: 'x', weight: 10,\n    run: {h} }},\n") == [])
+    row_calls = ("ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite", "Number", "String", "Boolean", "parseInt", "readFileSync", "existsSync", "readdirSync", "statSync",
+                 "if", "for", "while", "switch", "catch", "return", "function")
+    vocab("ROW_KNOWN_CALLS", ROW_KNOWN_CALLS, row_calls, lambda c: row_problems(f"  {{ name: 'x', weight: 10,\n    run: () => ok('node scripts/pure.mjs') && {c}('node scripts/pure.mjs') }},\n") == [] if c in ("ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite") else
+          row_problems(f"  {{ name: 'x', weight: 10,\n    run: () => ok('node scripts/pure.mjs') && {c}(1) }},\n") == [])
+    # the outcomes another step can have when the final step reads it: the final step must fail for EACH (a script that exits 0 for exactly one value, and fails for the rest, is a green job the day that step has it)
+    PINNED_OUTCOMES = ("success", "failure", "skipped", "cancelled", "")
+    check("ANY_OUTCOMES: the values the guard runs the final step with are exactly the five pinned (a literal list)", set(PINNED_OUTCOMES) == set(ANY_OUTCOMES), sorted(ANY_OUTCOMES))
+    broken = []
+    for v in PINNED_OUTCOMES:
+        one_green = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "O0": "${{ steps.s0.outcome }}"}, "run": f'if [ "$O0" = "{v}" ]; then\n  echo ok\nelse\n  echo "::error::x $INSTALL_OUTCOME"\n  exit 1\nfi'}
+        res = audit(wf([{"name": "build", "run": "npm run pure"}, {"name": "s0", "id": "s0", "run": "npm run pure"}, inst, one_green]), pkg, read, final_timeout=5)[0]
+        if not any_of("GREEN", res):
+            broken.append(v)
+    check("ANY_OUTCOMES: a final step that exits 0 for exactly one outcome of another step is refused, for each of the five outcomes", not broken, broken)
+
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
     return fail == 0

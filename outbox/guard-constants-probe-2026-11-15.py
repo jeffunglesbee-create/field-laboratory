@@ -7,6 +7,9 @@ not-work flags). The same class would live in any collection nobody had mutated,
     python3 outbox/guard-constants-probe-2026-11-15.py [WORKERS]         (from the repository root; runs on a copy under /dev/shm, never touches the tree)
 
 CAUGHT   the copy exits non-zero AND prints a FAIL line.   SURVIVED  it exits 0 (or non-zero with no FAIL line: not a catch).   CRASH  the mutated source does not parse.
+A SURVIVOR is then run on the REAL TREE path too (`python3 scripts/check-browser-gate.py`, what the `verify` job runs): REAL-TREE-RED when that goes red (a member the real workflows use: a
+deletion that made the guard stricter than the tree is caught there), and OPEN when it stays green too (nothing catches it: unused vocabulary, or a member whose deletion makes the guard looser).
+With a second argument (a file of labels, one per line, as printed) only those deletions are run.
 Each deletion is asserted to change the source and to leave a source that compiles. A survivor is triaged by hand: a fixture, or a reason it is equivalent (Rule 90's corollary).
 """
 import ast, os, shutil, subprocess, sys, tempfile
@@ -42,6 +45,10 @@ for top in tree.body:
                     mutants.append((f"{name}[{e.value!r}]", e.lineno, a, b))
 
 workers = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+if len(sys.argv) > 2:
+    wanted = {l.strip() for l in Path(sys.argv[2]).read_text().splitlines() if l.strip()}
+    mutants = [m for m in mutants if m[0] in wanted]
+    assert len(mutants) == len(wanted), f"{len(wanted) - len(mutants)} labels name no member"
 base = Path(tempfile.mkdtemp(prefix="gcp-", dir="/dev/shm"))
 def make(i):
     d = base / f"w{i}"
@@ -54,9 +61,9 @@ free = list(dirs)
 import threading
 lock = threading.Lock()
 
-def run(d, data):
+def run(d, data, args=("--self-test",)):
     (d / "scripts" / "check-browser-gate.py").write_bytes(data)
-    r = subprocess.run([sys.executable, "-B", "scripts/check-browser-gate.py", "--self-test"], cwd=d, capture_output=True, text=True, timeout=900)
+    r = subprocess.run([sys.executable, "-B", "scripts/check-browser-gate.py", *args], cwd=d, capture_output=True, text=True, timeout=900)
     return r.returncode, "FAIL" in r.stdout, (r.stdout.strip().splitlines() or [""])[-1]
 
 def one(m):
@@ -71,6 +78,10 @@ def one(m):
         d = free.pop()
     try:
         rc, f, last = run(d, data)
+        if not (rc != 0 and f):                                                   # a survivor: does the real tree path catch it?
+            rc2, f2, last2 = run(d, data, ())
+            if rc2 != 0:
+                return label, line, "REAL-TREE-RED", f"self-test exit {rc}; real tree exit {rc2}: {last2}"
     finally:
         with lock:
             free.append(d)
@@ -79,11 +90,11 @@ def one(m):
 rc, f, last = run(dirs[0], SRC)
 print(f"baseline: exit {rc}; {last}\n{len(mutants)} string members in the guard's module-level collections")
 assert rc == 0, "the unmutated copy must be green"
-tally = {"CAUGHT": 0, "SURVIVED": 0, "CRASH": 0}
+tally = {"CAUGHT": 0, "REAL-TREE-RED": 0, "SURVIVED": 0, "CRASH": 0}
 with ThreadPoolExecutor(workers) as ex:
     for label, line, verdict, why in ex.map(one, mutants):
         tally[verdict] += 1
         print(f"{verdict:8} line {line:<5} {label}" + ("" if verdict == "CAUGHT" else f"   ({why})"), flush=True)
-print(f"\nran {sum(tally.values())} of {len(mutants)} deletions; caught {tally['CAUGHT']}; survived {tally['SURVIVED']}; did not compile {tally['CRASH']}")
+print(f"\nran {sum(tally.values())} of {len(mutants)} deletions; caught by the self-test {tally['CAUGHT']}; survived the self-test but red on the real tree {tally['REAL-TREE-RED']}; OPEN (green on both) {tally['SURVIVED']}; did not compile {tally['CRASH']}")
 shutil.rmtree(base, ignore_errors=True)
 sys.exit(0 if tally["SURVIVED"] == 0 and tally["CRASH"] == 0 else 1)
