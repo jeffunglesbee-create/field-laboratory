@@ -110,3 +110,13 @@ Built and verified the same day (below). This is the repeat's own fault, not a n
 | what was done | nothing in a workflow or in `scripts/`. The ruling above stands. The failed job was re-run once, the way the 2026-11-09 occurrence's attempt 2 was; it passed. The question of 2026-11-09, whether the plain build in `live-check`, `verify` and `deploy` gets the repeat, is still the owner's call, and this is the second occurrence recorded here in a `live-check` build in three days | this section |
 
 **What this does not show:** the cause; whether the crash rate of the plain builds differs from the probe's 1 in 400 (their build counts are still not counted); and what ran at the time of day or on which image, because the lines that say so were not read.
+
+### 2026-11-15 (12:09Z), `verify` run 43712358337, attempt 1
+
+| fact | value | where |
+|---|---|---|
+| the occurrence | attempt 1 (job 132806489111) failed at `Build (F# -> JS, then assemble public/)`, the plain `npm run build` of `verify.yml`, on `8f9ba58e` (Scout's Gate E) | `gh api .../actions/runs/43712358337/jobs` |
+| the signature | the first error line is `./build/fable_modules/Thoth.Json.10.5.1/Types.fs(33,1): (37,6) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)`, then more of code 193 and two code 72 in Thoth.Json's `Decode.fs`, and code 39 (`ExtraCoders` ... `Coders`, `Hash`) in `Decode.fs` and `Encode.fs` | the job log, grep for `error` |
+| not counted | the error lines were not counted by code | |
+| the tree | the same `src/` compiled clean 16 times in the authoring sandbox (Fable 5 via `dotnet fable`, the session's own builds and mutation restores), and its parent `58def9f5` passed `verify` (run 43711845269) | session log |
+| what was done | nothing in a workflow or in `scripts/`; the ruling above stands. The failed job was re-run once; attempt 2 passed | run 43712358337, `run_attempt` 2, `success` |
