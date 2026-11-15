@@ -1,0 +1,31 @@
+checked 4 of 4 shapes; node v22.23.4; 2026-11-15T04:14:13.865Z
+
+## real: as expected (3376ms)
+   expected: HTTP 200, or a failure whose stage the table places
+   observed: HTTP 200
+   expected addresses: at least one found, and every probed one with a settled TLS verdict
+   addresses: 2 found, 2 with a settled TLS verdict
+   egress-path: probe-error=none | cause=none stage=none | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 167.114.211.86 1ms | dns-v6=ENOTFOUND 195ms | public-v4=doh 8.8.8.8 ok 167.114.211.86 16ms | view-west-v4=doh 8.8.8.8 ecs 20.80.173.0/24 ok 51.81.167.44 21ms | view-east-v4=doh 8.8.8.8 ecs 68.220.172.0/24 ok 167.114.211.86 19ms | connect-v4=167.114.211.86:443 ok 49ms | connect-v6=not attempted (no v6 address: ENOTFOUND) | tls=167.114.211.86:443 ok (tcp 47ms, handshake 49ms) from system,public,east ; 51.81.167.44:443 no-tls-in-3000ms (tcp 58ms) from west | egress-v4=40.84.218.150 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region southcentralus cloud Azure
+
+## nxdomain: as expected (77ms)
+   expected: stage dns, code ENOTFOUND or EAI_AGAIN
+   observed: stage dns, code ENOTFOUND
+   expected addresses: none found: no source has an address for a name that does not exist
+   addresses: 0 found, 0 with a settled TLS verdict
+   egress-path: probe-error=TypeError "fetch failed" < Error ENOTFOUND getaddrinfo api.open-meteo.invalid | cause=ENOTFOUND stage=dns | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ENOTFOUND 4ms | dns-v6=ENOTFOUND 4ms | public-v4=doh 8.8.8.8 NXDOMAIN 63ms | view-west-v4=doh 8.8.8.8 ecs 20.80.173.0/24 NXDOMAIN 61ms | view-east-v4=doh 8.8.8.8 ecs 68.220.172.0/24 NXDOMAIN 62ms | connect-v4=not attempted (no v4 address: ENOTFOUND) | connect-v6=not attempted (no v6 address: ENOTFOUND) | tls=none (no address from any source) | egress-v4=40.84.218.150 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region southcentralus cloud Azure
+
+## blackhole: as expected (13497ms)
+   expected: a connect-stage cause (connect, connect-budget or own-abort), whichever this network gives
+   observed: stage connect-budget, code UND_ERR_CONNECT_TIMEOUT
+   expected addresses: one found (the literal), with a settled TLS verdict
+   addresses: 1 found, 1 with a settled TLS verdict
+   egress-path: probe-error=TypeError "fetch failed" < ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT "Connect Timeout Error (attempted address: 192.0.2.1:443, timeout: 10000ms)" | cause=UND_ERR_CONNECT_TIMEOUT stage=connect-budget | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 192.0.2.1 0ms | dns-v6=ok no address of this family (the lookup returned 192.0.2.1) 0ms | public-v4=not attempted (the host is an IP literal) | view-west-v4=not attempted (the host is an IP literal) | view-east-v4=not attempted (the host is an IP literal) | connect-v4=192.0.2.1:443 no-connect-in-3000ms 3003ms | connect-v6=not attempted (the v6 lookup returned no address) | tls=192.0.2.1:443 no-connect-in-3000ms (tcp not completed) from system | egress-v4=40.84.218.150 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region southcentralus cloud Azure
+
+## refused: as expected (69ms)
+   expected: stage connect, code ECONNREFUSED
+   observed: stage connect, code ECONNREFUSED
+   expected addresses: one found (the literal), with a settled TLS verdict
+   addresses: 1 found, 1 with a settled TLS verdict
+   egress-path: probe-error=TypeError "fetch failed" < Error ECONNREFUSED connect 127.0.0.1:33313 | cause=ECONNREFUSED stage=connect | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.53 | dns-v4=ok 127.0.0.1 1ms | dns-v6=ok no address of this family (the lookup returned 127.0.0.1) 0ms | public-v4=not attempted (the host is an IP literal) | view-west-v4=not attempted (the host is an IP literal) | view-east-v4=not attempted (the host is an IP literal) | connect-v4=127.0.0.1:33313 ECONNREFUSED 9ms | connect-v6=not attempted (the v6 lookup returned no address) | tls=127.0.0.1:33313 ECONNREFUSED (tcp not completed) from system | egress-v4=40.84.218.150 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region southcentralus cloud Azure
+
+VERDICT: pass, 4 of 4 shapes as expected
