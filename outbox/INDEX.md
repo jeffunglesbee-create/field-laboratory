@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1985b7c` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `1985b7c` | 2026-11-15 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `1985b7c` | 2026-11-15 | [sport-vocabulary-2026-11-15T18-42-58-008Z.json](sport-vocabulary-2026-11-15T18-42-58-008Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `0010647` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `9fdcadc` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `824bd7c` | 2026-11-15 | [scout-rolling-pick-2026-11-15.md](scout-rolling-pick-2026-11-15.md) | feat: Scout's Pick skips finished games, so the pick rolls forward through the day |
 | `f0a78f0` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
