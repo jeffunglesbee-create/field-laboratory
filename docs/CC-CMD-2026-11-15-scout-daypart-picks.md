@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Questions 1 and 2 (the owner's standard ET windows), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; open: a morning window, games in no window, and 3 to 4. Not to be built until they are answered. Filing is not permission to build.
+**Status:** HELD for exploration. Questions 1 and 2 (the owner's standard ET windows), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; weekend morning windows added the same day; open: the shared 11:00 edge, games in no window, and 3 to 4. Not to be built until they are answered. Filing is not permission to build.
 
 ---
 
@@ -53,6 +53,11 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
    - Outside, by ET kickoff: 10:00 47 (EPL, Serie A, Ligue 1, FA Cup), 20:30 27 (NBA, NHL, MLS, CFB), 09:00 22, 09:30 20 (Bundesliga, NFL London), 17:00 14, 13:30 12, 16:25 9 and 16:05 5 (NFL late), 20:15 8 and 20:20 4 (NFL night), 10:30 8, 16:30 6, 16:15 6, 10:15 6, 08:00 6, 07:30 4, 06:30 3, and smaller.
    - Outside, by league: FA Cup 34 of 40, Bundesliga 25 of 36, EPL 23 of 40, Serie A 22 of 50, MLS 22 of 75, NFL 28 of 57, La Liga 16 of 41, CFB 18 of 297, NBA 13 of 200, NHL 3 of 207. The UEFA competitions fit (Champions League 36 of 36, Europa 35 of 36, Conference 35 of 36).
    Open with it: whether a window is added for European weekend mornings (119 games kick off before 11:00 ET, a few of them NFL London at 09:30), and what happens to a game in no window (left out of Deep Cuts, or joined to the nearest).
+   ANSWERED the same day by the owner: **"730am and 10am weekends as well for European soccer"**, i.e. on Saturdays and Sundays (the ET day) two more windows, 06:30-08:30 and 09:00-11:00. Measured again on the same 30 days:
+   - **1,154 in a window (92%), 100 in none**: 64 on weekends, 36 on weekdays.
+   - Still outside, by ET kickoff: 20:30 27 (16 weekday, 11 weekend: NBA, NHL, MLS, CFB), 17:00 14 (weekend: CFB, MLB, MLS, NBA, NHL), 16:05/16:15/16:25/16:30 25 (weekend NFL late games, CFB, MLS, CFL), 13:30 12 (7 weekend: CFB, MLS, La Liga, EPL, Bundesliga; 5 weekday Serie A), 20:15/20:20 12 (NFL night), 17:30 3, 10:30 2 (weekday Europa / Conference), 00:00 4 (PGA Tour).
+   - **The 10am window ends at 11:00, where the 12pm window begins**, so a weekend 11:00 kickoff is in two windows: 5 such games in the 30 days. Which one it belongs to is open.
+   Still open: the 11:00 edge, and the 100 games in no window.
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
 4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
