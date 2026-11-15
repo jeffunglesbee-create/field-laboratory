@@ -16,11 +16,16 @@
 // each leave a line in the log, or the instrument cannot see a launch and the verdict is NOT ESTABLISHED. The self-test adds the artifact the CC-CMD names: a copy of
 // scripts/axis-check.mjs whose `--self-test` is edited to launch is caught, and the real one is not.
 //
-// COVERAGE (Rule 91), printed in the verdict: `checked N of N commands`. NOT covered: a python script that launches (the guard reads those by text), a launch through a
-// browser binary run directly (no playwright), a launch through a Playwright API the stub does not define (`errors`, `selectors`, `request`: importing one fails at link time, a false
-// red, never a missed launch), and a command that fails before it reaches a launch (reported as not established, and fails the check). The trap reaches a child through NODE_OPTIONS, so
-// a child started with a NODE_OPTIONS that REPLACES the inherited one runs outside it: scripts/ is scanned for that (nodeOptionsReplacers, printed as `scanned N scripts`), and
-// scripts/proof-check.mjs, whose self-test did exactly that for two of its children, now appends (review 2026-11-15, finding 14).
+// COVERAGE (Rule 91), printed in the verdict: `checked N of N commands`, and N is PINNED (EXPECTED_COMMANDS): a guard or emitter edit that lists fewer commands, or more, makes the verdict not
+// ok until the pin is changed here, in the same commit (review 2026-11-15, round 4, finding 4: with only a floor of 20, 50 of the 70 could drop out and the run stayed green).
+// NOT covered: a python script that launches (the guard reads those by text), a launch through a browser binary run directly (no playwright), a launch through a Playwright API the stub
+// does not define (`errors`, `selectors`, `request`: importing one fails at link time, a false red, never a missed launch), a command that fails before it reaches a launch (reported as not
+// established, and fails the check), and a child whose whole environment is built without the variable (`env -i`, an env object that never names it): the trap is a text scan plus the runtime
+// controls there, not a measurement. The trap reaches a child through NODE_OPTIONS, so a child started with a NODE_OPTIONS that does not build on the inherited one runs outside it:
+// scripts/ (every .mjs, .cjs and .js under it, fixtures included; not .py or .sh, which start no Node child with an environment of their own, and not this file) is scanned for that
+// (nodeOptionsReplacers, printed as `scanned N scripts`), and the scan is DEFAULT-DENY: a line that names the variable is clean only in the one form the scripts use, the inherited value first
+// and flags of our own after it. scripts/proof-check.mjs, whose self-test replaced it for two of its children, now appends (review 2026-11-15, finding 14).
+// A launch made through a PATH to the library entry (`require('/abs/node_modules/playwright-core')`) is trapped as well: the hook stubs any resolution that lands inside the library from outside it.
 //
 //   node scripts/no-launch-check.mjs              (from the repository root; needs Node 22.15 or later, `npm ci`, the build, and python3 with PyYAML)
 //   node scripts/no-launch-check.mjs --self-test
@@ -35,7 +40,10 @@ import { createChecks, finish, isMain } from './checks.mjs'
 const ROOT = new URL('..', import.meta.url).pathname
 // scripts/mutation-lib.mjs --self-test waits on a fake compiler's timings and fails under CPU starvation (measured 2026-11-15: 4 of 40 runs, 8 loops at once on a machine already busy; 0 of 3 at width 4): alone, it is not measured under load.
 export const HEAVY = new Set(['scripts/mutation-check.mjs', 'scripts/mutation-lib.mjs'])
-export const MIN_COMMANDS = 20     // coverage is not vacuous: the guard prints 60-odd today, and an emitter that breaks must not read as "0 of 0 launched nothing"
+export const MIN_COMMANDS = 20     // coverage is not vacuous: an emitter that breaks must not read as "0 of 0 launched nothing"
+/** How many commands the guard's list holds today (`python3 scripts/check-browser-gate.py --plain-commands`, 2026-11-15). The list is the denominator of the verdict, so it is pinned: a command that drops out
+ *  of it is a command no longer measured, and a floor of 20 read that as green. Change this number WITH the step that adds or removes a browser-free self-test or read-only mode. */
+export const EXPECTED_COMMANDS = 70
 
 const TRAP_BODY = `const trap = what => async () => { require('node:fs').appendFileSync(process.env.LAUNCH_LOG, what + '\\n'); throw new Error('launch trapped: ' + what) }
 const type = n => ({ launch: trap(n + '.launch'), launchServer: trap(n + '.launchServer'), launchPersistentContext: trap(n + '.launchPersistentContext'), connect: trap(n + '.connect'), connectOverCDP: trap(n + '.connectOverCDP'), executablePath: () => '/nonexistent' })
@@ -53,9 +61,14 @@ export function makeTrap(dir) {
   writeFileSync(join(dir, 'stub.mjs'), STUB_ESM)
   writeFileSync(join(dir, 'hooks.cjs'), `const { registerHooks } = require('node:module')
 const ESM = ${JSON.stringify(pathToFileURL(join(dir, 'stub.mjs')).href)}, CJS = ${JSON.stringify(pathToFileURL(join(dir, 'stub.cjs')).href)}
+const stub = context => (context.conditions.includes('import') ? { url: ESM, format: 'module', shortCircuit: true } : { url: CJS, format: 'commonjs', shortCircuit: true })
+const INSIDE = /\\/node_modules\\/playwright(-core)?\\//, CODE = /\\.[cm]?js$/
 registerHooks({ resolve(specifier, context, nextResolve) {
-  if (specifier === 'playwright' || specifier === 'playwright-core') return context.conditions.includes('import') ? { url: ESM, format: 'module', shortCircuit: true } : { url: CJS, format: 'commonjs', shortCircuit: true }
-  return nextResolve(specifier, context)
+  if (specifier === 'playwright' || specifier === 'playwright-core') return stub(context)
+  const resolved = nextResolve(specifier, context)
+  // A PATH to the library's own files (\`require('/abs/node_modules/playwright-core')\`, a deep import) from code outside it: the same stub. The library's own requires of itself are left alone.
+  if (CODE.test(resolved.url) && INSIDE.test(resolved.url) && !INSIDE.test(context.parentURL ?? '')) return stub(context)
+  return resolved
 } })
 `)
   const opts = `${process.env.NODE_OPTIONS ?? ''} --require=${join(dir, 'hooks.cjs')}`.trim()
@@ -96,36 +109,50 @@ export async function pool(items, width, worker) {
   return results
 }
 
-/** The scripts that name NODE_OPTIONS on a line that does not build on the inherited one (`process.env.NODE_OPTIONS`): the trap reaches a child only through NODE_OPTIONS, so a child started with
- *  a value of its own, or with the variable removed, runs outside it. The WORD is what is looked for, in every spelling (`NODE_OPTIONS:`, a quoted key, the shorthand `{ NODE_OPTIONS }`, an assignment,
- *  `delete env.NODE_OPTIONS`), after a trailing comment is dropped (a mention in a comment is not code; `x // process.env.NODE_OPTIONS` does not make `x` safe). A comment line and the `find:`,
- *  `replace:` and `claim:` lines of the mutation table (the text of a mutation, not a call) are not code. NOT covered, said where the verdict is: an environment built without ever naming the
- *  variable (`env: { PATH }`, the key assembled from parts) is invisible to a scan of text; the runtime controls cover the path through NODE_OPTIONS and nothing else.
- *  This file builds the trap's own value from the inherited one on the line above, and is not scanned (review 2026-11-15, round 2, finding 9). */
+/** The scripts that name NODE_OPTIONS on a line that does not build on the inherited value: the trap reaches a child only through NODE_OPTIONS, so a child started with a value of its own, a filtered
+ *  copy of the inherited one, or the variable removed, runs outside it. DEFAULT-DENY (review 2026-11-15, round 4, finding 0): the first version looked for the spellings that replace it, and every spelling it
+ *  did not list read clean (a same-line read that strips the trap, a filter, `env -u`, `unset`, `Reflect.deleteProperty`, a computed key). Now a line that names the word is clean only when it holds the
+ *  one form the scripts use, `${process.env.NODE_OPTIONS ?? ''} --flag`: the inherited value first, flags of our own after it. Anything else is an offender, a message that only mentions the variable
+ *  included (say it without the word, or append). Not code, so not read: a comment line, a block-comment body, a trailing `// comment` (cut quote-aware: a ` // ` inside a string does not hide what
+ *  follows it, and a quote the cutter cannot pair leaves the line whole, the safe side), and the `find:`, `replace:` and `claim:` lines of the mutation table (the text of a mutation, not a call).
+ *  Covers every .mjs, .cjs and .js under `dir`, subdirectories included (scripts/fixtures), `node_modules` excepted. NOT covered, said where the verdict is: .py and .sh scripts, and an environment built
+ *  without ever naming the variable (`env -i`, `env: { PATH }`): invisible to a scan of text. This file builds the trap's own value on the line above and is not scanned. */
 export function nodeOptionsReplacers(dir, skip = ['no-launch-check.mjs']) {
-  const files = readdirSync(dir).filter(f => /\.(mjs|cjs|js)$/.test(f) && !skip.includes(f)).sort()
+  const list = (rel = '') => readdirSync(join(dir, rel), { withFileTypes: true }).flatMap(e => {
+    const path = rel ? `${rel}/${e.name}` : e.name
+    return e.isDirectory() ? (e.name === 'node_modules' ? [] : list(path)) : /\.(mjs|cjs|js)$/.test(e.name) ? [path] : []
+  })
+  const files = list().filter(f => !skip.includes(f)).sort()
   const offenders = []
-  const READS = /process\.env\.NODE_OPTIONS(?!\s*=(?!=))/                    // a read of the inherited value, not the target of an assignment
-  const DELETES = /\bdelete\b[^;\n]*\bNODE_OPTIONS\b/
-  const SETS = [/['"`]?\bNODE_OPTIONS['"`]?\s*:/, /\bNODE_OPTIONS\b['"\]]*\s*=(?!=)/, /[{,]\s*NODE_OPTIONS\s*[,}]/]    // a key, an assignment, the shorthand
+  const APPENDS = /\$\{process\.env\.NODE_OPTIONS \?\? ''\} --/
+  const withoutComment = line => {
+    let quote = null
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i]
+      if (quote) { if (c === '\\') i++; else if (c === quote) quote = null }
+      else if (c === '"' || c === "'" || c === '`') quote = c
+      else if (c === '/' && line[i + 1] === '/' && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i)
+    }
+    return line
+  }
   for (const f of files) {
     let inBlock = false
     readFileSync(join(dir, f), 'utf8').split('\n').forEach((raw, i) => {
       if (inBlock) { if (raw.includes('*/')) inBlock = false; return }
       if (/^\s*\/\*/.test(raw) && !raw.includes('*/')) { inBlock = true; return }
       if (/^\s*(\/\/|\*|\/\*)/.test(raw) || /^\s*(find|replace|claim)\s*:/.test(raw)) return
-      const line = raw.replace(/\s\/\/.*$/, '')
-      if (!/\bNODE_OPTIONS\b/.test(line)) return
-      if (DELETES.test(line) || (SETS.some(re => re.test(line)) && !READS.test(line))) offenders.push(`scripts/${f}:${i + 1}`)
+      const line = withoutComment(raw)
+      if (/\bNODE_OPTIONS\b/.test(line) && !APPENDS.test(line)) offenders.push(`scripts/${f}:${i + 1}`)
     })
   }
   return { files: files.length, offenders }
 }
 
-/** The verdict from the measurements: ok only when every command exited 0 with no launch, every control saw one, the list was not vacuous, and (when it was scanned) no script replaces NODE_OPTIONS. */
-export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = null) {
+/** The verdict from the measurements: ok only when every command exited 0 with no launch, every control saw one, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned) no script replaces NODE_OPTIONS. */
+export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = null, expected = null) {
   const problems = []
   if (results.length < minCommands) problems.push(`only ${results.length} command(s) were measured, fewer than the ${minCommands} this check expects: the list is not trustworthy`)
+  if (expected !== null && results.length !== expected) problems.push(`the guard listed ${results.length} command(s) and this check pins ${expected} (EXPECTED_COMMANDS): a command that drops out of the list is no longer measured, one that joins it is not yet pinned; change the pin with the step that changed the list`)
   const blind = controls.filter(c => c.launches.length === 0)
   if (blind.length) problems.push(`the instrument cannot see a launch: ${blind.map(c => c.name).join(', ')} left no line in the log (NOT ESTABLISHED)`)
   for (const r of results) {
@@ -135,7 +162,8 @@ export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = 
   for (const o of scan?.offenders ?? []) problems.push(`${o} starts a child with a NODE_OPTIONS that replaces the inherited one, so the trap does not reach it (append: \`\${process.env.NODE_OPTIONS ?? ''} --require ...\`)`)
   const clean = results.filter(r => r.exit === 0 && r.launches.length === 0).length
   const line = `checked ${results.length} of ${results.length} commands: ${clean} exited 0 with 0 launches; controls: ${controls.length - blind.length} of ${controls.length} saw a launch`
-    + (scan ? `; scanned ${scan.files} scripts for a NODE_OPTIONS that replaces the trap's: ${scan.offenders.length} found` : '')
+    + (expected !== null ? `; the guard's list is the pinned ${expected}` : '')
+    + (scan ? `; scanned ${scan.files} scripts for a NODE_OPTIONS that replaces the trap's: ${scan.offenders.length} found (.mjs/.cjs/.js under scripts/, this file and .py/.sh excepted)` : '')
   return { ok: problems.length === 0, problems, line }
 }
 
@@ -162,7 +190,7 @@ function plainCommands() {
 }
 
 /** The whole measurement over `cmds` ([{ cmd, why }]): the controls first, then every command through the same runner, and the verdict. Prints through `say`; returns the exit status main() uses. */
-export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, cwd = ROOT, scan = null, say = console.log }) {
+export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, expected = null, cwd = ROOT, scan = null, say = console.log }) {
   const controls = await runControls(join(dir, 'controls'), trap)
   for (const c of controls) say(`  control ${c.launches.length ? 'LAUNCHED' : 'NOT SEEN '}  ${c.name}  (${c.launches.length} line(s): ${[...new Set(c.launches)].join(', ') || 'none'})`)
   // The commands that start many processes of their own and wait on timings run first and alone; the rest run a few at a time.
@@ -172,12 +200,16 @@ export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, cw
   for (const c of heavy) { const r = await runTrapped(c.cmd, trap, results.length, cwd); results.push(r); show(c, r) }
   const rest = await pool(light, width, async (c, i) => { const r = await runTrapped(c.cmd, trap, heavy.length + i, cwd); show(c, r); return r })
   results.push(...rest)
-  const v = verdictOf(results, controls, floor, scan)
+  const v = verdictOf(results, controls, floor, scan, expected)
   for (const p of v.problems) say(`FAIL: ${p}`)
   say(`\n${v.line}`)
   say(v.ok ? 'verdict: no browser-free self-test or declared read-only mode launches a browser' : 'verdict: NOT ESTABLISHED OR VIOLATED')
   return { exit: v.ok ? 0 : 1, v, results, controls }
 }
+
+/** What main() asks of measure(): `--commands FILE` measures a list of its own (a floor of one command, nothing pinned, no scan of scripts/), and the guard's list is held to the floor, to the pinned count and to the scan.
+ *  A function of its own so the self-test asserts the options themselves, not a regex over this file's text (review 2026-11-15, round 4, finding 5). */
+export const mainOptions = file => (file ? { floor: 1, expected: null, scan: false } : { floor: MIN_COMMANDS, expected: EXPECTED_COMMANDS, scan: true })
 
 async function main() {
   if (!trapSupported()) { console.log(`NOT ESTABLISHED: this Node (${process.version}) has no module.registerHooks (22.15 or later is needed), and there is no weaker trap to fall back to`); process.exit(2) }
@@ -188,7 +220,8 @@ async function main() {
   const file = process.argv.includes('--commands') ? process.argv[process.argv.indexOf('--commands') + 1] : null
   const cmds = file ? JSON.parse(readFileSync(file, 'utf8')) : plainCommands()
   const width = Number(process.env.NO_LAUNCH_JOBS ?? Math.min(4, availableParallelism()))
-  const r = await measure({ cmds, trap, dir, width, ...(file ? { floor: 1 } : {}), scan: file ? null : nodeOptionsReplacers(join(ROOT, 'scripts')) })
+  const o = mainOptions(file)
+  const r = await measure({ cmds, trap, dir, width, floor: o.floor, expected: o.expected, scan: o.scan ? nodeOptionsReplacers(join(ROOT, 'scripts')) : null })
   process.exit(r.exit)
 }
 
@@ -228,6 +261,29 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const failing = await run(put('failing.mjs', `process.exit(3)\n`))
     check('a command that exits non-zero is measured, with its status', failing.exit === 3 && failing.launches.length === 0, JSON.stringify(failing))
 
+    // THE STUB'S MEMBERS, every one, through both module systems (review 2026-11-15, round 4, finding 3: `connect`, `firefox` and `webkit` could be deleted from the stub with the self-test green, and a script
+    // that swallows the resulting TypeError read as 0 launches). The expected lines are a LITERAL list, so deleting a member from the stub deletes a line from the log and not from the expectation.
+    const ALL_TRAPS = ['chromium.launch', 'chromium.launchServer', 'chromium.launchPersistentContext', 'chromium.connect', 'chromium.connectOverCDP',
+      'firefox.launch', 'firefox.launchServer', 'firefox.launchPersistentContext', 'firefox.connect', 'firefox.connectOverCDP',
+      'webkit.launch', 'webkit.launchServer', 'webkit.launchPersistentContext', 'webkit.connect', 'webkit.connectOverCDP',
+      '_electron.launch', '_electron.connect', '_android.launch', '_android.connect']
+    const callAll = `for (const c of ${JSON.stringify(ALL_TRAPS)}) { const [a, m] = c.split('.'); try { await pw[a][m]({}) } catch {} }\n`
+    const allEsm = await run(put('all.mjs', `import * as pw from 'playwright'\n${callAll}`))
+    const allCjs = await run(put('all.cjs', `const pw = require('playwright')\n;(async () => {\n${callAll}})()\n`))
+    const sameSet = (got, want) => JSON.stringify([...got].sort()) === JSON.stringify([...want].sort())
+    check('EVERY MEMBER OF THE STUB IS A TRAP in both module systems: the three browsers\' five launching calls and the two apps\' two (19), each leaving its own line',
+      sameSet(allEsm.launches, ALL_TRAPS) && sameSet(allCjs.launches, ALL_TRAPS), `esm: ${JSON.stringify(allEsm.launches)}; cjs: ${JSON.stringify(allCjs.launches)}`)
+    const envLine = await run(put('env.cjs', `const fs = require('fs'); const p = process.env.PLAYWRIGHT_BROWSERS_PATH, c = process.env.PW_CHROMIUM\nconsole.log(JSON.stringify([p, c, fs.existsSync(String(p)), fs.existsSync(String(c))]))\n`))
+    const envSeen = (() => { try { return JSON.parse(envLine.last) } catch { return [] } })()
+    check('NO BROWSER IS ON DISK FOR A COMMAND: PLAYWRIGHT_BROWSERS_PATH and PW_CHROMIUM reach it, point under the trap directory, and name nothing that exists',
+      typeof envSeen[0] === 'string' && typeof envSeen[1] === 'string' && envSeen[0].startsWith(join(dir, 'trap')) && envSeen[1].startsWith(join(dir, 'trap')) && envSeen[2] === false && envSeen[3] === false, envLine.last)
+    // A PATH to the library entry is the same library: it is stubbed too (round 4, finding 7: `require('/abs/node_modules/playwright-core')` loaded the real one, and a swallowed launch read as 0 launches).
+    let libEntry = null
+    try { libEntry = nodeModule.createRequire(join(ROOT, 'package.json')).resolve('playwright-core') } catch { libEntry = null }
+    const byPath = libEntry && await run(put('bypath.cjs', `try { require(${JSON.stringify(libEntry)}).chromium.launch().catch(() => {}) } catch {}\ntry { import(${JSON.stringify(pathToFileURL(libEntry).href)}).then(m => (m.chromium ?? m.default.chromium).launch()).catch(() => {}) } catch {}\n`))
+    check('A LAUNCH THROUGH A PATH TO THE LIBRARY ENTRY IS A LAUNCH (require of the absolute path, import of its file URL): two lines, not the real library',
+      Boolean(libEntry) && byPath.launches.length === 2 && byPath.launches.every(l => l === 'chromium.launch'), libEntry ? JSON.stringify(byPath) : 'playwright-core is not installed here (npm ci)')
+
     // THE VERDICT
     const okControls = controls.map(c => ({ ...c }))
     const cmd = f => ['node', f]
@@ -243,26 +299,61 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('a scanned scripts directory is part of the verdict: an offender makes it not ok, and the line says how many scripts were scanned',
       !verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).ok && /NODE_OPTIONS that replaces/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).problems[0])
         && verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).ok && /scanned 5 scripts for a NODE_OPTIONS that replaces the trap's: 0 found/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).line))
+    // A COMMAND KILLED BY A SIGNAL has no exit status at all (`null`), and the timeout path is exactly that: it is not a clean command, whatever a comparison with 0 makes of null (round 4, finding 2: `r.exit > 0`
+    // and `exit ?? 0` left the self-test green with a killed command read as ok).
+    const killed = await run(put('killed.mjs', `process.kill(process.pid, 'SIGKILL')\n`))
+    const verdictKilled = verdictOf([killed, ...mk(29)], okControls)
+    check('A COMMAND KILLED BY A SIGNAL IS NOT A CLEAN COMMAND: its exit is null and the signal is named, the verdict is not ok and names the signal, and the closing line does not count it among those that exited 0',
+      killed.exit === null && killed.signal === 'SIGKILL' && !verdictKilled.ok && /did not complete \(exit null, SIGKILL/.test(verdictKilled.problems[0]) && /: 29 exited 0 with 0 launches/.test(verdictKilled.line), JSON.stringify({ exit: killed.exit, signal: killed.signal, problems: verdictKilled.problems }))
+    const slow = await runTrapped([process.execPath, put('slow.mjs', `setTimeout(() => {}, 8000)\n`)], trap2, 'st-timeout', work, 400)
+    check('THE TIMEOUT KILLS THE COMMAND: one that would run 8 s is ended after the 0.4 s it is given, by SIGKILL, and the verdict over it is not ok',
+      slow.signal === 'SIGKILL' && slow.exit === null && slow.seconds < 6 && !verdictOf([slow, ...mk(29)], okControls).ok, JSON.stringify({ exit: slow.exit, signal: slow.signal, seconds: slow.seconds }))
+    // THE DENOMINATOR IS PINNED (round 4, finding 4): the list the guard prints is the thing measured, and a floor of 20 let 50 of its 70 commands drop out of it with the run green.
+    const pinned = verdictOf(mk(50), okControls, 20, null, 70)
+    check('A LIST OF ANOTHER SIZE THAN THE PIN IS NOT OK: 50 of a pinned 70 and 71 of 70 each fail naming both numbers, the pinned size passes and says so, and no pin (the `--commands` list) asks nothing of the size',
+      !pinned.ok && /listed 50 command\(s\) and this check pins 70/.test(pinned.problems[0]) && !verdictOf(mk(71), okControls, 20, null, 70).ok && verdictOf(mk(70), okControls, 20, null, 70).ok
+        && /the guard's list is the pinned 70/.test(verdictOf(mk(70), okControls, 20, null, 70).line) && verdictOf(mk(30), okControls).ok, JSON.stringify(pinned.problems))
+    const live = spawnSync('python3', ['scripts/check-browser-gate.py', '--plain-commands'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
+    check('THE PIN IS THE GUARD\'S COUNT TODAY: `python3 scripts/check-browser-gate.py --plain-commands` lists exactly EXPECTED_COMMANDS commands (change the constant with the step that changes the list)',
+      live.status === 0 && (() => { try { return JSON.parse(live.stdout).length === EXPECTED_COMMANDS } catch { return false } })(), `status ${live.status}; ${live.stderr.slice(0, 200)}`)
 
-    // A CHILD STARTED WITH A NODE_OPTIONS OF ITS OWN runs outside the trap, so scripts/ is scanned for one (review 2026-11-15, finding 14: scripts/proof-check.mjs did it for two children)
+    // A CHILD STARTED WITHOUT THE TRAP'S NODE_OPTIONS runs outside the trap, so scripts/ is scanned for one, DEFAULT-DENY: a line that names the variable is clean only in the appending form
+    // (review 2026-11-15, finding 14: scripts/proof-check.mjs replaced it for two children; round 4, finding 0: a same-line read that strips the trap, a filter, `env -u`, `unset`, `Reflect.deleteProperty` and a
+    // computed key all read clean under the first scan). The expected offenders are a LITERAL list, and the clean files a literal list too, so a regex that stops finding a spelling loses an offender and not a fixture.
     const scanDir = join(dir, 'scan')
-    mkdirSync(scanDir)
-    for (const [name, line] of Object.entries({
+    mkdirSync(join(scanDir, 'sub'), { recursive: true })
+    const OFFENDING = {
       'replaces.mjs': "go({ NODE_OPTIONS: '--require x' })", 'quoted.mjs': "go({ 'NODE_OPTIONS': '--require x' })", 'quoted2.mjs': 'go({ "NODE_OPTIONS": "--require x" })',
       'shorthand.mjs': 'const NODE_OPTIONS = "--require x"; go({ NODE_OPTIONS })', 'assign.mjs': "env.NODE_OPTIONS = '--require x'", 'delete.mjs': 'delete env.NODE_OPTIONS',
-      'trailing.mjs': "go({ NODE_OPTIONS: '--require x' }) // process.env.NODE_OPTIONS",
+      'trailing.mjs': "go({ NODE_OPTIONS: '--require x' }) // ${process.env.NODE_OPTIONS ?? ''} --require",
       'envassign.mjs': "process.env.NODE_OPTIONS = '--require x'", 'envdelete.mjs': 'delete process.env.NODE_OPTIONS',
-    })) writeFileSync(join(scanDir, name), `${line}\n`)
+      'message.mjs': "console.log('NODE_OPTIONS is not set')",
+      // the spellings the first scan read as clean
+      'sameline.mjs': "go({ ...process.env, NODE_OPTIONS: process.env.NODE_OPTIONS?.replace(/--require=\\S+/g, '') })",
+      'filter.mjs': "go(Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_OPTIONS')))",
+      'envu.mjs': 'execSync("env -u NODE_OPTIONS node x.mjs")', 'unset.mjs': 'execSync("unset NODE_OPTIONS; node x.mjs")',
+      'reflect.mjs': 'Reflect.deleteProperty(env, "NODE_OPTIONS")', 'computed.mjs': 'go({ ["NODE_OPTIONS"]: "--x" })',
+      'andread.mjs': "go({ NODE_OPTIONS: process.env.NODE_OPTIONS && '--x' })",
+      // the three parts of the old regexes no fixture reached
+      'bracket.mjs': "env['NODE_OPTIONS'] = ''", 'comma.mjs': 'go({ ...process.env, NODE_OPTIONS })', 'hidden.mjs': "go({ a: 'x // y', NODE_OPTIONS: '--x' })",
+      'script.cjs': "env.NODE_OPTIONS = ''", 'script.js': "env.NODE_OPTIONS = ''", 'sub/deep.mjs': "env.NODE_OPTIONS = ''",
+    }
+    for (const [name, line] of Object.entries(OFFENDING)) writeFileSync(join(scanDir, name), `${line}\n`)
+    const CLEAN = ['envappend.mjs', 'inherits.mjs', 'mentions.mjs', 'table.mjs']
     writeFileSync(join(scanDir, 'envappend.mjs'), "process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require x`\n")
-    writeFileSync(join(scanDir, 'message.mjs'), "console.log('NODE_OPTIONS is not set')\nconst usage = `set NODE_OPTIONS to the trap`\n/*\n  NODE_OPTIONS: a block comment\n*/\n")
     writeFileSync(join(scanDir, 'inherits.mjs'), "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })\n")
-    writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\n/* NODE_OPTIONS: a block comment */\n * NODE_OPTIONS: a doc comment line\n")
+    writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\n/* NODE_OPTIONS: a block comment */\n * NODE_OPTIONS: a doc comment line\n/*\n  NODE_OPTIONS: a block comment body\n*/\n")
     writeFileSync(join(scanDir, 'table.mjs'), '  {\n    claim: "a child keeps NODE_OPTIONS",\n    find: "go({ NODE_OPTIONS: x })",\n    replace: "go({ NODE_OPTIONS: y })",\n  },\n')
+    writeFileSync(join(scanDir, 'notes.txt'), 'env.NODE_OPTIONS = ""\n')                       // not a script: its extension is not read
+    mkdirSync(join(scanDir, 'node_modules'), { recursive: true })
+    writeFileSync(join(scanDir, 'node_modules', 'dep.mjs'), 'env.NODE_OPTIONS = ""\n')          // a dependency is not ours
     const scanned = nodeOptionsReplacers(scanDir)
-    check('SCAN: a line that names NODE_OPTIONS without building on the inherited one is found in every spelling (key, quoted key, shorthand, assignment, delete, a trailing comment that mentions it) with its line; one that appends, a comment, and the claim, find and replace text of a mutation table are not',
-      JSON.stringify(scanned) === JSON.stringify({ files: 14, offenders: ['scripts/assign.mjs:1', 'scripts/delete.mjs:1', 'scripts/envassign.mjs:1', 'scripts/envdelete.mjs:1', 'scripts/quoted.mjs:1', 'scripts/quoted2.mjs:1', 'scripts/replaces.mjs:1', 'scripts/shorthand.mjs:1', 'scripts/trailing.mjs:1'] }), JSON.stringify(scanned))
+    const EXPECTED_OFFENDERS = ['assign.mjs', 'delete.mjs', 'envassign.mjs', 'envdelete.mjs', 'quoted.mjs', 'quoted2.mjs', 'replaces.mjs', 'shorthand.mjs', 'trailing.mjs', 'message.mjs',
+      'sameline.mjs', 'filter.mjs', 'envu.mjs', 'unset.mjs', 'reflect.mjs', 'computed.mjs', 'andread.mjs', 'bracket.mjs', 'comma.mjs', 'hidden.mjs', 'script.cjs', 'script.js', 'sub/deep.mjs'].map(f => `scripts/${f}:1`).sort()
+    check('SCAN, DEFAULT-DENY: 23 files that name NODE_OPTIONS in a way that does not append to the inherited value are found (every spelling the first scan read as clean, the three parts of its regexes no fixture reached, a .cjs, a .js and a subdirectory), each with its line; the appending form, comments, the mutation table\'s text, a .txt and node_modules are not',
+      JSON.stringify(scanned) === JSON.stringify({ files: 27, offenders: EXPECTED_OFFENDERS }) && Object.keys(OFFENDING).length === 23 && CLEAN.length === 4, JSON.stringify(scanned))
     const real = nodeOptionsReplacers(join(ROOT, 'scripts'))
-    check('...and no script in scripts/ replaces it (proof-check.mjs did, for two of its children)', real.offenders.length === 0 && real.files >= 50, JSON.stringify(real))
+    check('...and no script in scripts/ names it without appending to the inherited value (proof-check.mjs did, for two of its children)', real.offenders.length === 0 && real.files >= 50, JSON.stringify(real))
 
     // THE NODE VERSION GUARD: reachable. A named import of registerHooks is a link error on a Node without it, before any message.
     check('A NODE WITHOUT registerHooks IS REPORTED, not a link error: the test is `typeof` on the namespace', trapSupported({}) === false && trapSupported({ registerHooks() {} }) === true && trapSupported() === true, `this Node ${process.version}`)
@@ -289,13 +380,23 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('...each command has a log of its own: of three, the one that launches is the one named, and the two that do not are not charged with it',
       mainMixed.status === 1 && problemLines.length === 1 && /m-b\.mjs/.test(problemLines[0]) && okLines.length === 2 && /1 launch\(es\)/.test(problemLines[0]) && /checked 3 of 3 commands: 2 exited 0 with 0 launches/.test(mainMixed.out),
       `exit ${mainMixed.status}; ${mainMixed.out.slice(-400)}`)
-    check('MAIN ASKS THE GUARD\'S FLOOR OF THE REAL LIST: it passes a floor of its own only with `--commands` (so the default, MIN_COMMANDS, applies to the guard\'s list)',
-      /const r = await measure\(\{ cmds, trap, dir, width, \.\.\.\(file \? \{ floor: 1 \} : \{\}\), scan:/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')), 'main() must not pass floor: 1 for the guard\'s own list')
+    check('MAIN ASKS OF THE GUARD\'S LIST WHAT IT ASKS, not of `--commands`: a floor of MIN_COMMANDS, the pinned count and the scan of scripts/; `--commands FILE` asks a floor of one command, no pin and no scan',
+      JSON.stringify(mainOptions(null)) === JSON.stringify({ floor: MIN_COMMANDS, expected: EXPECTED_COMMANDS, scan: true }) && JSON.stringify(mainOptions('f.json')) === '{"floor":1,"expected":null,"scan":false}', JSON.stringify([mainOptions(null), mainOptions('f.json')]))
     const mainEmpty = mainOver('empty', [])
     check('...and an empty list exits 1 (a list that measured nothing is not a pass)', mainEmpty.status === 1 && /only 0 command\(s\) were measured/.test(mainEmpty.out), `exit ${mainEmpty.status}; ${mainEmpty.out.slice(-200)}`)
     // The floor of the guard's own list is MIN_COMMANDS, and `main()` applies it to the real list: measure() with that floor, not main()'s `--commands` one.
     const floored = await measure({ cmds: [{ cmd: [process.execPath, put('m-d.mjs', `console.log('d')\n`)], why: 'self-test' }], trap: trap2, dir: join(dir, 'floor'), width: 1, say: () => {} })
-    check('THE COMMANDS THAT WAIT ON TIMINGS ARE MEASURED FIRST AND ALONE: the mutation harness and the compile watcher\'s self-test', HEAVY.has('scripts/mutation-check.mjs') && HEAVY.has('scripts/mutation-lib.mjs') && HEAVY.size === 2, [...HEAVY].join())
+    check('THE COMMANDS THAT WAIT ON TIMINGS ARE THE MUTATION HARNESS AND THE COMPILE WATCHER\'S SELF-TEST', HEAVY.has('scripts/mutation-check.mjs') && HEAVY.has('scripts/mutation-lib.mjs') && HEAVY.size === 2, [...HEAVY].join())
+    // ...and they are MEASURED FIRST AND ALONE (round 4, finding 6: `heavy = []` left the self-test green and put the timing-sensitive command back in the pool). Four scripts that each take 300 ms and log their
+    // start and end; the one named like the harness is listed in the middle, and no other may have started before it ended.
+    const orderDir = join(dir, 'order')
+    mkdirSync(join(orderDir, 'scripts'), { recursive: true })
+    const stamp = n => `import { appendFileSync } from 'node:fs'\nconst t0 = Date.now()\nawait new Promise(r => setTimeout(r, 300))\nappendFileSync(${JSON.stringify(join(orderDir, 'order.log'))}, ${JSON.stringify(n)} + ' ' + t0 + ' ' + Date.now() + '\\n')\n`
+    for (const n of ['mutation-check', 'l0', 'l1', 'l2', 'l3']) writeFileSync(join(orderDir, 'scripts', `${n}.mjs`), stamp(n))
+    await measure({ cmds: ['l0', 'l1', 'mutation-check', 'l2', 'l3'].map(n => ({ cmd: [process.execPath, `scripts/${n}.mjs`], why: 'self-test' })), trap: trap2, dir: join(dir, 'order-run'), width: 4, floor: 1, cwd: orderDir, say: () => {} })
+    const stamps = Object.fromEntries(readFileSync(join(orderDir, 'order.log'), 'utf8').split('\n').filter(Boolean).map(l => { const [n, a, b] = l.split(' '); return [n, [Number(a), Number(b)]] }))
+    check('THE HARNESS\'S COMMAND IS MEASURED FIRST AND ALONE: of five commands it started first, ended, and only then did the others start',
+      Object.keys(stamps).length === 5 && ['l0', 'l1', 'l2', 'l3'].every(n => stamps[n][0] >= stamps['mutation-check'][1]), JSON.stringify(stamps))
     check('THE FLOOR OF THE GUARD\'S LIST (MIN_COMMANDS, 20) is what measure() asks by default: one clean command is not enough, whatever it measured', floored.exit === 1 && /fewer than the 20/.test(floored.v.problems[0]) && MIN_COMMANDS === 20, JSON.stringify(floored.v.problems))
 
     // THE ARTIFACT THE CC-CMD NAMES: scripts/axis-check.mjs with its `--self-test` edited to launch is caught, and the real one is not
