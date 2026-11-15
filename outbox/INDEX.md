@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8f9ba58` | 2026-11-15 | [scout-coinflip-gate-2026-11-15.md](scout-coinflip-gate-2026-11-15.md) | feat: Scout's Pick gains Gate E, a coin-flip pre-game market, from the moneylines the payload already carries |
+| `58def9f` | 2026-11-15 | [pickem-lock-lines-groups-2026-11-15.md](pickem-lock-lines-groups-2026-11-15.md) | feat: Pick'em locks picks at kickoff, shows each side's served line, and groups rows open / under way / settled |
 | `9f691bc` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
 | `9f691bc` | 2026-11-15 | [sport-vocabulary-2026-11-15T08-00-29-873Z.json](sport-vocabulary-2026-11-15T08-00-29-873Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
 | `bc7a6f1` | 2026-11-14 | [cc-session-2026-11-14-tls-stage.md](cc-session-2026-11-14-tls-stage.md) | docs: the TLS stage's session record names all three clock errors, not two |
