@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8807ffb` | 2026-11-15 | [outlet-registry-2026-11-15.md](outlet-registry-2026-11-15.md) | feat: Scout's broadcast registry knows every outlet on the 11-14 slate, by the owner's classification |
+| `2e4c205` | 2026-11-15 | [drama-not-scored-2026-11-15.md](drama-not-scored-2026-11-15.md) | fix: the relay's drama 0 is read as its "cannot be scored" mark, and the stats panel says so |
 | `ecae613` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `247ec33` | 2026-11-15 | [pick-pass-closest-2026-11-15.md](pick-pass-closest-2026-11-15.md) | feat: on a pass night Field's Pick shows what came closest, from the relay's own ranked list |
 | `461ff94` | 2026-11-14 | [tls-stage-premise-2026-11-14.txt](tls-stage-premise-2026-11-14.txt) | docs: CC-CMD for the weather failure's TLS stage and every address, filed on 14 runner runs of premises |

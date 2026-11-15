@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `247ec33` — but that is not `main` HEAD
+**running** on `8807ffb`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `247ec33` at "A finished game shows the brief written after it finished" — 1 of 17 steps did not run behind it — [run 43671813126](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43671813126)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `8807ffb` — failing step unknown: the run's steps could not be read — [run 43672876685](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43672876685)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `247ec33` — newest deployable ✓ |
+| Cloudflare Workers | live | `247ec33` — behind newest deployable `8807ffb` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
