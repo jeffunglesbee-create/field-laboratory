@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `17dc13a` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 58e81d2 [skip ci] |
+| `b8b43f0` | 2026-11-15 | [live-check-schedule-sweep-2026-11-15.txt](live-check-schedule-sweep-2026-11-15.txt) | docs: live-check's daily beat observed the brief rule in 0 of 20 runs, filed with its measurement |
+| `3aea19d` | 2026-11-15 | [push-lands-pyyaml-message-2026-11-15.txt](push-lands-pyyaml-message-2026-11-15.txt) | fix: check-push-lands.py says what to install when PyYAML is missing |
+| `58e81d2` | 2026-11-15 | [hook-runs-the-workflow-guards-proof-2026-11-15.txt](hook-runs-the-workflow-guards-proof-2026-11-15.txt) | ci: the pre-commit hook runs the two guards that parse workflow YAML |
+| `6623066` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | ci: live-check takes an optional brief_date, so a finished day can be replayed |
+| `7bfaf77` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | fix: the brief-phase check finds a game's cards by the game's id, not by team name |
+| `1e9176a` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | fix: the brief-phase evidence names every card the verdict looked at |
+| `471dc3c` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | test: the brief-phase self-test reproduces the 2026-11-14 collisions |
+| `b00a144` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `410fbd8` | 2026-11-15 | [brief-hook-premises-2026-11-15.txt](brief-hook-premises-2026-11-15.txt) | docs: file the brief-phase card-identity and hook-runs-the-guards CC-CMDs, with the premises tested first |
 | `8f9ba58` | 2026-11-15 | [scout-coinflip-gate-2026-11-15.md](scout-coinflip-gate-2026-11-15.md) | feat: Scout's Pick gains Gate E, a coin-flip pre-game market, from the moneylines the payload already carries |
 | `58def9f` | 2026-11-15 | [pickem-lock-lines-groups-2026-11-15.md](pickem-lock-lines-groups-2026-11-15.md) | feat: Pick'em locks picks at kickoff, shows each side's served line, and groups rows open / under way / settled |
 | `9f691bc` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
