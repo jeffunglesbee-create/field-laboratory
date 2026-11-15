@@ -2398,10 +2398,10 @@ def self_test():
           read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows)["browser"] is True and
           read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows, no_browser_ok=True)["browser"] is False)
     # The declaration alone: a runner of the rows whose text names neither gate-checks.mjs nor a row's `run` (a text rule cannot see it) is a browser step by RUNS_ROWS, and by nothing else.
-    read_decl = lambda q: "console.log(1)\n" if q in RUNS_ROWS else files[q]
     # LITERAL lists below, each checked equal to the constant: a loop over the constant itself loses a fixture with every member a mutation deletes (found by the third review's evidence pass:
     # 15 of the 20 wrapper heads, 8 of 9 not-work flags and the RUNS_ROWS entries could be deleted with the self-test green).
     PINNED_RUNNERS = ("scripts/confidence.mjs", "scripts/run-row.mjs")
+    read_decl = lambda q: "console.log(1)\n" if q in PINNED_RUNNERS else files[q]            # the LITERAL list: RUNS_ROWS here would lose the fixture with the entry a change deletes
     check("every runner of the rows that RUNS_ROWS declares is pinned by a fixture of its own (the list below is literal)", set(PINNED_RUNNERS) == set(RUNS_ROWS), sorted(RUNS_ROWS))
     for runner in PINNED_RUNNERS:
         check(f"{runner} is a browser step by DECLARATION even when its text shows no row being run (the content rule cannot see it)", needs_browser({"run": f"node {runner} x"}, pkg, read_decl) is True, runner)
