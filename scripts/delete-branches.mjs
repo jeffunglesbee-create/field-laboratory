@@ -44,7 +44,11 @@ export const existing = (names, remote, cwd) => {
  *  A deletion that throws is NAMED and does not stop the list: the names after it are still tried, and what is left is asked of the remote at the end (review 2026-11-15, finding 18: the first
  *  failure ended the run, with the rest untried and no account of what was left). */
 /** The last lines git printed, which carry the reason: the final one is the generic `error: failed to push some refs`, and the `remote:` and `[remote rejected]` lines above it say why. */
-export const reasonOf = e => String(e.stderr ?? e.message ?? e).split('\n').map(l => l.trim()).filter(Boolean).slice(-6).join(' | ')
+export const reasonOf = e => {
+  const lines = String(e.stderr ?? '').split('\n').map(l => l.trim()).filter(Boolean).slice(-6)
+  const base = lines.length ? lines.join(' | ') : String(e.message ?? e).trim().split('\n')[0]
+  return e.signal ? `${base} (signal ${e.signal})` : base
+}
 
 export const apply = (names, remote, cwd, push = git) => {
   const before = existing(names, remote, cwd)
@@ -123,6 +127,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const again = apply(['proof-a'], 'origin', work)
       check('...and running it again deletes nothing and fails nothing', again.deleted.length === 0 && again.absent.length === 1 && again.left.length === 0, JSON.stringify(again))
     } finally { rmSync(dir, { recursive: true, force: true }) }
+    check('A FAILURE WITH NO STDERR KEEPS ITS MESSAGE AND SIGNAL (git killed, or no output at all)', reasonOf({ stderr: '', message: 'Command failed: git push origin :refs/heads/x', signal: 'SIGTERM' }) === 'Command failed: git push origin :refs/heads/x (signal SIGTERM)' && reasonOf({ stderr: 'a\nb\n' }) === 'a | b', reasonOf({ stderr: '', message: 'm', signal: 'SIGTERM' }))
     check('THE EXIT: red when a branch is left or a deletion failed, green otherwise, and main() ends through it',
       exitFor({ left: [], failed: [] }) === 0 && exitFor({ left: ['proof-a'], failed: [] }) === 1 && exitFor({ left: [], failed: [{ name: 'proof-a' }] }) === 1 && exitFor({ left: ['proof-a'], failed: [{ name: 'proof-a' }] }) === 1
         && (src => src.slice(src.indexOf('const main = () => {'), src.indexOf('// --- self-test')).split('process.exit(exitFor(r))').length === 2)((await import('node:fs')).readFileSync(fileURLToPath(import.meta.url), 'utf8')), 'a deletion that failed must not end green')

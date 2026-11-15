@@ -140,25 +140,29 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => []\n`)
       fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: 'a'.repeat(40), dirty: false, id: 'standin' })\n`)
       fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
-      const standIn = failing => `export const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\nexport const rows = [\n  { name: 'good', weight: 990, run: () => true },\n`
-        + `${failing ? "  { name: 'bad', weight: 10, run: () => false },\n" : ''}  { name: 'browser', weight: 5, skipQuick: true, browser: true, run: () => true },\n]\n`
-      const go = (failing, ...flags) => {
-        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(failing))
+      const standIn = (failing, extra = '') => `export const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\nexport const rows = [\n  { name: 'good', weight: 990, run: () => true },\n`
+        + `${failing ? "  { name: 'bad', weight: 10, run: () => false },\n" : ''}${extra}  { name: 'browser', weight: 5, skipQuick: true, browser: true, run: () => true },\n]\n`
+      const go = (failing, flags = [], extra = '') => {
+        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(failing, extra))
         fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true })
         const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000 })
         let rec = null
         try { rec = JSON.parse(fs.readFileSync(join(scratch, 'docs', 'confidence-log.jsonl'), 'utf8').trim().split('\n').pop()) } catch { rec = null }
         return { status: r.status, out: `${r.stdout}${r.stderr}`, rec }
       }
-      const red = { full: go(true), quick: go(true, '--quick'), browserless: go(true, '--browserless') }
+      const red = { full: go(true), quick: go(true, ['--quick']), browserless: go(true, ['--browserless']) }
       check('THE REAL confidence.mjs OVER STAND-IN ROWS, with a failing row that leaves the score at 99 (above the bar): it exits 1 in every mode, names the row, and records it as failing',
-        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && JSON.stringify(red[m].rec?.failing) === '["bad"]'), JSON.stringify(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.total]]))))
-      const green = { full: go(false), quick: go(false, '--quick'), browserless: go(false, '--browserless') }
+        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && JSON.stringify(red[m].rec?.failing) === '["bad"]'), JSON.stringify(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.total, m === 'full' ? r.out.slice(-200) : '']]))))
+      const thrown = go(false, [], "  { name: 'boom', weight: 10, run: () => { throw new Error('x') } },\n")
+      check('...a row that THROWS is a failing row, recorded and exited on like any other (the gate does not crash on it)', thrown.status === 1 && JSON.stringify(thrown.rec?.failing) === '["boom"]', `exit ${thrown.status}; ${thrown.out.slice(-300)}`)
+      const na = go(false, [], "  { name: 'na', weight: 10, run: () => NOT_APPLICABLE },\n")
+      check('...a row with no subject on this run (NOT_APPLICABLE) is out of the score, named in the record, and is no failure: 995 possible, exit 0', na.status === 0 && na.rec?.possible === 995 && JSON.stringify(na.rec?.notApplicable) === '["na"]' && JSON.stringify(na.rec?.failing) === '[]', `exit ${na.status}; ${JSON.stringify([na.rec?.possible, na.rec?.notApplicable])} ${na.out.slice(-300)}`)
+      const green = { full: go(false), quick: go(false, ['--quick']), browserless: go(false, ['--browserless']) }
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
         ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
           && JSON.stringify(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full',
         JSON.stringify(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]]))))
-      const both = go(false, '--quick', '--browserless')
+      const both = go(false, ['--quick', '--browserless'])
       check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null, `exit ${both.status}; ${both.out.slice(-200)}`)
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
   }

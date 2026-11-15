@@ -211,11 +211,23 @@ TRAPPED = frozenset({"scripts/no-launch-check.mjs"})
 RUNS_ROWS = frozenset({"scripts/confidence.mjs", "scripts/run-row.mjs"})
 # ...and so is any script that does what they do, by its text: it imports scripts/gate-checks.mjs and calls a row's `run`. A new row runner, or a wrapper that names one, is read as a browser step
 # without being added to RUNS_ROWS (round 2 of the review, finding 4).
-IMPORTS_ROWS = re.compile(r"""from\s+['"]\./gate-checks\.mjs['"]""")
-RUNS_A_ROW = re.compile(r"\.run\s*\(")
+IMPORTS_ROWS = re.compile(r"""['"][\w./-]*gate-checks\.mjs['"]""")              # a static import, `import(...)`, `require(...)`, from any directory
+RUNS_A_ROW = re.compile(r"""\.run\s*\??\.?\s*\(|\[\s*['"]run['"]\s*\]\s*\??\.?\s*\(|\{\s*run\s*\}""")   # r.run(), r.run?.(), r['run'](), for (const { run } of rows)
 # The heads that run another command: an unreadable step whose unreadable part is one of THESE may be hiding a browser launch (`timeout 60 node scripts/x.mjs`), and is not the ledger kind of opaque.
 WRAPPER_HEADS = frozenset({"timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot"})
-WRAPPER_REASON = re.compile(r"^`[^`]*`: `([^`]+)` is not a command this guard can read")
+WRAPPER_REASON = re.compile(r"^`([^`]*)`: `([^`]+)` is not a command this guard can read")
+# The one wrapper-shaped reason that is not a command: the words of an arithmetic expansion (`$((attempt * 3))`) read as a head.
+ARITHMETIC = re.compile(r"\w+\s*[-+*/%]\s*[\w$]+")
+# What an unreadable step may be made of and still be kept as opaque (the ledger steps of verify-full are these): text and file tools, which run no other command, a substitution or heredoc that hides a
+# whole line (the raw line is scanned for a script name and for a wrapper, below), inline node, and a git subcommand the reader does not read. Every OTHER reason (an unknown head, `npx`, `dotnet`, a
+# flag, a variable that changes what runs) makes the step a candidate for a hidden launch: a denylist of wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through.
+BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
+                          "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"})
+OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting", r": git \S+ is not a subcommand this guard reads",
+                                            r": node with inline code")]
+# A wrapper as the first word of a command, wherever the command is on the line (after `&&`, `||`, `;`, a pipe, `(`, `then`, `do`, `else`, and any VAR=value words): read from the RAW line, so one that sits on a
+# line the splitter could not split (`timeout 120 node scripts/x.mjs --out "$(date)"`) is still seen.
+WRAPPER_IN_TEXT = re.compile(r"(?:^|&&|\|\||[;|(]|\bthen\b|\bdo\b|\belse\b)\s*(?:[A-Za-z_]\w*=\S*\s+)*(\S+)")
 # What a REQUIRED no-browser step (TARGETS[...]["flagged"]) has to do as real work. The rule that a target RUNS its no-browser spawner was met by any step with the right `if` that names the spawner and
 # its flag (`mutation-check.mjs --list-ids --no-browser`, `confidence.mjs --quick --browserless`, `... || true`), so it is a closed form now: every line is one `node`/`npm` command (no `||`, `&&`, `;`, pipe
 # or substitution) or the bare `if [ -n "$X" ]; then`, `else`, `fi`; nothing but the spawner runs; the arguments a mode that does no work would carry are refused (NOT_WORK), and the arguments real work
@@ -569,12 +581,13 @@ def read_npm(w, pkg, read, seen, depth, out, shown):
 def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     """Everything a script starts: {entries: [(file, args)], direct: bool, unresolved: [why]}."""
     if out is None:
-        out = {"entries": [], "direct": False, "unresolved": []}
+        out = {"entries": [], "direct": False, "unresolved": [], "raw": []}
     for line in logical_lines(script):
         try:
             groups = split_commands(line)
         except Unreadable as e:
             out["unresolved"].append(f"`{line[:80]}`: {e}")
+            out["raw"].append(line)                     # a line the splitter could not read still names the scripts it runs
             continue
         for g in groups:
             w = command_words(g)
@@ -678,12 +691,21 @@ def spawns_browser(entry, args, read, no_browser_ok=False):
     return spawned_browser_scripts(entry, read)
 
 
-def hides_a_launcher(reasons):
-    """Whether one of the reasons a step could not be read is a WRAPPER (`timeout`, `xvfb-run`, `bash -c`, ...): what it runs is hidden, and it may be a browser launch."""
+def hides_a_launcher(reasons, text=""):
+    """Whether an unreadable step may be hiding a launch, and so must NOT be kept as opaque: a reason that is not one of the benign shapes (an unknown head, `npx`, a flag...), or a known wrapper (`timeout`,
+    `xvfb-run`, `bash -c`, `env`, `exec`...) as the first word of any command on any line of its raw text."""
     for r in reasons:
         m = WRAPPER_REASON.match(r)
-        if m and m.group(1) in WRAPPER_HEADS:
+        if m:
+            if m.group(2) in BENIGN_HEADS or ARITHMETIC.fullmatch(m.group(1)):
+                continue
             return True
+        if not any(pat.search(r) for pat in OPAQUE_REASON_OK):
+            return True
+    for line in logical_lines(text):
+        for h in WRAPPER_IN_TEXT.findall(line):
+            if os.path.basename(h.strip("'\"")) in WRAPPER_HEADS:
+                return True
     return False
 
 
@@ -692,12 +714,29 @@ def flagged_step_ok(s, req, pkg, read):
     text = run_text(s)
     if not text or not no_browser_if(if_text(s)):
         return False
+    depth, has_else, branch_cmds = 0, False, 0
     for line in logical_lines(text):
-        line = line.strip()
-        if re.fullmatch(r'if \[ -n "\$\w+" \]; then|else|fi', line):
+        line = re.sub(r"\s+#.*$", "", line.strip())                         # a trailing comment is not part of the command
+        if re.fullmatch(r'if \[\[? -n "\$\{?\w+\}?" \]\]?; then', line):
+            depth, has_else, branch_cmds = depth + 1, False, 0
             continue
-        if not re.match(r"(?:node|npm) ", line) or FORBIDDEN_IN_LINE.search(line):
+        if line == "else":
+            if depth != 1 or branch_cmds == 0:
+                return False
+            has_else, branch_cmds = True, 0
+            continue
+        if line == "fi":
+            if depth != 1 or not has_else or branch_cmds == 0:
+                return False                                                  # an `if` without its `else`, or an empty branch: a default run (no ids) would run nothing
+            depth = 0
+            continue
+        if re.match(r"echo ", line) and not FORBIDDEN_IN_LINE.search(line):
+            continue
+        if not re.match(r"(?:node|npm) ", line) or FORBIDDEN_IN_LINE.search(line) or re.search(r"\s--\s", line):
             return False
+        branch_cmds += 1
+    if depth != 0:
+        return False
     entries = [(os.path.normpath(e), a) for e, a in read_commands(text, pkg, read)["entries"]]
     mine = [a for e, a in entries if e == req and NO_BROWSER_FLAGS[req] in a]
     if not mine or len(mine) != len(entries):
@@ -747,6 +786,10 @@ def read_step(step, pkg, read, no_browser_ok=False):
         if not hit and spawns_browser(entry, args, read, no_browser_ok):
             hit = True
         res["browser"] = res["browser"] or hit
+    for raw in out["raw"]:                           # `node scripts/x.mjs --out "$(date)"`: the splitter refused the line, and the script it names is a browser script
+        for token in SCRIPT_NAME.findall(IMPORT_SPEC.sub("", raw)):
+            if any(entry_launches(c, read)[0] or runs_gate_rows(c, read) or spawned_browser_scripts(c, read) for c in script_candidates("", token, read)):
+                res["browser"] = True
     if LAUNCH.search(strip_comments(script)):       # an inline use in the step's own text
         res["browser"] = True
     return res
@@ -926,7 +969,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
             continue
         r = read_step(s, pkg, read, no_browser_ok=True)
         if r["unresolved"]:
-            if always_if(if_text(s)) and i != last and not r["browser"] and not s.get("uses") and not hides_a_launcher(r["unresolved"]):
+            if always_if(if_text(s)) and i != last and not r["browser"] and not s.get("uses") and not hides_a_launcher(r["unresolved"], run_text(s)):
                 # NOT READ, AND NOT THE INSTALL'S TO SKIP: `if: always()` runs it whatever the install did. The ledger steps of verify-full are these (command substitutions and `node -e`, which
                 # the reader refuses); counted and printed, never silently accepted. NOT a step the reader has already seen launch a browser: with no browser it fails, and a step that fails
                 # without `continue-on-error` skips every later step that has no status function, which is the outage failure this guard exists to end (review 2026-11-15, finding 1). Nor a `uses:`
@@ -980,9 +1023,14 @@ ROW_SHARDED = re.compile(r"(?<![.\w$])shardedSuite\s*\(")
 # The helpers a row may name instead of an arrow function: they hold no command of a browser script (outboxToday and outboxAccompaniesSource read the outbox and git).
 ROW_HELPERS = ("outboxToday", "outboxAccompaniesSource")
 # A string that names a command: a script path or a shell command. Every one in a row has to be the argument of a call this reader understands, or it is a command it cannot attribute.
-SCRIPTISH = re.compile(r"scripts/|^\s*(?:node|npm|npx|python3?|bash|sh|xvfb-run|timeout|env)\b")
+SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:node|npm|npx|python3?|bash|sh|xvfb-run|timeout|env)\b|\s(?:\./)?scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")   # a bare path (`'scripts/x.mjs'`) is a file, not a command
 # Strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, in the order a JavaScript tokenizer meets them.
-JS_TOKEN = re.compile(r"""('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|(?<![\w)\]$.])/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*)|//[^\n]*|/\*.*?\*/""", re.S)
+# A `/` starts a regular expression only after a token that cannot end an expression (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`, `=>`, `return`): after a name, a number or `)` it is a
+# division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next one, hiding the call between them).
+JS_TOKEN = re.compile(r"""('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|(?:(?<=[(,=:\[!&|?{};])|(?<==>)|(?<=\breturn))[ \t]*/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*)|//[^\n]*|/\*.*?\*/""", re.S)
+# A call this reader does not know could run a command from a helper defined above the rows array (`const sparkRow = () => ok('node scripts/spark-check.mjs')`, `run: () => sparkRow()`).
+ROW_ANY_CALL = re.compile(r"(?<![.\w$])([A-Za-z_]\w*)\s*\(")
+ROW_KNOWN_CALLS = frozenset({"ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite", "Number", "String", "Boolean", "parseInt", "readFileSync", "existsSync", "readdirSync", "statSync", "if", "for", "while", "switch", "catch", "return", "function"})
 MIN_ROWS, MIN_BROWSER_ROWS = 20, 6
 
 
@@ -1048,6 +1096,8 @@ def gate_rows(root="."):
         cmds = []
         for c in ROW_CALL.finditer(rshape):
             word, lp = c.group(1), c.end() + len(rshape[c.end():]) - len(rshape[c.end():].lstrip())
+            if rshape[lp:lp + 1] == ":":
+                continue                                    # an object key (`{ ok: true }`), not a use of the helper
             if not rshape[lp:lp + 1] == "(":
                 problems.append(f"gate row {name!r} uses `{word}` other than as a call (`.every({word})`, a reference): this reader cannot see what it runs")
                 continue
@@ -1070,6 +1120,9 @@ def gate_rows(root="."):
                 problems.append(f"gate row {name!r}: the parentheses of `shardedSuite(` do not close")
                 continue
             cmds += [x or y for x, y in re.findall(r"""(?:'([^']*)'|"([^"]*)")""", rest[lp:close]) if SCRIPTISH.search(x or y)]
+        for ac in ROW_ANY_CALL.finditer(rshape):
+            if ac.group(1) not in ROW_KNOWN_CALLS and ac.group(1) not in ROW_HELPERS:
+                problems.append(f"gate row {name!r} calls `{ac.group(1)}(...)`, which this reader does not know: a helper defined above the rows array could run a command from there, unread")
         have = set(cmds)
         for tok in JS_TOKEN.finditer(rest):
             lit = tok.group(1)
@@ -1593,6 +1646,12 @@ def self_test():
         "scripts/spawn-var2.mjs": "import { execSync } from 'node:child_process'\nexecSync(`node ${ROOT}/scripts/sub/launch.mjs`)\n",
         "scripts/spawn-abs.mjs": "import { execSync } from 'node:child_process'\nexecSync('node /abs/launch.mjs')\n",
         "/abs/launch.mjs": "const b = await chromium.launch()\n",
+        "scripts/dyn-runner.mjs": "const { rows } = await import('./gate-checks.mjs')\nfor (const r of rows) r.run()\n",
+        "scripts/opt-runner.mjs": "import { rows } from './gate-checks.mjs'\nfor (const r of rows) r.run?.()\n",
+        "scripts/bracket-runner.mjs": "import { rows } from './gate-checks.mjs'\nfor (const r of rows) r['run']()\n",
+        "scripts/destr-runner.mjs": "import { rows } from './gate-checks.mjs'\nfor (const { run } of rows) run()\n",
+        "scripts/req-runner.mjs": "const { rows } = require('./gate-checks.mjs')\nfor (const r of rows) r.run()\n",
+        "scripts/up-runner.mjs": "import { rows } from '../scripts/gate-checks.mjs'\nfor (const r of rows) r.run()\n",
         "scripts/mentions.mjs": "// no child process: shot.mjs is only a name here\nconst name = 'scripts/shot.mjs'\n",
         "scripts/spawn-pure.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/pure.mjs')\n",
         "scripts/spawn-comment.mjs": "import { execSync } from 'node:child_process'\n// this once ran scripts/shot.mjs\nexecSync('node scripts/pure.mjs')\n",
@@ -2477,8 +2536,8 @@ def self_test():
         ("...`xvfb-run`", "  { name: 'x', weight: 10,\n    run: () => ok('xvfb-run node scripts/shot.mjs') },\n", "cannot be read"),
         ("...a call this reader does not know (`check(...)`)", "  { name: 'x', weight: 10,\n    run: () => check('node scripts/shot.mjs') },\n", "names a command"),
         ("...`sh(...)`", "  { name: 'x', weight: 10,\n    run: () => sh('node scripts/shot.mjs') },\n", "names a command"),
-        ("...`spawnSync` with an argument array", "  { name: 'x', weight: 10,\n    run: () => spawnSync('node', ['scripts/shot.mjs']) },\n", "names a command"),
-        ("...`execFileSync` with an argument array", "  { name: 'x', weight: 10,\n    run: () => execFileSync('node', ['scripts/shot.mjs']) },\n", "names a command"),
+        ("...`spawnSync` with an argument array", "  { name: 'x', weight: 10,\n    run: () => spawnSync('node', ['scripts/shot.mjs']) },\n", "cannot be read"),
+        ("...`execFileSync` with an argument array", "  { name: 'x', weight: 10,\n    run: () => execFileSync('node', ['scripts/shot.mjs']) },\n", "cannot be read"),
         ("...`shardedSuite(...)`", "  { name: 'x', weight: 10,\n    run: () => shardedSuite(env, 'node scripts/shot.mjs', 3) },\n", "drives a browser"),
         ("a `run:` that is a function value, not an arrow", "  { name: 'x', weight: 10,\n    run: someRowFn },\n", "neither an arrow function"),
         ("a regular expression with an odd quote before the call", "  { name: 'x', weight: 10,\n    run: () => /it's/.test(s) && ok('node scripts/shot.mjs') },\n", "drives a browser"),
@@ -2489,6 +2548,66 @@ def self_test():
     check("gate rows: property accesses (`res.ok`, `/a/.exec(x)`), a trailing comma in `all(...)` and a `shardedSuite(...)` row are read, not refused",
           row_problems("  { name: 'x', weight: 10,\n    run: () => res.ok && /a/.exec(out) && all('node scripts/pure.mjs', 'node scripts/pure.mjs',) },\n") == []
           and row_problems("  { name: 'x', weight: 10,\n    run: () => shardedSuite(process.env.A, 'node scripts/pure.mjs', 'node scripts/pure.mjs') },\n") == [], (row_problems("  { name: 'x', weight: 10,\n    run: () => res.ok && /a/.exec(out) && all('node scripts/pure.mjs', 'node scripts/pure.mjs',) },\n")))
+
+    # ---- ROUND 3 OF THE REVIEW: each of these failed on the guard as it stood, or was a mutant the self-test let through
+    unread = lambda cmd: audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "run": cmd}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
+    for cmd in ('timeout 120 node scripts/shot.mjs --out "$(date +%s).json"', 'node scripts/shot.mjs --out "$(date)"', "timeout 120 node scripts/shot.mjs --out `date`", 'timeout 5 node scripts/shot.mjs "x',
+                'timeout 5 node scripts/shot.mjs <<EOF\nx\nEOF', 'xvfb-run -a node scripts/pure.mjs --out "$(date)"'):
+        res = unread(cmd)
+        check(f"a wrapper or a browser script on a line the splitter cannot read (`{cmd.splitlines()[0][:60]}`) is not kept as opaque: the raw line is scanned", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
+    for cmd in ("eval 'node scripts/shot.mjs'", "flock /tmp/x node scripts/shot.mjs", "taskset -c 0 node scripts/shot.mjs", "strace -f node scripts/shot.mjs", "source ./x.sh", "./scripts/x.sh", "make shot",
+                "npx tsx scripts/shot.mjs", "/usr/bin/timeout 60 node scripts/shot.mjs", "su -c 'node scripts/shot.mjs'"):
+        res = unread(cmd)
+        check(f"an unknown head (`{cmd[:40]}`) is not on the allowlist of what may stay unread: refused, not kept as opaque", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
+    res = unread('D=$(mktemp -d); grep -c x "$D/f" | sed s/a/b/; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
+    check("...while a step made of text and file tools, substitutions, arithmetic and inline node (the ledger kind) stays opaque", res[0] == [] and res[1]["opaque"] == 1, res)
+    for h in sorted(WRAPPER_HEADS):
+        res = unread(f'{h} node scripts/pure.mjs --out "$(date)"')
+        check(f"the wrapper `{h}` in front of a command the splitter cannot read is refused (the text of the line is scanned for it)", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
+    check("a division after a name or a `)` is not the start of a regular expression: `(Date.now() - 0) / 1000 > 0 && ok('node scripts/shot.mjs')` drives a browser and is not flagged",
+          any_of("gate row 'x' drives a browser", row_problems("  { name: 'x', weight: 10,\n    run: () => (Date.now() - 0) / 1000 > 0 && ok('node scripts/shot.mjs') },\n")))
+    check("...and a regular expression after `&&`, `(`, `=>` or `return` still is one (`x && /it's/.test(s) && ok(...)`)",
+          any_of("gate row 'x' drives a browser", row_problems("  { name: 'x', weight: 10,\n    run: () => s && /it's/.test(s) && ok('node scripts/shot.mjs') },\n")) and
+          any_of("gate row 'x' drives a browser", row_problems("  { name: 'x', weight: 10,\n    run: () => { return /it's/.test(s) && ok('node scripts/shot.mjs') } },\n")))
+    check("...a division on both sides of a call is no false red (`8 / 2 && ok('node scripts/pure.mjs') && 4 / 2`)", row_problems("  { name: 'x', weight: 10,\n    run: () => 8 / 2 && ok('node scripts/pure.mjs') && 4 / 2 },\n") == [])
+    for f in ("dyn-runner.mjs", "opt-runner.mjs", "bracket-runner.mjs", "destr-runner.mjs", "req-runner.mjs", "up-runner.mjs"):
+        check(f"a script that runs the gate's rows by `{files['scripts/' + f].splitlines()[0][:50]}...` is a browser step", needs_browser({"run": f"node scripts/{f}"}, pkg, read) is True, f)
+    check("a script that imports a row's helper for something else (`.runner(`, no `run` call) is not a row runner", needs_browser({"run": "node scripts/imports-rows.mjs"}, pkg, read) is False)
+    check("gate rows: a call to a helper this reader does not know (`run: () => sparkRow()`, the helper defined above the rows array) is a problem, not browser-free",
+          any_of("calls `sparkRow(...)`", row_problems("  { name: 'x', weight: 10,\n    run: () => sparkRow() },\n")))
+    check("gate rows: an object key named ok/all and a path that is only read (`.includes('scripts/')`, a file under scripts/) are not commands",
+          row_problems("  { name: 'x', weight: 10,\n    run: () => { const res = { ok: true, all: 1 }; return res.ok && ok('node scripts/pure.mjs') } },\n") == []
+          and row_problems("  { name: 'x', weight: 10,\n    run: () => ok('node scripts/pure.mjs') && readFileSync('scripts/gate-checks.mjs', 'utf8').includes('scripts/') },\n") == [])
+
+    # the closed form of the required step: tolerant of layout, strict about what runs
+    comment_form = full_form.replace(ids_line, ids_line + "   # the ids, & a note; see x").replace(shard_line, shard_line + "  # the shard -> merge")
+    for label, text in [("a trailing comment on each command", comment_form), ("`${IDS}` in the test", full_form.replace('"$IDS"', '"${IDS}"', 1)), ("`[[ ]]` in the test", full_form.replace("[ -n", "[[ -n", 1).replace('" ]; then', '" ]]; then', 1)),
+                        ("an echo line first", "echo \"::group::no browser\"\n" + full_form)]:
+        res = run_req(w_nb(nbv(text)))
+        check(f"the required step is accepted with {label}", res == [], res)
+    for label, text in [("no `else` (both commands in the then branch)", f'if [ -n "$IDS" ]; then\n  {ids_line}\n  {shard_line}\nfi'), ("the else removed but the fi kept after one command", f'if [ -n "$IDS" ]; then\n  {ids_line}\nfi\n{shard_line}'),
+                        ("an `rm` line", f"rm -rf x\n{full_form}"), ("`set -x` first", f"set -x\n{full_form}"), ("an empty else branch", f'if [ -n "$IDS" ]; then\n  {ids_line}\n  {shard_line}\nelse\nfi')]:
+        res = run_req(w_nb(nbv(text)))
+        check(f"...and refused with {label}", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    for flag in NOT_WORK["scripts/mutation-check.mjs"]:
+        res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + " " + flag).replace(shard_line, shard_line + " " + flag))))
+        check(f"...the mode flag {flag} on both commands is a step that does not do the work: refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    pkg3 = {**pkg, "gate:bl": "node scripts/confidence.mjs --browserless"}
+    conf = lambda text: audit(w_nb(nbv(text)), pkg3, read, final_timeout=5, flagged=("scripts/confidence.mjs",))[0]
+    check("`npm run gate:bl` is the gate's work; `npm run gate:bl -- --quick` (the pass-through argument the reader drops) is not", conf("npm run gate:bl") == [] and any_of("must run `scripts/confidence.mjs --browserless`", conf("npm run gate:bl -- --quick")), conf("npm run gate:bl -- --quick"))
+
+    # the mutants the second review's reviewer found surviving, one fixture each
+    check("a row that runs a browser command BEFORE a browser-free one reads as driving a browser (any, not the last)", any_of("gate row 'x' drives a browser", row_problems("  { name: 'x', weight: 10,\n    run: () => all('node scripts/shot.mjs', 'node scripts/pure.mjs') },\n")))
+    check("a row with no `run:` is a problem", any_of("has no `run:`", row_problems("  { name: 'x', weight: 10 },\n")))
+    check("an `all(...)` with a variable among its arguments is a problem", any_of("something other than plain string literals", row_problems("  { name: 'x', weight: 10,\n    run: () => all('node scripts/pure.mjs', someVar) },\n")))
+    check("a `shardedSuite(` whose parentheses never close is a problem", any_of("do not close", row_problems("  { name: 'x', weight: 10,\n    run: () => shardedSuite(env, 'node scripts/pure.mjs'\n")))
+    for word, lit in [("npx", "npx tsx scripts/a.mjs"), ("python", "python3 scripts/a.py"), ("bash", "bash -c true"), ("sh", "sh x.sh"), ("timeout", "timeout 5 x"), ("env", "env A=1 x")]:
+        check(f"gate rows: a string that starts with `{word}` and no call takes is a command this reader cannot attribute", any_of("names a command", row_problems(f"  {{ name: 'x', weight: 10,\n    run: () => check('{lit}') }},\n")), lit)
+    check("gate rows: a `shardedSuite(...)` whose other arguments are not commands (a number, a label) is read, not refused",
+          row_problems("  { name: 'x', weight: 10,\n    run: () => shardedSuite(env, 'node scripts/pure.mjs', 'node scripts/pure.mjs', 3, 'a label') },\n") == [])
+    three = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **{f"O{n}": f"${{{{ steps.s{n}.outcome }}}}" for n in range(3)}}, "run": 'echo "::error::x $INSTALL_OUTCOME $O0 $O1 $O2"\nexit 1'}
+    res = audit(wf([{"name": "build", "run": "npm run pure"}] + [{"name": f"s{n}", "id": f"s{n}", "run": "npm run pure"} for n in range(3)] + [inst, three]), pkg, read, final_timeout=5)[0]
+    check("a final step that reads three other outcomes is run for every combination and accepted (the cap is above three)", res == [], res)
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")

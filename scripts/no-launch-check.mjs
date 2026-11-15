@@ -103,13 +103,22 @@ export async function pool(items, width, worker) {
  *  variable (`env: { PATH }`, the key assembled from parts) is invisible to a scan of text; the runtime controls cover the path through NODE_OPTIONS and nothing else.
  *  This file builds the trap's own value from the inherited one on the line above, and is not scanned (review 2026-11-15, round 2, finding 9). */
 export function nodeOptionsReplacers(dir, skip = ['no-launch-check.mjs']) {
-  const files = readdirSync(dir).filter(f => /\.(mjs|cjs|js)$/.test(f) && !skip.includes(f))
+  const files = readdirSync(dir).filter(f => /\.(mjs|cjs|js)$/.test(f) && !skip.includes(f)).sort()
   const offenders = []
-  for (const f of files) readFileSync(join(dir, f), 'utf8').split('\n').forEach((raw, i) => {
-    if (/^\s*(\/\/|\*|\/\*)/.test(raw) || /^\s*(find|replace|claim)\s*:/.test(raw)) return
-    const line = raw.replace(/\s\/\/.*$/, '')
-    if (/\bNODE_OPTIONS\b/.test(line) && !/process\.env\.NODE_OPTIONS/.test(line)) offenders.push(`scripts/${f}:${i + 1}`)
-  })
+  const READS = /process\.env\.NODE_OPTIONS(?!\s*=(?!=))/                    // a read of the inherited value, not the target of an assignment
+  const DELETES = /\bdelete\b[^;\n]*\bNODE_OPTIONS\b/
+  const SETS = [/['"`]?\bNODE_OPTIONS['"`]?\s*:/, /\bNODE_OPTIONS\b['"\]]*\s*=(?!=)/, /[{,]\s*NODE_OPTIONS\s*[,}]/]    // a key, an assignment, the shorthand
+  for (const f of files) {
+    let inBlock = false
+    readFileSync(join(dir, f), 'utf8').split('\n').forEach((raw, i) => {
+      if (inBlock) { if (raw.includes('*/')) inBlock = false; return }
+      if (/^\s*\/\*/.test(raw) && !raw.includes('*/')) { inBlock = true; return }
+      if (/^\s*(\/\/|\*|\/\*)/.test(raw) || /^\s*(find|replace|claim)\s*:/.test(raw)) return
+      const line = raw.replace(/\s\/\/.*$/, '')
+      if (!/\bNODE_OPTIONS\b/.test(line)) return
+      if (DELETES.test(line) || (SETS.some(re => re.test(line)) && !READS.test(line))) offenders.push(`scripts/${f}:${i + 1}`)
+    })
+  }
   return { files: files.length, offenders }
 }
 
@@ -179,7 +188,7 @@ async function main() {
   const file = process.argv.includes('--commands') ? process.argv[process.argv.indexOf('--commands') + 1] : null
   const cmds = file ? JSON.parse(readFileSync(file, 'utf8')) : plainCommands()
   const width = Number(process.env.NO_LAUNCH_JOBS ?? Math.min(4, availableParallelism()))
-  const r = await measure({ cmds, trap, dir, width, floor: file ? 1 : MIN_COMMANDS, scan: file ? null : nodeOptionsReplacers(join(ROOT, 'scripts')) })
+  const r = await measure({ cmds, trap, dir, width, ...(file ? { floor: 1 } : {}), scan: file ? null : nodeOptionsReplacers(join(ROOT, 'scripts')) })
   process.exit(r.exit)
 }
 
@@ -242,13 +251,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       'replaces.mjs': "go({ NODE_OPTIONS: '--require x' })", 'quoted.mjs': "go({ 'NODE_OPTIONS': '--require x' })", 'quoted2.mjs': 'go({ "NODE_OPTIONS": "--require x" })',
       'shorthand.mjs': 'const NODE_OPTIONS = "--require x"; go({ NODE_OPTIONS })', 'assign.mjs': "env.NODE_OPTIONS = '--require x'", 'delete.mjs': 'delete env.NODE_OPTIONS',
       'trailing.mjs': "go({ NODE_OPTIONS: '--require x' }) // process.env.NODE_OPTIONS",
+      'envassign.mjs': "process.env.NODE_OPTIONS = '--require x'", 'envdelete.mjs': 'delete process.env.NODE_OPTIONS',
     })) writeFileSync(join(scanDir, name), `${line}\n`)
+    writeFileSync(join(scanDir, 'envappend.mjs'), "process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require x`\n")
+    writeFileSync(join(scanDir, 'message.mjs'), "console.log('NODE_OPTIONS is not set')\nconst usage = `set NODE_OPTIONS to the trap`\n/*\n  NODE_OPTIONS: a block comment\n*/\n")
     writeFileSync(join(scanDir, 'inherits.mjs'), "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })\n")
     writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\n/* NODE_OPTIONS: a block comment */\n * NODE_OPTIONS: a doc comment line\n")
     writeFileSync(join(scanDir, 'table.mjs'), '  {\n    claim: "a child keeps NODE_OPTIONS",\n    find: "go({ NODE_OPTIONS: x })",\n    replace: "go({ NODE_OPTIONS: y })",\n  },\n')
     const scanned = nodeOptionsReplacers(scanDir)
     check('SCAN: a line that names NODE_OPTIONS without building on the inherited one is found in every spelling (key, quoted key, shorthand, assignment, delete, a trailing comment that mentions it) with its line; one that appends, a comment, and the claim, find and replace text of a mutation table are not',
-      JSON.stringify(scanned) === JSON.stringify({ files: 10, offenders: ['scripts/assign.mjs:1', 'scripts/delete.mjs:1', 'scripts/quoted.mjs:1', 'scripts/quoted2.mjs:1', 'scripts/replaces.mjs:1', 'scripts/shorthand.mjs:1', 'scripts/trailing.mjs:1'] }), JSON.stringify(scanned))
+      JSON.stringify(scanned) === JSON.stringify({ files: 14, offenders: ['scripts/assign.mjs:1', 'scripts/delete.mjs:1', 'scripts/envassign.mjs:1', 'scripts/envdelete.mjs:1', 'scripts/quoted.mjs:1', 'scripts/quoted2.mjs:1', 'scripts/replaces.mjs:1', 'scripts/shorthand.mjs:1', 'scripts/trailing.mjs:1'] }), JSON.stringify(scanned))
     const real = nodeOptionsReplacers(join(ROOT, 'scripts'))
     check('...and no script in scripts/ replaces it (proof-check.mjs did, for two of its children)', real.offenders.length === 0 && real.files >= 50, JSON.stringify(real))
 
@@ -257,10 +269,10 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
 
     // MAIN, END TO END: this very file, started as the CI step starts it (`--commands FILE` stands in for the guard's list), with its exit status. The path that measures the 69 commands is the one
     // under test, so a break in the runner, in the exit, or in what is read back from the log fails here (review 2026-11-15, finding 11: all three survived).
-    const mainOver = (name, list) => {
+    const mainOver = (name, list, env = {}) => {
       const f = join(dir, `${name}.json`)
       writeFileSync(f, JSON.stringify(list))
-      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--commands', f], { encoding: 'utf8', timeout: 120000, maxBuffer: 16 * 1024 * 1024 })
+      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--commands', f], { encoding: 'utf8', timeout: 120000, maxBuffer: 16 * 1024 * 1024, env: { ...process.env, ...env } })
       return { status: r.status, out: `${r.stdout}${r.stderr}` }
     }
     const mainClean = mainOver('clean', [{ cmd: [process.execPath, put('m-clean.mjs', `console.log('x')\n`)], why: 'self-test' }])
@@ -270,13 +282,15 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('...a list with a command that attempts a launch (swallowed) exits 1, names it, and says NOT ESTABLISHED OR VIOLATED',
       mainDirty.status === 1 && /attempted a browser launch \(chromium\.launch\)/.test(mainDirty.out) && /NOT ESTABLISHED OR VIOLATED/.test(mainDirty.out), `exit ${mainDirty.status}; ${mainDirty.out.slice(-300)}`)
     const mainMixed = mainOver('mixed', [
-      { cmd: [process.execPath, put('m-a.mjs', `console.log('a')\n`)], why: 'self-test' },
+      { cmd: [process.execPath, put('m-a.mjs', `await new Promise(r => setTimeout(r, 500))\nconsole.log('a')\n`)], why: 'self-test' },
       { cmd: [process.execPath, put('m-b.mjs', `import { chromium } from 'playwright'\ntry { await chromium.launch() } catch {}\n`)], why: 'self-test' },
-      { cmd: [process.execPath, put('m-c.mjs', `console.log('c')\n`)], why: 'self-test' }])
+      { cmd: [process.execPath, put('m-c.mjs', `await new Promise(r => setTimeout(r, 500))\nconsole.log('c')\n`)], why: 'self-test' }], { NO_LAUNCH_JOBS: '3' })
     const problemLines = mainMixed.out.split('\n').filter(l => /^\s*PROBLEM /.test(l)), okLines = mainMixed.out.split('\n').filter(l => /^\s*ok /.test(l))
     check('...each command has a log of its own: of three, the one that launches is the one named, and the two that do not are not charged with it',
       mainMixed.status === 1 && problemLines.length === 1 && /m-b\.mjs/.test(problemLines[0]) && okLines.length === 2 && /1 launch\(es\)/.test(problemLines[0]) && /checked 3 of 3 commands: 2 exited 0 with 0 launches/.test(mainMixed.out),
       `exit ${mainMixed.status}; ${mainMixed.out.slice(-400)}`)
+    check('MAIN ASKS THE GUARD\'S FLOOR OF THE REAL LIST: it passes a floor of its own only with `--commands` (so the default, MIN_COMMANDS, applies to the guard\'s list)',
+      /const r = await measure\(\{ cmds, trap, dir, width, \.\.\.\(file \? \{ floor: 1 \} : \{\}\), scan:/.test(readFileSync(fileURLToPath(import.meta.url), 'utf8')), 'main() must not pass floor: 1 for the guard\'s own list')
     const mainEmpty = mainOver('empty', [])
     check('...and an empty list exits 1 (a list that measured nothing is not a pass)', mainEmpty.status === 1 && /only 0 command\(s\) were measured/.test(mainEmpty.out), `exit ${mainEmpty.status}; ${mainEmpty.out.slice(-200)}`)
     // The floor of the guard's own list is MIN_COMMANDS, and `main()` applies it to the real list: measure() with that floor, not main()'s `--commands` one.
