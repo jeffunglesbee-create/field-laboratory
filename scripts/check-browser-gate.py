@@ -824,7 +824,7 @@ def flagged_step_ok(s, req, pkg, read):
         return False
     depth, has_else, branch_cmds = 0, False, 0
     for line in logical_lines(text):
-        line = re.sub(r"\s+#.*$", "", line.strip())                         # a trailing comment is not part of the command
+        line = strip_comment(line).strip()                                  # a trailing comment is not part of the command: found where bash finds it, at a `#` that begins a word OUTSIDE quotes (`echo "note # x" ; exit 0` has none)
         if re.fullmatch(r'if \[\[? -n "\$\{?\w+\}?" \]\]?; then', line):
             depth, has_else, branch_cmds = depth + 1, False, 0
             continue
@@ -842,7 +842,10 @@ def flagged_step_ok(s, req, pkg, read):
             continue
         if not re.match(r"(?:node|npm) ", line) or FORBIDDEN_IN_LINE.search(line) or re.search(r"\s--\s", line):
             return False
-        branch_cmds += 1
+        # A branch's work is the spawner, not any `node`/`npm` line: a then-branch of only `npm ci` ran nothing for the `--ids` path (review of 48f504e, finding 24). (That the spawner carries its flag is
+        # checked below, for every command of the step.)
+        if any(os.path.normpath(e) == req for e, a in read_commands(line, pkg, read)["entries"]):
+            branch_cmds += 1
     if depth != 0:
         return False
     entries = [(os.path.normpath(e), a) for e, a in read_commands(text, pkg, read)["entries"]]
@@ -2863,6 +2866,20 @@ def self_test():
         check(f"finding 23: `{cmd}` is no arithmetic (it is a command and a flag): refused under always(), not kept", refused(cmd), cmd)
     check("finding 23: ...arithmetic is masked where the line is split: `sleep $((attempt * 3))` is `sleep 0`, and one that holds a substitution is still unreadable",
           split_commands("sleep $((attempt * 3))") == [["sleep", "0"]] and split_commands('echo "$((a+1))" b') == [["echo", "0", "b"]] and unresolved("sleep $(( $(date) + 1 ))") != [])
+
+    # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
+    both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'
+    pkg_np = {k: v for k, v in pkg.items() if k != "prepare"}                      # `npm ci` of a package.json with no install hook runs nothing, as the real one does
+    run_req_np = lambda w: audit(w, pkg_np, read, final_timeout=5, flagged=req)[0]
+    for label, text in [("an echo with a `#` inside quotes and then `exit 0`", f'echo "note # x" ; exit 0\n{full_form}'), ("the same with single quotes", f"echo 'note # x' ; exit 0\n{full_form}"),
+                        ("`|| true` after a `#` inside quotes", f'{ids_line} --note " # x" || true\n{shard_line} --note " # x" || true'), ("a `;` after a `#` inside quotes", f'{ids_line} --note "a # b" ; exit 0\n{shard_line}'),
+                        ("a then-branch that is only `npm ci` (the else-branch carries every argument)", f'if [ -n "$IDS" ]; then\n  npm ci\nelse\n  {both_line}\nfi'),
+                        ("an else-branch that is only `npm ci`", f'if [ -n "$IDS" ]; then\n  {both_line}\nelse\n  npm ci\nfi'),
+                        ("a then-branch of the spawner without its flag and `npm ci`", f'if [ -n "$IDS" ]; then\n  node scripts/mutation-check.mjs --ids "$IDS" --out x.json\nelse\n  {shard_line}\nfi')]:
+        res = run_req_np(w_nb(nbv(text)))
+        check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
+    res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
+    check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
 
     # FINDING 28. The final step's tests read only what the step's own `env:` defines.
     for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),
