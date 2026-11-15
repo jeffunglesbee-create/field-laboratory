@@ -171,6 +171,196 @@ $ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratch
 [exit 0]
 
 
+==== 4. STEP 3: the id join. 4a, the join checks written first and run against the predicate they replace (cardsForGame is a stub holding the substring predicate) ====
+The stub is the committed matcher moved into the function the checks call: `cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))`.
+Six checks must go red on it and two cannot discriminate it (the defined failure, and filter-not-find: both hold for the old predicate too).
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -24
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+FAIL  2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+      → took 2,3,3
+FAIL  ...and the unchanged verdict passes all three on it
+      → DURING-PLAY KIND ON A FINAL GAME: game_live | DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | DURING-PLAY KIND ON A FINAL GAME: game_live
+FAIL  ...saying nothing of duplication about a game that has one card
+      → DURING-PLAY KIND ON A FINAL GAME: game_live | DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | DURING-PLAY KIND ON A FINAL GAME: game_live
+PASS  THE DEFINED FAILURE STILL FAILS THROUGH THE JOIN: the game's own card reading game_live
+FAIL  a card carrying no id belongs to no game, not even to a game with no id
+      → took 1,1
+FAIL  a game whose id is on no card has none, whatever team names its names are inside
+      → took Alabama @ Vanderbilt, Troy @ South Alabama
+FAIL  an id is compared whole: G1 does not take the card of G10
+      → took G10,G1
+PASS  two cards carrying one id are both returned: a filter, never a find
+
+28/34 checks passed
+[exit 1]
+
+red checks above: 6
+
+
+==== 5. STEP 3: the real join (4a's stub replaced by id equality, the loop wired to it, the no-card text and the comments rewritten) ====
+The self-test, then a mutation run on cardsForGame and its checks.
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -24
+PASS  no matching cards is left for the caller to describe
+PASS  diacritics normalise so a name is comparable
+PASS  punctuation normalises — St. Louis and St Louis are one name
+PASS  SHORT WORDS ARE NOT TOKENS, or FC would match every club
+PASS  overlap finds a short name inside a long one
+PASS  overlap is 0 for an unrelated card
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+PASS  2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+PASS  ...and the unchanged verdict passes all three on it
+PASS  ...saying nothing of duplication about a game that has one card
+PASS  THE DEFINED FAILURE STILL FAILS THROUGH THE JOIN: the game's own card reading game_live
+PASS  a card carrying no id belongs to no game, not even to a game with no id
+PASS  a game whose id is on no card has none, whatever team names its names are inside
+PASS  an id is compared whole: G1 does not take the card of G10
+PASS  two cards carrying one id are both returned: a filter, never a find
+
+34/34 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-C.mjs
+baseline, no mutation: exit 0; 34/34 checks passed
+CAUGHT      the join reverts to the substring predicate
+             exit 1; 6 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - a card carrying no id belongs to no game, not even to a game with no id
+               - a game whose id is on no card has none, whatever team names its names are inside
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the empty-id guard is dropped
+             exit 1; 1 check(s) red
+               - a card carrying no id belongs to no game, not even to a game with no id
+CAUGHT      the join takes the first card only (a find)
+             exit 1; 1 check(s) red
+               - two cards carrying one id are both returned: a filter, never a find
+CAUGHT      a team-name fallback is added behind the id
+             exit 1; 6 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - a card carrying no id belongs to no game, not even to a game with no id
+               - a game whose id is on no card has none, whatever team names its names are inside
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the id is matched by containment, not equality
+             exit 1; 1 check(s) red
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the join keys on the ESPN event id instead of the game id
+             exit 1; 5 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - an id is compared whole: G1 does not take the card of G10
+               - two cards carrying one id are both returned: a filter, never a find
+
+caught 6 of 6
+[exit 0]
+
+The loop's wiring is not reachable from the self-test: the whole script, end to end on the fixture. Variant ok, every card carries its game's id.
+Expected: the three games found by id, one card each, no evidence blocks, exit 0.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+  Alabama @ Vanderbilt                    game_recap    game_recap
+  Michigan @ Oregon                       game_recap    game_recap
+  California @ Virginia                   game_recap    game_recap
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+PASS  every final game with both phases shows its after-play brief (3 testable)
+
+5/5 checks passed
+[exit 0]
+[exit 0]
+
+Variant idmismatch: the California @ Virginia card carries another id than its game's. Expected: that row red with the no-card text and the page's
+near-name card with its id, the other two rows green, exit 1. A mismatch is loud.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh idmismatch
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+  Alabama @ Vanderbilt                    game_recap    game_recap
+  Michigan @ Oregon                       game_recap    game_recap
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+  California @ Virginia                   game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="CFB_2026-11-14_WRONG", "Kansas @ West Virginia" id="CFB_2026-11-14_e401856861")   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → California @ Virginia: expected game_recap, shown (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="CFB_2026-11-14_WRONG", "Kansas @ West Virginia" id="CFB_2026-11-14_e401856861")
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+Wiring mutants, each a copy of the script, refused unless the anchor occurs once and the copy differs. Each must fail the end-to-end run on variant ok.
+W1: the loop goes back to the substring predicate.
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire-mut.py /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs 'const matching = cardsForGame(cards, g)' 'const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))'
+mutant written; lines that differ from the script: 1
+[exit 0]
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -E '^(PASS|FAIL)|<-- |^\[exit'
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+[exit 1]
+[exit 0]
+W2: the page's id is no longer read into the cards.
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire-mut.py /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs "id: el.getAttribute('data-game-id') ?? ''," "id: '',"
+mutant written; lines that differ from the script: 1
+[exit 0]
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -E '^(PASS|FAIL)|<-- |^\[exit'
+  Alabama @ Vanderbilt                    game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "Alabama @ Vanderbilt" id="", "Troy @ South Alabama" id="")   <-- 
+  Michigan @ Oregon                       game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "Michigan @ Oregon" id="", "Washington @ Michigan St" id="")   <-- 
+  California @ Virginia                   game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="", "Kansas @ West Virginia" id="")   <-- 
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+[exit 1]
+[exit 0]
+
+
 ==== Z. The harness, verbatim ====
 
 ---- serve.mjs
@@ -279,6 +469,23 @@ for (const m of spec.mutants) {
 console.log(`\ncaught ${caught} of ${spec.mutants.length}`)
 process.exit(caught === spec.mutants.length ? 0 : 1)
 
+---- wire-mut.py
+#!/usr/bin/env python3
+# Writes a mutated COPY of scripts/brief-phase-live-check.mjs for the end-to-end wiring checks.
+#   wire-mut.py <out file> <anchor> <replacement>
+# Refuses (exit 2) unless the anchor occurs exactly once and the copy differs from the script; prints how many lines differ.
+import sys
+out, anchor, repl = sys.argv[1:4]
+s = open('scripts/brief-phase-live-check.mjs').read()
+n = s.count(anchor)
+if n != 1:
+    print(f"REFUSED: anchor occurs {n} times, not 1"); sys.exit(2)
+m = s.replace(anchor, repl)
+if m == s:
+    print("REFUSED: the replacement changed nothing"); sys.exit(2)
+open(out, 'w').write(m)
+print("mutant written; lines that differ from the script:", sum(1 for x, y in zip(s.splitlines(), m.splitlines()) if x != y))
+
 ---- spec-A.mjs
 // Mutants of the three checks added for the 2026-11-14 slate (step 1 of 4).
 export default {
@@ -312,5 +519,25 @@ export default {
       anchor: 'export const evidenceLines = matching => matching.map(c =>', with: "export const evidenceLines = matching => (matching.length ? matching : [{ id: '', teams: '', status: '', kind: null }]).map(c =>" },
     { name: 'evidenceLines prints the kind without quoting it',
       anchor: 'kind=${JSON.stringify(c.kind)}`)', with: 'kind=${c.kind}`)' },
+  ],
+}
+
+---- spec-C.mjs
+// Mutants of cardsForGame and the join checks (step 3 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'the join reverts to the substring predicate',
+      anchor: 'cards.filter(c => c.id !== \'\' && c.id === game.id)', with: 'cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))' },
+    { name: 'the empty-id guard is dropped',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id === game.id' },
+    { name: 'the join takes the first card only (a find)',
+      anchor: 'cards.filter(c => c.id !== \'\' && c.id === game.id)', with: 'cards.filter(c => c.id !== \'\' && c.id === game.id).slice(0, 1)' },
+    { name: 'a team-name fallback is added behind the id',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: '(c.id !== \'\' && c.id === game.id) || c.teams.includes(game.away)' },
+    { name: 'the id is matched by containment, not equality',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id !== \'\' && c.id.includes(game.id)' },
+    { name: 'the join keys on the ESPN event id instead of the game id',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id !== \'\' && c.id.endsWith(String(game.espn_event_id))' },
   ],
 }
