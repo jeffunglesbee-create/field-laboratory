@@ -13552,6 +13552,64 @@ const MUTATIONS = [
     replace: "refused: a => a.found === 1,",
     expect: "node scripts/egress-path-lib.mjs --self-test",
   },
+  // The live mode's wiring, in the same CC-CMD: runLive run whole with its two network calls injected. The groups above break the predicates a shape is judged by; these break the places that apply them
+  // (the pass clause, each shape's binding to its expectation) and the two lines the artifact prints. Before them the self-test stayed at "all passed" with the address clause deleted.
+  {
+    id: "egress-path-live-address-clause-dropped",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "a live shape passes only when its address expectation holds, as well as its stage and its keys",
+    find: "pass: r.s.ok(r) && r.s.addresses(r.addresses) && keysIn(r.line).length === LINE_KEYS.length",
+    replace: "pass: r.s.ok(r) && keysIn(r.line).length === LINE_KEYS.length",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-real-binding-permissive",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the real shape is judged by the real host's address expectation",
+    find: "addresses: LIVE_ADDRESSES.real }",
+    replace: "addresses: () => true }",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-nxdomain-binding-permissive",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the name that cannot exist is judged by its own address expectation",
+    find: "addresses: LIVE_ADDRESSES.nxdomain }",
+    replace: "addresses: () => true }",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-blackhole-binding-permissive",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the documentation address is judged by its own address expectation",
+    find: "addresses: LIVE_ADDRESSES.blackhole }",
+    replace: "addresses: () => true }",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-refused-binding-permissive",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the closed loopback port is judged by its own address expectation",
+    find: "addresses: LIVE_ADDRESSES.refused }",
+    replace: "addresses: () => true }",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-addresses-line-unprinted",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the live artifact prints each shape's address counts",
+    find: "`   ${addressesLine(r.addresses)}`, ",
+    replace: "",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
+  {
+    id: "egress-path-live-expected-addresses-unprinted",
+    file: "scripts/egress-path-lib.mjs",
+    claim: "the live artifact prints what each shape was expected to find",
+    find: "`   expected addresses: ${r.s.expectAddresses}`, ",
+    replace: "",
+    expect: "node scripts/egress-path-lib.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

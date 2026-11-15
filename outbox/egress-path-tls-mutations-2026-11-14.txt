@@ -1,4 +1,4 @@
-checked 41 of 41 new mutations, applied twice: by the harness and by a script of its own; 41 of 41 caught each time
+checked 48 of 48 new mutations, applied twice: by the harness and by a script of its own; 48 of 48 caught each time (41 for the TLS stage, sections 1 and 2; 7 for the live mode's wiring, section 3)
 docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md, Task 3 (Rule 90: an assertion is not trusted until it has failed on purpose)
 
 Each entry in scripts/mutation-check.mjs named egress-path-<id> breaks one clause of the TLS stage in scripts/egress-path-lib.mjs. The self-test must go red on it, by a CHECK, not by a crash.
@@ -105,8 +105,49 @@ checked 6 of 6 loopback TLS shapes
 
 anchors: node scripts/mutation-check.mjs --anchors   ->   checked 1571 of 1574 mutation anchors; 0 stale   (baseline before these entries: 1530 of 1533)
 
-NOT covered by a mutation, said here because a green list reads as complete: the wiring of runLive (the call of r.s.addresses(...) in the verdict, and the printing of the two address lines). runLive reaches the network, so its self-test is the runner's --live run;
-LIVE_ADDRESSES, which holds what each shape must show, is tested directly (the four last entries above).
+3. THE LIVE MODE'S WIRING: 7 more entries, added after the first gate run (verify-full 43668099984, on f3c9f80b) had started. Sections 1 and 2 were measured against 138 checks; these against 147.
+
+The gap, measured before any check was written (the premise, one command): the address clause of runLive's pass predicate, `r.s.addresses(r.addresses)`, was deleted from a clean tree (a python3 replace of
+`pass: r.s.ok(r) && r.s.addresses(r.addresses) && keysIn(r.line).length === LINE_KEYS.length` by the same text without the clause; git diff --stat: 1 insertion(+), 1 deletion(-)), the self-test run, the file restored by git checkout:
+138/138 checks passed
+self-test exit: 0
+So that clause had only ever been seen passing, on a runner. The CC-CMD's Task 3.4 asks for one mutation per new clause, and sections 1 and 2 left this one out.
+
+The change: runLive takes its two network calls and its logger as parameters, defaulting to the real ones (`io = liveIO`, `log = console.log`; the three lines of its body that fetched, described or printed now go through them, and nothing else in it changes), and the self-test runs it whole on known results: 9 new checks, 138 -> 147.
+Each of the four shapes' address expectations is failed alone (an input that breaks that shape and no other), the real shape twice, and the clauses that were there before the addresses (the keys, the stage) are failed alone as well, as controls.
+
+The 7 entries, each find asserted unique before it was written: live-address-clause-dropped, live-real-binding-permissive, live-nxdomain-binding-permissive, live-blackhole-binding-permissive, live-refused-binding-permissive, live-addresses-line-unprinted, live-expected-addresses-unprinted.
+
+By the script (the appendix script with './muts-live.mjs' in place of './muts-tls.mjs'), each on a copy:
+unmutated copy: exit 0, 0 failing, "147/147 checks passed"
+RED  egress-path-live-address-clause-dropped: exit 1, 5 check(s) failing; first: runLive: the real shape with no address found fails, and only it
+RED  egress-path-live-real-binding-permissive: exit 1, 2 check(s) failing; first: runLive: the real shape with no address found fails, and only it
+RED  egress-path-live-nxdomain-binding-permissive: exit 1, 1 check(s) failing; first: runLive: the name that cannot exist fails when an address was found for it, and only it
+RED  egress-path-live-blackhole-binding-permissive: exit 1, 1 check(s) failing; first: runLive: the documentation address fails when its handshake has no verdict, and only it
+RED  egress-path-live-refused-binding-permissive: exit 1, 1 check(s) failing; first: runLive: the closed loopback port fails when two addresses were found, and only it
+RED  egress-path-live-addresses-line-unprinted: exit 1, 1 check(s) failing; first: runLive: four shapes as expected pass with exit 0, and the artifact prints the expected addresses and the coun
+RED  egress-path-live-expected-addresses-unprinted: exit 1, 2 check(s) failing; first: runLive: four shapes as expected pass with exit 0, and the artifact prints the expected addresses and the coun
+caught 7 of 7 when applied by this script to a copy
+
+By the harness: node scripts/mutation-check.mjs --ids <the 7 ids>
+Mutation testing 7 invariant(s)
+  baseline: ran 1 of 1 distinct expectation(s) from 7 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+PASS  [egress-path-live-address-clause-dropped] a live shape passes only when its address expectation holds, as well as its stage and its keys
+PASS  [egress-path-live-real-binding-permissive] the real shape is judged by the real host's address expectation
+PASS  [egress-path-live-nxdomain-binding-permissive] the name that cannot exist is judged by its own address expectation
+PASS  [egress-path-live-blackhole-binding-permissive] the documentation address is judged by its own address expectation
+PASS  [egress-path-live-refused-binding-permissive] the closed loopback port is judged by its own address expectation
+PASS  [egress-path-live-addresses-line-unprinted] the live artifact prints each shape's address counts
+PASS  [egress-path-live-expected-addresses-unprinted] the live artifact prints what each shape was expected to find
+8/8 checks passed
+
+anchors: node scripts/mutation-check.mjs --anchors   ->   checked 1578 of 1581 mutation anchors; 0 stale
+
+STILL NOT COVERED by a mutation, said here because a green list reads as complete: the default values of runLive's parameters (liveIO = { attemptFetch, describeEgressFacts } and console.log) and realDeps, the objects that reach the network.
+The self-test injects its own; the runner's --live run is the only thing that exercises these, and a run only ever shows them passing. The artifact it writes is read from outside by the assertion in outbox/cc-session-2026-11-14-tls-stage.md,
+whose conditions were each turned red by a break made on purpose.
 
 --- appendix: the script that applied each entry to a copy (scratchpad muts-by-hand.mjs; it reads the entries from the harness's own list, ENTRIES, which is the list inserted into scripts/mutation-check.mjs) ---
 

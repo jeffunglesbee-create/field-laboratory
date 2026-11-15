@@ -494,7 +494,10 @@ export const LIVE_ADDRESSES = {
   refused: a => a.found === 1 && a.settled === 1,
 }
 
-async function runLive(outFile) {
+/** What `runLive` reaches the network with, replaceable so the self-test can drive the whole mode on known results. The runner's own run is the only other thing that calls it. */
+const liveIO = { attemptFetch, describeEgressFacts }
+
+async function runLive(outFile, io = liveIO, log = console.log) {
   const refused = await closedPort()
   const shapes = [
     { id: 'real', url: 'https://api.open-meteo.com/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m', abortMs: 15000,
@@ -512,9 +515,9 @@ async function runLive(outFile) {
   ]
   const results = await Promise.all(shapes.map(async s => {
     const t0 = Date.now()
-    const got = await attemptFetch(s.url, s.abortMs)
+    const got = await io.attemptFetch(s.url, s.abortMs)
     const u = new URL(s.url)
-    const described = await describeEgressFacts({ host: u.hostname, error: got.error, port: s.port ?? (u.port ? Number(u.port) : 443) })
+    const described = await io.describeEgressFacts({ host: u.hostname, error: got.error, port: s.port ?? (u.port ? Number(u.port) : 443) })
     const facts = probeFacts(got.error)
     return { s, got, facts, line: described.line, addresses: described.addresses, ms: Date.now() - t0 }
   }))
@@ -528,7 +531,7 @@ async function runLive(outFile) {
   }
   out.push('', failed.length === 0 ? `VERDICT: pass, ${judged.length} of ${shapes.length} shapes as expected` : `VERDICT: FAIL, ${failed.length} of ${shapes.length} shapes not as expected: ${failed.map(r => r.s.id).join(', ')}`)
   fs.writeFileSync(outFile, `${out.join('\n')}\n`)
-  console.log(out.join('\n'))
+  log(out.join('\n'))
   return failed.length === 0 ? 0 : 1
 }
 
@@ -808,6 +811,34 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('LIVE_ADDRESSES.nxdomain: none found passes, one found does not', LIVE_ADDRESSES.nxdomain(A(0, 0, 0)) && !LIVE_ADDRESSES.nxdomain(A(1, 1, 1)) && !LIVE_ADDRESSES.nxdomain(A(undefined, 0, 0)))
   check('LIVE_ADDRESSES.blackhole and .refused: exactly one literal with a verdict passes; none, two, or an unsettled one does not', ['blackhole', 'refused'].every(k => LIVE_ADDRESSES[k](A(1, 1, 1)) && !LIVE_ADDRESSES[k](A(0, 0, 0)) && !LIVE_ADDRESSES[k](A(2, 2, 2)) && !LIVE_ADDRESSES[k](A(1, 1, 0))))
   check('the view keys the line prints are the vantages\' keys, in order, and every vantage is a /24 with a unique id', JSON.stringify(LINE_KEYS.filter(k => /^view-/.test(k))) === JSON.stringify(VANTAGES.map(v => `view-${v.id}-v4`)) && new Set(VANTAGES.map(v => v.id)).size === VANTAGES.length && VANTAGES.every(v => /^\d{1,3}(\.\d{1,3}){2}\.0\/24$/.test(v.subnet)), JSON.stringify(VANTAGES))
+
+  // runLive, whole, with its two network calls injected. Each shape's address expectation, the clause that applies it and the two lines it prints are shown to be what decides, each by an input that makes exactly that one fail.
+  // Until these, the pass predicate's address clause could be deleted and this file stayed at "all passed": it had only ever been run on a runner, and there it passes.
+  const liveFile = path.join(os.tmpdir(), `egress-path-live-selftest-${process.pid}.txt`)
+  const wholeLine = LINE_KEYS.map(k => `${k}=x`).join(' | ')
+  const liveFetches = { 'api.open-meteo.com': null, 'api.open-meteo.invalid': dnsMiss, '192.0.2.1': hang, '127.0.0.1': refused }
+  const liveAddresses = { 'api.open-meteo.com': A(2, 2, 2), 'api.open-meteo.invalid': A(0, 0, 0), '192.0.2.1': A(1, 1, 1), '127.0.0.1': A(1, 1, 1) }
+  const whole = async (describedOver = {}, fetchedOver = {}) => {
+    const io = {
+      attemptFetch: async url => { const h = new URL(url).hostname; const e = h in fetchedOver ? fetchedOver[h] : liveFetches[h]; return { status: e ? 0 : 200, error: e } },
+      describeEgressFacts: async ({ host }) => ({ line: wholeLine, addresses: liveAddresses[host], ...(describedOver[host] ?? {}) }),
+    }
+    const code = await runLive(liveFile, io, () => {})
+    const text = fs.readFileSync(liveFile, 'utf8')
+    return { code, text, last: text.trimEnd().split('\n').pop() }
+  }
+  const onlyFails = (w, shape) => w.code === 1 && w.last === `VERDICT: FAIL, 1 of 4 shapes not as expected: ${shape}`
+  const wAll = await whole()
+  check('runLive: four shapes as expected pass with exit 0, and the artifact prints the expected addresses and the counts of the real shape', wAll.code === 0 && wAll.last === 'VERDICT: pass, 4 of 4 shapes as expected' && wAll.text.includes('   expected addresses: at least one found, and every probed one with a settled TLS verdict\n') && wAll.text.includes('   addresses: 2 found, 2 with a settled TLS verdict\n'), wAll.last)
+  check('runLive: each shape prints its own expected addresses, four lines', ['at least one found, and every probed one with a settled TLS verdict', 'none found: no source has an address for a name that does not exist', 'one found (the literal), with a settled TLS verdict'].every(t => wAll.text.includes(`   expected addresses: ${t}\n`)) && wAll.text.split('\n').filter(l => l.startsWith('   expected addresses: ')).length === 4)
+  check('runLive: the real shape with no address found fails, and only it', onlyFails(await whole({ 'api.open-meteo.com': { addresses: A(0, 0, 0) } }), 'real'))
+  check('runLive: the real shape with one probed address unsettled fails, and only it', onlyFails(await whole({ 'api.open-meteo.com': { addresses: A(2, 2, 1) } }), 'real'))
+  check('runLive: the name that cannot exist fails when an address was found for it, and only it', onlyFails(await whole({ 'api.open-meteo.invalid': { addresses: A(1, 1, 1) } }), 'nxdomain'))
+  check('runLive: the documentation address fails when its handshake has no verdict, and only it', onlyFails(await whole({ '192.0.2.1': { addresses: A(1, 1, 0) } }), 'blackhole'))
+  check('runLive: the closed loopback port fails when two addresses were found, and only it', onlyFails(await whole({ '127.0.0.1': { addresses: A(2, 2, 2) } }), 'refused'))
+  check('runLive: a description missing a key fails its shape (the clause that was there before the addresses)', onlyFails(await whole({ 'api.open-meteo.com': { line: wholeLine.replace(/ \| tls=x/, '') } }), 'real'))
+  check('runLive: a shape that fails in the wrong way fails its shape (the clause that was there before the addresses)', onlyFails(await whole({}, { '127.0.0.1': dnsMiss }), 'refused'))
+  fs.rmSync(liveFile, { force: true })
 
   // The orchestration, with the dependencies injected. A west runner as measured: the system resolver and the public one both gave WEST, the west view WEST, the east view EAST; WEST answers TCP and no handshake.
   const westCalls = []
