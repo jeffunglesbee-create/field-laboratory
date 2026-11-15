@@ -29,8 +29,8 @@
 
 import { readFileSync } from 'node:fs'
 import { createChecks, finish } from './checks.mjs'
-import { decodePayload } from '../build/Desk.js'
-import { gateCoinFlip, scoutVerdict, verdictSummary, gatesFor, chooseScout } from '../build/Scout.js'
+import { decodePayload, gameStateAt } from '../build/Desk.js'
+import { gateCoinFlip, scoutVerdict, verdictSummary, gatesFor, chooseScoutAt } from '../build/Scout.js'
 import { ofArray } from '../build/fable_modules/fable-library-js.5.13.0/List.js'
 
 const { check, summarize } = createChecks()
@@ -91,9 +91,13 @@ check(`the "cannot tell" summary counts the gates it asked (${asked})`,
 
 // --- choosing among qualifiers ----------------------------------------------
 const names = gs => gs.map(g => g.Home).sort().join(', ')
-// `chooseScout` takes an F# list; a JS array is not one.
-const pickOf = slate => chooseScout(ofArray(slate), 0)
-const asList = o => (o == null ? null : o)   // Fable: an option of a record is the record or undefined
+// `chooseScoutAt` takes an F# list; a JS array is not one. A fixed instant,
+// before every fixture game's 00:00Z start, never the wall clock.
+const AT = new Date('2026-11-14T20:00:00Z')
+const OUTCOME = ['Chosen', 'AllFinished', 'NoneQualify']
+const outcomeOf = slate => chooseScoutAt(AT, ofArray(slate), 0)
+const pickOf = slate => { const o = outcomeOf(slate); return OUTCOME[o.tag] === 'Chosen' ? o.fields[0] : null }
+const asList = o => o
 
 const full = pickOf(games)
 const top = asList(full)
@@ -118,8 +122,9 @@ check('a lone qualifier is chosen and says it was the only one',
   only != null && only.Choice.Home === 'Marshall' && Array.from(only.Level).length === 0 && only.Basis === 'the only game that qualifies',
   `got ${only && `${only.Choice.Home}, level ${Array.from(only.Level).length}, basis ${only.Basis}`}`)
 
-check('nothing qualifying is no choice, not a fallback', pickOf([byHome('Bruins'), byHome('Cavaliers')]) == null,
-  'a game was chosen although none qualifies')
+check('nothing qualifying is NoneQualify, not a fallback',
+  OUTCOME[outcomeOf([byHome('Bruins'), byHome('Cavaliers')]).tag] === 'NoneQualify',
+  `got ${OUTCOME[outcomeOf([byHome('Bruins'), byHome('Cavaliers')]).tag]}`)
 
 // Series ahead of coin-flip. SYNTHETIC: the Cavaliers' real row (a long
 // favourite, a local outlet) with its league string set to "playoffs", which
@@ -135,5 +140,47 @@ check('a series qualifier ranks ahead of the coin-flip games (documented gate or
   withSeries != null && withSeries.Choice.Home === 'Cavaliers' && Array.from(withSeries.Level).length === 0
     && withSeries.Basis === 'its qualifying gate comes first in the documented order',
   `got ${withSeries && `${withSeries.Choice.Home}, level ${Array.from(withSeries.Level).length}, basis ${withSeries.Basis}`}`)
+
+// --- the pick rolls forward as games finish (owner's ruling, option B) --------
+// SYNTHETIC: a fixture row given a final score and finalized_at, nothing else.
+const finishedCopy = home => {
+  const r = rows.find(x => x.home === home)
+  const p = decodePayload(JSON.stringify({
+    ok: true, date: '2026-11-14',
+    games: { regular: [{ ...asGame(r, 50), home_score: 3, away_score: 2, finalized_at: '2026-11-14 19:00:00' }], postseason: [] },
+    briefs: [], series: [], standings: [],
+  }))
+  return Array.from(p.fields[0].Regular)[0]
+}
+const ducksDone = finishedCopy('Ducks')
+const rolled = pickOf([ducksDone, byHome('Blues'), byHome('Marshall')])
+check('a finished qualifier drops out and the pick moves on: Blues alone, one finished counted',
+  rolled != null && rolled.Choice.Home === 'Blues' && Array.from(rolled.Level).length === 0 && rolled.Finished === 1,
+  `got ${rolled && `${rolled.Choice.Home}, level ${Array.from(rolled.Level).length}, finished ${rolled.Finished}`}`)
+const lastOne = pickOf([ducksDone, finishedCopy('Blues'), byHome('Marshall')])
+check('with the level pair finished, the next qualifier is chosen and says it is the only unfinished one',
+  lastOne != null && lastOne.Choice.Home === 'Marshall' && lastOne.Finished === 2
+    && lastOne.Basis === 'the only unfinished game that qualifies',
+  `got ${lastOne && `${lastOne.Choice.Home}, finished ${lastOne.Finished}, basis ${lastOne.Basis}`}`)
+const allDone = outcomeOf([ducksDone, finishedCopy('Blues'), finishedCopy('Marshall'), byHome('Bruins')])
+check('every qualifier finished is AllFinished with its count, not NoneQualify',
+  OUTCOME[allDone.tag] === 'AllFinished' && allDone.fields[0] === 3,
+  `got ${OUTCOME[allDone.tag]} ${allDone.fields?.[0]}`)
+// A game under way can still be watched, so it stays in.
+const liveCopy = (() => {
+  const r = rows.find(x => x.home === 'Ducks')
+  const p = decodePayload(JSON.stringify({
+    ok: true, date: '2026-11-14',
+    games: { regular: [{ ...asGame(r, 51), home_score: 1, away_score: 1, start_time: '2026-11-14T19:00Z' }], postseason: [] },
+    briefs: [], series: [], standings: [],
+  }))
+  return Array.from(p.fields[0].Regular)[0]
+})()
+const STATE = ['Scheduled', 'InProgress', 'Final']
+check('the under-way fixture really is InProgress at the instant (so the next check is not vacuous)',
+  STATE[gameStateAt(AT, liveCopy).tag] === 'InProgress', `state ${STATE[gameStateAt(AT, liveCopy).tag]}`)
+const withLive = pickOf([liveCopy])
+check('a qualifier under way stays in the running', withLive != null && withLive.Choice.Home === 'Ducks' && withLive.Finished === 0,
+  `got ${withLive && `${withLive.Choice.Home}, finished ${withLive.Finished}`}`)
 
 finish(summarize())

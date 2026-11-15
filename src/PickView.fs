@@ -135,7 +135,12 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
     // then nearest to even, and whatever is still level is named, not hidden.
     // No gate names in this text: tab-check reads gate lines by splitting on them.
     match chooseScout games seriesEntries with
-    | Some choice ->
+    | AllFinished qualified ->
+        child panel (el "p" "pick-empty"
+                        (sprintf "Every game that qualified on this slate has finished (%d). "
+                                 qualified
+                         + "The pick moves on as games end, and none is left to watch.")) |> ignore
+    | Chosen choice ->
         let leader = child panel (el "div" "pick-leader" "")
         child leader (el "div" "pick-leader__matchup" (matchupText choice.Choice.Sport choice.Choice.Home choice.Choice.Away)) |> ignore
         match choice.Level with
@@ -147,7 +152,11 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
                                      (level |> List.map (fun g -> matchupText g.Sport g.Home g.Away) |> String.concat "; "))) |> ignore
         child leader (el "div" "pick-brief" (verdictSummary (Qualifying choice.Gates))) |> ignore
         child leader (el "div" "pick-chaser__reasons" (sprintf "Chosen as %s." choice.Basis)) |> ignore
-    | None ->
+        if choice.Finished > 0 then
+            child leader (el "div" "pick-chaser__reasons"
+                            (sprintf "%d qualifier%s already finished, so the pick has moved on."
+                                     choice.Finished (if choice.Finished = 1 then "" else "s"))) |> ignore
+    | NoneQualify ->
         // The honest result on this payload, and the whole point of the
         // exercise. Production's gates are JS booleans, so a gate with no input
         // returns false and reads as "does not qualify". Here it reports what

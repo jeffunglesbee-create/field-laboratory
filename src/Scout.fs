@@ -1,5 +1,6 @@
 module Scout
 
+open System
 open Desk
 
 // Scout's Pick — the OTHER pick, and the opposite of Field's Pick.
@@ -358,11 +359,31 @@ type ScoutChoice =
       /// choice. Empty when the choice stands alone.
       Level: Game list
       /// Which comparison decided it, in words.
-      Basis: string }
+      Basis: string
+      /// Qualifiers left out because they have finished. Counted so the panel
+      /// can say the pick has moved on, rather than hiding that it did.
+      Finished: int }
 
-/// Chooses among the slate's qualifiers, or None when nothing qualifies.
-let chooseScout (games: Game list) (seriesEntries: int) : ScoutChoice option =
-    let qualifiers =
+/// What the chooser found. Three outcomes, because "nothing qualified" and
+/// "everything that qualified is over" are different nights.
+type ScoutOutcome =
+    | Chosen of ScoutChoice
+    /// Games qualified, and every one of them has finished.
+    | AllFinished of qualified: int
+    | NoneQualify
+
+/// Chooses among the slate's qualifiers that have not finished, at `now`.
+///
+/// Finished games drop out (owner's ruling 2026-11-15, option B): the pick is
+/// the best game still to watch, so it rolls forward through the day as games
+/// end. A game under way stays in: it can still be watched. One pick at a time;
+/// a pick per daypart is filed separately (docs/CC-CMD-2026-11-15-scout-daypart-picks.md).
+let chooseScoutAt (now: DateTimeOffset) (games: Game list) (seriesEntries: int) : ScoutOutcome =
+    let isFinished (g: Game) =
+        match gameStateAt now g with
+        | Final _ -> true
+        | Scheduled | InProgress _ -> false
+    let allQualifiers =
         games
         |> List.choose (fun g ->
             match scoutVerdict g seriesEntries with
@@ -372,8 +393,10 @@ let chooseScout (games: Game list) (seriesEntries: int) : ScoutChoice option =
                 let bestIsCoinFlip = (List.item best order).Name = (gateCoinFlip g).Name
                 Some(g, gates, best, (if bestIsCoinFlip then distanceFromEven g else None))
             | Disqualified _ | NotQualifying _ | Indeterminate _ -> None)
+    let qualifiers = allQualifiers |> List.filter (fun (g, _, _, _) -> not (isFinished g))
+    let finished = List.length allQualifiers - List.length qualifiers
     match qualifiers with
-    | [] -> None
+    | [] -> if finished > 0 then AllFinished finished else NoneQualify
     | _ ->
         let topGate = qualifiers |> List.map (fun (_, _, best, _) -> best) |> List.min
         let atTop = qualifiers |> List.filter (fun (_, _, best, _) -> best = topGate)
@@ -386,15 +409,20 @@ let chooseScout (games: Game list) (seriesEntries: int) : ScoutChoice option =
         let (choice, gates, _, _) = List.head finalists
         let basis =
             match List.length qualifiers, List.length atTop, nearest with
-            | 1, _, _ -> "the only game that qualifies"
+            | 1, _, _ -> if finished > 0 then "the only unfinished game that qualifies" else "the only game that qualifies"
             | _, 1, _ -> "its qualifying gate comes first in the documented order"
             | _, _, Some _ -> "the coin-flip market nearest to even"
             | _, _, None -> "its qualifying gate comes first in the documented order"
-        Some
+        Chosen
             { Choice = choice
               Gates = gates
               Level = finalists |> List.tail |> List.map (fun (g, _, _, _) -> g)
-              Basis = basis }
+              Basis = basis
+              Finished = finished }
+
+/// At the wall clock. The view's entry point; tests use `chooseScoutAt`.
+let chooseScout (games: Game list) (seriesEntries: int) : ScoutOutcome =
+    chooseScoutAt DateTimeOffset.UtcNow games seriesEntries
 
 /// One line naming what the verdict rests on.
 let verdictSummary (verdict: ScoutVerdict) =
