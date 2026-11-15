@@ -9,7 +9,10 @@ not-work flags). The same class would live in any collection nobody had mutated,
 CAUGHT   the copy exits non-zero AND prints a FAIL line.   SURVIVED  it exits 0 (or non-zero with no FAIL line: not a catch).   CRASH  the mutated source does not parse.
 A SURVIVOR is then run on the REAL TREE path too (`python3 scripts/check-browser-gate.py`, what the `verify` job runs): REAL-TREE-RED when that goes red (a member the real workflows use: a
 deletion that made the guard stricter than the tree is caught there), and OPEN when it stays green too (nothing catches it: unused vocabulary, or a member whose deletion makes the guard looser).
-With a second argument (a file of labels, one per line, as printed) only those deletions are run.
+With a second argument (a file of labels, one per line, as printed) only those deletions are run, and the printed result says how many of the enumerated members that left NOT run.
+WHAT IS ENUMERATED (and the printed result says what is not): a module-level assignment whose value holds a set, tuple or list made ENTIRELY of string constants. A dict (its keys), a list with
+an f-string or a non-string member, and a collection assigned from a call are listed by name as `outside the enumeration`, so the denominator is not read as every collection (review 2026-11-15,
+round 4, finding 36).
 Each deletion is asserted to change the source and to leave a source that compiles. A survivor is triaged by hand: a fixture, or a reason it is equivalent (Rule 90's corollary).
 """
 import ast, os, shutil, subprocess, sys, tempfile
@@ -52,6 +55,17 @@ for top in tree.body:
                         a = span(sub.elts[k - 1])[1]            # the last member: take the separator before it
                     mutants.append((f"{name}[{e.value!r}]", e.lineno, a, b))
 
+enumerated = len(mutants)
+named = {m[0].split("[", 1)[0] for m in mutants}
+outside = []
+for top in tree.body:
+    if isinstance(top, ast.Assign) and len(top.targets) == 1 and isinstance(top.targets[0], ast.Name) and top.targets[0].id not in named:
+        v = top.value
+        kind = {ast.Dict: "dict", ast.Set: "set", ast.List: "list", ast.Tuple: "tuple"}.get(type(v))
+        if kind is None and isinstance(v, ast.Call) and isinstance(v.func, ast.Name) and v.func.id in ("frozenset", "set", "dict", "tuple", "list"):
+            kind = f"{v.func.id}(...)"
+        if kind and (not isinstance(v, (ast.Set, ast.List, ast.Tuple)) or v.elts):
+            outside.append(f"{top.targets[0].id} ({kind})")
 workers = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 if len(sys.argv) > 2:
     wanted = {l.strip() for l in Path(sys.argv[2]).read_text().splitlines() if l.strip()}
@@ -96,13 +110,15 @@ def one(m):
     return label, line, ("CAUGHT" if rc != 0 and f else "SURVIVED"), f"exit {rc}; {last}"
 
 rc, f, last = run(dirs[0], SRC)
-print(f"baseline: exit {rc}; {last}\n{len(mutants)} string members in the guard's module-level collections")
+print(f"baseline: exit {rc}; {last}\n{enumerated} string members enumerated in {len(named)} module-level collections (a set, tuple or list of string constants); this run: {len(mutants)} of them"
+      + (f", {enumerated - len(mutants)} NOT RUN (a label file was given)" if len(mutants) != enumerated else "")
+      + f"\noutside the enumeration, not run: {', '.join(outside) or 'none'}")
 assert rc == 0, "the unmutated copy must be green"
 tally = {"CAUGHT": 0, "REAL-TREE-RED": 0, "SURVIVED": 0, "CRASH": 0}
 with ThreadPoolExecutor(workers) as ex:
     for label, line, verdict, why in ex.map(one, mutants):
         tally[verdict] += 1
         print(f"{verdict:8} line {line:<5} {label}" + ("" if verdict == "CAUGHT" else f"   ({why})"), flush=True)
-print(f"\nran {sum(tally.values())} of {len(mutants)} deletions; caught by the self-test {tally['CAUGHT']}; survived the self-test but red on the real tree {tally['REAL-TREE-RED']}; OPEN (green on both) {tally['SURVIVED']}; did not compile {tally['CRASH']}")
+print(f"\nran {sum(tally.values())} of {enumerated} enumerated deletions ({enumerated - len(mutants)} not run by the label file; {len(outside)} collections outside the enumeration); caught by the self-test {tally['CAUGHT']}; survived the self-test but red on the real tree {tally['REAL-TREE-RED']}; OPEN (green on both) {tally['SURVIVED']}; did not compile {tally['CRASH']}")
 shutil.rmtree(base, ignore_errors=True)
-sys.exit(0 if tally["SURVIVED"] == 0 and tally["CRASH"] == 0 else 1)
+sys.exit(0 if tally["SURVIVED"] == 0 and tally["CRASH"] == 0 and len(mutants) == enumerated else 1)
