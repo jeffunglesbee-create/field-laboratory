@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `247ec33` | 2026-11-15 | [pick-pass-closest-2026-11-15.md](pick-pass-closest-2026-11-15.md) | feat: on a pass night Field's Pick shows what came closest, from the relay's own ranked list |
 | `461ff94` | 2026-11-14 | [tls-stage-premise-2026-11-14.txt](tls-stage-premise-2026-11-14.txt) | docs: CC-CMD for the weather failure's TLS stage and every address, filed on 14 runner runs of premises |
 | `c7c2927` | 2026-11-15 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the render-check race is fixed on main, the first proof slot's match is on the relay's slate, and soccer's pre shape is read |
 | `33ce43f` | 2026-11-15 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: open item 1 of the Chromium gate: the landing runs and the first healthy live-check |
