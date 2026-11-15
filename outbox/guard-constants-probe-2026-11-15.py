@@ -18,6 +18,14 @@ from pathlib import Path
 
 GUARD = Path("scripts/check-browser-gate.py")
 SRC = GUARD.read_bytes()
+if os.environ.get("PROBE_NO_EQUALITY"):
+    # The literal lists in the self-test are checked EQUAL to their constants, which catches any deletion by itself. With this set, those equalities are replaced by True in the copy (the
+    # baseline must still pass), so a deletion is caught only if a member's own job check fails for it.
+    for eq in (b"set(PINNED_RUNNERS) == set(RUNS_ROWS)", b"set(PINNED_WRAPPERS) == set(WRAPPER_HEADS)",
+               b'set(PINNED_MC_MODES) == set(NOT_WORK["scripts/mutation-check.mjs"]) and set(PINNED_CONF_MODES) == set(NOT_WORK["scripts/confidence.mjs"])',
+               b"set(literal) == set(const)", b"set(PINNED_OUTCOMES) == set(ANY_OUTCOMES)"):
+        assert SRC.count(eq) == 1, f"the equality check {eq!r} occurs {SRC.count(eq)} times, not once"
+        SRC = SRC.replace(eq, b"True")
 text = SRC.decode()
 tree = ast.parse(text)
 line_off = [0]
