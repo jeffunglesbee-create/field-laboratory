@@ -17,7 +17,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -25,8 +25,11 @@ jobs:
       - name: Premise
         run: |
           cat > "$RUNNER_TEMP/tls-premise.mjs" <<'PREMISE_EOF'
-          // One-off premise probe (second version) for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). The first run (centralus) found one address from every resolver;
-          // this one adds the two addresses the committed artifacts record, the host's delegation, what the zone answers for other client subnets, and the runner's own egress. It runs on a throwaway branch and is never merged.
+          // One-off premise probe (third version) for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). The first run (centralus) found one address from every resolver;
+          // the second added the two addresses the committed artifacts record, the host's delegation, what the zone answers for other client subnets, and the runner's own egress. It found the west
+          // address accepting TCP and never answering the handshake from four runners. Node 22.23.4 bundles OpenSSL 3.5.9, whose ClientHello carries the post-quantum hybrid key share X25519MLKEM768
+          // and is 1596 bytes (measured on the authoring sandbox with a capture server: 1596 bytes, groups 4588,29,23,30,24,25,256,257); with ecdhCurve 'X25519:prime256v1:secp384r1' it is 366 bytes.
+          // This version hands every address both hellos, by Node's TLS, by Node's https, and by curl (system OpenSSL), so a stall that follows the hello's size is told from one that follows the address. It runs on a throwaway branch and is never merged.
           // It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
           //   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
           //   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
@@ -35,6 +38,7 @@ jobs:
           import dns from 'node:dns';
           import tls from 'node:tls';
           import https from 'node:https';
+          import { spawnSync } from 'node:child_process';
           
           const HOST = 'api.open-meteo.com';
           const PATH = '/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto';
@@ -143,11 +147,12 @@ jobs:
           const addresses = [...found.keys()];
           say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
           
-          function tlsOnce(address, capMs) {
+          const CLASSICAL = 'X25519:prime256v1:secp384r1';
+          function tlsOnce(address, capMs, extra = {}) {
             return new Promise((resolve) => {
               const t0 = Date.now();
               let tConnect = null;
-              const socket = tls.connect({ host: address, port: 443, servername: HOST });
+              const socket = tls.connect({ host: address, port: 443, servername: HOST, ALPNProtocols: ['http/1.1'], ...extra });
               const finish = (verdict) => { socket.destroy(); resolve(verdict); };
               const timer = setTimeout(() => finish(tConnect === null ? `tcp no-answer-in-${capMs}ms` : `tcp ok ${tConnect} ms, tls no-answer-in-${capMs}ms`), capMs);
               socket.once('connect', () => { tConnect = ms(t0); });
@@ -160,12 +165,12 @@ jobs:
             });
           }
           
-          function pinnedGet(address, capMs) {
+          function pinnedGet(address, capMs, extra = {}) {
             return new Promise((resolve) => {
               const t0 = Date.now();
               const family = address.includes(':') ? 6 : 4;
               const lookup = (_host, options, cb) => (options?.all ? cb(null, [{ address, family }]) : cb(null, address, family));
-              const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' } }, (res) => {
+              const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' }, ...extra }, (res) => {
                 let n = 0;
                 res.on('data', (c) => { n += c.length; });
                 res.on('end', () => resolve(`HTTP ${res.statusCode} ${n} bytes ${ms(t0)} ms`));
@@ -176,14 +181,24 @@ jobs:
             });
           }
           
+          const tool = (cmd, args) => { const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 25000 }); return `${(r.stdout || '').trim()} ${(r.stderr || '').trim().slice(0, 140)} exit=${r.status}`.trim(); };
+          say('curl', tool('sh', ['-c', 'curl --version | head -1']));
+          say('openssl cli', tool('openssl', ['version']));
+          const curl = (address, curves) => tool('curl', ['-sS', '-m', '12', '--resolve', `${HOST}:443:${address}`, ...(curves ? ['--curves', curves] : []), '-o', '/dev/null', '-w', 'HTTP %{http_code} connect=%{time_connect}s tls=%{time_appconnect}s total=%{time_total}s', `https://${HOST}${PATH}`]);
+          
           await Promise.all(addresses.map(async (address) => {
-            const handshakes = [];
-            for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000)); await new Promise((r) => setTimeout(r, 300)); }
-            const requests = [];
-            for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000));
+            const rows = [];
+            for (const [label, extra] of [['default hello (1596 B, with X25519MLKEM768)', {}], [`classical hello (366 B, ${CLASSICAL})`, { ecdhCurve: CLASSICAL }]]) {
+              const handshakes = [];
+              for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000, extra)); await new Promise((r) => setTimeout(r, 300)); }
+              const requests = [];
+              for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000, extra));
+              rows.push([`node ${label}`, handshakes.map((h, i) => `tls ${i + 1}: ${h}`).concat(requests.map((r, i) => `pinned request ${i + 1}: ${r}`))]);
+            }
+            rows.push(['curl default hello', [1, 2].map((i) => `try ${i}: ${curl(address)}`)]);
+            rows.push(['curl classical hello (--curves X25519:P-256)', [1, 2].map((i) => `try ${i}: ${curl(address, 'X25519:P-256')}`)]);
             say(`address ${address} [${[...found.get(address)].join('; ')}]`, '');
-            handshakes.forEach((h, i) => say(`  tls ${i + 1}`, h));
-            requests.forEach((r, i) => say(`  pinned request ${i + 1}`, r));
+            for (const [label, lines] of rows) { say(`  ${label}`, ''); lines.forEach((l) => say('    ', l)); }
           }));
           
           say('coverage', `checked ${addresses.length} of ${addresses.length} addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts`);
