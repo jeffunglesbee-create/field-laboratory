@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `247ec33`
+**green** on `247ec33` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `247ec33`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `247ec33` at "A finished game shows the brief written after it finished" — 1 of 17 steps did not run behind it — [run 43671813126](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43671813126)
 
 ## Is it published?
 
