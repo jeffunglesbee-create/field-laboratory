@@ -101,8 +101,25 @@ await page.waitForTimeout(150)
 
 // A pick button only enters its chosen state when something picks. One click,
 // then everything below reads the rendered result.
-const firstSide = await page.$('.pk-side')
-if (firstSide) { await firstSide.click(); await page.waitForTimeout(150) }
+//
+// An OPEN side, since 2026-11-15: picks lock at kickoff, and on a past fixture
+// (games-2026-08-09) every side is disabled, so a click can no longer make the
+// chosen state. There the pick is seeded in storage the way one made before
+// kickoff would be, and the panel re-rendered; a locked row keeps its chosen
+// styling, which is the state compared below.
+const openSide = await page.$('.pk-side:not([disabled])')
+if (openSide) { await openSide.click(); await page.waitForTimeout(150) }
+else if (await page.$('.pk-side')) {
+  await page.evaluate(async () => {
+    const param = new URLSearchParams(location.search).get('data')
+    const date = param ? (await (await fetch(`./data/${param}.json`)).json()).date : null
+    const id = document.querySelector('#panel-pickem .pk-row')?.dataset.game
+    if (date && id) localStorage.setItem(`field_lab_pickem_${date}`, `${id}=home`)
+  })
+  await page.reload({ waitUntil: 'networkidle' })
+  await page.click('#tab-pickem')
+  await page.waitForTimeout(150)
+}
 
 const contrasts = await page.evaluate(props => {
   const out = []

@@ -72,6 +72,45 @@ let decide (state: GameState) (side: Side) : Verdict option =
     | Scheduled -> None
     | InProgress _ -> None
 
+/// Whether a pick may still be made or changed.
+///
+/// Only before kickoff. The first version let a side be picked on a finished
+/// game and graded it at once: click the winner of a 5-2 final and the chip
+/// read CORRECT. A pick made with the result in view is not a pick, and the
+/// banner counted it as one.
+///
+/// Kickoff, not state alone: a game whose start time has passed with no score
+/// served still reads `Scheduled` ("Start time passed, no score served"), and
+/// it is under way all the same.
+let pickOpen (kickoffPassed: bool) (state: GameState) : bool =
+    match state with
+    | Scheduled -> not kickoffPassed
+    | InProgress _ | Final _ -> false
+
+/// Which part of the panel a row belongs to.
+type RowGroup =
+    /// Before kickoff: the sides can be picked.
+    | Open
+    /// Kicked off, not final: locked, not yet graded.
+    | UnderWay
+    /// Final: locked, and graded when a pick was made.
+    | Settled
+
+let groupOf (kickoffPassed: bool) (state: GameState) : RowGroup =
+    match state with
+    | Final _ -> Settled
+    | InProgress _ -> UnderWay
+    | Scheduled -> if kickoffPassed then UnderWay else Open
+
+let groupLabel (group: RowGroup) =
+    match group with
+    | Open -> "Open"
+    | UnderWay -> "Under way — locked"
+    | Settled -> "Settled"
+
+/// An American moneyline as printed: "+170", "-205".
+let moneylineText (ml: int) = if ml > 0 then sprintf "+%d" ml else string ml
+
 /// What the row shows.
 type PickStatus =
     | NotPicked

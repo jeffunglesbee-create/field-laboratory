@@ -66,7 +66,11 @@ const SLATE = {
     regular: [
       // The row that wraps in production. Kept verbatim.
       game('MLB_x_rockies_diamondbacks', 'MLB', 'Diamondbacks', 'Rockies'),
-      game('MLB_x_mets_braves', 'MLB', 'Braves', 'Mets'),
+      // Carries a served line, so the moneyline stamp has something to read.
+      // The shape is the relay's (closing_odds is a JSON string).
+      game('MLB_x_mets_braves', 'MLB', 'Braves', 'Mets', {
+        closing_odds: JSON.stringify({ source: 'draftkings', captured_at: `${DATE}T16:50:00Z`,
+          moneyline: { home: -205, away: 170 } }) }),
       // Finished: home 5, away 2, so Home is the winning side.
       game('MLB_x_reds_phillies', 'MLB', 'Phillies', 'Reds',
         { home_score: 5, away_score: 2, finalized_at: `${DATE} 22:00:00` }),
@@ -206,36 +210,86 @@ check('clicking the chosen side again clears the pick',
   await chipOf('MLB_x_mets_braves') === 'NO PICK',
   `chip: ${await chipOf('MLB_x_mets_braves')}`)
 
-// --- grading -----------------------------------------------------------------
+// --- the line stamp ----------------------------------------------------------
+// The served moneyline sits in the button, beside the name it prices. MLB reads
+// "Away @ Home", so the first button is the Mets (away, +170).
+const metsBtn = `${rowFor('MLB_x_mets_braves')} .pk-side >> nth=0`
+// Non-throwing: a missing stamp must read as a named FAIL, not a locator timeout.
+const lineText = async sel => {
+  const node = await page.locator(`${sel} >> .pk-side__line`).elementHandle({ timeout: 1000 }).catch(() => null)
+  return node ? (await node.textContent())?.trim() : null
+}
+check('each side carries its served moneyline',
+  (await lineText(metsBtn)) === '+170'
+    && (await lineText(`${rowFor('MLB_x_mets_braves')} .pk-side >> nth=1`)) === '-205',
+  'expected +170 on the Mets and -205 on the Braves')
+const stampTitle = await page.locator(`${metsBtn} >> .pk-side__line`).getAttribute('title', { timeout: 1000 }).catch(() => null)
+check('the stamp says which snapshot it is', stampTitle === 'closing moneyline', `title: ${stampTitle}`)
+check('a game with no served line carries no stamp',
+  (await page.$$(`${rowFor('MLB_x_rockies_diamondbacks')} .pk-side__line`)).length === 0,
+  'a stamp with nothing behind it would be an invented number')
 
-// Finished game, home won 5-2. Home is the second button (away is listed first
-// for MLB's "Away @ Home" reading).
-await page.click(`${rowFor('MLB_x_reds_phillies')} .pk-side >> nth=1`)
-check('picking the winner of a finished game reads CORRECT',
+// --- the groups --------------------------------------------------------------
+const groups = await page.$$eval('#panel-pickem .pk-group', hs => hs.map(h => [h.dataset.group, h.textContent]))
+check('the MLB rows are grouped open, under way, settled, in that order, with counts',
+  JSON.stringify(groups) === JSON.stringify([['open', 'Open · 3'], ['under-way', 'Under way — locked · 1'], ['settled', 'Settled · 1']]),
+  `groups: ${JSON.stringify(groups)}`)
+
+// --- the lock ----------------------------------------------------------------
+// THE INVARIANT this section exists for. The first version let a side be picked
+// on a finished game and graded it at once: the winner of a 5-2 final, clicked,
+// read CORRECT. A pick made with the result in view is not a pick.
+const disabledOf = id => page.$$eval(`${rowFor(id)} .pk-side`, bs => bs.map(b => b.disabled))
+check("a finished game's sides are locked", (await disabledOf('MLB_x_reds_phillies')).join() === 'true,true',
+  `disabled: ${await disabledOf('MLB_x_reds_phillies')}`)
+check('a game under way is locked too', (await disabledOf('MLB_x_rays_athletics')).join() === 'true,true',
+  `disabled: ${await disabledOf('MLB_x_rays_athletics')}`)
+check('a game before kickoff is open', (await disabledOf('MLB_x_mets_braves')).join() === 'false,false',
+  `disabled: ${await disabledOf('MLB_x_mets_braves')}`)
+await page.click(`${rowFor('MLB_x_reds_phillies')} .pk-side >> nth=1`, { force: true })
+check("clicking a finished game's winner picks nothing",
+  await chipOf('MLB_x_reds_phillies') === 'NO PICK',
+  `chip: ${await chipOf('MLB_x_reds_phillies')} — a pick made after the result was graded`)
+
+// --- grading -----------------------------------------------------------------
+// Picks on games that have since started are the ones made BEFORE kickoff, so
+// they are seeded in storage, the way a real one would be there, rather than
+// clicked now.
+const seed = async pairs => {
+  await page.evaluate(([key, value]) => localStorage.setItem(key, value),
+    [`field_lab_pickem_${DATE}`, pairs])
+  await open()
+  // A reload opens on the first sport; the graded rows are MLB's.
+  await page.click('.pk-sport:has-text("MLB")')
+}
+// Finished game, home won 5-2.
+await seed('MLB_x_reds_phillies=home')
+check('a pick on the winner of a finished game reads CORRECT',
   await chipOf('MLB_x_reds_phillies') === 'CORRECT',
   `chip: ${await chipOf('MLB_x_reds_phillies')}`)
-
-await page.click(`${rowFor('MLB_x_reds_phillies')} .pk-side >> nth=0`)
-check('picking the loser reads WRONG',
+await seed('MLB_x_reds_phillies=away')
+check('a pick on the loser reads WRONG',
   await chipOf('MLB_x_reds_phillies') === 'WRONG',
   `chip: ${await chipOf('MLB_x_reds_phillies')}`)
+check('the chosen side of a locked row still shows as chosen',
+  (await page.getAttribute(`${rowFor('MLB_x_reds_phillies')} .pk-side >> nth=0`, 'aria-pressed')) === 'true',
+  'what was picked is the point of a settled row')
 
-// THE INVARIANT. This game has a score and a leader, and it is still going.
-await page.click(`${rowFor('MLB_x_rays_athletics')} .pk-side >> nth=1`)
+// THE OTHER INVARIANT. This game has a score and a leader, and it is still going.
+await seed('MLB_x_reds_phillies=away;MLB_x_rays_athletics=home')
 const liveChip = await chipOf('MLB_x_rays_athletics')
 check('a pick on a game IN PROGRESS reads LIVE, never CORRECT or WRONG',
   liveChip === 'LIVE',
   `chip: ${liveChip} — the leader of an unfinished game is not a winner`)
 
 // A draw is neither.
+await seed('MLB_x_reds_phillies=away;MLB_x_rays_athletics=home;MLS_x_c_d=away')
 await page.click('.pk-sport:has-text("MLS")')
-await page.click(`${rowFor('MLS_x_c_d')} .pk-side >> nth=0`)
 check('a pick on a DRAWN game is neither correct nor wrong',
   await chipOf('MLS_x_c_d') === 'DRAWN',
   `chip: ${await chipOf('MLS_x_c_d')} — a boolean would grade every draw as a loss`)
-
 check('the banner reports right, wrong and drawn separately',
-  /1 right, 0 wrong|0 right, 1 wrong/.test(await banner()) && /drawn/.test(await banner()),
+  /0 right, 1 wrong/.test(await banner()) && /drawn/.test(await banner()),
   `banner: ${await banner()}`)
 
 // --- status comes from kickoff, not from a score existing --------------------
