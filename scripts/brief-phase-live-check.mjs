@@ -26,12 +26,14 @@
 //   NOT OBSERVABLE  no final game on today's slate carries more than one brief.
 //                   Nothing to prefer, so the rule is untested — reported as
 //                   such, never as green. On a heartbeat that is neutral; on a
-//                   dispatch it means the day was wrong, not the code.
+//                   dispatch it means the day was wrong, not the code, and a
+//                   dispatch can name the day (live-check.yml's `brief_date`).
 //   FAIL            a card shows a during-play kind while an after-play brief
 //                   for that same game exists in the payload.
 //   PASS            every such game shows its after-play brief.
 //
 // Usage:  URL=https://… node scripts/brief-phase-live-check.mjs
+//         URL='https://…/?date=2026-11-14' node scripts/brief-phase-live-check.mjs   (a finished day)
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'

@@ -361,6 +361,68 @@ FAIL  every final game with both phases shows its after-play brief (3 testable)
 [exit 0]
 
 
+==== 6. STEP 4: the brief_date dispatch input. BEFORE the edit, the two workflow guards on the committed workflow (HEAD 7bfaf77f) ====
+
+$ npm run --silent check:workflows 2>&1 | tail -4
+PASS  install: an install command the step reader cannot see is reported, not skipped
+PASS  install: a comment that mentions an install is not counted as a missed one
+
+71/71 checks passed
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | tail -4
+  .github/workflows/open-meteo-egress-probe.yml:40  N=1  a failed install ends the job red; it skips the Build and the Probe (the probe needs the browser and the build); the runner survey, the failure shapes and the fault-injected render-check carry always() and still run, and the last needs the build this skips (render-check.mjs imports build/Venues.js before it launches) and the browser the install did not give it, so after a failed install it fails and its not-observable verdict is committed on main and printed in the log on any other ref (N counts the Build only)
+  .github/workflows/verify-full.yml:178  N=2  a failed install ends the job red with no ledger line written (the peak-slate step and the Confidence gate are skipped, and the two ledger steps find nothing new); the proof-doc self-test, the one standalone browser-free step, runs on !cancelled(); N=2 is the site server and the Confidence gate, which this guard cannot see launching a browser (confidence.mjs spawns its rows, and 6 of its 23 rows drive one); the gate is ONE step whose 17 rows that drive no browser are lost with it, and giving the job the verify shape needs a browser-free-rows mode in scripts/confidence.mjs and a way to tell this guard that `npm run gate` needs a browser (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, items 2 and 6)
+
+verdict: gated
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | grep -E '^(COVERAGE|verdict)|live-check.yml'| cut -c1-220
+=== .github/workflows/live-check.yml, job `live`: the browser steps wait for the Chromium install ===
+COVERAGE: 2 job(s) get the whole shape (.github/workflows/verify.yml:verify, .github/workflows/live-check.yml:live).
+verdict: gated
+[exit 0]
+
+
+==== 6b. STEP 4: AFTER the edit. The diff, the guards, and the step's own URL line run with an unset, an empty, a set and two hostile values, then its own mutant ====
+
+$ git diff --stat -- .github/workflows/live-check.yml scripts/brief-phase-live-check.mjs
+ .github/workflows/live-check.yml   | 18 +++++++++++++++++-
+ scripts/brief-phase-live-check.mjs |  4 +++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
+[exit 0]
+
+$ npm run --silent check:workflows 2>&1 | tail -3
+PASS  install: a comment that mentions an install is not counted as a missed one
+
+71/71 checks passed
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | grep -E '^(COVERAGE|verdict)|^=== .*live-check.yml'| cut -c1-220
+=== .github/workflows/live-check.yml, job `live`: the browser steps wait for the Chromium install ===
+COVERAGE: 2 job(s) get the whole shape (.github/workflows/verify.yml:verify, .github/workflows/live-check.yml:live).
+verdict: gated
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py --self-test | tail -1
+262/262 checks passed
+[exit 0]
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/url-line.py
+line from the workflow: URL="https://field-laboratory.jeffunglesbee.workers.dev/${BRIEF_DATE:+?date=$BRIEF_DATE}" node scripts/brief-phase-live-check.mjs
+step env block: {'BRIEF_DATE': '${{ inputs.brief_date }}'}
+BRIEF_DATE=None                             -> https://field-laboratory.jeffunglesbee.workers.dev/   [one output line, empty stderr: True]
+BRIEF_DATE=''                               -> https://field-laboratory.jeffunglesbee.workers.dev/   [one output line, empty stderr: True]
+BRIEF_DATE='2026-11-14'                     -> https://field-laboratory.jeffunglesbee.workers.dev/?date=2026-11-14   [one output line, empty stderr: True]
+BRIEF_DATE='2026-11-14; echo INJECTED'      -> https://field-laboratory.jeffunglesbee.workers.dev/?date=2026-11-14; echo INJECTED   [one output line, empty stderr: True]
+BRIEF_DATE='$(echo INJECTED)'               -> https://field-laboratory.jeffunglesbee.workers.dev/?date=$(echo INJECTED)   [one output line, empty stderr: True]
+checked 5 of 5 values; 0 produced extra output
+MUTANT, the input interpolated into the command: URL="https://field-laboratory.jeffunglesbee.workers.dev/${{ inputs.brief_date }}" node scripts/brief-phase-live-check.mjs
+  after substituting '2026-11-14"; echo INJECTED; echo "': output ['INJECTED', ' printenv URL']
+  the same test would have flagged it: True
+[exit 0]
+
+
 ==== Z. The harness, verbatim ====
 
 ---- serve.mjs
@@ -485,6 +547,45 @@ if m == s:
     print("REFUSED: the replacement changed nothing"); sys.exit(2)
 open(out, 'w').write(m)
 print("mutant written; lines that differ from the script:", sum(1 for x, y in zip(s.splitlines(), m.splitlines()) if x != y))
+
+---- url-line.py
+#!/usr/bin/env python3
+# Runs the brief step's own URL line, read from .github/workflows/live-check.yml (not retyped), with the node command replaced
+# by `printenv URL`, under an unset, an empty, a set and two hostile values of BRIEF_DATE. Run from the repository root.
+import yaml, subprocess, os
+d = yaml.safe_load(open('.github/workflows/live-check.yml'))
+st = [x for x in d['jobs']['live']['steps'] if x.get('name', '').startswith('A finished game shows the brief')]
+assert len(st) == 1, f"{len(st)} steps match"
+lines = [l for l in st[0]['run'].splitlines() if l.startswith('URL=')]
+assert len(lines) == 1 and lines[0].count('node scripts/brief-phase-live-check.mjs') == 1, lines
+cmd = lines[0].replace('node scripts/brief-phase-live-check.mjs', 'printenv URL')
+print("line from the workflow:", lines[0])
+print("step env block:", st[0]['env'])
+bad = 0
+for val in (None, '', '2026-11-14', '2026-11-14; echo INJECTED', '$(echo INJECTED)'):
+    env = {k: v for k, v in os.environ.items() if k != 'BRIEF_DATE'}
+    if val is not None: env['BRIEF_DATE'] = val
+    r = subprocess.run(['bash', '-c', cmd], env=env, capture_output=True, text=True)
+    out = r.stdout.splitlines()
+    ran_nothing_else = len(out) == 1 and r.stderr == ''
+    bad += 0 if ran_nothing_else else 1
+    print(f"BRIEF_DATE={val!r:<32} -> {out[0] if out else ''}   [one output line, empty stderr: {ran_nothing_else}]")
+print(f"checked 5 of 5 values; {bad} produced extra output")
+
+# THE CHECK ABOVE MUST BE ABLE TO FAIL (Rule 90). The unsafe form is the input interpolated into the command text. GitHub does that
+# substitution before the shell sees the line; it is done here by hand, on a hostile value that closes the quote.
+anchor = '${BRIEF_DATE:+?date=$BRIEF_DATE}'
+assert lines[0].count(anchor) == 1
+unsafe = lines[0].replace(anchor, '${{ inputs.brief_date }}')
+assert unsafe != lines[0]
+hostile = '2026-11-14"; echo INJECTED; echo "'
+cmd2 = unsafe.replace('node scripts/brief-phase-live-check.mjs', 'printenv URL').replace('${{ inputs.brief_date }}', hostile)
+r = subprocess.run(['bash', '-c', cmd2], capture_output=True, text=True)
+extra = len(r.stdout.splitlines()) != 1 or r.stderr != ''
+print("MUTANT, the input interpolated into the command:", unsafe)
+print(f"  after substituting {hostile!r}: output {r.stdout.splitlines()!r}")
+print(f"  the same test would have flagged it: {extra}")
+raise SystemExit(0 if (bad == 0 and extra) else 1)
 
 ---- spec-A.mjs
 // Mutants of the three checks added for the 2026-11-14 slate (step 1 of 4).
