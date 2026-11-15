@@ -1,10 +1,10 @@
-# Claude Code Command — a Scout's Pick per daypart, explored before it is built
+# Claude Code Command — Deep Cuts: a Scout's Pick per daypart, explored before it is built
 
 **Branch:** main — commit directly, no feature branch, no PR
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Question 5 answered 2026-11-15 (its own section); 1 to 4 and 6 open. Not to be built until they are answered. Filing is not permission to build.
+**Status:** HELD for exploration. Questions 5 (its own section) and 6 (the name, Deep Cuts) answered 2026-11-15; 1 to 4 open. Not to be built until they are answered. Filing is not permission to build.
 
 ---
 
@@ -48,7 +48,7 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
 4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
 5. **Relation to the single pick:** ANSWERED 2026-11-15 by the owner: "option c, should not replace any section of picks; it's its own thing." It is a separate section; Field's Pick, Scout's Pick and Pick'em stay as they are.
-6. **Its name.** Open. The owner's working name is "What to Watch". Found the same day: that exact string is already a bold section header in the client's series-preview prompt (`jubilant-bassoon/src/legacy/field.js` 35199, `**What to Watch** — 2 sentences ...`), and "watch" is the word ADR-002's summary of the patent claim uses for element 4 ("Displays a **recommendation** (watch/skip/switch)"). The name is not the claim test (all four elements are, `docs/ADR-002-CONTEXT.md`), and no legal verdict is made here (Rule 45).
+6. **Its name.** ANSWERED 2026-11-15 by the owner: **Deep Cuts**. The working name had been "What to Watch", set aside because that exact string is already a bold section header in the client's series-preview prompt (`jubilant-bassoon/src/legacy/field.js` 35199, `**What to Watch** — 2 sentences ...`), and "watch" is the word ADR-002's summary of the patent claim uses for element 4 ("Displays a **recommendation** (watch/skip/switch)"). The name is not the claim test (all four elements are, `docs/ADR-002-CONTEXT.md`), and no legal verdict is made here (Rule 45).
 
 ## Constraints any build must keep
 
