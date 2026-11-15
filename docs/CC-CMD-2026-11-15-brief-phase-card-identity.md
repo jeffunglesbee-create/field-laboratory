@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-15 by CC, on the owner's word ("Brief and hook", Sun 2026-11-15 06:53 ET), as the residual named in `outbox/cc-session-2026-11-14-tls-stage.md` ("A finished game shows the brief written after it finished" red in 6 of 6 renders since 2026-11-14 23:06Z)
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED 2026-11-15. Not started when this line was written; the premises below were tested before filing and every one of them is in `outbox/brief-hook-premises-2026-11-15.txt`.
+**Status:** IN PROGRESS 2026-11-15. The fix is built and proven on the work branch `brief-hook` and not landed; Tasks 6 and 7 (the runner replay of 2026-11-14 and the first Saturday-evening beat) run after landing. The premises below were tested before filing and are in `outbox/brief-hook-premises-2026-11-15.txt`.
 
 ---
 
