@@ -17,7 +17,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/setup-node@v4
         with:
@@ -25,7 +25,8 @@ jobs:
       - name: Premise
         run: |
           cat > "$RUNNER_TEMP/tls-premise.mjs" <<'PREMISE_EOF'
-          // One-off premise probe for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). It runs on a throwaway branch and is never merged.
+          // One-off premise probe (second version) for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). The first run (centralus) found one address from every resolver;
+          // this one adds the two addresses the committed artifacts record, the host's delegation, what the zone answers for other client subnets, and the runner's own egress. It runs on a throwaway branch and is never merged.
           // It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
           //   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
           //   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
@@ -43,7 +44,7 @@ jobs:
           const clip = (s, n = 300) => (String(s).length > n ? `${String(s).slice(0, n)}...` : String(s));
           const ms = (t0) => Date.now() - t0;
           
-          setTimeout(() => { say('global-cap', 'reached 150000 ms, exiting'); process.exit(0); }, 150000).unref();
+          setTimeout(() => { say('global-cap', 'reached 240000 ms, exiting'); process.exit(0); }, 240000).unref();
           
           async function asked(label, fn) {
             const t0 = Date.now();
@@ -101,6 +102,43 @@ jobs:
             }
           }
           
+          // 3b. the delegation of the host itself (the zone's nameservers above answered no A for it)
+          for (const [label, method] of [['ns', 'resolveNs'], ['cname', 'resolveCname'], ['soa', 'resolveSoa']]) await asked(`${label} ${HOST}`, () => via[method](HOST));
+          const apiNs = (await asked('ns-list api', () => via.resolveNs(HOST))) ?? [];
+          for (const name of apiNs.slice(0, 4)) {
+            const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+            if (!ips[0]) continue;
+            const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+            direct.setServers([ips[0]]);
+            const r = await asked(`authoritative ${name} ${ips[0]} A`, () => direct.resolve4(HOST, { ttl: true }));
+            for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+          }
+          
+          // 3c. what the zone answers for other client subnets (Google's JSON API takes edns_client_subnet). The subnets are the /24s of four runners'
+          // own egress addresses as the committed artifacts recorded them, so each stands for the region that runner ran in; none is invented.
+          for (const [label, subnet] of [
+            ['as westus2 20.80.173.98', '20.80.173.0/24'], ['as westus3 20.168.93.82', '20.168.93.0/24'],
+            ['as southcentralus 20.64.49.212', '20.64.49.0/24'], ['as eastus2 68.220.172.168', '68.220.172.0/24'], ['as none', '0.0.0.0/0'],
+          ]) {
+            const t0 = Date.now();
+            try {
+              const res = await fetch(`https://8.8.8.8/resolve?name=${HOST}&type=A&edns_client_subnet=${encodeURIComponent(subnet)}`, { signal: AbortSignal.timeout(5000) });
+              const j = JSON.parse(await res.text());
+              say(`ecs ${label} (${subnet})`, `${ms(t0)} ms HTTP ${res.status} status ${j.Status} answers ${JSON.stringify((j.Answer ?? []).map((a) => a.data))} ${j.Comment ?? ''}`);
+              for (const a of j.Answer ?? []) if (/^\d+\.\d+\.\d+\.\d+$/.test(a.data)) note(a.data, `ecs ${label}`);
+            } catch (e) { say(`ecs ${label} (${subnet})`, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+          }
+          
+          // 3d. where this runner reaches the internet from, and which Cloudflare site answered (1.1.1.1 is anycast)
+          try {
+            const t = await (await fetch('https://1.1.1.1/cdn-cgi/trace', { signal: AbortSignal.timeout(5000) })).text();
+            say('trace 1.1.1.1', t.split('\n').filter((l) => /^(ip|colo|loc|http|tls)=/.test(l)).join(' '));
+          } catch (e) { say('trace 1.1.1.1', `ERR ${codeOf(e)}`); }
+          
+          // 3e. the two addresses the committed artifacts record DNS handing a runner, probed whatever DNS says now
+          // (outbox/open-meteo-egress-2026-11-14T17-19-34-656Z.json and the live-check job logs 43620118846 and 43631078973)
+          for (const known of ['167.114.211.86', '51.81.167.44']) note(known, 'recorded in committed artifacts');
+          
           // 4. every address found
           const addresses = [...found.keys()];
           say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
@@ -148,7 +186,7 @@ jobs:
             requests.forEach((r, i) => say(`  pinned request ${i + 1}`, r));
           }));
           
-          say('coverage', `checked ${addresses.length} of ${addresses.length} addresses found by the system resolver, three public resolvers and the zone's nameservers`);
+          say('coverage', `checked ${addresses.length} of ${addresses.length} addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts`);
           process.exit(0);
           PREMISE_EOF
           node "$RUNNER_TEMP/tls-premise.mjs"
