@@ -5,6 +5,7 @@
 **Filed:** 2026-11-14 by CC, on the owner's word ("Diagnostics", Sat 2026-11-14 08:48 ET), after `outbox/live-check-weather-silent-2026-11-14.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Status:** DONE 2026-11-14. Approved by the owner in one word ("Diagnostics"), and one further dispatch of the egress probe by the word "Dispatch". Landed on `main` in two commits, `7be7dd00` and `5ba3efeb`, each after a scored `verify-full` (43613293578 and 43622319008, 530 of 530 both). All six done conditions are met. Condition 5 was STAGED (Rule 74) until the second dispatch: the first runner pass (run 43620413444) printed `region unreadable` because my parser read the wrong keys, `5ba3efeb` fixed it, and the second pass (run 43638310999) printed `region eastus2 cloud Azure` on every runner line, `checked 5 of 5 expected runner lines`, PASS, against that run's own raw `.setup_info`. A second weather red, `live-check` 43631078973, is the first to carry the fixed line (`region westus3`); it is in "Observed". Residual, for the owner to decide and not part of this ask: a TLS stage and every address in `describeEgressPath`, or one pinned per-address probe, which the untested premises under "Observed" would need. See "Outcome" and "Observed" below.
+**Continued in:** `docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md` (the owner's word "TLS", 2026-11-14 20:18 ET): the residual named in the Status above, built on this file.
 
 ---
 
