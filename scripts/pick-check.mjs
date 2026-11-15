@@ -99,6 +99,29 @@ check('a harmless pass reason is equally unrenderable',
   ok(passed) && passReasonText(value(passed).fields[0]) === passReasonText(value(leaky).fields[0]),
   'the safe path must not depend on judging which free text is safe')
 
+// The live pass night, 2026-11-14. The relay passed AND ranked five games; the
+// first decoder dropped the list, so the panel could not say what came closest.
+const liveP = decodePick(readFileSync('data/pick-pass-2026-11-14.json', 'utf8'))
+check('the live pass night decodes as Passed',
+  ok(liveP) && value(liveP).tag === OUTCOME.Passed,
+  `got tag ${ok(liveP) ? value(liveP).tag : 'decode error'}`)
+if (ok(liveP) && value(liveP).tag === OUTCOME.Passed) {
+  const pb = value(liveP).fields[1]
+  const closest = toArray(pb?.Closest ?? [])
+  check('...and keeps all five ranked entries as the closest', closest.length === 5,
+    `${closest.length} entries kept, the payload carries 5`)
+  check('...with their reasons, the displayable half',
+    closest.every(e => toArray(e.Reasons).join() === 'prime time'),
+    'a reason was lost or altered')
+  check('...and the five-way level is named, not hidden',
+    pb.Leadership.tag === LEADERSHIP.SharedBy && pb.Leadership.fields[0] === 5
+      && leadershipNote(pb.Leadership)?.includes('level with 4 others') === true,
+    `Leadership tag ${pb?.Leadership?.tag}, contenders ${pb?.Leadership?.fields?.[0]}`)
+  check('...and nothing on the pass board carries the relay brief ("must-watch" is banned)',
+    !JSON.stringify(pb).includes('must-watch'),
+    'the banned-phrase brief reached the pass board')
+}
+
 // A pick object predating the `ranked` field. Real: `ranked` was added
 // 2026-07-07, and stored bundles from before that date do not have it.
 const older = decodePick(JSON.stringify({ game_id: 'x', home: 'A', away: 'B', score: 2 }))

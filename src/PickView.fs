@@ -61,11 +61,24 @@ let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
         // editorial one.
         child panel (el "p" "pick-empty"
                         "No pick section in this payload. The analytics bundle either has not run for this date or predates the ranked field.") |> ignore
-    | Passed reason ->
+    | Passed(reason, board) ->
         // `passReasonText`, never the relay's sentence. The live route returned
         // "top game scored 1.0 — under the 3.0 watch-bar" on 2026-08-10, and
         // this line rendered it verbatim until live-tabs-check caught it.
         child panel (el "p" "pick-empty" (passReasonText reason)) |> ignore
+
+        // The refusal stands; what came closest is still shown. Same rules as
+        // "Also ranked" on a pick night: matchup and reasons, never the rank.
+        // The tie is named, because on 2026-11-14 all five were level.
+        if not board.Closest.IsEmpty then
+            child panel (el "h3" "pick-panel__what" "Closest on the board") |> ignore
+            match leadershipNote board.Leadership with
+            | Some note -> child panel (el "div" "pick-leader__tie" note) |> ignore
+            | None -> ()
+            for entry in board.Closest do
+                let row = child panel (el "div" "pick-chaser" "")
+                child row (el "span" "" (entryMatchup entry)) |> ignore
+                child row (el "span" "pick-chaser__reasons" (String.concat " · " entry.Reasons)) |> ignore
     | Picked board ->
         let leader = child panel (el "div" "pick-leader" "")
         child leader (el "div" "pick-leader__matchup" (entryMatchup board.Leader)) |> ignore

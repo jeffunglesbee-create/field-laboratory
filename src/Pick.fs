@@ -142,9 +142,25 @@ let passReasonCarriesNumber (PassReason raw) =
 let passReasonText (_: PassReason) =
     "Passed on tonight — no game cleared the bar."
 
+/// What the relay ranked on a night it passed.
+///
+/// The pass response carries the same `ranked` list a pick does. Read on the
+/// live route 2026-11-15 for 2026-11-14: `type: "pass"` with five entries, every
+/// one scored level and carrying the single reason "prime time". The first
+/// version of this decoder dropped that list, so the panel said only that the
+/// bar was not cleared and nothing about what came closest.
+///
+/// Kept apart from `PickBoard` on purpose: there is no leader on a pass night
+/// and no brief worth rendering. The relay's pass brief on that date was "Not
+/// every night has a must-watch. Tonight's one of those." — "must-watch" is on
+/// FIELD's banned-phrase list, so the pass branch never decodes it.
+type PassBoard =
+    { Closest: PickEntry list
+      Leadership: Leadership }
+
 type PickOutcome =
     | NoPickSection
-    | Passed of PassReason
+    | Passed of PassReason * PassBoard
     | Picked of PickBoard
 
 // ---------------------------------------------------------------------------
@@ -181,8 +197,14 @@ let pickDecoder : Decoder<PickOutcome> =
         // board rather than an honest "no pick tonight".
         match get.Optional.Field "type" Decode.string with
         | Some "pass" ->
+            // Sorted here, not trusted, for the same reason as the pick branch.
+            let closest =
+                get.Optional.Field "ranked" (Decode.list entryDecoder)
+                |> Option.defaultValue []
+                |> List.sortWith (fun a b -> compareRank a.Rank b.Rank)
             Passed(PassReason(get.Optional.Field "reason" Decode.string
-                              |> Option.defaultValue "no reason given"))
+                              |> Option.defaultValue "no reason given"),
+                   { Closest = closest; Leadership = leadershipOf closest })
         | _ ->
             let ranked =
                 get.Optional.Field "ranked" (Decode.list entryDecoder)
