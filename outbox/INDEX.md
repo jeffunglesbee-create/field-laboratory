@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1dd9fc2` | 2026-11-15 | [scout-choice-2026-11-15.md](scout-choice-2026-11-15.md) | feat: Scout's Pick chooses among qualifiers by gate precedence, then nearest to even, and names what is still level |
+| `0cd348b` | 2026-11-15 | [cc-session-2026-11-15-brief-hook.md](cc-session-2026-11-15-brief-hook.md) | docs: session record for the brief-phase check and the hook, 2026-11-15 |
+| `986761a` | 2026-11-15 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-15T14:17 [skip ci] |
 | `0cfc0ce` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `17dc13a` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 58e81d2 [skip ci] |
 | `b8b43f0` | 2026-11-15 | [live-check-schedule-sweep-2026-11-15.txt](live-check-schedule-sweep-2026-11-15.txt) | docs: live-check's daily beat observed the brief rule in 0 of 20 runs, filed with its measurement |
