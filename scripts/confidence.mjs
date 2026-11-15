@@ -38,8 +38,10 @@
 // a form to fill in — every row runs a real command and takes its score from
 // the exit code. The total cannot be asserted, only earned.
 //
-// Usage:  node scripts/confidence.mjs [--quick]
+// Usage:  node scripts/confidence.mjs [--quick | --browserless]
 //         --quick skips the rows that need a browser or the .NET build.
+//         --browserless runs every row that needs no browser, the .NET build included, and reports the rows that do as NOT APPLICABLE. For the `full` job of verify-full.yml
+//         when its Chromium install failed (scripts/gate-mode.mjs, docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md item 6). Like --quick it is never a pass.
 
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import { readdirSync, readFileSync, appendFileSync } from 'node:fs'
@@ -47,8 +49,13 @@ import { fileURLToPath } from 'node:url'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'
 import { runIdentity } from './checks.mjs'
+import { modeOf, actionFor, recordId } from './gate-mode.mjs'
 
-const QUICK = process.argv.includes('--quick')
+// The mode is decided by scripts/gate-mode.mjs, where its tests are. A contradiction (`--quick --browserless`) is a usage error: exit 2, nothing run, nothing recorded.
+let MODE
+try { MODE = modeOf(process.argv) } catch (e) { console.error(e.message); process.exit(2) }
+const QUICK = MODE === 'quick'
+const BROWSERLESS = MODE === 'browserless'
 const BAR = 95
 
 // Where a run's measured result is written, so an outbox entry can cite it
@@ -136,8 +143,15 @@ let possible = 0
 const results = []
 const startedAll = Date.now()
 for (const row of rows) {
-  if (QUICK && row.skipQuick) {
+  const action = actionFor(MODE, row)
+  if (action === 'skip') {
     results.push({ ...row, state: 'SKIP' })
+    continue
+  }
+  // --browserless: a row that needs a browser has no subject on this run. Not run, not scored, named (the same N/A a row that returns NOT_APPLICABLE gets).
+  if (action === 'na') {
+    results.push({ ...row, state: 'N/A', seconds: 0 })
+    console.log(`  [   0s] N/A   ${row.name}  (--browserless: it needs a browser)`)
     continue
   }
   const started = Date.now()
@@ -187,12 +201,13 @@ if (notApplicable.length > 0) {
 const { sha: runSha, dirty: treeDirty, id: runId } = runIdentity()
 
 appendFileSync(RECORD_PATH, JSON.stringify({
-  id: runId,
+  // A browserless run's line is never the one a later full run of the same tree is skipped for: scripts/gate-mode.mjs.
+  id: recordId(MODE, runId),
   sha: runSha,
   // Whether the scored tree was the committed one. A clean run is the only kind
   // whose sha alone describes what was measured.
   dirty: treeDirty,
-  mode: QUICK ? 'quick' : 'full',
+  mode: MODE,
   earned,
   possible,
   total,
@@ -213,7 +228,7 @@ appendFileSync(RECORD_PATH, JSON.stringify({
   // `confidence-record-check.mjs` refuses to let such a run back a score.
   notApplicable: notApplicable.map(r => r.name),
 }) + '\n')
-console.log(`  recorded in ${RECORD_PATH} as run ${runId}${treeDirty ? " (tree dirty)" : ""}`)
+console.log(`  recorded in ${RECORD_PATH} as run ${recordId(MODE, runId)}${treeDirty ? " (tree dirty)" : ""}`)
 
 if (QUICK) {
   // Quick mode cannot report a PASS — it skipped rows. It can and must report a
@@ -263,6 +278,13 @@ if (total < BAR) {
   console.log(`\n  Every row passed but the score is ${total}, below ${BAR}.`)
   console.log(`  The scoring has changed shape — fix that before trusting this run.\n`)
   process.exit(1)
+}
+
+if (BROWSERLESS) {
+  // Reached only with no failing row. It is still not a pass: the rows that need a browser were not run, they are named above and in the record, and a record of this mode
+  // cannot back a score (confidence-record-check.mjs).
+  console.log(`\n  --browserless: no failures among the ${results.filter(r => r.state === 'PASS').length} rows that ran. ${notApplicable.length} row(s) that need a browser were NOT run (${notApplicable.reduce((a, r) => a + r.weight, 0)} points). This is NOT a pass.\n`)
+  process.exit(0)
 }
 
 console.log('\n  Gate passed — every row, not a passing average.\n')

@@ -158,6 +158,7 @@ TARGETS = [
     {"file": ".github/workflows/live-check.yml", "job": "live", "floors": (8, 5, 2)},
     # A composite action has no job: its steps are under `runs`, and `job` is None.
     {"file": ".github/actions/mutation-shard/action.yml", "job": None, "floors": (5, 1, 3)},
+    {"file": ".github/workflows/verify-full.yml", "job": "full", "floors": (7, 2, 4)},
 ]
 # A comment line: its indentation, N (ASCII digits, no leading zero) and a reason that begins with a word character (a bare `--` or spaces is none).
 EXEMPT_NOTE = re.compile(r"^(\s*)#\s*browser-gate:\s*exempt\s+(0|[1-9][0-9]{0,3})\s+--\s+(\w.*?)\s*$")
@@ -194,8 +195,10 @@ TRAPPED = frozenset({"scripts/no-launch-check.mjs"})
 # A spawner that can be told it has NO browser. `mutation-check.mjs --no-browser` classes an expectation that cannot launch one (Playwright's missing-browser text) as not applicable
 # and runs the rest; without the flag it is a browser step. The flag is read as browser-free ONLY inside the audit of a target, and only for a step whose `if` makes it run solely when
 # the install did NOT succeed (no_browser_if), so it never runs with a browser installed. The claim is kept true by scripts/mutation-check.mjs (its self-test runs it end to end against
-# a row that cannot launch) and was proved on a runner whose install failed (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7).
-NO_BROWSER_FLAGS = {"scripts/mutation-check.mjs": "--no-browser"}
+# a row that cannot launch) and was proved on a runner whose install failed (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, items 7 and 6). `confidence.mjs --browserless` is the same
+# kind of claim, and one this file can also check against its source: gate_row_problems() reads scripts/gate-checks.mjs and requires the rows flagged `browser` to be exactly the rows
+# whose commands read as driving one.
+NO_BROWSER_FLAGS = {"scripts/mutation-check.mjs": "--no-browser", "scripts/confidence.mjs": "--browserless"}
 INSTALL_CMD = re.compile(r"(?:\bplaywright(?:-core)?(?:/cli\.js)?|@playwright/test)(?:@[^\s'\"]+)?['\"]?\s+install\b")
 
 
@@ -238,6 +241,11 @@ def no_browser_if(cond):
     failed install and never after a good one."""
     cl = clauses(cond)
     return cl is not None and NO_BROWSER_CLAUSE in cl and all(p == NO_BROWSER_CLAUSE or NO_BROWSER_EXTRA.match(p) for p in cl)
+
+
+def always_if(cond):
+    """Exactly `always()`: a step with it runs whether or not the install succeeded, so the install cannot skip it."""
+    return re.sub(r"^\s*\$\{\{\s*|\s*\}\}\s*$", "", cond or "").strip() == "always()"
 
 
 def is_false_if(cond):
@@ -768,7 +776,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
     bad = []
     installs = [i for i, s in enumerate(steps) if is_install(s)]
     if len(installs) != 1:
-        return [f"expected exactly one browser-install step in {owner}, found {len(installs)}"], {"steps": len(steps), "browser": 0, "plain": 0, "unreadable": 0, "final_ok": 0}
+        return [f"expected exactly one browser-install step in {owner}, found {len(installs)}"], {"steps": len(steps), "browser": 0, "plain": 0, "unreadable": 0, "opaque": 0, "final_ok": 0}
     at = installs[0]
     inst = steps[at]
     name = lambda s: repr(s.get("name") or run_text(s)[:40])
@@ -802,7 +810,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
 
     last = len(steps) - 1
     final_at = last if last > at and is_final_if(if_text(steps[last])) else None
-    browser, plain, unreadable = [], [], 0
+    browser, plain, unreadable, opaque = [], [], 0, []
     for i, s in enumerate(steps):
         if i < at:
             if needs_browser(s, pkg, read):
@@ -812,6 +820,11 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
             continue
         r = read_step(s, pkg, read, no_browser_ok=True)
         if r["unresolved"]:
+            if always_if(if_text(s)) and i != last:
+                # NOT READ, AND NOT THE INSTALL'S TO SKIP: `if: always()` runs it whatever the install did. Were it to drive a browser it would fail in an outage, loudly, which is noise and not
+                # a hole. The ledger steps of verify-full are these (command substitutions and `node -e`, which the reader refuses); counted and printed, never silently accepted.
+                opaque.append((i, s))
+                continue
             unreadable += 1
             for why in r["unresolved"][:3]:
                 bad.append(f"step {name(s)} cannot be read, so it cannot be called browser-free: {why}")
@@ -837,7 +850,56 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
         fp = final_step_problems(steps[final_at], name(steps[final_at]), final_timeout)
         bad += fp
         final_ok = 0 if fp else len(FINAL_OUTCOMES)
-    return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "final_ok": final_ok}
+    return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "opaque": len(opaque), "final_ok": final_ok}
+
+
+ROW_START = re.compile(r"^  \{ name: (['\"])(.+?)\1, weight: (\d+)", re.M)
+ROW_CMD = re.compile(r"""(?:\bok|\bfails)\(\s*(?:'([^']+)'|"([^"]+)")|\ball\(([^)]*)\)""")
+MIN_ROWS, MIN_BROWSER_ROWS = 20, 6
+
+
+def gate_rows(root="."):
+    """[(name, weight, flagged, commands)] for the rows of scripts/gate-checks.mjs: `flagged` is whether the row carries `browser:` before its `run:`, `commands` the string
+    literals of its `ok(`, `fails(` and `all(` calls."""
+    text = Path(root, "scripts", "gate-checks.mjs").read_text()
+    at = text.index("const rows = [")
+    body = text[at:]
+    starts = list(ROW_START.finditer(body))
+    out = []
+    for k, m in enumerate(starts):
+        chunk = body[m.start():starts[k + 1].start() if k + 1 < len(starts) else len(body)]
+        head = chunk.split("run:", 1)[0]
+        cmds = []
+        for c in ROW_CMD.finditer(chunk):
+            if c.group(3) is not None:
+                cmds += [a or b for a, b in re.findall(r"""(?:'([^']+)'|"([^"]+)")""", c.group(3))]
+            else:
+                cmds.append(c.group(1) or c.group(2))
+        out.append((m.group(2), int(m.group(3)), "browser:" in head, cmds))
+    return out
+
+
+def gate_row_problems(root, pkg, read):
+    """The rows `confidence.mjs --browserless` does not apply (the ones flagged `browser`) against the rows whose commands READ as driving a browser: they must be the same rows.
+    A row that drives one and is not flagged would run with no browser and fail for that; one that is flagged and does not would be left out for nothing. Returns [problem]."""
+    try:
+        rows = gate_rows(root)
+    except (OSError, ValueError) as e:
+        return [f"scripts/gate-checks.mjs could not be read for its rows ({type(e).__name__}): {e}"]
+    bad = []
+    if len(rows) < MIN_ROWS:
+        bad.append(f"only {len(rows)} gate rows read from scripts/gate-checks.mjs, expected at least {MIN_ROWS}: the row reader read too little to mean anything")
+    flagged = 0
+    for name, weight, flag, cmds in rows:
+        reads = any(read_step({"run": c}, pkg, read)["browser"] for c in cmds)
+        flagged += 1 if flag else 0
+        if reads and not flag:
+            bad.append(f"gate row {name!r} drives a browser (by its commands) and is not flagged `browser`: `confidence.mjs --browserless` would run it with no browser")
+        if flag and not reads:
+            bad.append(f"gate row {name!r} is flagged `browser` and its commands read as driving none: `confidence.mjs --browserless` would leave it out for nothing")
+    if flagged < MIN_BROWSER_ROWS:
+        bad.append(f"only {flagged} gate rows are flagged `browser`, expected at least {MIN_BROWSER_ROWS}")
+    return bad
 
 
 def classification(doc, pkg, read, job=JOB):
@@ -1289,6 +1351,7 @@ def self_test():
         "scripts/mutation-check.mjs": "import { execSync } from 'node:child_process'\nconst rows = [\"node scripts/shot.mjs\"]\nif (process.argv.includes('--anchors')) {} else rows.forEach(r => execSync(r))\n",
         "scripts/import-purity-check.mjs": "import { execFileSync } from 'node:child_process'\nconst imported = ['scripts/shot.mjs']\n",
         "scripts/no-launch-check.mjs": "import { spawnSync } from 'node:child_process'\nspawnSync('node', ['scripts/shot.mjs'])\nconst fixture = \"await chromium.launch()\"\n",
+        "scripts/confidence.mjs": "import { execSync } from 'node:child_process'\nconst rows = ['node scripts/shot.mjs']\nif (process.argv.includes('--browserless')) {} else rows.forEach(r => execSync(r))\n",
         "scripts/prose.py": '"""Mentions chromium.launch and PW_CHROMIUM and from playwright in prose."""\nPATTERN = r"chromium\\.launch|PW_CHROMIUM"\n',
         "scripts/l-core.mjs": "import { chromium } from 'playwright-core'\n",
         "pre.cjs": "console.log('a preload')\n",
@@ -1325,7 +1388,7 @@ def self_test():
 
     check("a gated browser step, plain steps, and a final step pass", bad_of(good) == [], bad_of(good))
     check("coverage is counted: 1 browser, 4 plain (the final step is one of them), 0 unreadable, the final step exits non-zero for all 4 outcomes",
-          audit(good, pkg, read)[1] == {"steps": 5, "browser": 1, "plain": 4, "unreadable": 0, "final_ok": 4}, audit(good, pkg, read)[1])
+          audit(good, pkg, read)[1] == {"steps": 5, "browser": 1, "plain": 4, "unreadable": 0, "opaque": 0, "final_ok": 4}, audit(good, pkg, read)[1])
 
     def mut(fn):
         import copy
@@ -1546,6 +1609,15 @@ def self_test():
     check("output redirection does not hide or invent a command", browser("node scripts/shot.mjs > /dev/null 2>&1") is True and unresolved("echo hi > /dev/null 2>&1") == [])
     check("audit refuses a step it cannot read, and names why",
           any_of("cannot be read", bad_of(wf([{"name": "b", "id": "build", "run": "npm run pure"}, inst, {"name": "wrapped", "run": "timeout 60 node scripts/pure.mjs"}, final]))))
+    wrapped = {"name": "wrapped", "run": "timeout 60 node scripts/pure.mjs"}
+    op = lambda step: audit(wf([{"name": "b", "id": "build", "run": "npm run pure"}, inst, step, final]), pkg, read, final_timeout=5)
+    check("A STEP THE READER CANNOT READ BUT THAT CARRIES EXACTLY `always()` IS NOT THE INSTALL'S TO SKIP: accepted, and counted as `opaque`, not as read",
+          op({**wrapped, "if": "always()"})[0] == [] and op({**wrapped, "if": "always()"})[1]["opaque"] == 1 and op({**wrapped, "if": "always()"})[1]["unreadable"] == 0,
+          op({**wrapped, "if": "always()"}))
+    check("...but not one with `!cancelled()`, with `always() && ...`, with the install gate, or with no `if` at all (each can be skipped, so each has to be readable)",
+          all(any_of("cannot be read", op({**wrapped, "if": c})[0]) for c in ("!cancelled()", "always() && github.event_name == 'push'", gated)) and any_of("cannot be read", op(wrapped)[0]))
+    check("...and the last step is the final step even when it reads `always()` and cannot be read: it is not waved through as opaque",
+          any_of("must be the final step", audit(wf([{"name": "b", "id": "build", "run": "npm run pure"}, inst, {**wrapped, "if": "always()"}]), pkg, read, final_timeout=5)[0]))
     check("a step BEFORE the install need not be readable (only a definite launch matters there)",
           bad_of(wf([{"name": "setup", "run": "dotnet restore"}, inst, {"name": "x", "if": gated, "run": "npm run shot"}, final])) == [])
 
@@ -1615,7 +1687,7 @@ def self_test():
         return audit(d, pkg, read, job=None, final_timeout=5)
 
     check("A COMPOSITE ACTION IS A TARGET (job None, its steps under `runs`): install, a gated browser run, a no-browser run, an upload and a final step pass, and are counted",
-          act()[0] == [] and act()[1] == {"steps": 5, "browser": 1, "plain": 4, "unreadable": 0, "final_ok": 4}, act())
+          act()[0] == [] and act()[1] == {"steps": 5, "browser": 1, "plain": 4, "unreadable": 0, "opaque": 0, "final_ok": 4}, act())
     check("...the no-browser run is read as browser-free in a target's audit, and as a BROWSER step anywhere else (the flag alone is not enough: it needs the audit of its `if`)",
           read_step(action_steps[3], pkg, read, no_browser_ok=True)["browser"] is False and needs_browser(action_steps[3], pkg, read) is True and needs_browser(action_steps[2], pkg, read) is True)
     check("...the flag of a spawner that does not declare one changes nothing (`scripts/spawner.mjs --no-browser` is a browser step even in an audit)",
@@ -1647,7 +1719,21 @@ def self_test():
                  "      # browser-gate: exempt 1 -- the probe's own verdict is the only step after it and needs the browser's result\n" + \
                  "      - name: Install Chromium\n        run: npx playwright install chromium\n      - name: verdict\n        run: npm run pure\n      - name: Commit\n        if: always()\n        run: npm run pure\n"
 
-    def cli(steps, with_probe=probe_text, live=live_wf, extra=None, action=action_doc):
+    # the fourth target: verify-full's `full` job. Its ledger steps run something the reader refuses (a wrapper such as `timeout`); they carry exactly `always()`, so they are kept and counted.
+    ledger = {"name": "Record this measurement", "if": "always()", "run": "timeout 60 node scripts/pure.mjs"}
+    full_steps = [{"name": "setup", "run": "npm run pure"}, inst, {"name": "serve", "run": "npm run pure"}, {"name": "proof self-test", "if": "!cancelled()", "run": "npm run pure"},
+                  {"name": "peak", "if": gated, "run": "npm run shot"}, {"name": "gate", "if": gated, "run": "node scripts/confidence.mjs"},
+                  {"name": "gate without a browser", "if": nb_gate, "run": "node scripts/confidence.mjs --browserless"}, {**ledger, "name": "Keep baseline"}, ledger, final]
+    full_doc = {"jobs": {"full": {"steps": full_steps}}}
+
+    def gate_text(flagged, plain, extra=""):
+        rows = "".join(f"  {{ name: 'browser row {i}', weight: 30, skipQuick: true, browser: true,\n    run: () => ok('node scripts/shot.mjs') }},\n" for i in range(flagged))
+        rows += "".join(f"  {{ name: 'plain row {i}', weight: 10,\n    run: () => ok('node scripts/pure.mjs') }},\n" for i in range(plain))
+        return "const rows = [\n" + rows + extra + "]\n"
+
+    gate_good = gate_text(6, 16)
+
+    def cli(steps, with_probe=probe_text, live=live_wf, extra=None, action=action_doc, full=full_doc, rows=gate_good):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / ".github" / "workflows").mkdir(parents=True)
@@ -1659,6 +1745,8 @@ def self_test():
                 (root / ".github" / "workflows" / "live-check.yml").write_text(yaml.safe_dump(live))
             if with_probe is not None:
                 (root / ".github" / "workflows" / "probe.yml").write_text(with_probe)
+            if full is not None:
+                (root / ".github" / "workflows" / "verify-full.yml").write_text(yaml.safe_dump(full))
             for name, text in (extra or {}).items():
                 (root / ".github" / "workflows" / name).write_text(text)
             (root / "package.json").write_text(json.dumps({"scripts": pkg}))
@@ -1666,6 +1754,8 @@ def self_test():
                 if "/" in f:
                     (root / f).parent.mkdir(parents=True, exist_ok=True)
                     (root / f).write_text(src)
+            if rows is not None:
+                (root / "scripts" / "gate-checks.mjs").write_text(rows)
             r = subprocess.run([sys.executable, __file__], cwd=d, capture_output=True, text=True, timeout=60)
             return r.returncode, r.stdout + r.stderr
 
@@ -1674,8 +1764,10 @@ def self_test():
           [{"name": f"plain {i}", "run": "npm run pure"} for i in range(50)] + [final]
     rc, out = cli(big)
     check("THE CLI on a good tree exits 0 and says `verdict: gated`", rc == 0 and "verdict: gated" in out, (rc, out[-400:]))
-    check("...it reads ALL THREE targets and says so", "workflows/verify.yml, job `verify`" in out and "workflows/live-check.yml, job `live`" in out
-          and "actions/mutation-shard/action.yml, composite action" in out and "3 job(s) get the whole shape" in out, out[-500:])
+    check("...it reads ALL FOUR targets and says so", "workflows/verify.yml, job `verify`" in out and "workflows/live-check.yml, job `live`" in out
+          and "actions/mutation-shard/action.yml, composite action" in out and "workflows/verify-full.yml, job `full`" in out and "4 job(s) get the whole shape" in out, out[-500:])
+    check("...it reports the steps it kept without reading (`always()`) and the gate rows it compared with their flags",
+          "not read, `always()` (kept)  : 2" in out and "GATE ROWS: 22 read" in out and "6 flagged `browser`" in out, out[-1500:])
     check("...and lists the exempt site with its pinned N and its reason (Rule 91)", "probe.yml:" in out and "N=1" in out and "the probe's own verdict" in out, out[-400:])
     broken = [dict(s) for s in big]
     del broken[1]["id"]
@@ -1686,6 +1778,22 @@ def self_test():
     check("THE CLI applies the coverage floors to the first target: a tree that reads too little exits 1", rc == 1 and "expected at least" in out, (rc, out[-300:]))
     rc, out = cli(big, live=None)
     check("THE CLI with a target file missing exits 1 and says which", rc == 1 and "live-check.yml does not exist" in out, (rc, out[-300:]))
+    rc, out = cli(big, full=None)
+    check("THE CLI with verify-full.yml missing exits 1 and says which", rc == 1 and "verify-full.yml does not exist" in out, (rc, out[-300:]))
+    rc, out = cli(big, full={"jobs": {"full": {"steps": full_steps[:-1]}}})
+    check("THE CLI on a verify-full `full` job that lost its final step exits 1, naming that file", rc == 1 and "verify-full.yml: the LAST step" in out, (rc, out[-300:]))
+    rc, out = cli(big, rows=gate_text(6, 16, "  { name: 'a new browser row', weight: 30, skipQuick: true,\n    run: () => ok('node scripts/shot.mjs') },\n"))
+    check("THE CLI on a gate row that drives a browser and is not flagged exits 1, naming the row (`--browserless` would run it with no browser)",
+          rc == 1 and "'a new browser row' drives a browser" in out and "not flagged `browser`" in out, (rc, out[-400:]))
+    rc, out = cli(big, rows=gate_text(6, 16, "  { name: 'a flagged plain row', weight: 30, skipQuick: true, browser: true,\n    run: () => ok('node scripts/pure.mjs') },\n"))
+    check("THE CLI on a gate row that is flagged and drives no browser exits 1, naming the row (it would be left out for nothing)",
+          rc == 1 and "'a flagged plain row' is flagged `browser`" in out, (rc, out[-400:]))
+    rc, out = cli(big, rows=gate_text(6, 5))
+    check("THE CLI on a gate-checks file that reads too few rows exits 1 (a reader that reads nothing must not pass)", rc == 1 and "only 11 gate rows read" in out, (rc, out[-400:]))
+    rc, out = cli(big, rows=gate_text(3, 19))
+    check("THE CLI on a gate with too few flagged rows exits 1", rc == 1 and "only 3 gate rows are flagged `browser`" in out, (rc, out[-400:]))
+    rc, out = cli(big, rows=None)
+    check("THE CLI with no scripts/gate-checks.mjs exits 1 and says it could not be read", rc == 1 and "scripts/gate-checks.mjs could not be read" in out, (rc, out[-400:]))
     rc, out = cli(big, action=None)
     check("THE CLI with the composite action missing exits 1 and says which", rc == 1 and "action.yml does not exist" in out, (rc, out[-300:]))
     rc, out = cli(big, action={"runs": {"using": "composite", "steps": [sh(dict(inst)), sh(dict(final))]}})
@@ -2010,11 +2118,22 @@ def real_tree(root="."):
         print(f"  need a browser (gated)       : {cov['browser']}")
         print(f"  need none (not gated)        : {cov['plain']}")
         print(f"  could not be read (refused)  : {cov['unreadable']}")
+        print(f"  not read, `always()` (kept)  : {cov['opaque']}")
         print(f"  final step run for {len(FINAL_OUTCOMES)} outcomes   : exits non-zero with ::error:: for {cov['final_ok']} of {len(FINAL_OUTCOMES)} ({', '.join(repr(o) for o in FINAL_OUTCOMES)})")
         print()
         bad += [f"{tg['file']}: {b}" for b in problems] + [f"{tg['file']}: {b}" for b in coverage_problems(cov, tg["floors"])]
         if "--json" in sys.argv and tg is TARGETS[0]:
             print(json.dumps(classification(doc, pkg, read, tg["job"]), indent=1))
+    row_problems = gate_row_problems(root, pkg, read)
+    bad += [f"scripts/gate-checks.mjs: {b}" for b in row_problems]
+    try:
+        read_rows = gate_rows(root)
+    except (OSError, ValueError):
+        read_rows = None               # already a problem above
+    if read_rows is not None:
+        print(f"GATE ROWS: {len(read_rows)} read from scripts/gate-checks.mjs, {sum(1 for r in read_rows if r[2])} flagged `browser` (the ones `--browserless` does not apply): "
+              f"{'they are the rows whose commands read as driving a browser' if not row_problems else 'THEY DISAGREE, below'}")
+        print()
     exempt_problems, table = exempt_sites(root, pkg, read)
     bad += exempt_problems
     print(f"COVERAGE: {len(TARGETS)} job(s) get the whole shape ({', '.join(t['file'] + (':' + t['job'] if t['job'] else '') for t in TARGETS)}).")

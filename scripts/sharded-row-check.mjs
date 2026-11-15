@@ -32,13 +32,26 @@ const WORKFLOW = '.github/workflows/verify-full.yml'
  */
 export const gateShardsSet = text => {
   const steps = text.split(/\n(?= {6}- )/)
+  // The steps that run the gate: `npm run gate` and, in the job that survives a failed Chromium install, `npm run gate:browserless` (scripts/gate-mode.mjs). Every one of them must set
+  // the variable, to the same positive integer: a browserless gate that lost it would run the whole mutation suite in-process (or, with no shards, skip the row).
+  const runOf = st => /^\s+run:[ \t]*(.*)$/m.exec(st)?.[1].trim()
+  const gates = steps.filter(st => runOf(st) === 'npm run gate')
+  const browserless = steps.filter(st => runOf(st) === 'npm run gate:browserless')
   const holders = steps.filter(st => /^\s+GATE_MUTATION_SHARDS:/m.test(st))
   if (holders.length === 0) return { ok: false, why: 'no step sets GATE_MUTATION_SHARDS' }
-  if (holders.length > 1) return { ok: false, why: `${holders.length} steps set GATE_MUTATION_SHARDS (wanted the one that runs the gate)` }
-  const value = /^\s+GATE_MUTATION_SHARDS:[ \t]*['"]?([^'"\n#]*?)['"]?[ \t]*(?:#.*)?$/m.exec(holders[0])?.[1] ?? ''
-  if (!/^[1-9]\d*$/.test(value)) return { ok: false, why: `GATE_MUTATION_SHARDS is ${JSON.stringify(value)}, not a positive integer` }
-  const run = /^\s+run:[ \t]*(.*)$/m.exec(holders[0])?.[1].trim()
-  if (run !== 'npm run gate') return { ok: false, why: `the step that sets GATE_MUTATION_SHARDS runs ${JSON.stringify(run ?? '(nothing)')}, not npm run gate` }
+  if (gates.length === 0) return { ok: false, why: `no step runs npm run gate (the step that sets GATE_MUTATION_SHARDS runs ${JSON.stringify(runOf(holders[0]) ?? '(nothing)')})` }
+  if (gates.length > 1) return { ok: false, why: `${gates.length} steps run npm run gate (wanted one)` }
+  if (browserless.length > 1) return { ok: false, why: `${browserless.length} steps run npm run gate:browserless (wanted at most one)` }
+  const values = []
+  for (const st of [...gates, ...browserless]) {
+    if (!/^\s+GATE_MUTATION_SHARDS:/m.test(st)) return { ok: false, why: `the step that runs ${JSON.stringify(runOf(st))} does not set GATE_MUTATION_SHARDS` }
+    const value = /^\s+GATE_MUTATION_SHARDS:[ \t]*['"]?([^'"\n#]*?)['"]?[ \t]*(?:#.*)?$/m.exec(st)?.[1] ?? ''
+    if (!/^[1-9]\d*$/.test(value)) return { ok: false, why: `GATE_MUTATION_SHARDS is ${JSON.stringify(value)} on the step that runs ${JSON.stringify(runOf(st))}, not a positive integer` }
+    values.push(value)
+  }
+  if (new Set(values).size > 1) return { ok: false, why: `the gate steps set GATE_MUTATION_SHARDS to different values (${values.join(', ')})` }
+  const stray = holders.filter(st => !gates.includes(st) && !browserless.includes(st))
+  if (stray.length > 0) return { ok: false, why: `a step that does not run the gate sets GATE_MUTATION_SHARDS (it runs ${JSON.stringify(runOf(stray[0]) ?? '(nothing)')})` }
   return { ok: true, why: '' }
 }
 
@@ -124,6 +137,13 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       ['not a number', STEP("        env:\n          GATE_MUTATION_SHARDS: 'eight'\n"), false],
       ['a number with a suffix', STEP("        env:\n          GATE_MUTATION_SHARDS: '8x'\n"), false],
       ['set on a step that does not run the gate', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n", 'npm run build'), false],
+      ['the browserless gate sets it to the same number', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate without a browser\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run gate:browserless\n", true],
+      ['only a browserless gate, no gate (the full run would have nothing that reads the shards)', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n", 'npm run gate:browserless'), false],
+      ['the browserless gate does not set it', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate without a browser\n        run: npm run gate:browserless\n", false],
+      ['the browserless gate sets it to another number', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate without a browser\n        env:\n          GATE_MUTATION_SHARDS: '4'\n        run: npm run gate:browserless\n", false],
+      ['the browserless gate sets it to nothing', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate without a browser\n        env:\n          GATE_MUTATION_SHARDS: ''\n        run: npm run gate:browserless\n", false],
+      ['two browserless gates', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: A\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run gate:browserless\n\n      - name: B\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run gate:browserless\n", false],
+      ['a step that is no gate sets it beside the gate', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Other\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run build\n", false],
       ['set on two steps that both run the gate', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate again\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run gate\n", false],
     ]
     const offSets = SETS.filter(([, text, want]) => gateShardsSet(text).ok !== want)

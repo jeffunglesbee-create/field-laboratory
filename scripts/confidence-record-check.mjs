@@ -184,7 +184,7 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
     p.push(`${file}: cites a run where ${run.notApplicable.length} row(s) were not applicable (${run.notApplicable.join(', ')}) — only a run where every row applied can back a score`)
   }
   if (run.mode !== 'full') {
-    p.push(`${file}: cites a '${run.mode}' run, which skipped ${run.skipped.length} row(s) — only a full run can back a score`)
+    p.push(`${file}: cites a '${run.mode}' run, which skipped ${run.skipped.length} row(s) and did not apply ${(run.notApplicable ?? []).length} — only a full run can back a score`)
   }
   if (run.total !== stated) {
     p.push(`${file}: states ${stated}/100, the cited run measured ${run.total}/100`)
@@ -282,6 +282,7 @@ if (SELF_TEST) {
   const ID = 'a'.repeat(12) + '-' + 'a'.repeat(12)
   const FAILING = 'b'.repeat(12) + '-' + 'b'.repeat(12)
   const QUICKRUN = 'c'.repeat(12) + '-' + 'c'.repeat(12)
+  const BLESSRUN = '7'.repeat(12) + '-' + '7'.repeat(12)
   const SHRUNK = 'd'.repeat(12) + '-' + 'd'.repeat(12)
   const ROUNDED = 'e'.repeat(12) + '-' + 'e'.repeat(12)
   const ATBAR = 'f'.repeat(12) + '-' + 'f'.repeat(12)
@@ -292,6 +293,9 @@ if (SELF_TEST) {
     line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
     line({ id: FAILING, sha: SHA, dirty: false, mode: 'full', earned: 500, possible: 530, total: 94, failing: ['a row'], skipped: [] }),
     line({ id: QUICKRUN, sha: SHA, dirty: false, mode: 'quick', earned: 300, possible: 300, total: 100, failing: [], skipped: ['x', 'y'] }),
+    // A browserless run (scripts/gate-mode.mjs): the rows that need a browser are not applicable, 350 of 530 points ran. Under a plain id here to ask the record check about the MODE;
+    // a real one is written under `<id>-browserless`, which is no citation at all (the next fixture).
+    line({ id: BLESSRUN, sha: SHA, dirty: false, mode: 'browserless', earned: 350, possible: 350, total: 100, failing: [], skipped: [], notApplicable: ['render checks pass on both captures'] }),
     line({ id: SHRUNK, sha: SHA, dirty: false, mode: 'full', earned: 400, possible: 400, total: 100, failing: [], skipped: [] }),
     // 503/530 = 94.906%, which Math.round displays as 95.
     line({ id: ROUNDED, sha: SHA, dirty: false, mode: 'full', earned: 503, possible: 530, total: 95, failing: [], skipped: [] }),
@@ -440,6 +444,13 @@ if (SELF_TEST) {
     v(`<!-- confidence: run=${QUICKRUN} -->\n**Score: 100/100**\n`)
       .some(x => x.includes('quick')),
     JSON.stringify(v(`<!-- confidence: run=${QUICKRUN} -->\n**Score: 100/100**\n`)))
+
+  check('a BROWSERLESS run cannot back a score either, and the refusal says which mode it was',
+    v(`<!-- confidence: run=${BLESSRUN} -->\n**Score: 100/100**\n`).some(x => x.includes('browserless')),
+    JSON.stringify(v(`<!-- confidence: run=${BLESSRUN} -->\n**Score: 100/100**\n`)))
+  check('...and the id a browserless run is really recorded under (`<id>-browserless`) is not one a citation can name: a score citing it cites no run',
+    v(`<!-- confidence: run=${BLESSRUN}-browserless -->\n**Score: 100/100**\n`).some(x => x.includes('cites no gate run')),
+    JSON.stringify(v(`<!-- confidence: run=${BLESSRUN}-browserless -->\n**Score: 100/100**\n`)))
 
   // The bar is a percentage of a 530-point scale, not a point count.
   check('a score ROUNDED UP to the bar is refused (503/530 = 94.906%)',

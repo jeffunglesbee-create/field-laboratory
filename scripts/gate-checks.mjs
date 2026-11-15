@@ -239,10 +239,10 @@ const rows = [
   { name: 'decoders still REJECT the corrupted fixture', weight: 20,
     run: () => fails('node scripts/drift-check.mjs --file test/malformed-nested.json') },
 
-  { name: 'render checks pass on both captures', weight: 30, skipQuick: true,
+  { name: 'render checks pass on both captures', weight: 30, skipQuick: true, browser: true,
     run: () => all('npm run check', 'npm run check:hard') },
 
-  { name: 'grouping and date navigation pass', weight: 30, skipQuick: true,
+  { name: 'grouping and date navigation pass', weight: 30, skipQuick: true, browser: true,
     run: () => ok('npm run check:nav') },
 
   // The heaviest row, because this is the one that failed. Every claimed
@@ -265,7 +265,7 @@ const rows = [
   // panels shipped with no stylesheet rules at all and every check stayed green
   // — tab-check counts cards, nav-check checks they are not duplicated, and both
   // are true of an undifferentiated wall of text.
-  { name: 'games on a panel are separated from each other', weight: 30, skipQuick: true,
+  { name: 'games on a panel are separated from each other', weight: 30, skipQuick: true, browser: true,
     run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/separation-check.mjs") },
 
   // Deterministic, so it runs at any hour. The zone fix is only observable
@@ -292,10 +292,10 @@ const rows = [
   { name: 'pick decoders match the recorded live response', weight: 30,
     run: () => ok('node scripts/pick-check.mjs') },
 
-  { name: 'tabs work and the pick score never renders', weight: 30, skipQuick: true,
+  { name: 'tabs work and the pick score never renders', weight: 30, skipQuick: true, browser: true,
     run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs") },
 
-  { name: "pick'em grades only finished games", weight: 30, skipQuick: true,
+  { name: "pick'em grades only finished games", weight: 30, skipQuick: true, browser: true,
     run: () => ok('node scripts/pickem-check.mjs') },
 
   { name: 'game state is correct at fixed instants', weight: 30,
@@ -304,6 +304,8 @@ const rows = [
   // The slowest row by far — it rebuilds once per mutation — and the only one
   // that asks whether the OTHER rows are worth anything.
   { name: 'breaking each invariant makes a check fail', weight: 20, skipQuick: true,
+    // Reads the shard jobs' results when GATE_MUTATION_SHARDS is set (they drive their own browsers); runs the whole suite, every browser script, in this process when it is not.
+    browser: () => process.env.GATE_MUTATION_SHARDS === undefined,
     // Three halves. The suite must pass; the harness must still be able to
     // report a survivor — `known-survivor` is a mutation designed to survive,
     // so `--only known-survivor` FAILING is the proof the harness can see, and
@@ -329,7 +331,7 @@ const rows = [
                  : shardedSuite(process.env.GATE_MUTATION_SHARDS, 'node scripts/mutation-await.mjs', 'node scripts/mutation-merge.mjs')) &&
                fails('node scripts/mutation-check.mjs --only known-survivor') },
 
-  { name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true,
+  { name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true, browser: true,
     run: () => ok('node scripts/spark-check.mjs') },
 
   // Per-ROW confidence, which the gate's own pass/fail cannot express: does

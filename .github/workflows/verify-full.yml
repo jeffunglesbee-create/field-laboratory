@@ -169,11 +169,16 @@ jobs:
       - name: Build (F# -> JS, then assemble public/)
         run: node scripts/build-steady.mjs
 
-      # browser-gate: exempt 1 -- a failed install ends the job red with no ledger line written (the peak-slate step and the Confidence gate are skipped, and the two ledger steps find nothing new); the proof-doc self-test, the one standalone browser-free step, runs on !cancelled(); N=1 is the site server; the Confidence gate is read as a browser step (scripts/confidence.mjs spawns the rows, 6 of its 23 drive a browser); the gate is ONE step whose 17 rows that drive no browser are lost with it, and giving the job the verify shape needs a browser-free-rows mode in scripts/confidence.mjs (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 6)
+      # THE SHAPE scripts/check-browser-gate.py keeps (this job is one of its targets): the install carries `id: chromium` and `continue-on-error`; the two steps that need a
+      # browser (the peak slate, the gate) wait for `steps.chromium.outcome == 'success'`; when it did not succeed the gate runs with `--browserless`, which runs the 17 rows that
+      # need no browser (350 of 530 points) and reports the 6 that do as not applicable, never as a pass (scripts/gate-mode.mjs); and the LAST step fails the job. A failed install
+      # used to skip the whole gate. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 6.
       # The gate drives real browsers through several of its rows, and those
       # rows fetch from the local server. Started here, before anything needs it.
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       - name: Install Chromium
+        id: chromium
+        continue-on-error: true
         timeout-minutes: 3
         run: npx playwright install chromium
 
@@ -222,6 +227,7 @@ jobs:
       # The first peak run found no rendering defect and two CHECKS whose
       # premises belonged to the small fixture. Both fixed in tab-check.mjs.
       - name: The page at peak slate size (126 cards, 8 sports)
+        if: steps.chromium.outcome == 'success'
         run: |
           npm run check:scale
           npm run check:peak
@@ -229,12 +235,23 @@ jobs:
           npm run check:peak-separation
 
       - name: Confidence gate (>= 95)
+        if: steps.chromium.outcome == 'success'
         env:
           # The mutation row reads the shard jobs' results instead of running the suite: see TOPOLOGY above.
           GATE_MUTATION_SHARDS: '8'
           # For scripts/mutation-await.mjs, which lists this run's artifacts. `actions: read` is granted above.
           GITHUB_TOKEN: ${{ github.token }}
         run: npm run gate
+
+      # THE INSTALL DID NOT SUCCEED: the same gate, told so. Every row that needs no browser runs (the F# build, the decoders, the history rows, the mutation row that reads the
+      # shard jobs' results back); the six that drive a browser are reported NOT APPLICABLE by name; the record says `browserless` and cannot back a score; and the last step of the
+      # job fails it. The shard jobs ran `--no-browser` for the same reason (.github/actions/mutation-shard), so the mutation row reports their holes as a verdict problem.
+      - name: Confidence gate without a browser (--browserless)
+        if: steps.chromium.outcome != 'success'
+        env:
+          GATE_MUTATION_SHARDS: '8'
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run gate:browserless
 
       # THE POINT OF RECORDING A CI RUN IS NOT MORE RECORDS.
       #
@@ -416,4 +433,21 @@ jobs:
           done
 
           echo "could not land the record(s) after 3 attempts"
+          exit 1
+
+      # LAST, and `always()`: without it a failed install would leave the job GREEN with the peak slate and six gate rows not run. The outcome comes in through `env:`;
+      # scripts/check-browser-gate.py RUNS this script under `bash -e` for each outcome and requires a non-zero exit with an `::error::` line, which is why it may use only
+      # echo, `exit N` and `[ ]` comparisons.
+      - name: Install Chromium did not succeed, so the steps that need a browser were skipped
+        if: always() && steps.chromium.outcome != 'success'
+        env:
+          INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
+        run: |
+          if [ "$INSTALL_OUTCOME" = skipped ]; then
+            echo "::error::The Chromium install was skipped: an earlier step failed, or the run was cancelled before it. The peak slate and the six gate rows that need a browser were NOT run."
+          elif [ "$INSTALL_OUTCOME" = cancelled ]; then
+            echo "::error::The run was cancelled before the Chromium install finished. The peak slate and the six gate rows that need a browser were NOT run."
+          else
+            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The gate ran with --browserless: the peak slate and the six rows that need a browser were NOT run, so this run is not a pass."
+          fi
           exit 1

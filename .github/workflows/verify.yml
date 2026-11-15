@@ -1256,6 +1256,12 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:outbox-row
 
+      # The gate's three modes (full, quick, --browserless), as data: which rows a browserless run does not apply (the six that drive a browser, 180 of 530 points, and the
+      # mutation row when it runs the suite in-process), that it cannot back a score and has an id of its own. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 6.
+      - name: The gate's modes say which rows a browserless run does not apply
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:gate-mode
+
       # Hash-pinned tripwire for credentials known to be exposed. It exists
       # because a refusal is a promise and a promise does not scan files: across
       # this project I said repeatedly that the relay's X-FIELD-Relay value would

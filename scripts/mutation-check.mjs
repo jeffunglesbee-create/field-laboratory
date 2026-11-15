@@ -5464,16 +5464,56 @@ const MUTATIONS = [
     id: "shard-env-removed-from-verify-full",
     file: ".github/workflows/verify-full.yml",
     claim: "verify-full sets GATE_MUTATION_SHARDS, or CI runs the whole suite in-process again",
-    find: "          GATE_MUTATION_SHARDS: '8'\n",
-    replace: "",
+    find: "see TOPOLOGY above.\n          GATE_MUTATION_SHARDS: '8'\n",
+    replace: "see TOPOLOGY above.\n",
     expect: "node scripts/sharded-row-check.mjs --self-test",
   },
   {
     id: "shard-env-emptied-in-verify-full",
     file: ".github/workflows/verify-full.yml",
     claim: "verify-full sets GATE_MUTATION_SHARDS to a number, not to nothing",
-    find: "GATE_MUTATION_SHARDS: '8'",
-    replace: "GATE_MUTATION_SHARDS: ''",
+    find: "see TOPOLOGY above.\n          GATE_MUTATION_SHARDS: '8'",
+    replace: "see TOPOLOGY above.\n          GATE_MUTATION_SHARDS: ''",
+    expect: "node scripts/sharded-row-check.mjs --self-test",
+  },
+  {
+    id: "shard-env-removed-from-the-browserless-gate",
+    file: ".github/workflows/verify-full.yml",
+    claim: "the browserless gate of verify-full sets GATE_MUTATION_SHARDS too, or it would skip the mutation row it is meant to run",
+    find: "        if: steps.chromium.outcome != 'success'\n        env:\n          GATE_MUTATION_SHARDS: '8'\n",
+    replace: "        if: steps.chromium.outcome != 'success'\n        env:\n",
+    expect: "node scripts/sharded-row-check.mjs --self-test",
+  },
+  {
+    id: "shard-env-differs-in-the-browserless-gate",
+    file: ".github/workflows/verify-full.yml",
+    claim: "the browserless gate reads the same number of shards as the gate",
+    find: "        if: steps.chromium.outcome != 'success'\n        env:\n          GATE_MUTATION_SHARDS: '8'\n",
+    replace: "        if: steps.chromium.outcome != 'success'\n        env:\n          GATE_MUTATION_SHARDS: '4'\n",
+    expect: "node scripts/sharded-row-check.mjs --self-test",
+  },
+  {
+    id: "shard-env-set-beside-the-gate-on-a-step-that-is-none",
+    file: "scripts/sharded-row-check.mjs",
+    claim: "no step that is not the gate sets the variable",
+    find: "if (stray.length > 0) return",
+    replace: "if (false) return",
+    expect: "node scripts/sharded-row-check.mjs --self-test",
+  },
+  {
+    id: "shard-env-two-browserless-gates",
+    file: "scripts/sharded-row-check.mjs",
+    claim: "at most one step runs the browserless gate",
+    find: "if (browserless.length > 1) return",
+    replace: "if (false) return",
+    expect: "node scripts/sharded-row-check.mjs --self-test",
+  },
+  {
+    id: "shard-env-values-may-differ",
+    file: "scripts/sharded-row-check.mjs",
+    claim: "the gate and the browserless gate read the same number of shards",
+    find: "if (new Set(values).size > 1) return",
+    replace: "if (false) return",
     expect: "node scripts/sharded-row-check.mjs --self-test",
   },
   {
@@ -5496,16 +5536,16 @@ const MUTATIONS = [
     id: "shard-env-on-any-step",
     file: "scripts/sharded-row-check.mjs",
     claim: "the variable has to be set on the step that runs the gate",
-    find: "if (run !== 'npm run gate')",
-    replace: "if (false)",
+    find: "if (gates.length === 0) return",
+    replace: "if (false) return",
     expect: "node scripts/sharded-row-check.mjs --self-test",
   },
   {
     id: "shard-env-on-two-steps",
     file: "scripts/sharded-row-check.mjs",
-    claim: "exactly one step sets the variable",
-    find: "if (holders.length > 1)",
-    replace: "if (false)",
+    claim: "exactly one step runs the gate",
+    find: "if (gates.length > 1) return",
+    replace: "if (false) return",
     expect: "node scripts/sharded-row-check.mjs --self-test",
   },
   {
@@ -13338,6 +13378,86 @@ const MUTATIONS = [
     replace: "if (false) {",
     expect: "node scripts/mutation-merge.mjs --self-test",
   },
+  {
+    id: "gate-mode-browserless-ignored",
+    file: "scripts/gate-mode.mjs",
+    claim: "a browserless run does not apply the rows that need a browser",
+    find: "mode === 'quick' && row.skipQuick ? 'skip' : mode === 'browserless' && needsBrowser(row) ? 'na' : 'run'",
+    replace: "mode === 'quick' && row.skipQuick ? 'skip' : 'run'",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-two-modes-allowed",
+    file: "scripts/gate-mode.mjs",
+    claim: "--quick and --browserless together are refused, not run as one of them",
+    find: "if (quick && browserless) throw new Error(",
+    replace: "if (false) throw new Error(",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-browserless-id-collides",
+    file: "scripts/gate-mode.mjs",
+    claim: "a browserless run is recorded under an id of its own",
+    find: "mode === 'browserless' ? `${id}-browserless` : id",
+    replace: "id",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-mutation-row-never-browserless",
+    file: "scripts/gate-checks.mjs",
+    claim: "the mutation row is not applicable in a browserless run that would run the suite in-process",
+    find: "browser: () => process.env.GATE_MUTATION_SHARDS === undefined,",
+    replace: "browser: () => false,",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-mutation-row-always-browserless",
+    file: "scripts/gate-checks.mjs",
+    claim: "the mutation row that reads the shards back is applicable in a browserless run",
+    find: "browser: () => process.env.GATE_MUTATION_SHARDS === undefined,",
+    replace: "browser: () => true,",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-a-browser-row-loses-its-flag",
+    file: "scripts/gate-checks.mjs",
+    claim: "every row that drives a browser is flagged, so a browserless run does not run it",
+    find: "{ name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true, browser: true,",
+    replace: "{ name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true,",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-browserless-row-reads-no-mode",
+    file: "scripts/confidence.mjs",
+    claim: "the gate takes its mode from the command line through gate-mode.mjs",
+    find: "try { MODE = modeOf(process.argv) }",
+    replace: "try { MODE = 'full' }",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-gate-ignores-the-action",
+    file: "scripts/confidence.mjs",
+    claim: "every row asks the mode what to do with it",
+    find: "const action = actionFor(MODE, row)",
+    replace: "const action = 'run'",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-browserless-record-has-the-full-id",
+    file: "scripts/confidence.mjs",
+    claim: "a browserless record is written under the browserless id",
+    find: "id: recordId(MODE, runId),",
+    replace: "id: runId,",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-record-says-full",
+    file: "scripts/confidence.mjs",
+    claim: "a record says which mode it was taken in",
+    find: "  mode: MODE,\n",
+    replace: "  mode: 'full',\n",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
@@ -15173,12 +15293,12 @@ if (process.argv.includes('--self-test')) {
 
     // ...and it refuses on ANY status of the check but 0, and prints what the check said on BOTH streams (review 7, L6). The real check exits 1 over a stranded state and says it on stdout, so the clause above holds
     // `!== 0` to the one status it can see: `=== 1` passes it, and so does a gate that drops the check's stderr. Here the preflight is the real `confidence.mjs`, COPIED next to a stand-in `mutation-check.mjs`
-    // (the preflight finds the script by its own directory) with the three modules it imports linked in: one stand-in exits 2 after writing to both streams, one kills itself, and one exits 0.
+    // (the preflight finds the script by its own directory) with the four modules it imports linked in (gate-mode.mjs since 2026-11-15): one stand-in exits 2 after writing to both streams, one kills itself, and one exits 0.
     const gateWith = body => {
       const dir = fresh()
       mkdirSync(join(dir, 'scripts'))
       copyFileSync(gateScript, join(dir, 'scripts', 'confidence.mjs'))
-      for (const f of ['gate-inventory.mjs', 'gate-checks.mjs', 'checks.mjs']) execSync(`ln -s ${JSON.stringify(join(dirname(here), f))} ${f}`, { cwd: join(dir, 'scripts') })
+      for (const f of ['gate-inventory.mjs', 'gate-checks.mjs', 'checks.mjs', 'gate-mode.mjs']) execSync(`ln -s ${JSON.stringify(join(dirname(here), f))} ${f}`, { cwd: join(dir, 'scripts') })
       writeFileSync(join(dir, 'scripts', 'mutation-check.mjs'), body)
       return spawnSync(process.execPath, [join(dir, 'scripts', 'confidence.mjs')], { cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
     }

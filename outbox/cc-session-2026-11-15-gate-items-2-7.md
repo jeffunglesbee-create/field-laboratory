@@ -29,3 +29,11 @@ What was built:
 5. The exempt annotation on the action is gone; the guard's exempt table has nine sites, not ten.
 
 Checks that failed on purpose (Rule 90): eight entries in the mutation table, ids `no-browser-*`, each caught by the self-test it names (the end-to-end scenarios run the real script in the scratch repository against a row that prints the missing-browser text: with `--no-browser` it is `n/a` and the write-ups are untouched, without it a failing baseline; and a row that passes unmutated and prints it once mutated stops the run under the flag and is an ordinary catch without it).
+
+Runner proof (Rule 89, an artifact, not a bare action): throwaway branch `proof-mutation-shard` (558944b, never merged: the install line of the action replaced by `echo 'sabotaged for the proof run' && exit 1`, and `outbox/.trigger-mutation-ids-probe` naming `live-card-score-reads-the-archive-state` (its expectation `node scripts/live-score-render-check.mjs` needs a browser) and `no-browser-merge-reads-a-hole-as-green` (needs none)). `mutation-ids-probe` dispatched on it: run 43663285849, `watch driver, list 1` (job 132657102246) and `full driver, list 1` (job 132657102263), both drivers. What the logs show, in both:
+
+- the install failed and the shard went on: a composite action's step takes `continue-on-error` (not listed in GitHub's composite documentation; measured here);
+- `Run the shard without a browser` ran; its records, printed by the probe's own step from the uploaded result file: `{"id":"live-card-score-reads-the-archive-state","kind":"src","verdict":"n/a","expect":"node scripts/live-score-render-check.mjs","noBrowser":true}` and `{"id":"no-browser-merge-reads-a-hole-as-green",...,"verdict":"caught",...}` (a mutation ran and was caught, 49 ms and 52 ms);
+- the upload step ended `outcome=success`, then the last step printed `::error::The Chromium install did not succeed (outcome: failure). The shard ran with --no-browser: the mutations that need a browser were NOT run, so this table is not a pass.` and the job ended failure.
+
+So a failed install no longer loses the shard: the browser-free part ran, the hole is named in the result, and the job is still red. The 6 other jobs of the run (lists 2 and 3, empty) did nothing, as designed. (Run time 56 s: no site build was needed, because the one mutation that needs a browser is not run.)
