@@ -1180,6 +1180,19 @@ def _matching_paren(shape, lp):
     return -1
 
 
+def _matching_brace(shape, lb):
+    """The index of the `}` that closes the `{` at shape[lb] (strings and regular expressions are blanked, so their braces do not count), or -1."""
+    depth = 0
+    for k in range(lb, len(shape)):
+        if shape[k] == "{":
+            depth += 1
+        elif shape[k] == "}":
+            depth -= 1
+            if depth == 0:
+                return k
+    return -1
+
+
 def gate_rows(root="."):
     """([(name, weight, flagged, commands)], [problem]) for the rows of scripts/gate-checks.mjs, read by a CLOSED GRAMMAR: a row is `{ name: '...', weight: N,` at the start of a line; its `run:` is an arrow
     function or one of ROW_HELPERS; `flagged` is whether it carries `browser: true` or `browser: (...) =>` before its `run:`; `commands` are the string literals of its `ok(`, `fails(`, `all(`,
@@ -1198,9 +1211,24 @@ def gate_rows(root="."):
     n_weight = len(re.findall(r"\bweight\s*:", shape))
     if n_weight != len(starts):
         problems.append(f"{n_weight} `weight:` keys in the rows array of scripts/gate-checks.mjs but {len(starts)} rows read: a row not written `{{ name: '...', weight: N` at the start of a line is not read, and a row not read is not compared")
+    # THE ARRAY IS READ WHOLE, AND ONLY THERE. The rows are what scripts/confidence.mjs iterates, so every element of the exported array has to be a row this reader read: nothing between `[` and the
+    # first row, nothing but a comma between one row's `}` and the next row (a spread `...more`, a variable, a call, a row written with quoted keys or two on a line is none of the rows read), nothing but
+    # `]` after the last; and the name `rows` is used nowhere else but its declaration and its `export { ... }` (`rows.push(...)`, `rows.splice`, `rows.unshift`, `rows = ...`, `rows[...] = ...`, `...rows`
+    # change the array after it is read here). Review of 48f504e, finding 27: a row outside the literal, or with quoted keys, was not read, not counted and not compared.
+    whole = _blank_strings(_blank_comments(text))
+    spans = [(x.start(), x.end()) for x in re.finditer(r"\bexport\s*\{[^}]*\}", whole)]
+    stray = [x for x in re.finditer(r"(?<![\w$])(?:(?<=\.\.\.)|(?<!\.))rows\b(?!\s*:)", whole) if x.start() != at + len("const ") and not any(s <= x.start() < e for s, e in spans)]
+    if stray:
+        problems.append(f"`rows` is used {len(stray)} time(s) in scripts/gate-checks.mjs besides `const rows = [` and its `export {{ ... }}` (`rows.push(...)`, `rows.splice`, `rows = ...`, `rows[...]`, a spread): a row changed there is not one this reader read")
+    if starts and shape[shape.index("[") + 1:starts[0].start()].strip():
+        problems.append("the rows array of scripts/gate-checks.mjs has something before its first row (a spread, a call, a row written with quoted keys): an element that is not `{ name: '...', weight: N, ...}` at the start of a line is not read")
     for k, m in enumerate(starts):
         lo, hi = m.start(), (starts[k + 1].start() if k + 1 < len(starts) else len(body))
         chunk, cshape, name = body[lo:hi], shape[lo:hi], m.group(2)
+        close = _matching_brace(cshape, cshape.index("{"))
+        tail = cshape[close + 1:] if close >= 0 else None
+        if tail is None or not re.fullmatch(r"\s*,?\s*\]\s*" if k + 1 == len(starts) else r"\s*,\s*", tail):
+            problems.append(f"gate row {name!r} is not followed by a comma and the next row (or by `]`) in scripts/gate-checks.mjs: something else sits between the rows (a spread, a variable, a call, a row with quoted keys), and is not read")
         run = re.search(r"\brun\s*:", cshape)
         if run is None:
             problems.append(f"gate row {name!r} has no `run:` this reader can find")
@@ -2814,6 +2842,8 @@ def self_test():
     # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
     kept = lambda cmd: (lambda res: res[0] == [] and res[1]["opaque"] == 1)(unread(cmd))
     refused = lambda cmd: (lambda res: any_of("cannot be read", res[0]) and res[1]["opaque"] == 0)(unread(cmd))
+    row_pr = lambda body, head="", close="]", after="": (lambda d: (Path(d, "scripts").mkdir(), Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after), gate_row_problems(d, pkg, read))[2])(tempfile.mkdtemp())
+    one_row = lambda run, name="x": f"  {{ name: '{name}', weight: 10,\n    run: {run} }},\n"
 
     # FINDING 21. The raw line of an unreadable always() step: a command on it that is not an allowed head hides a launcher, whether or not the reader could tell what it launches.
     for cmd in ("npm run pure", "npm test", "npx playwright screenshot http://localhost:8080 /tmp/a.png", "make shot", "eval 'node scripts/shot.mjs'", "./x.sh", "deno run x.ts", "$RUNNER scripts/x"):
@@ -2880,6 +2910,23 @@ def self_test():
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
     check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # FINDING 27. The rows array is read whole, and the name `rows` is used nowhere else.
+    row_x = "{ name: 'late', weight: 10, run: () => ok('node scripts/shot.mjs') }"
+    check("finding 27: the file the fixtures use reads clean (nothing is wrong with the wrapper, only with what is put in it)", row_pr("") == [], row_pr(""))
+    for label, after in [("`rows.push(...)` after the export", f"rows.push({row_x})\n"), ("`rows.splice(0, 1)`", "rows.splice(0, 1)\n"), ("`rows.unshift(...)`", f"rows.unshift({row_x})\n"), ("`rows = []`", "rows = []\n"),
+                         ("`rows[0] = ...`", "rows[0] = {}\n"), ("`rows.length = 0`", "rows.length = 0\n"), ("`...rows` in another array", "const all = [...rows]\n"), ("`rows.pop()`", "rows.pop()\n")]:
+        check(f"finding 27: {label} is refused: the array is changed after it is read", any_of("`rows` is used", row_pr("", after=after)), row_pr("", after=after))
+    check("finding 27: ...also in a statement between the array and the export",
+          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
+    check("finding 27: ...while `rows` as an object key, a property (`x.rows`) and one more name in the export are not a use", row_pr("", after="const a = { rows: 1 }\nconst b = x.rows.length\n") == [])
+    check("finding 27: a spread, a variable or a call in front of the first row is refused", all(any_of("something before its first row", row_pr("", head=h)) for h in ("  ...more,\n", "  someRow,\n", "  makeRow(),\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/pure.mjs') },\n")))
+    check("finding 27: ...and between two rows or after the last (`...more,`, a variable, a row with quoted keys, two rows on one line, `].concat(more)`)",
+          all(any_of("is not followed by a comma", row_pr(b)) for b in ("  ...more,\n", "  someRow,\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/shot.mjs') },\n",
+                                                                        "  { name: 'q', weight: 1, run: () => ok('node scripts/pure.mjs') }, { name: 'r', weight: 1, run: () => ok('node scripts/pure.mjs') },\n"))
+          and any_of("is not followed by a comma", row_pr("", close="].concat(more)")))
+    check("finding 27: a row with no comma after it (not the last: JavaScript allows that one) is refused, and the real file's shape (`},` then `]`, and a last row with no comma) is clean",
+          any_of("is not followed by a comma", row_pr("", head=one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n"))) and row_pr(one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n")) == [])
 
     # FINDING 28. The final step's tests read only what the step's own `env:` defines.
     for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),
