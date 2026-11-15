@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9f691bc` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `9f691bc` | 2026-11-15 | [sport-vocabulary-2026-11-15T08-00-29-873Z.json](sport-vocabulary-2026-11-15T08-00-29-873Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `bc7a6f1` | 2026-11-14 | [cc-session-2026-11-14-tls-stage.md](cc-session-2026-11-14-tls-stage.md) | docs: the TLS stage's session record names all three clock errors, not two |
+| `57c3ebe` | 2026-11-14 | [cc-session-2026-11-14-tls-stage.md](cc-session-2026-11-14-tls-stage.md) | docs: the weather failure's TLS stage is done: session record and the CC-CMD's Status and Outcome |
+| `db3bfef` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f30d2b9` | 2026-11-15 | [egress-path-e2e-20261115T041303Z.txt](egress-path-e2e-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `f30d2b9` | 2026-11-15 | [egress-path-live-20261115T041303Z.txt](egress-path-live-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `f30d2b9` | 2026-11-15 | [egress-path-survey-20261115T041303Z.txt](egress-path-survey-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
