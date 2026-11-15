@@ -52,8 +52,9 @@ WHAT THIS CHECKS, on each target job (rules 1 to 8) and on every other install (
      echo that mentions it, an `exit 0` before it or an `if false; then exit 1; fi` all contain the characters and none of
      them reddens the job. Because the guard's run and the runner's differ in everything but the script (files, variables
      the runner sets, the shell's options), the script is a CLOSED GRAMMAR: only echo, `exit N` (a literal non-zero
-     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect; anything else is refused,
-     because what it does here would say nothing about what it does there. It is last because a step after it that has no
+     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect, and a comparison reads only a
+     variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more: `[ "$GITHUB_ACTIONS" != true ]`
+     fails here and passes there); anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
      `always()` is skipped by the failure it makes.
   5. every `steps.<id>` an `if` mentions is the id of an earlier step (a renamed id evaluates to null and skips every
      browser step without a word)
@@ -852,11 +853,17 @@ def run_final(step, outcome, timeout=FINAL_TIMEOUT, others=None):
                               capture_output=True, text=True, timeout=timeout)
 
 
-def final_script_problems(script):
+# A `$` in a word of a `[ ]` or `test`: `$NAME` or `${NAME}`, and nothing else (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}` all differ between the guard's run and the runner's, or hide a lookup).
+VAR_REF = re.compile(r"\$(?:\{([^}]*)\}|([A-Za-z_]\w*)|(.?))")
+
+
+def final_script_problems(script, env_names=()):
     """The final step's script may use ONLY echo, `exit N` (N a literal non-zero integer) and `[ ]`/`test` comparisons, in
     if/elif/else/fi. The guard runs it to see that it fails, and can only know that it fails the same way on the runner if it
     touches nothing the two places differ in: a file (the guard's cwd is empty), a variable the runner sets, a pipe (the
-    runner has no pipefail), a redirect, a command that is not one of these. Returns [why]."""
+    runner has no pipefail), a redirect, a command that is not one of these. A comparison may read only a variable the step's
+    own `env:` defines (`env_names`): the guard's run gives the script PATH, LC_ALL and that env, so `[ "$GITHUB_ACTIONS" != true ]`
+    fails here and passes on every runner (review of 48f504e, finding 28). Returns [why]."""
     bad = []
     for line in logical_lines(script):
         try:
@@ -893,6 +900,12 @@ def final_script_problems(script):
                 bad.append(f"`{' '.join(w)[:60]}`: exit must be followed by a literal non-zero integer")
             elif head in ("[", "test") and any(x.startswith("-") for x in w[1:]):
                 bad.append(f"`{' '.join(w)[:60]}`: a file or string operator in a test; compare the outcome with = or !=")
+            elif head in ("[", "test"):
+                refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for x in w[1:] for m in VAR_REF.finditer(x)}
+                foreign = sorted(refs - set(env_names))
+                if foreign:
+                    bad.append(f"`{' '.join(w)[:60]}`: a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                               f"compare only a variable the step's `env:` defines")
     return bad
 
 
@@ -904,7 +917,7 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
     if not run_text(step).strip():
         bad.append(f"the final step {name} has no script to fail with")
         return bad
-    grammar = final_script_problems(run_text(step))
+    grammar = final_script_problems(run_text(step), {str(k) for k in env_map(step)})
     if grammar:
         bad.append(f"the final step {name} must use only echo, `exit N` and `[ ]` comparisons in if/elif/else/fi, so that running it here shows what the runner does: " + "; ".join(grammar[:3]))
         return bad
@@ -1838,7 +1851,7 @@ def self_test():
     check("the final step's script is run with `bash -e` and no pipefail, as the runner's default shell does",
           subprocess.run(["bash", "-e", "-c", "false | true; echo reached"], capture_output=True, text=True).stdout == "reached\n")
     check("the final step that interpolates an expression into its script is refused", any_of("interpolates", mut(final_run(ERR + "echo ${{ steps.chromium.outcome }}\nexit 1"))))
-    check("the final step with an env value that is any other expression is refused", any_of("cannot evaluate", mut(lambda s: s[-1].update({"env": {"X": "${{ github.sha }}"}}))))
+    check("the final step with an env value that is any other expression is refused", any_of("cannot evaluate", mut(lambda s: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "X": "${{ github.sha }}"}}))))
     check("the final step with `shell: pwsh` is refused", any_of("shell", mut(lambda s: s[-1].update({"shell": "pwsh"}))))
     check("a step after the final step is refused (the failure it makes would skip it)",
           any_of("LAST step", mut(lambda s: s.append({"name": "appended", "run": "npm run pure"}))))
@@ -2530,7 +2543,7 @@ def self_test():
     t0 = time.time()
     SCRIPT_NAME.findall("a" * 20000 + " " + "a." * 10000)
     check("the search for a script name is linear: 20,000 characters of name and 10,000 of `a.` take well under a second (the unbounded pattern took 1.4 s and 17.8 s)", time.time() - t0 < 1.0, f"{time.time() - t0:.2f} s")
-    many = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **{f"O{n}": f"${{{{ steps.s{n}.outcome }}}}" for n in range(4)}}}
+    many = {**final2, "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **{f"O{n}": f"${{{{ steps.s{n}.outcome }}}}" for n in range(4)}}, "run": 'echo "::error::x $INSTALL_OUTCOME"\nexit 1'}
     res = audit(wf([{"name": "build", "run": "npm run pure"}] + [{"name": f"s{n}", "id": f"s{n}", "run": "npm run pure"} for n in range(4)] + [inst, many]), pkg, read, final_timeout=5)[0]
     check("a final step that reads the outcome of more than three other steps is refused (it is run for every combination, 4 x 5^k times)", any_of("besides the install", res), res)
 
@@ -2711,6 +2724,17 @@ def self_test():
 
     # ---- ROUND 5: THE THIRD REVIEW'S FINDINGS (21 to 30 of the review of 48f504e). Each fixture below failed on the guard as it stood, or is the pin of an alternative that no fixture reached. Every family is a LITERAL
     # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
+
+    # FINDING 28. The final step's tests read only what the step's own `env:` defines.
+    for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),
+                        ("`$1`", '[ "$1" != x ]'), ("`$-`", '[ "$-" != x ]'), ("`${X:-y}`", '[ "${X:-y}" != x ]'), ("`${!X}`", '[ "${!X}" != x ]'), ("`${INSTALL_OUTCOME:-x}` (an expansion with an operator)", '[ "${INSTALL_OUTCOME:-x}" != x ]'),
+                        ("`${}`", '[ "${}" != x ]'), ("a variable of the second operand", '[ "$INSTALL_OUTCOME" != "$GITHUB_REF" ]'), ("a variable inside `test`", 'test "$GITHUB_ACTIONS" != true')]:
+        res = mut(final_run(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
+        check(f"finding 28: a test that reads {label} is refused (the guard's run does not set it)", any_of("which this guard's run does not set", res), res)
+    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME`, `${INSTALL_OUTCOME}`, a literal env value of its own, and a variable-free comparison",
+          all(mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})) == []
+              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "${INSTALL_OUTCOME}" = skipped ]', '[ "$MODE" = strict ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"')))
+    check("finding 28: ...and the variable of a test in the grammar's `echo` is not a test (`echo \"$GITHUB_ACTIONS\"` prints, it decides nothing)", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1')) == [])
 
     # FINDING 29. npm's own spelling of the variables that change what a script runs.
     unresolved_env = lambda k: read_step({"run": "npm run pure", "env": {k: "x"}}, pkg, read)["unresolved"]
