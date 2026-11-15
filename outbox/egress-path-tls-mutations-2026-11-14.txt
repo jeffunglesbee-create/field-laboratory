@@ -1,0 +1,143 @@
+checked 41 of 41 new mutations, applied twice: by the harness and by a script of its own; 41 of 41 caught each time
+docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md, Task 3 (Rule 90: an assertion is not trusted until it has failed on purpose)
+
+Each entry in scripts/mutation-check.mjs named egress-path-<id> breaks one clause of the TLS stage in scripts/egress-path-lib.mjs. The self-test must go red on it, by a CHECK, not by a crash.
+Two applications, made independently, so that the harness is not the only thing saying so:
+
+1. THE HARNESS: node scripts/mutation-check.mjs --ids <the 41 ids>
+Mutation testing 41 invariant(s)
+  baseline: ran 1 of 1 distinct expectation(s) from 41 mutation(s), 0 failing
+PASS  the unmutated tree passes every expectation
+PASS  [egress-path-doh-subnet-dropped]
+PASS  [egress-path-doh-status-ignored]
+PASS  [egress-path-doh-rcode-ignored]
+PASS  [egress-path-doh-type-unchecked]
+PASS  [egress-path-doh-v6-in-a-record]
+PASS  [egress-path-doh-status-not-number]
+PASS  [egress-path-union-not-deduped]
+PASS  [egress-path-union-from-repeated]
+PASS  [egress-path-union-non-ip-kept]
+PASS  [egress-path-union-case-sensitive]
+PASS  [egress-path-tls-alpn-dropped]
+PASS  [egress-path-tls-name-not-sent]
+PASS  [egress-path-tls-stall-as-no-connect]
+PASS  [egress-path-tls-tcp-not-timed]
+PASS  [egress-path-tls-error-code-dropped]
+PASS  [egress-path-tls-cert-unverified]
+PASS  [egress-path-tls-ip-literal-as-name]
+PASS  [egress-path-tls-bound-doubled]
+PASS  [egress-path-tls-throw-escapes]
+PASS  [egress-path-tls-asks-the-name-not-the-address]
+PASS  [egress-path-tls-stall-wait-printed-twice]
+PASS  [egress-path-tls-threw-counted-settled]
+PASS  [egress-path-views-not-in-union]
+PASS  [egress-path-system-v6-not-in-union]
+PASS  [egress-path-addresses-uncapped]
+PASS  [egress-path-unprobed-not-counted]
+PASS  [egress-path-doh-unbounded]
+PASS  [egress-path-views-after-lookups]
+PASS  [egress-path-connects-wait-for-views]
+PASS  [egress-path-literal-asks-resolver]
+PASS  [egress-path-judge-tls-not-required]
+PASS  [egress-path-judge-tls-unanchored]
+PASS  [egress-path-settled-counts-unfinished]
+PASS  [egress-path-unknown-total-as-zero]
+PASS  [egress-path-view-subnet-not-printed]
+PASS  [egress-path-tls-key-out-of-order]
+PASS  [egress-path-addresses-line-unknown-as-zero]
+PASS  [egress-path-live-real-settled-unchecked]
+PASS  [egress-path-live-nxdomain-any]
+PASS  [egress-path-live-blackhole-unsettled]
+PASS  [egress-path-live-refused-unsettled]
+42/42 checks passed
+
+2. A SCRIPT THAT DOES NOT USE THE HARNESS (its source is the appendix): a copy of the library in a temp directory, the replacement made by the script with the anchor asserted unique and applied,
+   the self-test run on the copy. Each line gives the check that went red first; none is a crash (a crash would print "(a crash, not a check)").
+
+unmutated copy: exit 0, 0 failing, "138/138 checks passed"
+RED  egress-path-doh-subnet-dropped: exit 1, 7 check(s) failing; first: dohUrl is the URL that run asked, with and without a subnet (the slash escaped)
+RED  egress-path-doh-status-ignored: exit 1, 3 check(s) failing; first: parseDoh: an HTTP 400 (a malformed subnet) is named by its status
+RED  egress-path-doh-rcode-ignored: exit 1, 3 check(s) failing; first: parseDoh: a name that does not exist is NXDOMAIN, not an empty answer
+RED  egress-path-doh-type-unchecked: exit 1, 1 check(s) failing; first: parseDoh: an Answer that is not a list, and entries that are not A records of an IPv4 literal, give no address
+RED  egress-path-doh-v6-in-a-record: exit 1, 1 check(s) failing; first: parseDoh: an Answer that is not a list, and entries that are not A records of an IPv4 literal, give no address
+RED  egress-path-doh-status-not-number: exit 1, 1 check(s) failing; first: parseDoh: a Status that is not a number is not read as one
+RED  egress-path-union-not-deduped: exit 1, 3 check(s) failing; first: unionOf: order first seen, each address once, the sources that named it in the order they were read
+RED  egress-path-union-from-repeated: exit 1, 1 check(s) failing; first: unionOf: order first seen, each address once, the sources that named it in the order they were read
+RED  egress-path-union-non-ip-kept: exit 1, 2 check(s) failing; first: unionOf: order first seen, each address once, the sources that named it in the order they were read
+RED  egress-path-union-case-sensitive: exit 1, 1 check(s) failing; first: unionOf: what is not an IP literal is not an address, and an IPv6 literal is one address however it is cased
+RED  egress-path-tls-alpn-dropped: exit 1, 1 check(s) failing; first: REAL TLS on loopback: the handshake completes with both times, and the server was sent the name as SNI and exa
+RED  egress-path-tls-name-not-sent: exit 1, 1 check(s) failing; first: REAL TLS on loopback: the handshake completes with both times, and the server was sent the name as SNI and exa
+RED  egress-path-tls-stall-as-no-connect: exit 1, 1 check(s) failing; first: REAL loopback, a listener that accepts and says nothing: the connect completed and no handshake did, and the v
+RED  egress-path-tls-tcp-not-timed: exit 1, 5 check(s) failing; first: REAL loopback, a listener that accepts and says nothing: the connect completed and no handshake did, and the v
+RED  egress-path-tls-error-code-dropped: exit 1, 3 check(s) failing; first: REAL loopback, a closed port: ECONNREFUSED, and the connect did not complete
+RED  egress-path-tls-cert-unverified: exit 1, 2 check(s) failing; first: REAL TLS on loopback, a certificate nobody vouched for: refused by its code after the connect completed
+RED  egress-path-tls-ip-literal-as-name: exit 1, 1 check(s) failing; first: ...and its handshake is to the literal with no name sent
+RED  egress-path-tls-bound-doubled: exit 1, 1 check(s) failing; first: ...each handshake was asked of the ADDRESS, with the HOST as the name, on the port, within the bound
+RED  egress-path-tls-throw-escapes: exit 1, 1 check(s) failing; first: a handshake dependency that throws, synchronously or not, is named by its code and is not a verdict
+RED  egress-path-tls-asks-the-name-not-the-address: exit 1, 4 check(s) failing; first: ...tls= lists WEST stalled after its connect and EAST completed, each with the sources that named it
+RED  egress-path-tls-stall-wait-printed-twice: exit 1, 1 check(s) failing; first: REAL loopback, a listener that accepts and says nothing: the connect completed and no handshake did, and the v
+RED  egress-path-tls-threw-counted-settled: exit 1, 2 check(s) failing; first: settledTls: a completed handshake and a named failure are verdicts; a throw, an empty result, no code and an e
+RED  egress-path-views-not-in-union: exit 1, 5 check(s) failing; first: ...tls= lists WEST stalled after its connect and EAST completed, each with the sources that named it
+RED  egress-path-system-v6-not-in-union: exit 1, 1 check(s) failing; first: a system IPv6 address is probed too: bracketed, with the system as its source
+RED  egress-path-addresses-uncapped: exit 1, 1 check(s) failing; first: nine system addresses and two more from the views: six are probed, the first six, and five are counted
+RED  egress-path-unprobed-not-counted: exit 1, 1 check(s) failing; first: nine system addresses and two more from the views: six are probed, the first six, and five are counted
+RED  egress-path-doh-unbounded: exit 1, 2 check(s) failing; first: a resolver that never answers is named at its bound, the handshake to the system's address still runs, and the
+RED  egress-path-views-after-lookups: exit 1, 1 check(s) failing; first: the lookups and the views start together: a view had started while the lookup waited for one
+RED  egress-path-connects-wait-for-views: exit 1, 1 check(s) failing; first: the connects do not wait for the views: every view answered, though each waited for a connect to start
+RED  egress-path-literal-asks-resolver: exit 1, 2 check(s) failing; first: an IP-literal host asks no resolver and says so in each view
+RED  egress-path-judge-tls-not-required: exit 1, 2 check(s) failing; first: a description without tls= is incomplete, and names tls=
+RED  egress-path-judge-tls-unanchored: exit 1, 1 check(s) failing; first: a key that only ends in tls= is not tls=
+RED  egress-path-settled-counts-unfinished: exit 1, 2 check(s) failing; first: a handshake that never returns is named unfinished at the budget, is not a verdict, and the other keys are kep
+RED  egress-path-unknown-total-as-zero: exit 1, 1 check(s) failing; first: sources that had not all answered at the budget leave the total unknown, and tls= says it is unfinished
+RED  egress-path-view-subnet-not-printed: exit 1, 1 check(s) failing; first: ...each source says what it answered, with the subnet printed in the view it was asked as
+RED  egress-path-tls-key-out-of-order: exit 1, 1 check(s) failing; first: a west red carries every key, in the order the line prints them
+RED  egress-path-addresses-line-unknown-as-zero: exit 1, 1 check(s) failing; first: addressesLine: the counts, a cap shown, and an unknown total named
+RED  egress-path-live-real-settled-unchecked: exit 1, 1 check(s) failing; first: LIVE_ADDRESSES.real: an address found and every probed one settled passes; none found, an unknown total, or on
+RED  egress-path-live-nxdomain-any: exit 1, 1 check(s) failing; first: LIVE_ADDRESSES.nxdomain: none found passes, one found does not
+RED  egress-path-live-blackhole-unsettled: exit 1, 1 check(s) failing; first: LIVE_ADDRESSES.blackhole and .refused: exactly one literal with a verdict passes; none, two, or an unsettled o
+RED  egress-path-live-refused-unsettled: exit 1, 1 check(s) failing; first: LIVE_ADDRESSES.blackhole and .refused: exactly one literal with a verdict passes; none, two, or an unsettled o
+caught 41 of 41 when applied by this script to a copy
+
+The unmutated library, the same self-test:
+checked 18 of 18 described lines for all 15 keys
+checked 6 of 6 loopback TLS shapes
+138/138 checks passed
+
+anchors: node scripts/mutation-check.mjs --anchors   ->   checked 1571 of 1574 mutation anchors; 0 stale   (baseline before these entries: 1530 of 1533)
+
+NOT covered by a mutation, said here because a green list reads as complete: the wiring of runLive (the call of r.s.addresses(...) in the verdict, and the printing of the two address lines). runLive reaches the network, so its self-test is the runner's --live run;
+LIVE_ADDRESSES, which holds what each shape must show, is tested directly (the four last entries above).
+
+--- appendix: the script that applied each entry to a copy (scratchpad muts-by-hand.mjs; it reads the entries from the harness's own list, ENTRIES, which is the list inserted into scripts/mutation-check.mjs) ---
+
+// An application of every entry that does not use the harness: a copy of the library in a temp directory, the replacement made by this script (anchor asserted unique and applied), the self-test run on the copy.
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { ENTRIES } from './muts-tls.mjs'
+const root = '/home/claude/field-laboratory/scripts'
+const lib = fs.readFileSync(`${root}/egress-path-lib.mjs`, 'utf8')
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'muts-by-hand-'))
+for (const f of ['checks.mjs', 'render-check.mjs']) fs.copyFileSync(`${root}/${f}`, `${dir}/${f}`)
+const run = src => {
+  fs.writeFileSync(`${dir}/egress-path-lib.mjs`, src)
+  const r = spawnSync(process.execPath, [`${dir}/egress-path-lib.mjs`, '--self-test'], { encoding: 'utf8', timeout: 60000 })
+  const out = `${r.stdout}${r.stderr}`
+  return { status: r.status, failing: out.split('\n').filter(l => l.startsWith('FAIL  ')).map(l => l.slice(6)), crashed: /Error|Exception/.test(r.stderr) && !/^FAIL/m.test(out), tail: out.trim().split('\n').slice(-1)[0] }
+}
+const clean = run(lib)
+console.log(`unmutated copy: exit ${clean.status}, ${clean.failing.length} failing, "${clean.tail}"`)
+let caught = 0
+for (const [id, , find, replace] of ENTRIES) {
+  const n = lib.split(find).length - 1
+  if (n !== 1) { console.log(`ANCHOR ${n}: ${id}`); continue }
+  const mutated = lib.replace(find, () => replace)
+  if (mutated === lib) { console.log(`NOT APPLIED: ${id}`); continue }
+  const r = run(mutated)
+  const red = r.status !== 0
+  if (red) caught++
+  console.log(`${red ? 'RED ' : 'NOT CAUGHT'} egress-path-${id}: exit ${r.status}, ${r.failing.length} check(s) failing${r.crashed ? ' (a crash, not a check)' : ''}; first: ${(r.failing[0] ?? r.tail).slice(0, 110)}`)
+}
+console.log(`caught ${caught} of ${ENTRIES.length} when applied by this script to a copy`)
+fs.rmSync(dir, { recursive: true, force: true })
