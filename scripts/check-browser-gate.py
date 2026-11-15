@@ -1146,11 +1146,57 @@ ROW_SHARDED = re.compile(r"(?<![.\w$])shardedSuite\s*\(")
 # The helpers a row may name instead of an arrow function: they hold no command of a browser script (outboxToday and outboxAccompaniesSource read the outbox and git).
 ROW_HELPERS = ("outboxToday", "outboxAccompaniesSource")
 # A string that names a command: a script path or a shell command. Every one in a row has to be the argument of a call this reader understands, or it is a command it cannot attribute.
-SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:node|npm|npx|python3?|bash|sh|xvfb-run|timeout|env)\b|\s(?:\./)?scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")   # a bare path (`'scripts/x.mjs'`) is a file, not a command
-# Strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, in the order a JavaScript tokenizer meets them.
-# A `/` starts a regular expression only after a token that cannot end an expression (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`, `=>`, `return`): after a name, a number or `)` it is a
-# division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next one, hiding the call between them).
-JS_TOKEN = re.compile(r"""('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`|(?:(?<=[(,=:\[!&|?{};])|(?<==>)|(?<=\breturn))[ \t]*/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*)|//[^\n]*|/\*.*?\*/""", re.S)
+# The heads of a string that is a command (`npx playwright test`, `CI=1 npm run x`), and a path to a script FILE as the whole string or after a space (`scripts/x.mjs`, `./scripts/x.mjs`, `xargs scripts/x.mjs`, `${ROOT}/scripts/x.mjs`).
+# A bare path used to be "a file, not a command" (review round 3), which let `cp.spawnSync(process.execPath, ['scripts/render-check.mjs'])` and `helpers.runAll(['scripts/render-check.mjs'])` read as running no
+# browser: a path is a file only when a call that READS files takes it (ROW_READ_CALLS, below), and every other one is a command nothing here can attribute (review of 48f504e, finding 25).
+SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvfb-run", "timeout", "env")
+SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:" + "|".join(SCRIPTISH_HEADS) + r")\b|(?:^|\s)(?:\$\{?\w+\}?/|\.{1,2}/)*scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")
+# The calls that only READ a path, so a script path as their first argument is a file and not a command (the arguments of `readFileSync('scripts/gate-checks.mjs')` in a row that checks a script's text).
+ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+ROW_READ_ARG = re.compile(r"""(?<![.\w$])(?:""" + "|".join(ROW_READ_CALLS) + r""")\s*\(\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)")""")
+# JAVASCRIPT TOKENS: strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, found by a scanner that remembers the last
+# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, `return`
+# or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
+# one, hiding the call between them). "Last significant" skips whitespace INCLUDING NEWLINES and comments: `=>` at the end of a line and `/it's/.test(s) && ok(...)` on the next is one regular expression and one
+# call (review of 48f504e, finding 26: the lookbehind of a single regular expression saw only the character before the whitespace on the same line, and the quote swallowed the call).
+REGEX_AFTER = frozenset("(,=:[!&|?{};")
+JS_STRING = re.compile(r"""'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`""", re.S)
+JS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+JS_REGEX = re.compile(r"""/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*""")
+JS_WORD = re.compile(r"[A-Za-z_$][\w$]*|\d[\w.]*")
+
+
+def js_tokens(src):
+    """[(start, end, literal)] of the strings, template literals and regular expression literals (literal=True) and the comments (literal=False) of `src`, in the order a tokenizer meets them."""
+    out, i, n, prev = [], 0, len(src), ""
+    while i < n:
+        c = src[i]
+        if c.isspace():
+            i += 1
+            continue
+        m = JS_COMMENT.match(src, i)
+        if m:                                                   # a comment does not change what came before it
+            out.append((i, m.end(), False))
+            i = m.end()
+            continue
+        m = JS_STRING.match(src, i)
+        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev in ("=>", "return")):
+            m = JS_REGEX.match(src, i)
+        if m:
+            out.append((i, m.end(), True))
+            i, prev = m.end(), "x"                              # a value ends an expression: a `/` after it is a division
+            continue
+        m = JS_WORD.match(src, i)
+        if m:
+            i, prev = m.end(), ("return" if m.group(0) == "return" else "x")
+            continue
+        if src.startswith("=>", i):
+            i, prev = i + 2, "=>"
+            continue
+        i, prev = i + 1, c
+    return out
+
+
 # A call this reader does not know could run a command from a helper defined above the rows array (`const sparkRow = () => ok('node scripts/spark-check.mjs')`, `run: () => sparkRow()`).
 ROW_ANY_CALL = re.compile(r"(?<![.\w$])([A-Za-z_]\w*)\s*\(")
 ROW_KNOWN_CALLS = frozenset({"ok", "fails", "all", "execSync", "execFileSync", "spawnSync", "spawn", "exec", "shardedSuite", "Number", "String", "Boolean", "parseInt", "readFileSync", "existsSync", "readdirSync", "statSync", "if", "for", "while", "switch", "catch", "return", "function"})
@@ -1159,12 +1205,22 @@ MIN_ROWS, MIN_BROWSER_ROWS = 20, 6
 
 def _blank_comments(src):
     """JavaScript comments become spaces (offsets kept); a string or a regular expression, which may hold `//` (a URL), is kept whole."""
-    return JS_TOKEN.sub(lambda m: m.group(0) if m.group(1) else re.sub(r"[^\n]", " ", m.group(0)), src)
+    out, last = [], 0
+    for s, e, literal in js_tokens(src):
+        if not literal:
+            out += [src[last:s], re.sub(r"[^\n]", " ", src[s:e])]
+            last = e
+    return "".join(out) + src[last:]
 
 
 def _blank_strings(src):
     """The contents of every string and regular expression become NUL (offsets kept), so a word inside a command is not a use of that word."""
-    return JS_TOKEN.sub(lambda m: m.group(0)[0] + "\0" * (len(m.group(0)) - 2) + m.group(0)[-1] if m.group(1) else m.group(0), src)
+    out, last = [], 0
+    for s, e, literal in js_tokens(src):
+        if literal:
+            out += [src[last:s], src[s] + "\0" * (e - s - 2) + src[e - 1]]
+            last = e
+    return "".join(out) + src[last:]
 
 
 def _matching_paren(shape, lp):
@@ -1274,10 +1330,10 @@ def gate_rows(root="."):
         for ac in ROW_ANY_CALL.finditer(rshape):
             if ac.group(1) not in ROW_KNOWN_CALLS and ac.group(1) not in ROW_HELPERS:
                 problems.append(f"gate row {name!r} calls `{ac.group(1)}(...)`, which this reader does not know: a helper defined above the rows array could run a command from there, unread")
-        have = set(cmds)
-        for tok in JS_TOKEN.finditer(rest):
-            lit = tok.group(1)
-            if lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
+        have = set(cmds) | {x or y for x, y in ROW_READ_ARG.findall(rest)}
+        for s, e, is_lit in js_tokens(rest):
+            lit = rest[s:e]
+            if is_lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
                 problems.append(f"gate row {name!r} names a command ({lit[1:-1][:50]!r}) that no `ok(`, `fails(`, `all(`, `execSync(` or `shardedSuite(` call takes: this reader cannot attribute it")
         out.append((name, int(m.group(3)), flagged, cmds))
     return out, problems
@@ -2910,6 +2966,51 @@ def self_test():
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
     check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # FINDING 25. A script path that no call this reader understands takes is a command it cannot attribute, however it is passed.
+    for label, run in [("`cp.spawnSync(process.execPath, [...])`", "() => cp.spawnSync(process.execPath, ['scripts/shot.mjs']).status === 0"), ("`helpers.runAll([...])`", "() => helpers.runAll(['scripts/shot.mjs'])"),
+                       ("`spawnSync('node', [...])`", "() => spawnSync('node', ['scripts/shot.mjs'])"), ("`execFileSync('node', [...])`", "() => execFileSync('node', ['scripts/shot.mjs'])"),
+                       ("a path in an array a known call does not take", "() => ok('node scripts/pure.mjs') && ['./scripts/shot.mjs'].every(f => f)")]:
+        check(f"finding 25: a row with {label} names a command this reader cannot attribute", any_of("names a command", row_pr(one_row(run))), row_pr(one_row(run)))
+    PINNED_SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvfb-run", "timeout", "env")
+    check("SCRIPTISH_HEADS: the heads of a command string are exactly the ten pinned (a literal list)", set(PINNED_SCRIPTISH_HEADS) == set(SCRIPTISH_HEADS), SCRIPTISH_HEADS)
+    for h in PINNED_SCRIPTISH_HEADS:
+        check(f"finding 25/30: a string `{h} x` that no call takes is a command (the head `{h}` alone matches it)", any_of("names a command", row_pr(one_row(f"() => helpers.go('{h} x')"))), h)
+    check("finding 25/30: ...also behind a VAR= prefix (`CI=1 npm x`)", any_of("names a command", row_pr(one_row("() => helpers.go('CI=1 npm x')"))))
+    for label, lit in [("a bare path (`scripts/a.mjs`, at the start)", "scripts/a.mjs"), ("a path after a space (`xargs scripts/a.mjs`)", "xargs scripts/a.mjs"), ("`./scripts/a.mjs`", "./scripts/a.mjs"), ("`../scripts/a.mjs`", "../scripts/a.mjs"),
+                       ("`${ROOT}/scripts/a.mjs`", "${ROOT}/scripts/a.mjs"), ("`$ROOT/scripts/a.mjs`", "$ROOT/scripts/a.mjs"), ("a `.cjs` file", "scripts/a.cjs"), ("a `.js` file", "scripts/a.js"), ("a `.py` file", "scripts/a.py")]:
+        check(f"finding 25/30: {label} that no call takes is a command", any_of("names a command", row_pr(one_row(f"() => helpers.go('{lit}')"))), lit)
+    check("finding 25: ...but a path that a call which only READS takes is a file (`readFileSync('scripts/gate-checks.mjs')`), and a string `scripts/` is not a script",
+          row_pr(one_row("() => ok('node scripts/pure.mjs') && readFileSync('scripts/gate-checks.mjs', 'utf8').includes('scripts/')")) == [])
+    PINNED_ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+    vocab("ROW_READ_CALLS", ROW_READ_CALLS, PINNED_ROW_READ_CALLS, lambda c: row_pr(one_row(f"() => ok('node scripts/pure.mjs') && {c}('scripts/gate-checks.mjs')")) == [] and any_of("names a command", row_pr(one_row(f"() => ok('node scripts/pure.mjs') && x.{c}('scripts/gate-checks.mjs')"))))
+
+    # FINDING 26. A regular expression that starts a line, or follows a comment, is a regular expression: the quote inside it must not start a string over the call after it.
+    rx = lambda before, after="": any_of("drives a browser", row_pr(one_row(f"() => {before}/it's/.test(s) && ok('node scripts/shot.mjs'){after}")))
+    PINNED_REGEX_AFTER = ("(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";")
+    check("REGEX_AFTER: the characters after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)", set(PINNED_REGEX_AFTER) == set(REGEX_AFTER), sorted(REGEX_AFTER))
+    for c in PINNED_REGEX_AFTER:
+        check(f"finding 26/30: a regular expression after `{c}` (and after `{c}` and a newline) is one: the call after it is read", rx(f"s {c} ") and rx(f"s {c}\n      "), c)
+    check("finding 26: ...after `=>` or `return` at the end of a line, after `&&` at the end of a line (the review's rows), and after a line comment", rx("\n      ") and rx("s &&\n      ") and rx("s && // a note\n      ") and rx("s && /* a note */\n      ") and rx("return ") and rx("return\n      "))
+    check("finding 26: a comment between `&&` and a regular expression does not hide it from the pass that blanks comments: a `//` comment after the regular expression is a comment, not a use of the call inside it",
+          row_pr(one_row("() => s && // note\n      /it's/.test(s) // ok('node scripts/shot.mjs')\n      && ok('node scripts/pure.mjs')\n   ")) == [], row_pr(one_row("() => s && // note\n      /it's/.test(s) // ok('node scripts/shot.mjs')\n      && ok('node scripts/pure.mjs')\n   ")))
+    check("finding 26: a string ends an expression: after `'a'` a `/` is a division (`('a' / 2 && ok('node scripts/shot.mjs') / 3)` reads the call between the two slashes)",
+          any_of("drives a browser", row_pr(one_row("() => ('a' / 2 && ok('node scripts/shot.mjs') / 3)"))))
+    PINNED_TOKENS = [("/it's/.test(s)", [(0, 6, True)]), (r"'it\'s'", [(0, 7, True)]), (r'"it\"s"', [(0, 7, True)]), ("`a\\`b`", [(0, 6, True)]), ("x = /a\\/b/", [(4, 10, True)]), ("x = /[/]x/", [(4, 10, True)]),
+                     ("a // x\nb", [(2, 6, False)]), ("a /* x\ny */ b", [(2, 11, False)]), ("a / b / c", []), ("x = 'a' / 2 / 3", [(4, 7, True)]), ("x = a\n / 2 /3", []), ("x = (a) / 2 / 3", []),
+                     ("// c\n/it's/", [(0, 4, False), (5, 11, True)]), ("=>\n/it's/", [(3, 9, True)]), ("return/it's/", [(6, 12, True)])]
+    check("finding 26/30: the scanner's tokens are exactly these on each of these inputs (a string of each quote, an escape in it and in a regular expression, a class, both comments, a division after a name, a string, `)` and a newline; a regular expression at the start, after a comment, `=>`, `return`)",
+          all(js_tokens(src) == want for src, want in PINNED_TOKENS), [(src, js_tokens(src), want) for src, want in PINNED_TOKENS if js_tokens(src) != want])
+    check("finding 26: ...and a `/` at the start of a line after a NAME is a division: `a\\n / 2 && ok(...) && b / 3` reads the call between the two slashes",
+          any_of("drives a browser", row_pr(one_row("() => a\n      / 2 && ok('node scripts/shot.mjs') && b / 3"))))
+    for label, run in [("a double-quoted string with an apostrophe before the call", "() => \"it's\" && ok('node scripts/shot.mjs')"), ("a single-quoted string with a double quote before the call", "() => 'say \"hi' && ok(\"node scripts/shot.mjs\")"),
+                       ("a template literal with an apostrophe before the call", "() => `it's` && ok('node scripts/shot.mjs')"), ("a string with an escaped quote", "() => 'it\\'s' && ok('node scripts/shot.mjs')")]:
+        check(f"finding 30: {label} is one string, and the call after it is read", any_of("drives a browser", row_pr(one_row(run))), run)
+    for label, run in [("a line comment holding a call", "() => ok('node scripts/pure.mjs') // ok('node scripts/shot.mjs')"), ("a block comment holding a call", "() => ok('node scripts/pure.mjs') /* ok('node scripts/shot.mjs') */"),
+                       ("a block comment over two lines", "() => ok('node scripts/pure.mjs') /* ok('node\n scripts/shot.mjs') */")]:
+        check(f"finding 30: {label} is no use of the call", row_pr(one_row(run + "\n   ")) == [], row_pr(one_row(run + "\n   ")))
+    check("finding 30: a regular expression with a `/` inside a bracket class (`/[/']x/`) or an escaped one (`/a\\/b'/`) is one regular expression, and the call after it is read",
+          all(any_of("drives a browser", row_pr(one_row(f"() => s && {rxl}.test(s) && ok('node scripts/shot.mjs')"))) for rxl in ("/[/']x/", "/a\\/b'/")))
 
     # FINDING 27. The rows array is read whole, and the name `rows` is used nowhere else.
     row_x = "{ name: 'late', weight: 10, run: () => ok('node scripts/shot.mjs') }"
