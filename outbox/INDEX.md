@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `824bd7c` | 2026-11-15 | [scout-rolling-pick-2026-11-15.md](scout-rolling-pick-2026-11-15.md) | feat: Scout's Pick skips finished games, so the pick rolls forward through the day |
+| `f0a78f0` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1dd9fc2` | 2026-11-15 | [scout-choice-2026-11-15.md](scout-choice-2026-11-15.md) | feat: Scout's Pick chooses among qualifiers by gate precedence, then nearest to even, and names what is still level |
 | `0cd348b` | 2026-11-15 | [cc-session-2026-11-15-brief-hook.md](cc-session-2026-11-15-brief-hook.md) | docs: session record for the brief-phase check and the hook, 2026-11-15 |
 | `986761a` | 2026-11-15 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-15T14:17 [skip ci] |
