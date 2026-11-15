@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `8f9ba58`
+**FAILURE** on `8f9ba58` at "Build (F# -> JS, then assemble public/)" — 101 of 112 steps did not run behind it — [run 43712358337](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43712358337)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `8f9ba58`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `665f727` — failing step unknown: the run's steps could not be read — [run 43712588959](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43712588959)
 
 ## Is it published?
 
