@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-14 by CC, on the owner's word ("TLS", Sat 2026-11-14 20:18 ET), as the named residual of `docs/CC-CMD-2026-11-14-weather-failure-cause.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED 2026-11-14. Approved by the owner in one word ("TLS"). Premises tested before filing (Rule 100): 14 runner runs, `outbox/tls-stage-premise-2026-11-14.txt`. One scope refinement of the owner's wording is stated under "Design" and needs no answer. Build not started.
+**Status:** DONE 2026-11-14. Approved by the owner in one word ("TLS"). Landed on `main` as `a25df340` (merge of `tls-stage`) after a scored `verify-full`, 43670536247, at 530 of 530 (ledger id `5c2021b01b8c-faad15047249`); `verify` 43675679692, `guards` 43675679713 and `deploy` 43676444094 (on `f30d2b99`, the landing plus five outbox files) are green. All six done conditions are met, each with its artifact in the Outcome. Two things differ from the plan and are in the Outcome: the workflow guard's form (the first, `a69191d5`, turned `check:browser-gate` red; `9ec6907c` replaced it) and Task 4's local list, which now carries `check:browser-gate`. The `live-check` after the deploy, 43676533656, is red at the brief step and not at the weather step; that step has failed 6 of 6 runs since 2026-11-14 23:06Z, which is outside this CC-CMD. The first weather red after the landing is read by a scheduled task on Monday 2026-11-16 at 08:00 ET (`trig_01P3CmptrPTdomzfyKBwv7JV`). Session record: `outbox/cc-session-2026-11-14-tls-stage.md`.
 
 ---
 
@@ -65,7 +65,7 @@ The line keeps its 11 keys and gains four, in the order printed: `public-v4`, `v
 - **Bounds.** DNS and the three DoH calls start together (at most 3000 ms), then the handshakes (at most 3000 ms): 6000 ms inside the unchanged `budgetMs` of 8000. At most 6 addresses are probed and the rest are counted. What finished before the budget is kept and the rest prints `unreadable (not finished in …)`.
 - **The refinement.** The owner's word covers "every address, the system resolver's and a public resolver's". The premise table shows a public resolver alone would have shown the other address on 1 of 5 west runners, so on 4 of 5 reds the line would have said the resolvers agree and not answered the question it was asked for. `west` and `east` are two more DoH queries, with the `/24` of a westus2 runner's egress address (`20.80.173.0/24`, from `live-check` 43620118846) and of an eastus2 runner's (`68.220.172.0/24`, probe 43638310999), both in the "Observed" table of the file this builds on. The subnet is printed in each value, so a label gone stale is visible. Deleting `VANTAGES` removes both views and leaves the literal reading. It is built both ways at once, so nothing waits on an answer.
 - **Judgement.** `judgeE2E` also requires `tls=` in the failing text, so the end-to-end proof covers the new stage. `--live` prints, per shape, `addresses: N found, N with a settled TLS verdict`, read from the facts the description is built from and not from its printed text.
-- **No other file changes.** `scripts/mutation-check.mjs` gains registry entries. `.github/workflows/open-meteo-egress-probe.yml` gets one guard: its Commit step pushes `HEAD:main`, so a dispatch from a branch would push that branch's commits to `main`. The guard is `github.ref == 'refs/heads/main'`. The log still carries every artifact's text.
+- **No other file changes.** `scripts/mutation-check.mjs` gains registry entries. `.github/workflows/open-meteo-egress-probe.yml` gets one guard: its Commit step pushes `HEAD:main`, so a dispatch from a branch would push that branch's commits to `main`. The guard is a check of `$GITHUB_REF` at the top of the step's script, and the step's `if:` stays `always()`. As first written the condition was in the `if:`, which `scripts/check-browser-gate.py` counts as a step a failed install may skip (the file's pinned count went from 1 to 2: see the Outcome). The log still carries every artifact's text.
 
 ## Task 1 — the evidence and this file (done at filing)
 
@@ -73,7 +73,7 @@ The line keeps its 11 keys and gains four, in the order printed: `public-v4`, `v
 
 ## Task 2 — the workflow guard
 
-Its own `ci:` commit on the work branch: `if: always() && github.ref == 'refs/heads/main'` on the Commit step of `open-meteo-egress-probe.yml`, with the reason in a comment. `npm run check:workflows` passes.
+Its own `ci:` commit on the work branch: the Commit step of `open-meteo-egress-probe.yml` prints `ref: $GITHUB_REF` and exits 0 unless it is `refs/heads/main`, with the reason in a comment; its `if:` stays `always()`. `npm run check:workflows` and `npm run check:browser-gate` pass. First written as `if: always() && github.ref == 'refs/heads/main'` (`a69191d5`), with only the first of those two run; `check:browser-gate` went red on it and the fix is `9ec6907c` (see the Outcome).
 
 ## Task 3 — the library
 
@@ -86,7 +86,7 @@ Probe-first and mutation-first. In `scripts/egress-path-lib.mjs`:
 
 ## Task 4 — gates and landing
 
-Locally `TZ=UTC`: the 22 rows that run here, `check:egress-path`, `check:mutation-anchors`, `check:workflows`, `check:script-orphans`, `check:import-purity`, and the status check. Then `verify-full` on the work branch (about 55 minutes, 8 shards) scored >= 95. Merge `main` into the branch first, land with `git merge --no-ff` and the run id in the message, push to `main`. `verify`, `guards`, `deploy` and `live-check` read by REST on the full SHA.
+Locally `TZ=UTC`: the 22 rows that run here, `check:egress-path`, `check:mutation-anchors`, `check:workflows`, `check:browser-gate`, `check:script-orphans`, `check:import-purity`, and the status check. Then `verify-full` on the work branch (about 55 minutes, 8 shards) scored >= 95. Merge `main` into the branch first, land with `git merge --no-ff` and the run id in the message, push to `main`. `verify`, `guards`, `deploy` and `live-check` read by REST on the full SHA.
 
 ## Task 5 — the runner proof
 
@@ -104,6 +104,31 @@ One dispatch of `open-meteo-egress-probe.yml` on `main`. Before it, the assertio
 4. `outbox/egress-path-e2e-<stamp>.txt`, `VERDICT: observed`, whose excerpt carries `tls=` (the verdict now requires it). A `not-observable` verdict leaves this open.
 5. `runner=image … region … cloud …` is intact in both artifacts.
 6. `npm run gate` >= 95, `verify-full` scored, and `verify`, `guards` and `deploy` green on the landing SHA.
+
+## Outcome, 2026-11-14
+
+One landing on `main`: `a25df340`, `git merge --no-ff tls-stage` (parents `226a9ba6` and `5f4b000b`), pushed 04:11:43Z (23:11 ET). The branch's commits: `a69191d5` (the workflow guard, first form), `f3c9f80b` (the library), `370da1a7` (`runLive` takes its network calls and its output as parameters), `5c2021b0` (two gaps a generic operator sweep found), `9ec6907c` (the guard's fix). `verify-full` 43670536247 scored `5c2021b01b8c-faad15047249` at 530 of 530 in 3284 s. Three earlier gates (43668099984, 43669293494, 43670381109) were cancelled, 32 min 4 s of run time in all. On the landing SHA `verify` 43675679692 and `guards` 43675679713 are green; `deploy` 43676444094 is green on `f30d2b99`, which is the landing plus the five outbox files of the probe's artifacts commit.
+
+One dispatch of `open-meteo-egress-probe.yml` on `main`: run 43675697053 (created 04:11:57Z, success at 04:14:55Z, Azure southcentralus, stamp `20261115T041303Z`); the workflow committed its artifacts as `f30d2b99`. Two dispatches from the branch read the new text before landing: 43668129783 (`f3c9f80b`, Azure westus3), where the real forecast request failed with `UND_ERR_CONNECT_TIMEOUT` and the line showed the address the system resolver gave completing TCP and no handshake while the other address completed a handshake in 74 ms, and 43669295856 (`370da1a7`, Azure eastus), where the same pair read the other way round. Those two are probe runs and not `live-check` reds.
+
+| # | result | artifact |
+|---|---|---|
+| 1 | met: `148/148 checks passed`, `checked 18 of 18 described lines for all 15 keys`, `checked 7 of 7 loopback TLS shapes`; 50 new registered mutations (27 to 77 `egress-path-*`), each caught; `--anchors`: `checked 1580 of 1583 mutation anchors; 0 stale`; the eight shards of the scored gate ran 1582 of 1582 ids | `outbox/egress-path-tls-mutations-2026-11-14.txt` |
+| 2 | met: 7 files, 1242 insertions, 38 deletions; no path under `src/` and none equal to `scripts/render-check.mjs` | `git diff --stat a25df340^1 a25df340` |
+| 3 | met: `checked 4 of 4 shapes`, `VERDICT: pass, 4 of 4 shapes as expected`, `addresses: 2 found, 2 with a settled TLS verdict`; the west and east views gave different addresses (`51.81.167.44` and `167.114.211.86`) | `outbox/egress-path-live-20261115T041303Z.txt` |
+| 4 | met: `VERDICT: observed`; the failing text carries `tls=` with the fault address and both real addresses | `outbox/egress-path-e2e-20261115T041303Z.txt` |
+| 5 | met: `runner=image ubuntu26@20261111.196.1 region southcentralus cloud Azure` in 5 of 5 places | the same two files |
+| 6 | met: 530/530 against a bar of 95; `verify`, `guards` and `deploy` green | `docs/confidence-log.jsonl`, run `5c2021b01b8c-faad15047249` |
+
+What the real runner read (southcentralus, run 43675697053): the system resolver gave EAST `167.114.211.86`, which completed in 49 ms (tcp 47 ms, handshake 49 ms); the west subnet view gave WEST `51.81.167.44`, which completed TCP in 58 ms and no handshake in 3000 ms. In the end-to-end text the injected address `192.0.2.1` read `no-connect-in-3000ms (tcp not completed)` and the two real addresses read as in the live artifact (EAST `ok`, WEST `no-tls-in-3000ms`).
+
+Differences from the plan.
+
+- Task 2's guard. As first written (`a69191d5`: `if: always() && github.ref == 'refs/heads/main'` on the Commit step) `scripts/check-browser-gate.py` counted 2 steps a failed install may skip against the annotation's 1, and `verify` 43671132728, dispatched on the branch, went red at `browser-gate`. The workflow check run on that commit was `check:workflows` (71 of 71); `check:browser-gate` was not run. `9ec6907c` moves the ref check into the step's script and leaves the `if:` as `always()`, and N stays 1. The Design bullet and Task 2 above now say that, and Task 4's local list carries `check:browser-gate`. Proof: the guard red on the committed file and green on the fix, a five-case simulation of the step with a mutant, and the step's own log on the real dispatch from `main` printing `ref: refs/heads/main` (all in the session record).
+- Gates and time. Three gates were cancelled before the scored one: a mutation gap in `runLive`, found while the first gate ran, and a dispatch that went out after a rejected push. The landing came at 23:11 ET against the three hours stated at 20:18 ET; the proof reads and the record ran later.
+- `live-check` 43676533656 on `f30d2b99` is red at the step "A finished game shows the brief written after it finished". That step failed in 6 of 6 runs that reached it since 2026-11-14 23:06Z and passed in the 7 before, and its first red ran before any commit of this work reached `main`. Its weather step passed. It is described, with the one-change test, in the session record under Residual and is not changed here.
+
+The first weather red after the landing is the test of the first bullet under "What this does not establish". Scheduled task `trig_01P3CmptrPTdomzfyKBwv7JV` reads it on Monday 2026-11-16 at 08:00 ET and writes `outbox/tls-first-red-<date>.md`. The session record is `outbox/cc-session-2026-11-14-tls-stage.md`.
 
 ## What this does not establish (said before it is built)
 
