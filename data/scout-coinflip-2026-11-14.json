@@ -1,0 +1,13 @@
+{
+  "_provenance": "ARCHIVE_DB (cc49101c) regular_season_games for date 2026-11-14, read 2026-11-15 via the Cloudflare D1 MCP: sport, home, away, streams, and the moneyline of closing_odds and opening_odds (json_extract of $.moneyline.home / $.moneyline.away). Verbatim for the rows below, chosen to discriminate: inside the 47-53% band, just inside, just outside, a long favourite, a level game vetoed by Gate 0, a game with only an opening line, and a game with no line. Moneylines only; every other game field is filled by the check with nulls.",
+  "rows": [
+    { "sport": "NHL", "home": "Ducks", "away": "Islanders", "streams": "ESPN+, MSGSN, KCOP, Prime Video (Local)", "closing": [-108, -112], "opening": [-115, -105] },
+    { "sport": "NHL", "home": "Blues", "away": "Panthers", "streams": "ESPN+, Scripps Sports, Blues App, BN+", "closing": [-112, -108], "opening": [-108, -112] },
+    { "sport": "CFB", "home": "Marshall", "away": "App State", "streams": "ESPN+", "closing": [100, -120], "opening": [100, -120] },
+    { "sport": "NHL", "home": "Bruins", "away": "Wild", "streams": "ESPN+, MINNHL, NESN", "closing": [110, -130], "opening": [102, -122] },
+    { "sport": "NBA", "home": "Cavaliers", "away": "Mavericks", "streams": "KFAA-TV, MavsTV", "closing": [276, -344], "opening": [-130, 110] },
+    { "sport": "CFB", "home": "Texas A&M", "away": "Tennessee", "streams": "ESPN", "closing": [-108, -112], "opening": [-108, -112] },
+    { "sport": "CFB", "home": "Oklahoma", "away": "Ole Miss", "streams": null, "closing": null, "opening": [-142, 120] },
+    { "sport": "golf", "home": "golf-row-a", "away": "golf-row-b", "streams": null, "closing": null, "opening": null }
+  ]
+}

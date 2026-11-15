@@ -38,9 +38,12 @@ open Desk
 //   Gate B  NOT ANSWERABLE — no milestone or player data in this payload.
 //   Gate C  NOT ANSWERABLE — no stat-of-day, no deviation.
 //   Gate D  NOT ANSWERABLE — no World Cup scenario data.
+//   Gate E  ANSWERABLE — added 2026-11-15, not in the architecture doc: a
+//           coin-flip market, from the moneylines (see `gateCoinFlip`).
 //
-// Two of five gates. That is the finding, not a limitation to work around, and
-// it is the reason for the shape below.
+// Two of the architecture's five gates. That is the finding, not a limitation to
+// work around, and it is the reason for the shape below. Gate E is a sixth, on
+// data the payload does carry.
 //
 // ---------------------------------------------------------------------------
 // WHY "CANNOT TELL" IS A CASE
@@ -207,6 +210,52 @@ let gateWorldCup : Gate =
       Answer = Unanswerable "WC scenario pAdv data (not in /context/date)" }
 
 // ---------------------------------------------------------------------------
+// Gate E — coin-flip market, answerable from the payload
+// ---------------------------------------------------------------------------
+//
+// Not one of the June 10 architecture's five. Added 2026-11-15 on the owner's
+// approval of the win-probability input, because /context/date does carry what
+// it needs: the moneylines, which `Desk.winProbability` de-vigs into a market
+// probability in the shape its market has (closing preferred over opening).
+//
+// The question: did the market, before the game, have it level? A game nobody
+// can call is one a scout would point at. Single dimension, boolean, no sum and
+// no score, so it qualifies the way the other gates do (see `verdictOf`).
+//
+// The band is 47% to 53% on the de-vigged home probability, inclusive. The
+// owner's proposal named that band and, separately, "H(p) >= 0.99"; those
+// disagree (an entropy of 0.99 bits is roughly 44% to 56%), so the explicit
+// percentages are used and the entropy is not.
+
+let private COIN_FLIP_LOW = 0.47
+let private COIN_FLIP_HIGH = 0.53
+
+/// Both sides' probabilities as whole percentages, named and in the sport's own
+/// matchup order, so the reason cannot transpose them.
+let private levelText (game: Game) (home: float) (away: float) =
+    let side name (p: float) = sprintf "%s %.0f%%" name (p * 100.0)
+    match presentByMatchup game.Sport (side game.Home home) (side game.Away away) with
+    | Contest(first, second) -> sprintf "%s, %s" first second
+    | Event _ -> sprintf "%s, %s" (side game.Home home) (side game.Away away)
+
+let gateCoinFlip (game: Game) : Gate =
+    { Name = "Gate E — coin-flip market"
+      Answer =
+        match winProbability game with
+        | TwoWayWP market ->
+            let home = float (Market.twoWayHome market)
+            let away = float (Market.twoWayAway market)
+            if home >= COIN_FLIP_LOW && home <= COIN_FLIP_HIGH then
+                Qualifies(sprintf "the market had it level before the game (%s)" (levelText game home away))
+            else
+                DoesNotQualify(sprintf "the market had a favourite (%s)" (levelText game home away))
+        // A defined "no", not a missing input: the band is a two-sided idea, and
+        // a draw is a third outcome it does not describe.
+        | ThreeWayWP _ -> DoesNotQualify "a three-way market; the coin-flip band is defined for two sides"
+        | ThreeWayDrawMissing -> Unanswerable "the draw price (a three-way market served without it)"
+        | NoWinProbability -> Unanswerable "a moneyline for both sides (none served on this game)" }
+
+// ---------------------------------------------------------------------------
 // The verdict
 // ---------------------------------------------------------------------------
 
@@ -223,7 +272,9 @@ type ScoutVerdict =
     | NotQualifying of asked: Gate list
     /// Nothing qualified, but some gates could not be asked. This is the case
     /// production cannot express, and on this payload it is the common one.
-    | Indeterminate of unanswered: Gate list
+    /// Carries how many gates were asked, so the summary counts rather than
+    /// hard-coding a total that changes when a gate is added.
+    | Indeterminate of unanswered: Gate list * asked: int
 
 let verdictOf (gates: Gate list) : ScoutVerdict =
     // Gate 0 is a veto and is checked first, matching the architecture doc's
@@ -249,7 +300,7 @@ let verdictOf (gates: Gate list) : ScoutVerdict =
                     match g.Answer with
                     | Unanswerable _ -> true
                     | Qualifies _ | DoesNotQualify _ -> false)
-            if unanswered.IsEmpty then NotQualifying gates else Indeterminate unanswered
+            if unanswered.IsEmpty then NotQualifying gates else Indeterminate(unanswered, List.length gates)
 
 /// Every gate for one game, in the architecture doc's order.
 let gatesFor (game: Game) (seriesEntries: int) : Gate list =
@@ -257,7 +308,8 @@ let gatesFor (game: Game) (seriesEntries: int) : Gate list =
       gateSeries (Some game.League) seriesEntries
       gateMilestone
       gateStatAnomaly
-      gateWorldCup ]
+      gateWorldCup
+      gateCoinFlip game ]
 
 let scoutVerdict (game: Game) (seriesEntries: int) = verdictOf (gatesFor game seriesEntries)
 
@@ -272,5 +324,5 @@ let verdictSummary (verdict: ScoutVerdict) =
                               | DoesNotQualify _ | Unanswerable _ -> g.Name)
         |> String.concat "; "
     | NotQualifying _ -> "No gate qualified this game"
-    | Indeterminate unanswered ->
-        sprintf "Cannot tell from this payload — %d of 5 gates have no data here" (List.length unanswered)
+    | Indeterminate(unanswered, asked) ->
+        sprintf "Cannot tell from this payload — %d of %d gates have no data here" (List.length unanswered) asked
