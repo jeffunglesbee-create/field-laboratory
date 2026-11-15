@@ -1,52 +1,154 @@
-# Generalised egress probe, run by hand.
-#
-# Started life as relay-reachability.yml, which existed to answer one question
-# (can a runner reach field-relay-nba?). The answer was yes. Rather than add a
-# second near-identical workflow the next time a URL needs checking from a
-# runner, it takes the URL as an input.
-#
-# The reason this can't just be done from a session: the agent sandbox blocks
-# *.workers.dev at the proxy with 403 CONNECT tunnel failed. A runner has open
-# egress, so it is the only place in this project that can answer "does this URL
-# exist and what does it serve".
+# THROWAWAY, on branch tls-premise, never merged. main's copy of this file is the generic URL probe; this branch's copy runs one premise probe for
+# docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100): what a public resolver and the host's own nameservers answer from a runner, and what
+# a TLS handshake and a pinned request to each address do. A dispatch from this branch uses this copy; main's copy is untouched.
 name: probe-url
 
 on:
   workflow_dispatch:
     inputs:
       urls:
-        description: 'Space-separated URLs to probe'
-        required: true
-        default: 'https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2019-01-01'
+        description: 'unused on this branch'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
 
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - name: Probe
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Premise
         run: |
-          FAILED=0
-          for URL in ${{ github.event.inputs.urls }}; do
-            echo "=============================================================="
-            echo "GET $URL"
-            CODE=$(curl -sSL --max-time 30 -o /tmp/body -w '%{http_code}' "$URL" 2>/tmp/err) || {
-              echo "  RESULT: unreachable — $(cat /tmp/err)"
-              FAILED=1
-              continue
+          cat > "$RUNNER_TEMP/tls-premise.mjs" <<'PREMISE_EOF'
+          // One-off premise probe for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). It runs on a throwaway branch and is never merged.
+          // It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
+          //   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
+          //   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
+          //   3. what the zone's own nameservers answer (the set a resolver could be handed);
+          //   4. for every address found: three TLS handshakes with the host's name as SNI (connect and handshake timed apart), and two pinned requests.
+          import dns from 'node:dns';
+          import tls from 'node:tls';
+          import https from 'node:https';
+          
+          const HOST = 'api.open-meteo.com';
+          const PATH = '/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto';
+          const PUBLIC = ['1.1.1.1', '8.8.8.8', '9.9.9.9'];
+          const say = (key, value) => console.log(`${key}: ${value}`);
+          const codeOf = (e) => e?.code ?? e?.cause?.code ?? e?.name ?? 'error';
+          const clip = (s, n = 300) => (String(s).length > n ? `${String(s).slice(0, n)}...` : String(s));
+          const ms = (t0) => Date.now() - t0;
+          
+          setTimeout(() => { say('global-cap', 'reached 150000 ms, exiting'); process.exit(0); }, 150000).unref();
+          
+          async function asked(label, fn) {
+            const t0 = Date.now();
+            try { const v = await fn(); say(label, `${ms(t0)} ms ${clip(JSON.stringify(v), 400)}`); return v; }
+            catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.message ?? e, 160)}`); return null; }
+          }
+          
+          say('node', process.version);
+          say('system-resolvers', JSON.stringify(dns.getServers()));
+          
+          // 1. the system resolver
+          const found = new Map();            // address -> set of sources
+          const note = (addr, source) => { if (!found.has(addr)) found.set(addr, new Set()); found.get(addr).add(source); };
+          for (const family of [4, 6]) {
+            const r = await asked(`system-v${family}`, () => dns.promises.lookup(HOST, { family, all: true }));
+            for (const a of r ?? []) if (a.family === family) note(a.address, 'system');
+          }
+          
+          // 2. a public resolver, by plain DNS (c-ares)
+          for (const server of PUBLIC) {
+            for (const [name, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+              const resolver = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+              resolver.setServers([server]);
+              const r = await asked(`c-ares ${server} ${name}`, () => resolver[method](HOST, { ttl: true }));
+              for (const a of r ?? []) note(a.address, `c-ares ${server}`);
             }
-            SIZE=$(wc -c < /tmp/body)
-            echo "  RESULT: HTTP $CODE, ${SIZE} bytes"
-            echo "  --- first 400 bytes ---"
-            head -c 400 /tmp/body
-            echo
-            # A non-2xx is a failed probe. Without this the workflow reported
-            # SUCCESS for a 404 — it only failed when curl could not connect at
-            # all — so a green run said nothing about whether the URL exists.
-            # Caught by being briefly misled by it: a 404 error-code-1042 page
-            # came back as a passing run.
-            case "$CODE" in
-              2*) ;;
-              *) echo "  ^ non-2xx"; FAILED=1 ;;
-            esac
-          done
-          exit $FAILED
+          }
+          
+          // 2b. the same question by DNS-over-HTTPS JSON, with and without the header
+          for (const [label, url, headers] of [
+            ['doh 1.1.1.1 with accept header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, { accept: 'application/dns-json' }],
+            ['doh 1.1.1.1 without header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, {}],
+            ['doh 8.8.8.8 /resolve', `https://8.8.8.8/resolve?name=${HOST}&type=A`, {}],
+          ]) {
+            const t0 = Date.now();
+            try {
+              const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
+              const body = await res.text();
+              say(label, `${ms(t0)} ms HTTP ${res.status} ${body.length} bytes content-type ${res.headers.get('content-type')} body ${clip(body, 420)}`);
+            } catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+          }
+          
+          // 3. the zone's own nameservers
+          const via = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+          via.setServers(['1.1.1.1']);
+          const ns = (await asked('ns open-meteo.com', () => via.resolveNs('open-meteo.com'))) ?? [];
+          for (const name of ns.slice(0, 4)) {
+            const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+            if (!ips[0]) continue;
+            const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+            direct.setServers([ips[0]]);
+            for (const [rr, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+              const r = await asked(`authoritative ${name} ${ips[0]} ${rr}`, () => direct[method](HOST, { ttl: true }));
+              for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+            }
+          }
+          
+          // 4. every address found
+          const addresses = [...found.keys()];
+          say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
+          
+          function tlsOnce(address, capMs) {
+            return new Promise((resolve) => {
+              const t0 = Date.now();
+              let tConnect = null;
+              const socket = tls.connect({ host: address, port: 443, servername: HOST });
+              const finish = (verdict) => { socket.destroy(); resolve(verdict); };
+              const timer = setTimeout(() => finish(tConnect === null ? `tcp no-answer-in-${capMs}ms` : `tcp ok ${tConnect} ms, tls no-answer-in-${capMs}ms`), capMs);
+              socket.once('connect', () => { tConnect = ms(t0); });
+              socket.once('secureConnect', () => {
+                clearTimeout(timer);
+                const cert = socket.getPeerCertificate();
+                finish(`tcp ok ${tConnect} ms, tls ok ${ms(t0) - tConnect} ms ${socket.getProtocol()} authorized=${socket.authorized} cn=${cert?.subject?.CN ?? '?'} fp=${String(cert?.fingerprint256 ?? '?').slice(0, 11)}`);
+              });
+              socket.once('error', (e) => { clearTimeout(timer); finish(tConnect === null ? `tcp ${codeOf(e)}` : `tcp ok ${tConnect} ms, tls ${codeOf(e)} ${clip(e.message, 80)}`); });
+            });
+          }
+          
+          function pinnedGet(address, capMs) {
+            return new Promise((resolve) => {
+              const t0 = Date.now();
+              const family = address.includes(':') ? 6 : 4;
+              const lookup = (_host, options, cb) => (options?.all ? cb(null, [{ address, family }]) : cb(null, address, family));
+              const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' } }, (res) => {
+                let n = 0;
+                res.on('data', (c) => { n += c.length; });
+                res.on('end', () => resolve(`HTTP ${res.statusCode} ${n} bytes ${ms(t0)} ms`));
+                res.on('error', (e) => resolve(`response ${codeOf(e)} after ${ms(t0)} ms`));
+              });
+              req.once('timeout', () => { req.destroy(); resolve(`no-answer-in-${capMs}ms`); });
+              req.once('error', (e) => resolve(`${codeOf(e)} after ${ms(t0)} ms`));
+            });
+          }
+          
+          await Promise.all(addresses.map(async (address) => {
+            const handshakes = [];
+            for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000)); await new Promise((r) => setTimeout(r, 300)); }
+            const requests = [];
+            for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000));
+            say(`address ${address} [${[...found.get(address)].join('; ')}]`, '');
+            handshakes.forEach((h, i) => say(`  tls ${i + 1}`, h));
+            requests.forEach((r, i) => say(`  pinned request ${i + 1}`, r));
+          }));
+          
+          say('coverage', `checked ${addresses.length} of ${addresses.length} addresses found by the system resolver, three public resolvers and the zone's nameservers`);
+          process.exit(0);
+          PREMISE_EOF
+          node "$RUNNER_TEMP/tls-premise.mjs"
