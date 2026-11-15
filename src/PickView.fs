@@ -131,16 +131,23 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
                     ("\"The one game tonight you'd never find on your own, but definitely should watch.\" "
                      + "A national broadcast DISQUALIFIES a game here — the opposite of Field's Pick.")) |> ignore
 
-    let verdicts = games |> List.map (fun g -> g, scoutVerdict g seriesEntries)
-    let qualifying =
-        verdicts |> List.filter (fun (_, v) -> match v with Qualifying _ -> true | _ -> false)
-
-    match qualifying with
-    | (game, Qualifying gates) :: _ ->
+    // `chooseScout`, not the first qualifier in slate order: precedence by gate,
+    // then nearest to even, and whatever is still level is named, not hidden.
+    // No gate names in this text: tab-check reads gate lines by splitting on them.
+    match chooseScout games seriesEntries with
+    | Some choice ->
         let leader = child panel (el "div" "pick-leader" "")
-        child leader (el "div" "pick-leader__matchup" (matchupText game.Sport game.Home game.Away)) |> ignore
-        child leader (el "div" "pick-brief" (verdictSummary (Qualifying gates))) |> ignore
-    | _ ->
+        child leader (el "div" "pick-leader__matchup" (matchupText choice.Choice.Sport choice.Choice.Home choice.Choice.Away)) |> ignore
+        match choice.Level with
+        | [] -> ()
+        | level ->
+            child leader (el "div" "pick-leader__tie"
+                            (sprintf "level with %d other%s on the same signals: %s"
+                                     (List.length level) (if List.length level = 1 then "" else "s")
+                                     (level |> List.map (fun g -> matchupText g.Sport g.Home g.Away) |> String.concat "; "))) |> ignore
+        child leader (el "div" "pick-brief" (verdictSummary (Qualifying choice.Gates))) |> ignore
+        child leader (el "div" "pick-chaser__reasons" (sprintf "Chosen as %s." choice.Basis)) |> ignore
+    | None ->
         // The honest result on this payload, and the whole point of the
         // exercise. Production's gates are JS booleans, so a gate with no input
         // returns false and reads as "does not qualify". Here it reports what

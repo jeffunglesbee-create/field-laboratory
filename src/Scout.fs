@@ -313,6 +313,89 @@ let gatesFor (game: Game) (seriesEntries: int) : Gate list =
 
 let scoutVerdict (game: Game) (seriesEntries: int) = verdictOf (gatesFor game seriesEntries)
 
+// ---------------------------------------------------------------------------
+// Choosing among qualifiers
+// ---------------------------------------------------------------------------
+//
+// The owner's ruling, 2026-11-15: nothing arbitrary, nothing invented.
+// Production orders qualifiers by `_rankSignal`, a weighted sum (stat anomaly
+// 100+, milestone 60/80, series 40, WC MD3 35, MD2 20) used for sort order
+// only. Its weights are numbers someone chose, and Gate E has none, so it is
+// not ported. Instead, two comparisons, each of something that already exists:
+//
+//   1. GATE PRECEDENCE. The game whose best qualifying gate comes first in
+//      `gatesFor`, which is the architecture doc's order (A, B, C, D) with E
+//      after it. So a series game ranks ahead of a coin-flip one. No sum: only
+//      the single best gate is compared.
+//   2. NEAREST TO EVEN, between games whose best gate is the coin-flip market:
+//      the smaller distance of the de-vigged home probability from 50%. One
+//      market quantity, not a score.
+//
+// What is still level after both is NOT broken by slate order, which is the
+// arbitrary choice this replaces. It is reported: `Level` holds every game
+// tied with the choice, and the panel names them. The first real slate it ran
+// on has one: Ducks v Islanders at -108/-112 and Blues v Panthers at -112/-108
+// are mirror lines, the same distance from even.
+
+/// Float rounding only, the same tolerance `Market` uses for a probability set.
+let private EVEN_EPS = 1e-9
+
+/// Position of a gate in the documented order, read from `gatesFor` itself so
+/// the order has one definition.
+let private precedenceOf (order: Gate list) (gate: Gate) =
+    order |> List.findIndex (fun g -> g.Name = gate.Name)
+
+/// Distance from even for a game whose market is two-way; None otherwise.
+let private distanceFromEven (game: Game) =
+    match winProbability game with
+    | TwoWayWP market -> Some(abs (float (Market.twoWayHome market) - 0.5))
+    | ThreeWayWP _ | ThreeWayDrawMissing | NoWinProbability -> None
+
+type ScoutChoice =
+    { Choice: Game
+      Gates: Gate list
+      /// Every other qualifier the two comparisons could not separate from the
+      /// choice. Empty when the choice stands alone.
+      Level: Game list
+      /// Which comparison decided it, in words.
+      Basis: string }
+
+/// Chooses among the slate's qualifiers, or None when nothing qualifies.
+let chooseScout (games: Game list) (seriesEntries: int) : ScoutChoice option =
+    let qualifiers =
+        games
+        |> List.choose (fun g ->
+            match scoutVerdict g seriesEntries with
+            | Qualifying gates ->
+                let order = gatesFor g seriesEntries
+                let best = gates |> List.map (precedenceOf order) |> List.min
+                let bestIsCoinFlip = (List.item best order).Name = (gateCoinFlip g).Name
+                Some(g, gates, best, (if bestIsCoinFlip then distanceFromEven g else None))
+            | Disqualified _ | NotQualifying _ | Indeterminate _ -> None)
+    match qualifiers with
+    | [] -> None
+    | _ ->
+        let topGate = qualifiers |> List.map (fun (_, _, best, _) -> best) |> List.min
+        let atTop = qualifiers |> List.filter (fun (_, _, best, _) -> best = topGate)
+        let nearest =
+            atTop |> List.choose (fun (_, _, _, d) -> d) |> function [] -> None | ds -> Some(List.min ds)
+        let finalists =
+            match nearest with
+            | Some d -> atTop |> List.filter (fun (_, _, _, dist) -> match dist with Some x -> abs (x - d) <= EVEN_EPS | None -> false)
+            | None -> atTop
+        let (choice, gates, _, _) = List.head finalists
+        let basis =
+            match List.length qualifiers, List.length atTop, nearest with
+            | 1, _, _ -> "the only game that qualifies"
+            | _, 1, _ -> "its qualifying gate comes first in the documented order"
+            | _, _, Some _ -> "the coin-flip market nearest to even"
+            | _, _, None -> "its qualifying gate comes first in the documented order"
+        Some
+            { Choice = choice
+              Gates = gates
+              Level = finalists |> List.tail |> List.map (fun (g, _, _, _) -> g)
+              Basis = basis }
+
 /// One line naming what the verdict rests on.
 let verdictSummary (verdict: ScoutVerdict) =
     match verdict with

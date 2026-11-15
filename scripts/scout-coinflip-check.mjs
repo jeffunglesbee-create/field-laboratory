@@ -20,13 +20,18 @@
 //      so Gate E cannot bring back what Gate 0 exists to remove
 //   3. the reason names both sides, in the sport's matchup order
 //   4. the "cannot tell" summary counts the gates it asked, not a literal 5
+//   5. CHOOSING (owner's ruling 2026-11-15, nothing arbitrary or invented):
+//      gate precedence, then nearest to even, and what is still level is
+//      reported, never broken by slate order. The real 11-14 lines carry a
+//      tie: Ducks (-108/-112) and Blues (-112/-108) are mirror lines.
 //
 // Usage:  node scripts/scout-coinflip-check.mjs   (needs build/)
 
 import { readFileSync } from 'node:fs'
 import { createChecks, finish } from './checks.mjs'
 import { decodePayload } from '../build/Desk.js'
-import { gateCoinFlip, scoutVerdict, verdictSummary, gatesFor } from '../build/Scout.js'
+import { gateCoinFlip, scoutVerdict, verdictSummary, gatesFor, chooseScout } from '../build/Scout.js'
+import { ofArray } from '../build/fable_modules/fable-library-js.5.13.0/List.js'
 
 const { check, summarize } = createChecks()
 const ANSWER = ['Qualifies', 'DoesNotQualify', 'Unanswerable']
@@ -83,5 +88,52 @@ const asked = Array.from(gatesFor(byHome('golf-row-a'), 0)).length
 check(`the "cannot tell" summary counts the gates it asked (${asked})`,
   VERDICT[golfV.tag] === 'Indeterminate' && verdictSummary(golfV).includes(`of ${asked} gates`),
   `verdict ${VERDICT[golfV.tag]}: ${verdictSummary(golfV)}`)
+
+// --- choosing among qualifiers ----------------------------------------------
+const names = gs => gs.map(g => g.Home).sort().join(', ')
+// `chooseScout` takes an F# list; a JS array is not one.
+const pickOf = slate => chooseScout(ofArray(slate), 0)
+const asList = o => (o == null ? null : o)   // Fable: an option of a record is the record or undefined
+
+const full = pickOf(games)
+const top = asList(full)
+check('the slate has a choice', top != null, 'nothing chosen although three games qualify')
+if (top) {
+  const chosenAndLevel = names([top.Choice, ...Array.from(top.Level)])
+  check('the mirror-line tie is reported, not broken: Ducks and Blues, level',
+    chosenAndLevel === 'Blues, Ducks' && Array.from(top.Level).length === 1,
+    `choice ${top.Choice.Home}, level [${names(Array.from(top.Level))}]`)
+  check('the basis is said in words', top.Basis === 'the coin-flip market nearest to even', `basis: ${top.Basis}`)
+  check('Marshall (47.83, further from even) is not in the running', !chosenAndLevel.includes('Marshall'),
+    `choice and level: ${chosenAndLevel}`)
+}
+const reversed = asList(pickOf([...games].reverse()))
+check('slate order does not change who is level at the top',
+  reversed != null && top != null
+    && names([reversed.Choice, ...Array.from(reversed.Level)]) === names([top.Choice, ...Array.from(top.Level)]),
+  `forward [${top && names([top.Choice, ...Array.from(top.Level)])}], reversed [${reversed && names([reversed.Choice, ...Array.from(reversed.Level)])}]`)
+
+const only = asList(pickOf([byHome('Marshall'), byHome('Bruins'), byHome('Cavaliers')]))
+check('a lone qualifier is chosen and says it was the only one',
+  only != null && only.Choice.Home === 'Marshall' && Array.from(only.Level).length === 0 && only.Basis === 'the only game that qualifies',
+  `got ${only && `${only.Choice.Home}, level ${Array.from(only.Level).length}, basis ${only.Basis}`}`)
+
+check('nothing qualifying is no choice, not a fallback', pickOf([byHome('Bruins'), byHome('Cavaliers')]) == null,
+  'a game was chosen although none qualifies')
+
+// Series ahead of coin-flip. SYNTHETIC: the Cavaliers' real row (a long
+// favourite, a local outlet) with its league string set to "playoffs", which
+// Gate A reads. Nothing else about it changes.
+const playoff = decodePayload(JSON.stringify({
+  ok: true, date: '2026-11-14',
+  games: { regular: [{ ...asGame(rows.find(r => r.home === 'Cavaliers'), 99), league: 'playoffs' }], postseason: [] },
+  briefs: [], series: [], standings: [],
+}))
+const playoffGame = Array.from(playoff.fields[0].Regular)[0]
+const withSeries = asList(pickOf([byHome('Ducks'), byHome('Blues'), playoffGame]))
+check('a series qualifier ranks ahead of the coin-flip games (documented gate order)',
+  withSeries != null && withSeries.Choice.Home === 'Cavaliers' && Array.from(withSeries.Level).length === 0
+    && withSeries.Basis === 'its qualifying gate comes first in the documented order',
+  `got ${withSeries && `${withSeries.Choice.Home}, level ${Array.from(withSeries.Level).length}, basis ${withSeries.Basis}`}`)
 
 finish(summarize())
