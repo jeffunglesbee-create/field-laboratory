@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `8f9ba58` at "Build (F# -> JS, then assemble public/)" — 101 of 112 steps did not run behind it — [run 43712358337](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43712358337)
+**green** on `8f9ba58` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `665f727` — failing step unknown: the run's steps could not be read — [run 43712588959](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43712588959)
+`live-check` (post-deploy, against the deployed page): **running** on `7ab9793`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `58def9f` — behind newest deployable `8f9ba58` (deploy not landed) |
+| Cloudflare Workers | live | `7ab9793` — newest deployable `8f9ba58` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
