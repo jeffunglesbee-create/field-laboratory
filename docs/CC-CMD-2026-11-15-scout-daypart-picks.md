@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Questions 5 (its own section) and 6 (the name, Deep Cuts) answered 2026-11-15; 1 to 4 open. Not to be built until they are answered. Filing is not permission to build.
+**Status:** HELD for exploration. Questions 1 (clusters from kickoff times), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; 1b (the clustering method) and 2 to 4 open. Not to be built until they are answered. Filing is not permission to build.
 
 ---
 
@@ -44,6 +44,10 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
 ## Questions for the owner (each changes what gets built)
 
 1. **Where do dayparts come from?** Fixed clock boundaries (e.g. afternoon / evening / late), or clusters in each slate's own start times (the 12, 15 and 19 ET peaks above)? Fixed boundaries are numbers someone chooses, which the 2026-11-15 ruling on choosing ("nothing arbitrary or invented") argues against; clusters come from the data but move night to night.
+   ANSWERED 2026-11-15 by the owner: **clusters from each slate's kickoff times.** Measured the same day on 2026-11-14 (ARCHIVE_DB, `start_time` grouped exactly, 74 games in 25 distinct kickoff slots): kickoffs run every 15 to 60 minutes from 17:00Z to 04:00Z (noon to 11pm ET) with no gap longer than 60 minutes, and the 60-minute gap occurs three times (18:00 to 19:00Z, 19:00 to 20:00Z, 01:00 to 02:00Z). One further game on that date's slate kicks off 2026-11-15T18:00Z, a day later (the rescheduled CFB row recorded in field-relay-nba `docs/CC-CMD-2026-10-16-cfl-archive-date-keying.md`). So the clustering METHOD is still open (1b): every method has a setting, and on this slate the ones without a chosen number give
+   - split at the slate's largest gap: with the next-day game in, the largest gap is 14 h and the whole Saturday is one cluster; with games outside the slate's FIELD day left out, four clusters of 14 / 2 / 48 / 10 games (12 to 1pm, 2pm, 3 to 8pm, 9 to 11pm ET);
+   - anchor on the slots carrying more games than the slate's average slot (2.96): eight anchors (12:00, 13:00, 15:00, 15:30, 19:00, 19:30, 20:00, 22:00 ET), each game joining its nearest.
+   A gap threshold would give the familiar noon / 3:30 / 7:30 windows, and is a chosen number.
 2. **Whose clock?** FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
 4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
