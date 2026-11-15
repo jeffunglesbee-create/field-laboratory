@@ -102,6 +102,16 @@ export const verdictForCards = (matching, want, duringPlay) => {
   return { ok: true, shown: matching.length > 1 ? `${want} (${matching.length} cards, duplicated upstream)` : want }
 }
 
+/**
+ * One evidence line for every card the verdict looked at.
+ *
+ * The row's evidence printed `matching[0]` while the verdict failed the row on ANY card in `matching`, so a row could
+ * fail on a card the log never showed. That is what the 2026-11-14 logs did: every one printed the game's own
+ * Final / game_recap card above a verdict naming `game_live`, and the card that carried it belonged to another game.
+ */
+export const evidenceLines = matching => matching.map(c =>
+  `card id=${JSON.stringify(c.id)} teams=${JSON.stringify(c.teams)} status=${JSON.stringify(c.status)} kind=${JSON.stringify(c.kind)}`)
+
 /** Brief `game_id` values resolve to a game by its own id or its ESPN event id. */
 export const briefMatches = (game, brief) => {
   if (!brief.game_id) return false
@@ -227,6 +237,21 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
         culprits.length > 0 && culprits.every(c => c.id !== game.id)
     }),
     'the matcher took the wrong cards')
+
+  // THE EVIDENCE NAMES EVERY CARD THE VERDICT LOOKED AT.
+  const twoCards = [
+    { id: 'G1', teams: 'Lynx @ Dream', status: 'Final', kind: 'game_recap' },
+    { id: 'G2', teams: 'Sparks @ Storm', status: SP, kind: 'game_live' },
+  ]
+  const lines = evidenceLines(twoCards)
+  check('the evidence has one line per card the verdict looked at, not the first',
+    lines.length === 2, `${lines.length} line(s)`)
+  check('...each line carries the card\'s id, team line, status and kind',
+    lines.length === 2 && twoCards.every((c, i) => [c.id, c.teams, c.status, c.kind].every(v => lines[i].includes(JSON.stringify(v)))))
+  check('...a card with no kind says null rather than leaving a gap',
+    evidenceLines([{ id: 'G3', teams: 'X @ Y', status: 'Scheduled', kind: null }])[0].endsWith('kind=null'))
+  check('...and no cards means no lines',
+    evidenceLines([]).length === 0)
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -288,6 +313,7 @@ if (isMain(import.meta.url)) {
 
   // Every card's venue/teams line and, where present, its brief kind.
   const cards = await page.$$eval('.desk-card', els => els.map(el => ({
+    id: el.getAttribute('data-game-id') ?? '',
     teams: el.querySelector('.desk-card__teams')?.textContent?.trim() ?? '',
     status: el.querySelector('.desk-card__status')?.textContent?.trim() ?? '',
     kind: el.querySelector('.desk-card__brief-kind')?.textContent?.trim() ?? null,
@@ -371,7 +397,6 @@ if (isMain(import.meta.url)) {
     // both rows the relay served. Taking the first of two and describing it as
     // "the" card is this file's bug.
     const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))
-    const card = matching[0]
     const v = verdictForCards(matching, want, DURING_PLAY)
     let shown = v.shown
     if (matching.length) {
@@ -408,7 +433,7 @@ if (isMain(import.meta.url)) {
       for (const b of mine.slice(0, 6)) {
         console.log(`                brief game_id=${JSON.stringify(b.game_id)} type=${JSON.stringify(b.brief_type)} text=${(b.brief_text || '').length}ch`)
       }
-      if (card) console.log(`                card teams=${JSON.stringify(card.teams)} status=${JSON.stringify(card.status)} kind=${JSON.stringify(card.kind)}`)
+      for (const line of evidenceLines(matching)) console.log(`                ${line}`)
     }
     console.log(`  ${label.slice(0, 40).padEnd(40)}${want.padEnd(14)}${shown}${ok ? '' : '   <-- '}`)
   }

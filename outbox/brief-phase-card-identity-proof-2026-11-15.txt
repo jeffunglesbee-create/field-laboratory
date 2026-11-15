@@ -76,6 +76,101 @@ caught 4 of 4
 [exit 0]
 
 
+==== 3. STEP 2: the evidence names every card the verdict looked at ====
+The self-test, then a mutation run on evidenceLines and its checks.
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -7
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+
+26/26 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-B.mjs
+baseline, no mutation: exit 0; 26/26 checks passed
+CAUGHT      evidenceLines prints only the first card
+             exit 1; 2 check(s) red
+               - the evidence has one line per card the verdict looked at, not the first
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines drops the kind
+             exit 1; 2 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+               - ...a card with no kind says null rather than leaving a gap
+CAUGHT      evidenceLines drops the id
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines drops the status
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines invents a line when there are no cards
+             exit 1; 1 check(s) red
+               - ...and no cards means no lines
+CAUGHT      evidenceLines prints the kind without quoting it
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+
+caught 6 of 6
+[exit 0]
+
+The wiring in the executable half is not reachable from the self-test, so the whole script is run on the fixture (the matcher is still the
+substring one at this step: the rows still fail, and now the evidence lists every card each verdict examined, 2 + 3 + 3 = 8 cards for the
+three rows). Then the same run with the wiring mutated to print one card per row, which must give 3.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+      evidence: game.id="CFB_2026-11-14_e401856889" espn_event_id=401856889
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401856889" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401856889" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401856889" teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401871100" teams="Troy @ South Alabama" status="Start time passed, no score served" kind="game_live"
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858523" espn_event_id=401858523
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858523" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858523" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401858523" teams="Michigan @ Oregon" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401858521" teams="Washington @ Michigan St" status="Start time passed, no score served" kind="game_live"
+                card id="CFB_2026-11-14_e401860914" teams="Oregon St @ Boise St" status="Start time passed, no score served" kind="game_live"
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401858295" teams="California @ Virginia" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401856861" teams="Kansas @ West Virginia" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401858299" teams="Stanford @ Virginia Tech" status="Start time passed, no score served" kind="game_live"
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → Alabama @ Vanderbilt: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live | Michigan @ Oregon: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | California @ Virginia: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -c '^ *card id='
+8
+[exit 0]
+
+wiring mutant: the anchor `for (const line of evidenceLines(matching)) console.log(` occurs 1 time(s) in the script (must be 1)
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -c '^ *card id='
+3
+[exit 0]
+
+
 ==== Z. The harness, verbatim ====
 
 ---- serve.mjs
@@ -197,5 +292,25 @@ export default {
       anchor: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_live' }", with: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_recap' }" },
     { name: 'the game\'s OWN card is the one reading game_live',
       anchor: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' }", with: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_live' }" },
+  ],
+}
+
+---- spec-B.mjs
+// Mutants of evidenceLines and its checks (step 2 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'evidenceLines prints only the first card',
+      anchor: 'export const evidenceLines = matching => matching.map(c =>', with: 'export const evidenceLines = matching => matching.slice(0, 1).map(c =>' },
+    { name: 'evidenceLines drops the kind',
+      anchor: ' status=${JSON.stringify(c.status)} kind=${JSON.stringify(c.kind)}`)', with: ' status=${JSON.stringify(c.status)}`)' },
+    { name: 'evidenceLines drops the id',
+      anchor: 'card id=${JSON.stringify(c.id)} teams=', with: 'card teams=' },
+    { name: 'evidenceLines drops the status',
+      anchor: ' status=${JSON.stringify(c.status)} kind=', with: ' kind=' },
+    { name: 'evidenceLines invents a line when there are no cards',
+      anchor: 'export const evidenceLines = matching => matching.map(c =>', with: "export const evidenceLines = matching => (matching.length ? matching : [{ id: '', teams: '', status: '', kind: null }]).map(c =>" },
+    { name: 'evidenceLines prints the kind without quoting it',
+      anchor: 'kind=${JSON.stringify(c.kind)}`)', with: 'kind=${c.kind}`)' },
   ],
 }
