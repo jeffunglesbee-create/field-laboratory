@@ -52,7 +52,7 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
    - **1,037 in a window (83%), 217 in none (17%); 292 exactly on an edge.**
    - Outside, by ET kickoff: 10:00 47 (EPL, Serie A, Ligue 1, FA Cup), 20:30 27 (NBA, NHL, MLS, CFB), 09:00 22, 09:30 20 (Bundesliga, NFL London), 17:00 14, 13:30 12, 16:25 9 and 16:05 5 (NFL late), 20:15 8 and 20:20 4 (NFL night), 10:30 8, 16:30 6, 16:15 6, 10:15 6, 08:00 6, 07:30 4, 06:30 3, and smaller.
    - Outside, by league: FA Cup 34 of 40, Bundesliga 25 of 36, EPL 23 of 40, Serie A 22 of 50, MLS 22 of 75, NFL 28 of 57, La Liga 16 of 41, CFB 18 of 297, NBA 13 of 200, NHL 3 of 207. The UEFA competitions fit (Champions League 36 of 36, Europa 35 of 36, Conference 35 of 36).
-   Open with it: whether a window is added for European weekend mornings (about 110 games before 11:00), and what happens to a game in no window (left out of Deep Cuts, or joined to the nearest).
+   Open with it: whether a window is added for European weekend mornings (119 games kick off before 11:00 ET, a few of them NFL London at 09:30), and what happens to a game in no window (left out of Deep Cuts, or joined to the nearest).
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
 4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
