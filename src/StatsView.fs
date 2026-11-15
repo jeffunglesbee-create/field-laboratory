@@ -156,7 +156,7 @@ let reportFor (schedule: Schedule.ScheduledGame list) (game: Game) : ScoutingRep
           match Scout.broadcastOf game.Streams with
           | Scout.NoBroadcastListed -> ()
           | Scout.NationalOnly outlet -> yield BroadcastRow(sprintf "national only — %s" outlet)
-          | Scout.LocalAvailable -> yield BroadcastRow "a local or team outlet is listed"
+          | Scout.LocalAvailable -> yield BroadcastRow "a regional, team or streaming-only outlet is listed"
           | Scout.UnrecognisedOutlets raw -> yield BroadcastRow(sprintf "listed, unrecognised — %s" raw)
 
           match game.Overtime with

@@ -98,16 +98,40 @@ type Broadcast =
 /// for exactly this reason, and the same argument applies to broadcasters. The
 /// registry is explicit so an unmodelled outlet becomes visible rather than
 /// silently bucketed.
+///
+/// Strings are matched exactly, as the relay serves them. "FOX" was here and
+/// the 2026-11-14 slate served "Fox" on three CFB games, so both are listed.
+///
+/// The 2026-11-15 additions are the owner's classification (approved with the
+/// pasted proposal of that date): Fox, CBS, CW, NBA TV, NHL Net, ESPNU, CBSSN
+/// and USA Net are national. "Disney+" is classified here, not by the owner: it
+/// appears only as a simulcast beside ESPN or ABC ("ESPN, Disney+"), and as a
+/// local outlet it would have qualified a national ESPN game.
 let private nationalOutlets =
     [ "ESPN"; "ESPN2"; "ABC"; "FOX"; "FS1"; "TBS"; "TNT"; "NBC"; "Peacock"
-      "Apple TV+"; "Netflix"; "MLB Network"; "Prime Video"; "truTV" ]
+      "Apple TV+"; "Netflix"; "MLB Network"; "Prime Video"; "truTV"
+      "Fox"; "CBS"; "CW"; "NBA TV"; "NHL Net"; "ESPNU"; "CBSSN"; "USA Net"; "Disney+" ]
 
-/// Team-owned or regional. "MLB.TV" is deliberately here: it is a league-wide
-/// out-of-market product, not a national broadcast, and treating it as national
-/// would disqualify nearly every game.
+/// Team-owned, regional, or streaming-only. "MLB.TV" is deliberately here: it is
+/// a league-wide out-of-market product, not a national broadcast, and treating
+/// it as national would disqualify nearly every game.
+///
+/// The 2026-11-15 owner ruling puts the conference networks (BTN, SEC Network,
+/// ACC Network) and the streaming-only services (ESPN+, MW+, DAZN regional
+/// feeds, Prime Video's local feed) on this side: a game only there is one a
+/// viewer would not find on their own. The rest of that day's additions are
+/// regional networks, local stations and team feeds, each served verbatim on the 2026-11-14 slate (data/streams-2026-11-14.json).
 let private localOutlets =
     [ "MLB.TV"; "YES"; "NESN"; "MASN"; "SNY"; "MSG"; "CHSN"; "BravesVision"
-      "CLEGuardians.TV"; "Marquee"; "SportsNet"; "Bally"; "FanDuel Sports" ]
+      "CLEGuardians.TV"; "Marquee"; "SportsNet"; "Bally"; "FanDuel Sports"
+      // conference networks and streaming-only (owner ruling)
+      "BTN"; "SEC Network"; "ACC Network"; "ESPN+"; "MW+"
+      "DAZN (YES)"; "DAZN MEM"; "DAZN MIN"; "Prime Video (Local)"
+      // regional networks, local stations and team feeds, as served on 11-14
+      "Altitude 2 Sports"; "MNMT"; "MSGB"; "MSGSN"; "NBC Sports Phil"; "NBC Sports BA"
+      "GCSEN"; "DSN"; "The Spot - MTN"; "Scripps Sports"
+      "KFAA-TV"; "KTVD-TV (My20)"; "KCOP"; "KONG"; "Utah 16"
+      "Pelicans.com"; "MavsTV"; "CARNHL"; "MINNHL"; "CBJNHL"; "Blues App"; "BN+"; "Mammoth+"; "ABTV" ]
 
 let private splitOutlets (raw: string) =
     raw.Split(',') |> Array.map (fun s -> s.Trim()) |> Array.filter (fun s -> s <> "") |> List.ofArray

@@ -50,6 +50,7 @@
     "check:pickem": "node scripts/pickem-check.mjs",
     "check:state": "node scripts/state-check.mjs",
     "check:drama-reading": "node scripts/drama-reading-check.mjs",
+    "check:outlet-registry": "node scripts/outlet-registry-check.mjs",
     "check:spark": "node scripts/spark-check.mjs",
     "check:palette": "node scripts/palette-check.mjs --self-test && node scripts/palette-check.mjs",
     "check:device-chrome": "node scripts/device-chrome-check.mjs --self-test && node scripts/device-chrome-check.mjs index.html",
