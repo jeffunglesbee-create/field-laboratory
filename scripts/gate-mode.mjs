@@ -126,5 +126,41 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   const exitCalls = [...gateSource.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
   check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...): six of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, total, bar: BAR \}\)$/.test(c)).length === 6 && exitCalls.length === 9,
     JSON.stringify(exitCalls))
+  // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, round 2, finding 8). The wiring checks above pin where the exits are and that they go through exitFor, not what is
+  // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
+  // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the inventory, the rows, the identity,
+  // the stranded-mutation check) and run for real in each mode, with and without a failing row whose weight leaves the score above the bar (990 + 5 of 1005 = 99). The real gate is never run here.
+  {
+    const fs = await import('node:fs'), { tmpdir } = await import('node:os'), { join } = await import('node:path'), { spawnSync } = await import('node:child_process')
+    const scratch = fs.mkdtempSync(join(tmpdir(), 'confidence-e2e-'))
+    try {
+      fs.mkdirSync(join(scratch, 'scripts')); fs.mkdirSync(join(scratch, 'docs'))
+      const here = fileURLToPath(new URL('.', import.meta.url))
+      for (const f of ['confidence.mjs', 'gate-mode.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
+      fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => []\n`)
+      fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: 'a'.repeat(40), dirty: false, id: 'standin' })\n`)
+      fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
+      const standIn = failing => `export const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\nexport const rows = [\n  { name: 'good', weight: 990, run: () => true },\n`
+        + `${failing ? "  { name: 'bad', weight: 10, run: () => false },\n" : ''}  { name: 'browser', weight: 5, skipQuick: true, browser: true, run: () => true },\n]\n`
+      const go = (failing, ...flags) => {
+        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(failing))
+        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true })
+        const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000 })
+        let rec = null
+        try { rec = JSON.parse(fs.readFileSync(join(scratch, 'docs', 'confidence-log.jsonl'), 'utf8').trim().split('\n').pop()) } catch { rec = null }
+        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec }
+      }
+      const red = { full: go(true), quick: go(true, '--quick'), browserless: go(true, '--browserless') }
+      check('THE REAL confidence.mjs OVER STAND-IN ROWS, with a failing row that leaves the score at 99 (above the bar): it exits 1 in every mode, names the row, and records it as failing',
+        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && JSON.stringify(red[m].rec?.failing) === '["bad"]'), JSON.stringify(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.total]]))))
+      const green = { full: go(false), quick: go(false, '--quick'), browserless: go(false, '--browserless') }
+      check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
+        ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
+          && JSON.stringify(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full',
+        JSON.stringify(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]]))))
+      const both = go(false, '--quick', '--browserless')
+      check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null, `exit ${both.status}; ${both.out.slice(-200)}`)
+    } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
+  }
   finish(summarize())
 }

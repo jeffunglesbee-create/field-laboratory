@@ -92,6 +92,11 @@ const MUTATIONS = [
    "hidden(b) - hidden(a) || a.skipped - b.skipped",
    'of two jobs that hid the same number, the one whose failing step skipped nothing behind it is reported'],
 
+  ['S15 the log line leaves out the steps before the failing one',
+   "${f.skippedBefore > 0 ? `, and ${f.skippedBefore} before it` : ''}`",
+   "`",
+   'the red-main issue log of a failed install says nothing was skipped, and the twenty checks that never ran are in no line'],
+
   ['S12 the failing step is found by its number, not its place in the job',
    "  const at = real.findIndex(s => s.conclusion === 'failure')",
    "  const at = real.findIndex(s => s.conclusion === 'failure' && s.number > 1000)",

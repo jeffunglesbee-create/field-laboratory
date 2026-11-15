@@ -36,7 +36,7 @@
 
 import { createChecks, isMain } from './checks.mjs'
 import { readVerify } from './status.mjs'
-import { worstFailure, costLine } from './run-steps.mjs'
+import { worstFailure, costLine, costLog } from './run-steps.mjs'
 
 /// The marker that makes the issue findable again next time. A title can be
 /// edited by a human; this is in the body and is what the lookup matches on.
@@ -496,7 +496,7 @@ if (isMain(import.meta.url)) {
       const jobs = await gh(token)(`/repos/${repo}/actions/runs/${runId}/jobs?per_page=100`)
       failure = worstFailure(jobs?.jobs)
       console.log(failure
-        ? `  cost: ${failure.skipped} of ${failure.total} steps skipped behind "${failure.failedStep}"`
+        ? `  ${costLog(failure)}`
         : '  cost: no failed job with a named first failing step')
     } catch (e) {
       console.log(`  cost: UNREADABLE (${e}) — reporting the red without it`)

@@ -71,6 +71,9 @@ export function worstFailure(jobs) {
   return summaries.sort((a, b) => hidden(b) - hidden(a) || b.skipped - a.skipped)[0]
 }
 
+/** The log line of the red-main issue's cost, which says both sides of the failing step: a failed install has nothing behind it and twenty before it (round 2 of the review, finding 12). */
+export const costLog = f => `cost: ${f.skipped} of ${f.total} steps skipped behind "${f.failedStep}"${f.skippedBefore > 0 ? `, and ${f.skippedBefore} before it` : ''}`
+
 /** One sentence, or nothing. Never "0 skipped" from an unread run. */
 export function costLine(summary) {
   if (!summary || !summary.failedStep) return ''
@@ -161,6 +164,8 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     [[outage, claim, quiet], [quiet, claim, outage], [claim, outage], [claim, quiet, outage]].every(list => worstFailure(list).job === 'verify'), JSON.stringify([worstFailure([claim, quiet, outage]), worstFailure([quiet, outage])]))
   check('...and between two jobs that hid the same number, the one with the tail behind its failing step is reported',
     worstFailure([{ name: 'before', conclusion: 'failure', steps: [s('a', 'skipped', 1), s('b', 'skipped', 2), s('c', 'failure', 3)] }, { name: 'behind', conclusion: 'failure', steps: [s('c', 'failure', 1), s('a', 'skipped', 2), s('b', 'skipped', 3)] }]).job === 'behind')
+  check('THE LOG LINE says both sides: the outage red reads `0 behind ... and 20 before it`, a red with only a tail reads as it did',
+    costLog(g) === `cost: 0 of ${g.total} steps skipped behind "${g.failedStep}", and 20 before it` && costLog({ skipped: 2, total: 5, failedStep: 'x', skippedBefore: 0 }) === 'cost: 2 of 5 steps skipped behind "x"', costLog(g))
   const tail = stepSummary([s('Build', 'success', 1), s('a', 'skipped', 2), s('Render', 'failure', 3), s('b', 'skipped', 4), s('c', 'skipped', 5)])
   check('a skip on each side of the failing step is counted on its own side', tail.skipped === 2 && tail.skippedBefore === 1, JSON.stringify(tail))
   check('a job with no failing step keeps counting every skipped step, and has no before-count',

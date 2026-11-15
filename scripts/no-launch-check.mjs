@@ -33,7 +33,9 @@ import * as nodeModule from 'node:module'
 import { createChecks, finish, isMain } from './checks.mjs'
 
 const ROOT = new URL('..', import.meta.url).pathname
-const MIN_COMMANDS = 20     // coverage is not vacuous: the guard prints 60-odd today, and an emitter that breaks must not read as "0 of 0 launched nothing"
+// scripts/mutation-lib.mjs --self-test waits on a fake compiler's timings and fails under CPU starvation (measured 2026-11-15: 4 of 40 runs, 8 loops at once on a machine already busy; 0 of 3 at width 4): alone, it is not measured under load.
+export const HEAVY = new Set(['scripts/mutation-check.mjs', 'scripts/mutation-lib.mjs'])
+export const MIN_COMMANDS = 20     // coverage is not vacuous: the guard prints 60-odd today, and an emitter that breaks must not read as "0 of 0 launched nothing"
 
 const TRAP_BODY = `const trap = what => async () => { require('node:fs').appendFileSync(process.env.LAUNCH_LOG, what + '\\n'); throw new Error('launch trapped: ' + what) }
 const type = n => ({ launch: trap(n + '.launch'), launchServer: trap(n + '.launchServer'), launchPersistentContext: trap(n + '.launchPersistentContext'), connect: trap(n + '.connect'), connectOverCDP: trap(n + '.connectOverCDP'), executablePath: () => '/nonexistent' })
@@ -94,14 +96,19 @@ export async function pool(items, width, worker) {
   return results
 }
 
-/** The scripts that start a child with a NODE_OPTIONS of their own that does not carry the inherited one: the trap reaches a child only through NODE_OPTIONS, so such a child runs outside it. A line
- *  that sets `NODE_OPTIONS:` is fine when it builds on `process.env.NODE_OPTIONS`. This file builds the trap's own value from the inherited one on the line above, and is not scanned. */
+/** The scripts that name NODE_OPTIONS on a line that does not build on the inherited one (`process.env.NODE_OPTIONS`): the trap reaches a child only through NODE_OPTIONS, so a child started with
+ *  a value of its own, or with the variable removed, runs outside it. The WORD is what is looked for, in every spelling (`NODE_OPTIONS:`, a quoted key, the shorthand `{ NODE_OPTIONS }`, an assignment,
+ *  `delete env.NODE_OPTIONS`), after a trailing comment is dropped (a mention in a comment is not code; `x // process.env.NODE_OPTIONS` does not make `x` safe). A comment line and the `find:`,
+ *  `replace:` and `claim:` lines of the mutation table (the text of a mutation, not a call) are not code. NOT covered, said where the verdict is: an environment built without ever naming the
+ *  variable (`env: { PATH }`, the key assembled from parts) is invisible to a scan of text; the runtime controls cover the path through NODE_OPTIONS and nothing else.
+ *  This file builds the trap's own value from the inherited one on the line above, and is not scanned (review 2026-11-15, round 2, finding 9). */
 export function nodeOptionsReplacers(dir, skip = ['no-launch-check.mjs']) {
   const files = readdirSync(dir).filter(f => /\.(mjs|cjs|js)$/.test(f) && !skip.includes(f))
   const offenders = []
-  for (const f of files) readFileSync(join(dir, f), 'utf8').split('\n').forEach((line, i) => {
-    // A `find:`/`replace:` line of the mutation table is DATA (the text of a mutation), not a call that starts a child.
-    if (/\bNODE_OPTIONS\s*:/.test(line) && !/process\.env\.NODE_OPTIONS/.test(line) && !/^\s*(find|replace)\s*:/.test(line)) offenders.push(`scripts/${f}:${i + 1}`)
+  for (const f of files) readFileSync(join(dir, f), 'utf8').split('\n').forEach((raw, i) => {
+    if (/^\s*(\/\/|\*|\/\*)/.test(raw) || /^\s*(find|replace|claim)\s*:/.test(raw)) return
+    const line = raw.replace(/\s\/\/.*$/, '')
+    if (/\bNODE_OPTIONS\b/.test(line) && !/process\.env\.NODE_OPTIONS/.test(line)) offenders.push(`scripts/${f}:${i + 1}`)
   })
   return { files: files.length, offenders }
 }
@@ -149,8 +156,8 @@ function plainCommands() {
 export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, cwd = ROOT, scan = null, say = console.log }) {
   const controls = await runControls(join(dir, 'controls'), trap)
   for (const c of controls) say(`  control ${c.launches.length ? 'LAUNCHED' : 'NOT SEEN '}  ${c.name}  (${c.launches.length} line(s): ${[...new Set(c.launches)].join(', ') || 'none'})`)
-  // The commands that start many processes of their own and wait on timings (scripts/mutation-check.mjs) run first and alone; the rest run a few at a time.
-  const heavy = cmds.filter(c => c.cmd[1] === 'scripts/mutation-check.mjs'), light = cmds.filter(c => c.cmd[1] !== 'scripts/mutation-check.mjs')
+  // The commands that start many processes of their own and wait on timings run first and alone; the rest run a few at a time.
+  const heavy = cmds.filter(c => HEAVY.has(c.cmd[1])), light = cmds.filter(c => !HEAVY.has(c.cmd[1]))
   const results = []
   const show = (c, r) => say(`  ${r.exit === 0 && !r.launches.length ? 'ok      ' : 'PROBLEM '}[${c.why}] ${c.cmd.join(' ')}  (exit ${r.exit}; ${r.launches.length} launch(es); ${r.seconds.toFixed(1)} s)`)
   for (const c of heavy) { const r = await runTrapped(c.cmd, trap, results.length, cwd); results.push(r); show(c, r) }
@@ -231,13 +238,17 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     // A CHILD STARTED WITH A NODE_OPTIONS OF ITS OWN runs outside the trap, so scripts/ is scanned for one (review 2026-11-15, finding 14: scripts/proof-check.mjs did it for two children)
     const scanDir = join(dir, 'scan')
     mkdirSync(scanDir)
-    writeFileSync(join(scanDir, 'replaces.mjs'), "go({ NODE_OPTIONS: '--require x' })\n")
+    for (const [name, line] of Object.entries({
+      'replaces.mjs': "go({ NODE_OPTIONS: '--require x' })", 'quoted.mjs': "go({ 'NODE_OPTIONS': '--require x' })", 'quoted2.mjs': 'go({ "NODE_OPTIONS": "--require x" })',
+      'shorthand.mjs': 'const NODE_OPTIONS = "--require x"; go({ NODE_OPTIONS })', 'assign.mjs': "env.NODE_OPTIONS = '--require x'", 'delete.mjs': 'delete env.NODE_OPTIONS',
+      'trailing.mjs': "go({ NODE_OPTIONS: '--require x' }) // process.env.NODE_OPTIONS",
+    })) writeFileSync(join(scanDir, name), `${line}\n`)
     writeFileSync(join(scanDir, 'inherits.mjs'), "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })\n")
-    writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\nconst note = 'NODE_OPTIONS'\n")
-    writeFileSync(join(scanDir, 'table.mjs'), '  {\n    find: "go({ NODE_OPTIONS: x })",\n    replace: "go({ NODE_OPTIONS: y })",\n  },\n')
+    writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\n/* NODE_OPTIONS: a block comment */\n * NODE_OPTIONS: a doc comment line\n")
+    writeFileSync(join(scanDir, 'table.mjs'), '  {\n    claim: "a child keeps NODE_OPTIONS",\n    find: "go({ NODE_OPTIONS: x })",\n    replace: "go({ NODE_OPTIONS: y })",\n  },\n')
     const scanned = nodeOptionsReplacers(scanDir)
-    check('SCAN: a script that gives a child a NODE_OPTIONS that does not build on the inherited one is found, with its line; one that appends, a mere mention and the find and replace text of a mutation table are not',
-      JSON.stringify(scanned) === JSON.stringify({ files: 4, offenders: ['scripts/replaces.mjs:1'] }), JSON.stringify(scanned))
+    check('SCAN: a line that names NODE_OPTIONS without building on the inherited one is found in every spelling (key, quoted key, shorthand, assignment, delete, a trailing comment that mentions it) with its line; one that appends, a comment, and the claim, find and replace text of a mutation table are not',
+      JSON.stringify(scanned) === JSON.stringify({ files: 10, offenders: ['scripts/assign.mjs:1', 'scripts/delete.mjs:1', 'scripts/quoted.mjs:1', 'scripts/quoted2.mjs:1', 'scripts/replaces.mjs:1', 'scripts/shorthand.mjs:1', 'scripts/trailing.mjs:1'] }), JSON.stringify(scanned))
     const real = nodeOptionsReplacers(join(ROOT, 'scripts'))
     check('...and no script in scripts/ replaces it (proof-check.mjs did, for two of its children)', real.offenders.length === 0 && real.files >= 50, JSON.stringify(real))
 
@@ -258,8 +269,20 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const mainDirty = mainOver('dirty', [{ cmd: [process.execPath, put('m-dirty.mjs', `import { chromium } from 'playwright'\ntry { await chromium.launch() } catch {}\n`)], why: 'self-test' }])
     check('...a list with a command that attempts a launch (swallowed) exits 1, names it, and says NOT ESTABLISHED OR VIOLATED',
       mainDirty.status === 1 && /attempted a browser launch \(chromium\.launch\)/.test(mainDirty.out) && /NOT ESTABLISHED OR VIOLATED/.test(mainDirty.out), `exit ${mainDirty.status}; ${mainDirty.out.slice(-300)}`)
+    const mainMixed = mainOver('mixed', [
+      { cmd: [process.execPath, put('m-a.mjs', `console.log('a')\n`)], why: 'self-test' },
+      { cmd: [process.execPath, put('m-b.mjs', `import { chromium } from 'playwright'\ntry { await chromium.launch() } catch {}\n`)], why: 'self-test' },
+      { cmd: [process.execPath, put('m-c.mjs', `console.log('c')\n`)], why: 'self-test' }])
+    const problemLines = mainMixed.out.split('\n').filter(l => /^\s*PROBLEM /.test(l)), okLines = mainMixed.out.split('\n').filter(l => /^\s*ok /.test(l))
+    check('...each command has a log of its own: of three, the one that launches is the one named, and the two that do not are not charged with it',
+      mainMixed.status === 1 && problemLines.length === 1 && /m-b\.mjs/.test(problemLines[0]) && okLines.length === 2 && /1 launch\(es\)/.test(problemLines[0]) && /checked 3 of 3 commands: 2 exited 0 with 0 launches/.test(mainMixed.out),
+      `exit ${mainMixed.status}; ${mainMixed.out.slice(-400)}`)
     const mainEmpty = mainOver('empty', [])
     check('...and an empty list exits 1 (a list that measured nothing is not a pass)', mainEmpty.status === 1 && /only 0 command\(s\) were measured/.test(mainEmpty.out), `exit ${mainEmpty.status}; ${mainEmpty.out.slice(-200)}`)
+    // The floor of the guard's own list is MIN_COMMANDS, and `main()` applies it to the real list: measure() with that floor, not main()'s `--commands` one.
+    const floored = await measure({ cmds: [{ cmd: [process.execPath, put('m-d.mjs', `console.log('d')\n`)], why: 'self-test' }], trap: trap2, dir: join(dir, 'floor'), width: 1, say: () => {} })
+    check('THE COMMANDS THAT WAIT ON TIMINGS ARE MEASURED FIRST AND ALONE: the mutation harness and the compile watcher\'s self-test', HEAVY.has('scripts/mutation-check.mjs') && HEAVY.has('scripts/mutation-lib.mjs') && HEAVY.size === 2, [...HEAVY].join())
+    check('THE FLOOR OF THE GUARD\'S LIST (MIN_COMMANDS, 20) is what measure() asks by default: one clean command is not enough, whatever it measured', floored.exit === 1 && /fewer than the 20/.test(floored.v.problems[0]) && MIN_COMMANDS === 20, JSON.stringify(floored.v.problems))
 
     // THE ARTIFACT THE CC-CMD NAMES: scripts/axis-check.mjs with its `--self-test` edited to launch is caught, and the real one is not
     if (existsSync(join(ROOT, 'build'))) {

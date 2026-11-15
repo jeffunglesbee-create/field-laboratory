@@ -43,12 +43,15 @@ export const existing = (names, remote, cwd) => {
  *  The refspec is `:refs/heads/<name>`, not `--delete <name>`: a TAG of the same name makes the short form ambiguous, and git then refuses it; the full ref names the branch and nothing else.
  *  A deletion that throws is NAMED and does not stop the list: the names after it are still tried, and what is left is asked of the remote at the end (review 2026-11-15, finding 18: the first
  *  failure ended the run, with the rest untried and no account of what was left). */
+/** The last lines git printed, which carry the reason: the final one is the generic `error: failed to push some refs`, and the `remote:` and `[remote rejected]` lines above it say why. */
+export const reasonOf = e => String(e.stderr ?? e.message ?? e).split('\n').map(l => l.trim()).filter(Boolean).slice(-6).join(' | ')
+
 export const apply = (names, remote, cwd, push = git) => {
   const before = existing(names, remote, cwd)
   const absent = names.filter(n => !before.includes(n))
   const failed = []
   for (const name of before) {
-    try { push(['push', remote, `:refs/heads/${name}`], cwd) } catch (e) { failed.push({ name, why: String(e.stderr ?? e.message ?? e).trim().split('\n').pop() }) }
+    try { push(['push', remote, `:refs/heads/${name}`], cwd) } catch (e) { failed.push({ name, why: reasonOf(e) }) }
   }
   const left = existing(names, remote, cwd)
   return { deleted: before.filter(n => !left.includes(n)), absent, left, failed }
@@ -112,11 +115,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         JSON.stringify(tagged.deleted) === '["proof-x","proof-y"]' && tagged.failed.length === 0 && tagged.left.length === 0 && /refs\/tags\/proof-x/.test(g(['ls-remote', '--tags', 'origin'], work)), JSON.stringify(tagged))
       for (const b of ['proof-p', 'proof-q']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
       const flaky = apply(['proof-p', 'proof-q'], 'origin', work, (args, cwd) => {
-        if (args[2] === ':refs/heads/proof-p') throw Object.assign(new Error('boom'), { stderr: 'remote: permission denied\n' })
+        if (args[2] === ':refs/heads/proof-p') throw Object.assign(new Error('boom'), { stderr: 'remote: permission denied\n ! [remote rejected] proof-p (protected)\nerror: failed to push some refs to origin\n' })
         return git(args, cwd)
       })
       check('A DELETION THAT THROWS DOES NOT STOP THE LIST: the name after it is still deleted, the failure is named with its reason, and what is left is reported',
-        JSON.stringify(flaky.deleted) === '["proof-q"]' && flaky.failed.length === 1 && flaky.failed[0].name === 'proof-p' && flaky.failed[0].why === 'remote: permission denied' && JSON.stringify(flaky.left) === '["proof-p"]', JSON.stringify(flaky))
+        JSON.stringify(flaky.deleted) === '["proof-q"]' && flaky.failed.length === 1 && flaky.failed[0].name === 'proof-p' && /remote: permission denied/.test(flaky.failed[0].why) && /\[remote rejected\] proof-p \(protected\)/.test(flaky.failed[0].why) && /failed to push some refs/.test(flaky.failed[0].why) && JSON.stringify(flaky.left) === '["proof-p"]', JSON.stringify(flaky))
       const again = apply(['proof-a'], 'origin', work)
       check('...and running it again deletes nothing and fails nothing', again.deleted.length === 0 && again.absent.length === 1 && again.left.length === 0, JSON.stringify(again))
     } finally { rmSync(dir, { recursive: true, force: true }) }
