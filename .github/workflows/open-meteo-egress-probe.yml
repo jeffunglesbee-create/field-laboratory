@@ -145,8 +145,10 @@ jobs:
           tail -n 40 "$RAW"
           node scripts/egress-path-lib.mjs --judge "$RAW" "$RC" "$OUT" "api.open-meteo.com resolves to ${FAULT:-nothing}"
 
+      # Only on main. `git push origin HEAD:main` below pushes whatever this checkout's HEAD is, so a dispatch from a branch would put that branch's commits on main
+      # unreviewed. On a branch the readings are in the log instead: every step above prints the artifact it wrote. docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md, Task 2.
       - name: Commit the reading
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
