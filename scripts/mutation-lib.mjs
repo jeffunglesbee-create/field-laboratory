@@ -471,6 +471,31 @@ export const compileSteadily = async (builder, write, opts, onRetry = () => {}, 
  *  duration that lands in a record is not an input to any verdict. */
 export const stopwatch = () => { const t = Date.now(); return () => Date.now() - t }
 
+/** The text Playwright throws when `launch()` finds no browser binary (measured 2026-11-15 on playwright 1.62.1 with an empty PLAYWRIGHT_BROWSERS_PATH:
+ *  `browserType.launch: Executable doesn't exist at <path>` and a box that says to run `npx playwright install`). It is what a runner whose `Install Chromium`
+ *  failed prints from every browser script. */
+export const MISSING_BROWSER = /browserType\.launch: Executable doesn't exist at /
+
+/** Why a failing expectation has no subject on this run, or null when it is a real failure. Exit 3 is `run-row.mjs` saying its row does not apply (a scheduled run
+ *  with no session). The missing browser counts ONLY under `--no-browser`: without the flag the same text is a failure, because a run that was meant to have a
+ *  browser and has none has measured nothing. */
+export const notApplicableBecause = ({ status, text = '', noBrowser = false }) =>
+  status === 3 ? 'exit-3' : noBrowser && MISSING_BROWSER.test(text) ? 'no-browser' : null
+
+/** The baseline record of an expectation that FAILED on the unmutated tree.
+ *
+ *  EXIT 3 IS `run-row.mjs` SAYING ITS ROW HAS NO SUBJECT ON THIS RUN: the outbox row under verify-full's cron, which is not a session
+ *  (docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md). Not a failure of the unmutated tree, and not a pass either: every mutation expecting it is reported as not
+ *  applicable, never as caught. `--no-browser` adds one more way to have no subject: Playwright's own text for a launch that finds no browser. Anything else is a failure,
+ *  with the TAIL of its output, because a check's verdict is at the END of its output and the head is setup noise. */
+export const failedBaseline = ({ cmd, status, stdout, stderr, noBrowser = false }) => {
+  const text = `${stdout ?? ''}${stderr ?? ''}`.trimEnd()
+  const why = notApplicableBecause({ status, text, noBrowser })
+  if (why === 'exit-3') return { cmd, passed: false, notApplicable: true }
+  if (why === 'no-browser') return { cmd, passed: false, notApplicable: true, noBrowser: true }
+  return { cmd, passed: false, status: status ?? null, tail: text.split('\n').slice(-30).join('\n') }
+}
+
 /** A readable name for what the two builders did, for the records. */
 export const verdictOf = ({ anchorFound, applied = true, built, survived, crashed = false }) => {
   if (!anchorFound) return 'anchor-missing'

@@ -53,11 +53,17 @@ runs:
       shell: bash
       run: node scripts/build-steady.mjs
 
-    # browser-gate: exempt 2 -- a failed install fails the shard red and its result is never uploaded; scripts/mutation-merge.mjs refuses the whole table when a shard is missing, so the gate never reads a slice alone (mutation-ids-probe.yml does, through this action, on purpose); N=2 is the site server in this action and the step that follows the action in mutation-ids-probe.yml, which runs on always() only when an earlier output is non-empty; the mutation run itself is read as a browser step (scripts/mutation-check.mjs spawns browser scripts), and a failed install also loses the rows of it that need no browser (CC-CMD item 7)
+    # THE SHAPE scripts/check-browser-gate.py keeps (this file is one of its targets): the install carries `id: chromium` and `continue-on-error`, the steps that need a browser wait for
+    # `steps.chromium.outcome == 'success'`, the ones that do not (the site server, the upload, the run WITHOUT a browser) do not, and the LAST step fails the action when the install did not
+    # succeed. A failed install used to end the action there: the shard ran nothing, uploaded nothing, and `mutation-await.mjs` waited for a result that would never come. Now the shard runs
+    # with `--no-browser`: the expectations that need a browser are reported not applicable, every other mutation runs, the result is uploaded, and the action still ends red.
+    # docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7.
     # No --with-deps (that is apt, and apt stalled ten minutes on 2026-11-11 when the Ubuntu mirrors did not resolve) and a time limit; docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
     # A composite action's step takes no timeout-minutes (GitHub lists none for them), so the limit is coreutils timeout: 180 s, SIGKILL 10 s later if the install
-    # ignores SIGTERM, and any non-zero exit fails the step.
+    # ignores SIGTERM, and any non-zero exit fails the step (here: marks it, `continue-on-error`, and the last step makes the action red).
     - name: Install Chromium
+      id: chromium
+      continue-on-error: true
       shell: bash
       run: timeout --kill-after=10 180 npx playwright install chromium
 
@@ -72,19 +78,42 @@ runs:
 
     # The result is written outside the working tree: the world mutations move files in and out of outbox/, and a result
     # file there would be a file the mutation under test could move.
+    #
+    # TWO STEPS, ONE PER STATE OF THE INSTALL, with the same two commands written twice (a bash array for the selection would hide the command from the guard, which reads `node <script> <args>`). Which one runs is decided by the
+    # `if`, and scripts/check-browser-gate.py refuses a no-browser run whose `if` does not say `!= 'success'` and a browser run that does not say `== 'success'`.
     - name: Run the shard
+      if: steps.chromium.outcome == 'success'
       shell: bash
       env:
         IDS: ${{ inputs.ids }}
       run: |
         if [ -n "$IDS" ]; then
-          SELECT=(--ids "$IDS")
+          node scripts/mutation-check.mjs --ids "$IDS" \
+            --build "${{ inputs.mode }}" \
+            --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
         else
-          SELECT=(--shard "${{ inputs.index }}/${{ inputs.of }}")
+          node scripts/mutation-check.mjs --shard "${{ inputs.index }}/${{ inputs.of }}" \
+            --build "${{ inputs.mode }}" \
+            --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
         fi
-        node scripts/mutation-check.mjs "${SELECT[@]}" \
-          --build "${{ inputs.mode }}" \
-          --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
+
+    # THE INSTALL DID NOT SUCCEED: the same shard, told so. `--no-browser` makes the harness class an expectation that cannot launch a browser (Playwright's own text for it) as NOT
+    # APPLICABLE, not as a failure, and every other mutation runs as always. The result says `noBrowser`, and scripts/mutation-merge.mjs reads it as a verdict problem, not a pass.
+    - name: Run the shard without a browser
+      if: steps.chromium.outcome != 'success'
+      shell: bash
+      env:
+        IDS: ${{ inputs.ids }}
+      run: |
+        if [ -n "$IDS" ]; then
+          node scripts/mutation-check.mjs --ids "$IDS" \
+            --build "${{ inputs.mode }}" --no-browser \
+            --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
+        else
+          node scripts/mutation-check.mjs --shard "${{ inputs.index }}/${{ inputs.of }}" \
+            --build "${{ inputs.mode }}" --no-browser \
+            --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
+        fi
 
     # Even when the shard failed: a survivor is a result, and the reader has to be able to name it.
     - name: Upload the shard's result
@@ -97,3 +126,21 @@ runs:
         retention-days: 3
         # A re-run attempt of a shard publishes under the same name; without this the upload is refused (409) and the old attempt's artifact stays.
         overwrite: true
+
+    # LAST, and `always()`: without it a failed install would leave the action GREEN with the browser-dependent mutations not run. The outcome comes in through `env:`;
+    # scripts/check-browser-gate.py RUNS this script under `bash -e` for each outcome and requires a non-zero exit with an `::error::` line, which is why it may use only
+    # echo, `exit N` and `[ ]` comparisons.
+    - name: Install Chromium did not succeed, so the mutations that need a browser were not run
+      if: always() && steps.chromium.outcome != 'success'
+      shell: bash
+      env:
+        INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
+      run: |
+        if [ "$INSTALL_OUTCOME" = skipped ]; then
+          echo "::error::The Chromium install was skipped: an earlier step failed, or the run was cancelled before it. The mutations that need a browser were not run."
+        elif [ "$INSTALL_OUTCOME" = cancelled ]; then
+          echo "::error::The run was cancelled before the Chromium install finished. The mutations that need a browser were not run."
+        else
+          echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The shard ran with --no-browser: the mutations that need a browser were NOT run, so this table is not a pass."
+        fi
+        exit 1

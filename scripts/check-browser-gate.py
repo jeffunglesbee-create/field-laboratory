@@ -99,7 +99,10 @@ playwright or calls chromium.launch, and the arguments do not include `--self-te
     `scripts/mutation-check.mjs` runs each mutation's `expect:` command (for example `node scripts/spark-check.mjs`) in a child.
     It over-approximates (a name in a table that is never run) and fails closed. The arguments with which a spawner runs none of
     what it names are READONLY_MODES (`--anchors`, `--stranded` of mutation-check, the only ones a workflow uses), and
-    scripts/no-launch-check.mjs is TRAPPED (it runs browser scripts only under a trap). Those claims, and every `--self-test`, are
+    scripts/no-launch-check.mjs is TRAPPED (it runs browser scripts only under a trap). The one flag that changes the reading is
+    `mutation-check.mjs --no-browser` (NO_BROWSER_FLAGS): it is browser-free only in the audit of a target, and only for a step
+    whose `if` is `steps.chromium.outcome != 'success'` (the step then runs after a failed install and never after a good one).
+    Those claims, and every `--self-test`, are
     kept true at run time by scripts/no-launch-check.mjs, which reads the commands from `--plain-commands`. Not read: a spawn
     whose script name is built at run time, and a python script that spawns a browser script.
   - A WORD IS NOT A USE. Comment lines and trailing comments are dropped before looking, and `playwright install` is
@@ -153,6 +156,8 @@ MIN_PLAIN = 30
 TARGETS = [
     {"file": WORKFLOW, "job": JOB, "floors": (MIN_STEPS, MIN_BROWSER, MIN_PLAIN)},
     {"file": ".github/workflows/live-check.yml", "job": "live", "floors": (8, 5, 2)},
+    # A composite action has no job: its steps are under `runs`, and `job` is None.
+    {"file": ".github/actions/mutation-shard/action.yml", "job": None, "floors": (5, 1, 3)},
 ]
 # A comment line: its indentation, N (ASCII digits, no leading zero) and a reason that begins with a word character (a bare `--` or spaces is none).
 EXEMPT_NOTE = re.compile(r"^(\s*)#\s*browser-gate:\s*exempt\s+(0|[1-9][0-9]{0,3})\s+--\s+(\w.*?)\s*$")
@@ -186,6 +191,11 @@ READONLY_MODES = {"scripts/mutation-check.mjs": ("--anchors", "--stranded"), "sc
 # A script that runs browser scripts only under that trap: it never launches a real browser, whatever its arguments. Its own text embeds launch calls (its fixtures), so the text
 # rule is skipped for it as well as the spawner rule.
 TRAPPED = frozenset({"scripts/no-launch-check.mjs"})
+# A spawner that can be told it has NO browser. `mutation-check.mjs --no-browser` classes an expectation that cannot launch one (Playwright's missing-browser text) as not applicable
+# and runs the rest; without the flag it is a browser step. The flag is read as browser-free ONLY inside the audit of a target, and only for a step whose `if` makes it run solely when
+# the install did NOT succeed (no_browser_if), so it never runs with a browser installed. The claim is kept true by scripts/mutation-check.mjs (its self-test runs it end to end against
+# a row that cannot launch) and was proved on a runner whose install failed (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7).
+NO_BROWSER_FLAGS = {"scripts/mutation-check.mjs": "--no-browser"}
 INSTALL_CMD = re.compile(r"(?:\bplaywright(?:-core)?(?:/cli\.js)?|@playwright/test)(?:@[^\s'\"]+)?['\"]?\s+install\b")
 
 
@@ -200,6 +210,8 @@ FINAL_CLAUSES = ["always()", f"steps.{INSTALL_ID}.outcome != 'success'"]
 # The clauses a browser step's `if` may carry besides the gate. Every one can only keep the step running or leave the gate
 # to decide. `failure()`, `steps.x.outcome == 'failure'|'cancelled'|'skipped'` and `!=` forms are not here: AND-ed onto the
 # gate they make the step run only when something else already failed, which is never on a good commit.
+NO_BROWSER_CLAUSE = f"steps.{INSTALL_ID}.outcome != 'success'"
+NO_BROWSER_EXTRA = re.compile(r"^(?:always\(\)|success\(\)|!cancelled\(\))$")
 GATE_EXTRA = re.compile(r"^(?:always\(\)|success\(\)|!cancelled\(\)|steps\.\w+\.outcome == 'success')$")
 
 
@@ -221,6 +233,13 @@ def is_final_if(cond):
     return cl is not None and sorted(cl) == sorted(FINAL_CLAUSES)
 
 
+def no_browser_if(cond):
+    """The `if` of a step that runs with a spawner's no-browser flag: `steps.chromium.outcome != 'success'`, joined only by `&&` to always(), success() or !cancelled(). It runs after a
+    failed install and never after a good one."""
+    cl = clauses(cond)
+    return cl is not None and NO_BROWSER_CLAUSE in cl and all(p == NO_BROWSER_CLAUSE or NO_BROWSER_EXTRA.match(p) for p in cl)
+
+
 def is_false_if(cond):
     """A bare `false` (YAML reads an unquoted one as the boolean False) or `0`."""
     return cond is not None and bool(re.fullmatch(r"(?:\$\{\{\s*)?(?:false|0)(?:\s*\}\})?", str(cond).strip().lower()))
@@ -233,6 +252,8 @@ def truthy(v):
 
 # ---------------------------------------------------------------- reading steps and commands
 def job_steps(doc, job=JOB):
+    if job is None:                     # a composite action: its steps are under `runs`
+        return ((doc or {}).get("runs") or {}).get("steps") or []
     return (((doc or {}).get("jobs") or {}).get(job) or {}).get("steps") or []
 
 
@@ -583,16 +604,24 @@ def readonly_mode(entry, args):
     return "*" in modes or bool(set(args) & set(modes))
 
 
-def spawns_browser(entry, args, read):
-    """The browser scripts an entry spawns with these arguments: none for a TRAPPED script and for the arguments READONLY_MODES declares."""
+def spawns_browser(entry, args, read, no_browser_ok=False):
+    """The browser scripts an entry spawns with these arguments: none for a TRAPPED script, for the arguments READONLY_MODES declares, and (only when the caller audits a target, which
+    checks the step's `if`) for the no-browser flag."""
     entry = os.path.normpath(entry)
-    if entry in TRAPPED or readonly_mode(entry, args):
+    if entry in TRAPPED or readonly_mode(entry, args) or (no_browser_ok and NO_BROWSER_FLAGS.get(entry) in args):
         return []
     return spawned_browser_scripts(entry, read)
 
 
-def read_step(step, pkg, read):
-    """{browser: bool, unresolved: [why]} for one step."""
+def no_browser_flagged(step, pkg, read):
+    """Whether a step runs a spawner (NO_BROWSER_FLAGS) with its no-browser flag."""
+    if not run_text(step):
+        return False
+    return any(NO_BROWSER_FLAGS.get(os.path.normpath(e)) in a for e, a in read_commands(run_text(step), pkg, read)["entries"])
+
+
+def read_step(step, pkg, read, no_browser_ok=False):
+    """{browser: bool, unresolved: [why]} for one step. `no_browser_ok`: read the no-browser flag as browser-free (the audit of a target does, and checks the step's `if`)."""
     res = {"browser": False, "unresolved": []}
     uses = step.get("uses")
     if uses:
@@ -621,7 +650,7 @@ def read_step(step, pkg, read):
         hit, why = entry_launches(entry, read)
         if why:
             res["unresolved"].append(why)
-        if not hit and spawns_browser(entry, args, read):
+        if not hit and spawns_browser(entry, args, read, no_browser_ok):
             hit = True
         res["browser"] = res["browser"] or hit
     if LAUNCH.search(strip_comments(script)):       # an inline use in the step's own text
@@ -735,10 +764,11 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
     """Returns (violations, coverage). The workflow, package.json and scripts come in as arguments."""
     steps = job_steps(doc, job)
     jobdoc = ((doc or {}).get("jobs") or {}).get(job) or {}
+    owner = "the composite action" if job is None else f"job `{job}`"
     bad = []
     installs = [i for i, s in enumerate(steps) if is_install(s)]
     if len(installs) != 1:
-        return [f"expected exactly one browser-install step in job `{job}`, found {len(installs)}"], {"steps": len(steps), "browser": 0, "plain": 0, "unreadable": 0, "final_ok": 0}
+        return [f"expected exactly one browser-install step in {owner}, found {len(installs)}"], {"steps": len(steps), "browser": 0, "plain": 0, "unreadable": 0, "final_ok": 0}
     at = installs[0]
     inst = steps[at]
     name = lambda s: repr(s.get("name") or run_text(s)[:40])
@@ -747,7 +777,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
     if inst.get("continue-on-error") is not True:
         bad.append(f"the install step {name(inst)} must have `continue-on-error: true`, or its failure skips every step after it")
     if truthy(jobdoc.get("continue-on-error")):
-        bad.append(f"job `{job}` has `continue-on-error`: a failed step would leave the job green")
+        bad.append(f"{owner} has `continue-on-error`: a failed step would leave the job green")
     lines = logical_lines(run_text(inst))
     if len(lines) != 1 or not INSTALL_LINE.match(lines[0]):
         bad.append(f"the install step {name(inst)} must be ONE `npx playwright install ...` command (optionally behind `timeout N`): it has `continue-on-error`, so anything else in it that fails is swallowed and the job is green over it")
@@ -780,7 +810,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
             continue
         if i == at:
             continue
-        r = read_step(s, pkg, read)
+        r = read_step(s, pkg, read, no_browser_ok=True)
         if r["unresolved"]:
             unreadable += 1
             for why in r["unresolved"][:3]:
@@ -791,13 +821,18 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
         if not gated_if(if_text(s)):
             bad.append(f"step {name(s)} needs a browser and must carry `steps.{INSTALL_ID}.outcome == 'success'` in its `if`, joined only by `&&` to always(), success(), !cancelled() or another `steps.<id>.outcome == 'success'` (it has {if_text(s) or 'no if'!r})")
     for i, s in plain:
+        if no_browser_flagged(s, pkg, read):
+            if not no_browser_if(if_text(s)):
+                bad.append(f"step {name(s)} runs with a no-browser flag and must carry `steps.{INSTALL_ID}.outcome != 'success'` in its `if`, joined only by `&&` to always(), success() or !cancelled(): "
+                           f"without it the flag would run with a browser installed, or the step would be skipped when the install failed (it has {if_text(s) or 'no `if`'!r})")
+            continue
         if is_final_if(if_text(s)):         # the final step, wherever it is: if it is not LAST, that is its own message below
             continue
         if f"steps.{INSTALL_ID}" in if_text(s):
             bad.append(f"step {name(s)} needs no browser and must not wait for the install (it has {if_text(s)!r}): an outage would skip it again")
     final_ok = 0
     if final_at is None:
-        bad.append(f"the LAST step of job `{job}` must be the final step, whose `if` is exactly `always() && steps.{INSTALL_ID}.outcome != 'success'`: without one a failed install would leave the job GREEN with every browser step skipped, and any step after it that has no `always()` is skipped by the failure it makes")
+        bad.append(f"the LAST step of {owner} must be the final step, whose `if` is exactly `always() && steps.{INSTALL_ID}.outcome != 'success'`: without one a failed install would leave the job GREEN with every browser step skipped, and any step after it that has no `always()` is skipped by the failure it makes")
     elif not read_step(steps[final_at], pkg, read)["unresolved"]:       # refused above, with its reason: a script the reader cannot read is not run
         fp = final_step_problems(steps[final_at], name(steps[final_at]), final_timeout)
         bad += fp
@@ -1563,6 +1598,43 @@ def self_test():
           any_of("must be ONE", mut(lambda s: s[1].update({"run": "npx playwright install chromium && npm run pure"}))))
     check("...and `timeout --kill-after=10 180 npx playwright install chromium` is one install command", mut(lambda s: s[1].update({"run": "timeout --kill-after=10 180 npx playwright install chromium"})) == [])
 
+    # ---- THE COMPOSITE ACTION TARGET AND THE NO-BROWSER FLAG
+    nb_gate = "steps.chromium.outcome != 'success'"
+    sh = lambda d: {**d, "shell": "bash"}
+    action_steps = [sh(dict(inst)), sh({"name": "serve", "run": "npm run pure"}),
+                    sh({"name": "run", "if": gated, "run": "node scripts/mutation-check.mjs --shard 1/8"}),
+                    sh({"name": "run without a browser", "if": nb_gate, "run": "node scripts/mutation-check.mjs --shard 1/8 --no-browser"}),
+                    {"name": "upload", "if": "always()", "uses": "actions/upload-artifact@v4"}, sh(dict(final))]
+    action_doc = {"runs": {"using": "composite", "steps": action_steps}}
+
+    def act(fn=None, steps=None):
+        import copy
+        d = {"runs": {"using": "composite", "steps": copy.deepcopy(steps or action_steps)}}
+        if fn:
+            fn(d["runs"]["steps"])
+        return audit(d, pkg, read, job=None, final_timeout=5)
+
+    check("A COMPOSITE ACTION IS A TARGET (job None, its steps under `runs`): install, a gated browser run, a no-browser run, an upload and a final step pass, and are counted",
+          act()[0] == [] and act()[1] == {"steps": 5, "browser": 1, "plain": 4, "unreadable": 0, "final_ok": 4}, act())
+    check("...the no-browser run is read as browser-free in a target's audit, and as a BROWSER step anywhere else (the flag alone is not enough: it needs the audit of its `if`)",
+          read_step(action_steps[3], pkg, read, no_browser_ok=True)["browser"] is False and needs_browser(action_steps[3], pkg, read) is True and needs_browser(action_steps[2], pkg, read) is True)
+    check("...the flag of a spawner that does not declare one changes nothing (`scripts/spawner.mjs --no-browser` is a browser step even in an audit)",
+          read_step({"run": "node scripts/spawner.mjs --no-browser"}, pkg, read, no_browser_ok=True)["browser"] is True)
+    nb_bad = lambda cond: any_of("runs with a no-browser flag", act(lambda s: s[3].update({"if": cond}) if cond is not None else s[3].pop("if"))[0])
+    check("a no-browser run with no `if` is refused (it would run with a browser installed)", nb_bad(None))
+    check("...with `always()` alone is refused", nb_bad("always()"))
+    check("...gated on the install SUCCEEDING is refused (that is the browser run's gate)", nb_bad(gated))
+    check("...with a clause besides the three that cannot make it run after a good install is refused", nb_bad(nb_gate + " && github.event_name == 'push'"))
+    check("...with `failure()` (the job is not failed while the install is only marked so) or another step's success (it would wait for what need not have run) is refused",
+          nb_bad(nb_gate + " && failure()") and nb_bad(nb_gate + " && steps.serve.outcome == 'success'"))
+    check("...but `always() && ...`, `... && success()` and `... && !cancelled()` are the one it takes",
+          all(act(lambda s, c=c: s[3].update({"if": c}))[0] == [] for c in ("always() && " + nb_gate, nb_gate + " && success()", "!cancelled() && " + nb_gate)))
+    check("a browser run in the action with no gate is refused, as in a job", any_of("must carry", act(lambda s: s[2].pop("if"))[0]))
+    check("an action with no final step is refused, naming the action", any_of("the LAST step of the composite action must be the final step", act(steps=action_steps[:-1])[0]))
+    check("an action with two installs is refused, naming the action", any_of("in the composite action, found 2", act(steps=action_steps[:1] + action_steps)[0]))
+    check("a composite action document read as a JOB finds no install: the two shapes are not confused",
+          any_of("in job `verify`, found 0", audit(action_doc, pkg, read, final_timeout=5)[0]) and job_steps(good, None) == [] and job_steps(action_doc, None) == action_steps)
+
     # ---- THE REAL-TREE PATH AND THE CLI EXIT: run the guard itself, as the browser-gate job does, in a temporary root holding a verify.yml
     # big enough to pass the coverage floors, a live-check.yml of the second target, and the other install sites each with its annotation
     live_final = {"name": "Chromium did not install", "if": "always() && steps.chromium.outcome != 'success'", "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}"},
@@ -1575,10 +1647,13 @@ def self_test():
                  "      # browser-gate: exempt 1 -- the probe's own verdict is the only step after it and needs the browser's result\n" + \
                  "      - name: Install Chromium\n        run: npx playwright install chromium\n      - name: verdict\n        run: npm run pure\n      - name: Commit\n        if: always()\n        run: npm run pure\n"
 
-    def cli(steps, with_probe=probe_text, live=live_wf, extra=None):
+    def cli(steps, with_probe=probe_text, live=live_wf, extra=None, action=action_doc):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / ".github" / "workflows").mkdir(parents=True)
+            if action is not None:
+                (root / ".github" / "actions" / "mutation-shard").mkdir(parents=True)
+                (root / ".github" / "actions" / "mutation-shard" / "action.yml").write_text(yaml.safe_dump(action))
             (root / ".github" / "workflows" / "verify.yml").write_text(yaml.safe_dump(wf(steps)))
             if live is not None:
                 (root / ".github" / "workflows" / "live-check.yml").write_text(yaml.safe_dump(live))
@@ -1599,7 +1674,8 @@ def self_test():
           [{"name": f"plain {i}", "run": "npm run pure"} for i in range(50)] + [final]
     rc, out = cli(big)
     check("THE CLI on a good tree exits 0 and says `verdict: gated`", rc == 0 and "verdict: gated" in out, (rc, out[-400:]))
-    check("...it reads BOTH targets and says so", "workflows/verify.yml, job `verify`" in out and "workflows/live-check.yml, job `live`" in out and "2 job(s) get the whole shape" in out, out[-500:])
+    check("...it reads ALL THREE targets and says so", "workflows/verify.yml, job `verify`" in out and "workflows/live-check.yml, job `live`" in out
+          and "actions/mutation-shard/action.yml, composite action" in out and "3 job(s) get the whole shape" in out, out[-500:])
     check("...and lists the exempt site with its pinned N and its reason (Rule 91)", "probe.yml:" in out and "N=1" in out and "the probe's own verdict" in out, out[-400:])
     broken = [dict(s) for s in big]
     del broken[1]["id"]
@@ -1610,6 +1686,12 @@ def self_test():
     check("THE CLI applies the coverage floors to the first target: a tree that reads too little exits 1", rc == 1 and "expected at least" in out, (rc, out[-300:]))
     rc, out = cli(big, live=None)
     check("THE CLI with a target file missing exits 1 and says which", rc == 1 and "live-check.yml does not exist" in out, (rc, out[-300:]))
+    rc, out = cli(big, action=None)
+    check("THE CLI with the composite action missing exits 1 and says which", rc == 1 and "action.yml does not exist" in out, (rc, out[-300:]))
+    rc, out = cli(big, action={"runs": {"using": "composite", "steps": [sh(dict(inst)), sh(dict(final))]}})
+    check("THE CLI applies the coverage floors to the composite action: an action that reads too little exits 1, naming it", rc == 1 and "action.yml: only" in out and "expected at least" in out, (rc, out[-300:]))
+    rc, out = cli(big, action={"runs": {"using": "composite", "steps": action_steps[:3] + action_steps[4:]}})
+    check("THE CLI on an action that lost its no-browser run falls under the floor of 5 steps and exits 1: the floor is what keeps the run from being deleted without a word", rc == 1 and "action.yml: only 4 steps read" in out, (rc, out[-300:]))
     rc, out = cli(big, live={"jobs": {"live": {"steps": live_good[:-1]}}})
     check("THE CLI on a second target that lost its final step exits 1, naming that file", rc == 1 and "live-check.yml: the LAST step" in out, (rc, out[-300:]))
     rc, out = cli(big, live={"jobs": {"live": {"steps": [dict(live_good[0]), dict(live_good[1])] + live_good[2:4]}}})
@@ -1923,7 +2005,7 @@ def real_tree(root="."):
             bad.append(f"the target {tg['file']} is not valid YAML ({type(e).__name__}): this guard cannot read it")
             continue
         problems, cov = audit(doc, pkg, read, job=tg["job"])
-        print(f"=== {tg['file']}, job `{tg['job']}`: the browser steps wait for the Chromium install ===")
+        print(f"=== {tg['file']}, {'composite action' if tg['job'] is None else 'job `' + tg['job'] + '`'}: the browser steps wait for the Chromium install ===")
         print(f"  steps after the install read : {cov['steps']}")
         print(f"  need a browser (gated)       : {cov['browser']}")
         print(f"  need none (not gated)        : {cov['plain']}")
@@ -1935,7 +2017,7 @@ def real_tree(root="."):
             print(json.dumps(classification(doc, pkg, read, tg["job"]), indent=1))
     exempt_problems, table = exempt_sites(root, pkg, read)
     bad += exempt_problems
-    print(f"COVERAGE: {len(TARGETS)} job(s) get the whole shape ({', '.join(t['file'] + ':' + t['job'] for t in TARGETS)}).")
+    print(f"COVERAGE: {len(TARGETS)} job(s) get the whole shape ({', '.join(t['file'] + (':' + t['job'] if t['job'] else '') for t in TARGETS)}).")
     print(f"  The other {len(table)} install site(s) are EXEMPT by the annotation above each install; N is the number of steps after it that are not certain to run when")
     print("  it fails and are not shown to need a browser, pinned so a step added there is noticed. A site with no annotation, or a wrong N, is a problem below:")
     for rel, line, n, reason in table:

@@ -27,6 +27,9 @@
 //         --ids a,b,c        exactly these mutations
 //         --list-ids         print the ids a full run covers, as JSON, and exit (reads, runs nothing)
 //         --out FILE         write a record per mutation (verdict, build and expectation times, whether the compiled output changed)
+//         --no-browser       the runner has no browser (its `Install Chromium` failed): an expectation that fails with Playwright's missing-browser text is NOT APPLICABLE
+//                            (the baseline lists it, each mutation expecting it is recorded `n/a` and not run), and every other expectation runs as always. The result says
+//                            `noBrowser: true`, and scripts/mutation-merge.mjs refuses to read such a table as a pass. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7.
 //         --build watch|full watch (default): one `dotnet fable watch -c Release` for the whole run, about 3 s a compile; full: `npm run build` every time,
 //                            the reference. Both make the build CLEAN, and check its digest, before every mutation.
 //
@@ -44,7 +47,7 @@ import { fileURLToPath } from 'node:url'
 import { join, dirname, resolve } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
 import { isLive, startOf, statOf } from './run-marker.mjs'
-import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile } from './mutation-lib.mjs'
+import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile, MISSING_BROWSER, notApplicableBecause, failedBaseline } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
 // A flag given without a value is a usage error. It used to read as "not given", so `--ids "$LIST"` with an empty LIST, or a trailing `--shard`, ran the whole table
@@ -63,6 +66,7 @@ const BUILD_MODE = flagValue('--build') ?? 'watch'
 const SHARD = flagValue('--shard')
 const IDS = flagValue('--ids')
 const OUT = flagValue('--out')
+const NO_BROWSER = process.argv.includes('--no-browser')
 // Test-only: `skip-restore-wait` makes the watch driver write a restore and NOT wait for the compile, which the next pre-check must refuse.
 const MUTATION_FAULT = process.env.MUTATION_FAULT ?? null
 
@@ -13270,6 +13274,70 @@ const MUTATIONS = [
     replace: "nextResolve(specifier, context)",
     expect: "node scripts/no-launch-check.mjs --self-test",
   },
+  {
+    id: "no-browser-baseline-flag-not-passed",
+    file: "scripts/mutation-check.mjs",
+    claim: "the baseline classifies a missing browser as not applicable only because --no-browser reaches it",
+    find: "stderr: e.stderr, noBrowser: NO_BROWSER })",
+    replace: "stderr: e.stderr, noBrowser: false })",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-mutation-time-launch-ignored",
+    file: "scripts/mutation-check.mjs",
+    claim: "a mutation whose expectation cannot start a browser is not read as a catch under --no-browser",
+    find: "lastMissingBrowser = NO_BROWSER && MISSING_BROWSER.test(",
+    replace: "lastMissingBrowser = false && MISSING_BROWSER.test(",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-na-record-lacks-reason",
+    file: "scripts/mutation-check.mjs",
+    claim: "a mutation not run for want of a browser says so in its record",
+    find: "...(noBrowserExpects.has(m.expect) ? { noBrowser: true } : {})",
+    replace: "...({})",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-result-lacks-flag",
+    file: "scripts/mutation-check.mjs",
+    claim: "a result file says whether its run had no browser",
+    find: "noBrowser: NO_BROWSER,\n    shard: SHARD,",
+    replace: "noBrowser: false,\n    shard: SHARD,",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-classifier-ignores-flag",
+    file: "scripts/mutation-lib.mjs",
+    claim: "a missing browser is a hole only under --no-browser, and a failure otherwise",
+    find: "noBrowser && MISSING_BROWSER.test(text) ? 'no-browser'",
+    replace: "MISSING_BROWSER.test(text) ? 'no-browser'",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-signature-too-wide",
+    file: "scripts/mutation-lib.mjs",
+    claim: "only Playwright's launch error counts as a missing browser, not any text that mentions an executable",
+    find: "/browserType\\.launch: Executable doesn't exist at /",
+    replace: "/Executable doesn't exist/",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-baseline-record-lacks-reason",
+    file: "scripts/mutation-lib.mjs",
+    claim: "the baseline record of a missing browser says why it has no subject",
+    find: "return { cmd, passed: false, notApplicable: true, noBrowser: true }",
+    replace: "return { cmd, passed: false, notApplicable: true }",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-merge-reads-a-hole-as-green",
+    file: "scripts/mutation-merge.mjs",
+    claim: "a table with shards that ran without a browser is never read as a pass",
+    find: "if (noBrowserCmds.length > 0 || (data.records ?? []).some(r => r.noBrowser)) {",
+    replace: "if (false) {",
+    expect: "node scripts/mutation-merge.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
@@ -13721,6 +13789,8 @@ const childEnv = extra => ({ ...process.env, MUTATION_STATE_DIR: join(stateDir, 
 // maxBuffer is 1 MiB, and a command that merely PRINTS more than that is killed and reported as failed (ENOBUFS), so the limit is raised well past anything a build prints and a
 // failure says which kind it was. (Review 4, 2026-11-04: a build that succeeds by hand but prints 1.2 MB wedged every later run behind "npm run build failed".)
 let lastFailure = ''
+// Set by `run` when the command failed with Playwright's missing-browser text and the run is `--no-browser`: read by `expectation`, like `lastSignal`.
+let lastMissingBrowser = false
 // The signal that ended the last command, or null if it ended by itself (a check that fails exits non-zero: that is its answer; one that is killed has given none) or was ended by this run's own
 // output limit (it failed). `sh -c a && b` reports a killed `b` as exit status 128 plus the signal, so a status in that range counts too (the OOM killer and a browser crash both look like this).
 // That window (129 to 159) cannot be narrowed to `e.signal` alone: probed 2026-11-05, `sleep 5 & kill -KILL $!; wait $!` ends with status 137 and NO signal, which is the shape a killed child
@@ -13731,6 +13801,7 @@ let lastSignal = null
 const OUTPUT_LIMIT = Number(process.env.MUTATION_OUTPUT_LIMIT) || 256 * 1024 * 1024
 const run = (cmd, extra) => {
   lastSignal = null
+  lastMissingBrowser = false
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(extra), maxBuffer: OUTPUT_LIMIT })
     return true
@@ -13739,6 +13810,7 @@ const run = (cmd, extra) => {
     // run's own limit, not a kill from outside: the command did not finish, and a check that cannot finish has failed. Told apart by the code, never by the name of the signal (review 6, 2026-11-05: a
     // mutated check that printed without end was reported as "ended by SIGTERM" and stopped the shard at that mutation, where before the signal rule it was a caught mutation).
     lastSignal = e.code === 'ENOBUFS' ? null : (e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null))
+    lastMissingBrowser = NO_BROWSER && MISSING_BROWSER.test(`${e.stdout ?? ''}${e.stderr ?? ''}`)
     const tail = String(e.stderr ?? '').trim().split('\n').slice(-3).join(' | ').slice(0, 300)
     lastFailure = `${e.code ?? (e.status !== null && e.status !== undefined ? `exit ${e.status}` : `signal ${e.signal}`)}${tail ? `: ${tail}` : ''}`
     return false
@@ -15205,6 +15277,41 @@ if (process.argv.includes('--self-test')) {
     const writeUpsBack = () => Object.entries(writeUps).every(([p, t]) => read(join(repo, p)) === t)
     const MUTATED_ROWS = rows.replace('# THE GATE IS A CONJUNCTION.', '# THE GATE IS A CONJUNCTION (mutated).')
 
+    // NO-BROWSER, END TO END: the real script, started in the scratch repository, against a row that prints Playwright's own text for a launch with no browser and exits 1 (a runner whose
+    // `Install Chromium` failed). With `--no-browser` the baseline lists it as not applicable, the mutation expecting it is recorded `n/a` and is NOT run (the write-ups are untouched), and the
+    // result says `noBrowser`. Without the flag the same text is a failing baseline: the flag is what makes a missing browser a hole instead of a failure.
+    reset()
+    const MISSING = "browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n║     npx playwright install ║"
+    writeFileSync(join(repo, 'scripts', 'run-row.mjs'), `console.error(${JSON.stringify(MISSING)})\nprocess.exit(1)\n`)
+    const nbOut = join(scratch, 'no-browser-out.json')
+    const nb1 = go(['--only', 'outbox-stub', '--no-browser', '--out', nbOut])
+    let nbJson = null
+    try { nbJson = JSON.parse(readFileSync(nbOut, 'utf8')) } catch { nbJson = null }
+    const nb0 = go(['--only', 'outbox-stub'])
+    check('NO-BROWSER, END TO END: with --no-browser a row that cannot launch is not applicable (recorded `n/a` with the reason, not run, the tree untouched, exit 0); without the flag the same text is a failing baseline',
+      nb1.status === 0 && /N\/A   \[outbox-stub\]/.test(text(nb1)) && nbJson?.noBrowser === true && nbJson.records.length === 1 && nbJson.records[0].verdict === 'n/a' && nbJson.records[0].noBrowser === true
+        && nbJson.baseline.notApplicable.length === 1 && nbJson.baseline.failing === 0 && nbJson.baseline.results[0].noBrowser === true && writeUpsBack()
+        && nb0.status !== 0 && /baseline FAILING/.test(text(nb0)),
+      `with: exit ${nb1.status}, json ${JSON.stringify(nbJson && { noBrowser: nbJson.noBrowser, records: nbJson.records, baseline: nbJson.baseline?.notApplicable })}; ${text(nb1).slice(-300)} / without: exit ${nb0.status}, ${text(nb0).slice(-200)}`)
+
+    // ...and the other way it can go wrong: a browser that the BASELINE did not need and the mutation did (a row that passes unmutated, and prints the missing-browser text once a write-up is a
+    // stub). Under --no-browser that is not a catch: the check never started, so the run stops (exit 1, nothing caught, the write-ups back). Without the flag the same row is an ordinary catch.
+    reset()
+    writeFileSync(join(repo, 'scripts', 'run-row.mjs'),
+      "import { readdirSync, readFileSync } from 'node:fs'\n"
+      + `if (readdirSync('outbox').some(f => readFileSync('outbox/' + f, 'utf8') === 'stub\\n')) { console.error(${JSON.stringify(MISSING)}); process.exit(1) }\n`)
+    const nb2 = go(['--only', 'outbox-stub', '--no-browser'])
+    const nb2Back = writeUpsBack() && !stateLeft()
+    reset()
+    writeFileSync(join(repo, 'scripts', 'run-row.mjs'),
+      "import { readdirSync, readFileSync } from 'node:fs'\n"
+      + `if (readdirSync('outbox').some(f => readFileSync('outbox/' + f, 'utf8') === 'stub\\n')) { console.error(${JSON.stringify(MISSING)}); process.exit(1) }\n`)
+    const nb3 = go(['--only', 'outbox-stub'])
+    check('NO-BROWSER, END TO END: a browser the baseline did not need and a mutation did is not a catch under --no-browser: the run stops, naming the mutation, with the write-ups back; without the flag it is caught as before',
+      nb2.status === 1 && /\[outbox-stub\] its expectation needed a browser and found none/.test(text(nb2)) && !/PASS  \[outbox-stub\]/.test(text(nb2)) && nb2Back
+        && nb3.status === 0 && /PASS  \[outbox-stub\]/.test(text(nb3)),
+      `with: exit ${nb2.status}, back ${nb2Back}; ${text(nb2).slice(-260)} / without: exit ${nb3.status}; ${text(nb3).slice(-200)}`)
+
     // E1: a source mutation, SIGKILLed the moment it is applied.
     reset()
     const k1 = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
@@ -16140,6 +16247,26 @@ if (process.argv.includes('--self-test')) {
     'only a run of the whole table writes it')
   check('every mutation has a distinct id', new Set(ids).size === ids.length, 'a repeated id would run twice in one shard and never in another')
 
+  // --no-browser: what counts as "the runner has no browser". The text is Playwright's own, recorded 2026-11-15 (playwright 1.62.1, empty PLAYWRIGHT_BROWSERS_PATH).
+  const REAL = "browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔══╗\n║ Looks like Playwright was just installed or updated. ║\n║     npx playwright install ║"
+  check('NO-BROWSER: Playwright\'s missing-browser text under --no-browser is not applicable; the same text without the flag is a failure',
+    notApplicableBecause({ status: 1, text: REAL, noBrowser: true }) === 'no-browser' && notApplicableBecause({ status: 1, text: REAL, noBrowser: false }) === null, 'the flag is what makes a missing browser a hole instead of a failure')
+  check('NO-BROWSER: any other failure under --no-browser is still a failure (a real assertion, a crash, a timeout), and exit 3 is not applicable with or without the flag',
+    notApplicableBecause({ status: 1, text: 'FAIL  [x] the score is wrong', noBrowser: true }) === null
+    && notApplicableBecause({ status: 1, text: "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/", noBrowser: true }) === null
+    && notApplicableBecause({ status: 3, text: '', noBrowser: false }) === 'exit-3' && notApplicableBecause({ status: 3, text: '', noBrowser: true }) === 'exit-3', 'only the launch error is a missing browser')
+  // The record the baseline keeps, which is what the merge reads (scripts/mutation-merge.mjs refuses a table whose records say `noBrowser`, and refuses a not-applicable record its baseline does not list).
+  const rec = (status, text, noBrowser) => failedBaseline({ cmd: 'node scripts/x.mjs', status, stdout: '', stderr: text, noBrowser })
+  const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  check('NO-BROWSER: the baseline record of a launch with no browser is not applicable AND says why; exit 3 keeps its old shape; any other failure keeps its status and its tail',
+    eq(rec(1, REAL, true), { cmd: 'node scripts/x.mjs', passed: false, notApplicable: true, noBrowser: true })
+    && eq(rec(3, '', true), { cmd: 'node scripts/x.mjs', passed: false, notApplicable: true })
+    && eq(rec(1, REAL, false), { cmd: 'node scripts/x.mjs', passed: false, status: 1, tail: REAL })
+    && rec(2, Array.from({ length: 40 }, (_, i) => `line ${i}`).join('\n'), true).tail.split('\n').length === 30 && rec(null, 'killed', true).status === null,
+    JSON.stringify([rec(1, REAL, true), rec(3, '', true), rec(1, 'x', true)]))
+  check('NO-BROWSER: the real text matches the signature in whole and in part, and not a near miss',
+    MISSING_BROWSER.test(REAL) && !MISSING_BROWSER.test("Executable doesn't exist at /x") && !MISSING_BROWSER.test('browserType.launch: Timeout 30000ms exceeded'), 'it names the launch and the missing executable')
+
   // The command line, run for real. Each of these exits before the baseline, so nothing is built, mutated or healed, and each has to be a usage error (status 2) that says
   // what was wrong, not a stack trace (status 1) and not a run that started anyway.
   const usage = args => {
@@ -16283,17 +16410,8 @@ const baselineOne = cmd => {
     execSync(process.env.MUTATION_FAULT === 'baseline-prints-a-lot' ? printsALot + cmd : process.env.MUTATION_FAULT === 'baseline-terms-the-run' ? `kill -TERM $PPID && ${cmd}` : cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(), maxBuffer: OUTPUT_LIMIT })
     return { cmd, passed: true }
   } catch (e) {
-    // EXIT 3 IS `run-row.mjs` SAYING ITS ROW HAS NO SUBJECT ON THIS RUN: the
-    // outbox row under verify-full's cron, which is not a session
-    // (docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md). Not a
-    // failure of the unmutated tree, and not a pass either: every mutation
-    // expecting it is reported below as not applicable, never as caught.
-    if (e.status === 3) return { cmd, passed: false, notApplicable: true }
-    // The tail, because a check's verdict is at the END of its output and the
-    // head is setup noise.
-    const text = `${e.stdout ?? ''}${e.stderr ?? ''}`.trimEnd()
-    return { cmd, passed: false, status: e.status ?? null,
-             tail: text.split("\n").slice(-30).join("\n") }
+    // What the failure means (a failing expectation, or one with no subject on this run) is decided in the lib, where the self-test can reach it: `failedBaseline`.
+    return failedBaseline({ cmd, status: e.status, stdout: e.stdout, stderr: e.stderr, noBrowser: NO_BROWSER })
   }
 }
 // One turn of the loop after each: the baseline is the longest stretch of synchronous work in a run (every distinct expectation, once), and a plain kill is acted on only when the loop turns.
@@ -16304,6 +16422,8 @@ for (const cmd of distinctExpects) {
 }
 const baselineMs = lapBaseline()
 const notApplicableExpects = new Set(baselineResults.filter(r => r.notApplicable).map(r => r.cmd))
+// The ones that have no subject because there is no browser (not because their row does not apply): their mutations say so in their records.
+const noBrowserExpects = new Set(baselineResults.filter(r => r.noBrowser).map(r => r.cmd))
 const baselineFailures = baselineResults.filter(r => !r.passed && !r.notApplicable).map(r => r.cmd)
 const notApplicableMutations = selected.filter(m => notApplicableExpects.has(m.expect))
 console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.length} `
@@ -16395,6 +16515,8 @@ const fatal = msg => {
 const expectation = async m => {
   const passed = run(expectOf(m))
   if (lastSignal) fatal(`[${m.id}] its expectation was ended by ${lastSignal}: a command that is killed has not failed, so the mutation is neither caught nor a survivor, and the run stops. The file and the state are put back as for any other exit.`)
+  // A browser that was there for the baseline and is not here is not a catch: the check never ran. Stopping is the only honest answer (the baseline lists what needs none).
+  if (lastMissingBrowser) fatal(`[${m.id}] its expectation needed a browser and found none, but its baseline ran without one: a check that could not start has not failed, so the mutation is neither caught nor a survivor, and the run stops. The file and the state are put back as for any other exit.`)
   await tick()
   return passed
 }
@@ -16423,7 +16545,7 @@ for (const m of selected) {
   // not scored on this run at all. The count is printed with the baseline above.
   if (notApplicableExpects.has(m.expect)) {
     console.log(`  N/A   [${m.id}] ${m.claim} — \`${m.expect}\` is not applicable on this run`)
-    records.push({ id: m.id, kind: kindOf(m), verdict: 'n/a', expect: m.expect })
+    records.push({ id: m.id, kind: kindOf(m), verdict: 'n/a', expect: m.expect, ...(noBrowserExpects.has(m.expect) ? { noBrowser: true } : {}) })
     continue
   }
   // A WORLD mutation changes something outside the source — a file the check
@@ -16665,6 +16787,8 @@ if (OUT) {
     at: BASELINE_AT.toISOString(),
     sha: capture('git rev-parse HEAD').trim(),
     mode: BUILD_MODE,
+    // Whether this run had no browser (`--no-browser`). A table that did is not a pass whatever its verdicts say: scripts/mutation-merge.mjs says so.
+    noBrowser: NO_BROWSER,
     shard: SHARD,
     ids: selected.map(m => m.id),
     tableSize: eligible.length,

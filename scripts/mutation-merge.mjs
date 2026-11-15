@@ -88,6 +88,12 @@ export const mergeShards = ({ files, allIds, sha, n, readProblems = [] }) => {
       records.push({ ...r, shard: i })
     }
 
+    // A shard that ran with `--no-browser` (its Install Chromium failed) is a RESULT, not a pass: the expectations that need a browser were not run, and a table with
+    // those holes in it must not read as green (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7). What did run is still in the records, survivors by name.
+    const noBrowserCmds = (data.baseline?.results ?? []).filter(b => b.noBrowser)
+    if (noBrowserCmds.length > 0 || (data.records ?? []).some(r => r.noBrowser)) {
+      verdict.push(`${where}: ran with no browser (its Install Chromium failed): ${noBrowserCmds.length} expectation(s) and ${(data.records ?? []).filter(r => r.noBrowser).length} mutation(s) were not run`)
+    }
     const failing = (data.baseline?.results ?? []).filter(b => !b.passed && !b.notApplicable).length
     if (data.baseline?.failing !== failing) structural.push(`${where}: its baseline says ${data.baseline?.failing} failing and lists ${failing}`)
     if (failing > 0) verdict.push(`${where}: ${failing} baseline expectation(s) already failing on the unmutated tree, so nothing it measured means anything: ${(data.baseline?.results ?? []).filter(b => !b.passed && !b.notApplicable).map(b => `\`${b.cmd}\``).join('; ')}`)
@@ -241,6 +247,21 @@ const selfTest = () => {
     for (const f of files) f.data.baseline.notApplicable = ['x']
     const r = merge(files); return r.structural.length === 0 && r.counts.na === 1
   })())
+
+  // A shard that ran with no browser: the table is whole, the n/a rows are accepted as structure, and the verdict is NOT green.
+  const noBrowserSet = () => {
+    const files = build()
+    files[0].data.noBrowser = true
+    const cmd = files[0].data.records[0].expect
+    files[0].data.records[0].verdict = 'n/a'; files[0].data.records[0].noBrowser = true
+    for (const f of files) f.data.baseline.notApplicable = [cmd]
+    for (const f of files) for (const b of f.data.baseline.results) if (b.cmd === cmd) { b.passed = false; b.notApplicable = true; b.noBrowser = true }
+    return files
+  }
+  const nb = merge(noBrowserSet())
+  check('MUTATION: a shard that ran with no browser is a verdict problem naming it, with the counts, and not a structural one (the table is whole)',
+    nb.structural.length === 0 && has(nb.verdict, /shard 1\/3: ran with no browser \(its Install Chromium failed\): 1 expectation\(s\) and 1 mutation\(s\) were not run/), JSON.stringify([nb.structural, nb.verdict]))
+  check('MUTATION: a table whose shards ran with a browser has no such verdict', !has(good.verdict, /ran with no browser/), JSON.stringify(good.verdict))
 
   // readShardSet on a real directory.
   const dir = mkdtempSync(join(tmpdir(), 'merge-selftest-'))
