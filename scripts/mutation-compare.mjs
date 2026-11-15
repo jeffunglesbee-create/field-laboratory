@@ -78,7 +78,7 @@ export const compareRuns = ({ watch, full, allIds, sha, n }) => {
   return {
     problems, verdictDiffs, digestDiffs,
     report: {
-      at: COMPARED_AT.toISOString(), sha, of: n,
+      at: COMPARED_AT.toISOString(), sha, of: n, problems: [...problems],
       compared: perId.length, table: allIds.length, rebuildingCompared: rebuilding.length,
       verdictDiffs, digestDiffs, cleanDigest: { ...clean, equal: cleanEqual },
       legacy, wall: { watch: wall('watch'), full: wall('full') }, crashRetries: { watch: w.merged.counts.crashRetries, full: f.merged.counts.crashRetries }, perId,
@@ -122,6 +122,9 @@ const selfTest = () => {
   const has = (list, re) => list.some(p => re.test(typeof p === 'string' ? p : JSON.stringify(p)))
 
   const good = cmp()
+  check('THE REPORT CARRIES THE PROBLEMS: the committed artifact of a refused comparison says so, not only the job that was red',
+    (() => { const full = make('full'); full.files[0].data.sha = 'f'.repeat(40); const r = cmp(make('watch'), full); return r.problems.length > 0 && JSON.stringify(r.report.problems) === JSON.stringify(r.problems) })()
+      && JSON.stringify(cmp().report.problems) === '[]', 'the equivalence report of a run with no browser on both sides must not read as a whole table')
   check('two matching runs compare with no problem', good.problems.length === 0 && good.verdictDiffs.length === 0 && good.digestDiffs.length === 0, JSON.stringify([good.problems, good.verdictDiffs, good.digestDiffs]))
   check('the denominator is the whole table', denominator(good).startsWith('7 of 7 mutations compared, 0 verdict(s) differing; 4 that rebuild compared by compiled digest, 0 differing; of 3 that do not rebuild, 3 caught on a clean build and 0 survive'), denominator(good))
 

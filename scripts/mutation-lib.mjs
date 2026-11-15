@@ -476,11 +476,16 @@ export const stopwatch = () => { const t = Date.now(); return () => Date.now() -
  *  failed prints from every browser script. */
 export const MISSING_BROWSER = /browserType\.launch: Executable doesn't exist at /
 
+/** The harness's own self-test, as a table entry names it as an expectation. It needs no browser, and it holds Playwright's missing-browser text on purpose (its fixtures), which a failing check
+ *  prints: read as a runner with no browser, a broken classifier would class the very check that proves the classifier as not applicable (baseline), or stop the shard (mutation time).
+ *  Review 2026-11-15, finding 7. */
+export const ownSelfTest = cmd => /(?:^|\s)node scripts\/mutation-check\.mjs --self-test(?:\s|$)/.test(String(cmd))
+
 /** Why a failing expectation has no subject on this run, or null when it is a real failure. Exit 3 is `run-row.mjs` saying its row does not apply (a scheduled run
  *  with no session). The missing browser counts ONLY under `--no-browser`: without the flag the same text is a failure, because a run that was meant to have a
  *  browser and has none has measured nothing. */
-export const notApplicableBecause = ({ status, text = '', noBrowser = false }) =>
-  status === 3 ? 'exit-3' : noBrowser && MISSING_BROWSER.test(text) ? 'no-browser' : null
+export const notApplicableBecause = ({ cmd = '', status, text = '', noBrowser = false }) =>
+  status === 3 ? 'exit-3' : noBrowser && !ownSelfTest(cmd) && MISSING_BROWSER.test(text) ? 'no-browser' : null
 
 /** The baseline record of an expectation that FAILED on the unmutated tree.
  *
@@ -490,7 +495,7 @@ export const notApplicableBecause = ({ status, text = '', noBrowser = false }) =
  *  with the TAIL of its output, because a check's verdict is at the END of its output and the head is setup noise. */
 export const failedBaseline = ({ cmd, status, stdout, stderr, noBrowser = false }) => {
   const text = `${stdout ?? ''}${stderr ?? ''}`.trimEnd()
-  const why = notApplicableBecause({ status, text, noBrowser })
+  const why = notApplicableBecause({ cmd, status, text, noBrowser })
   if (why === 'exit-3') return { cmd, passed: false, notApplicable: true }
   if (why === 'no-browser') return { cmd, passed: false, notApplicable: true, noBrowser: true }
   return { cmd, passed: false, status: status ?? null, tail: text.split('\n').slice(-30).join('\n') }

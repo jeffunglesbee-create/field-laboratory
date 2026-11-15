@@ -29,7 +29,8 @@
 //         --out FILE         write a record per mutation (verdict, build and expectation times, whether the compiled output changed)
 //         --no-browser       the runner has no browser (its `Install Chromium` failed): an expectation that fails with Playwright's missing-browser text is NOT APPLICABLE
 //                            (the baseline lists it, each mutation expecting it is recorded `n/a` and not run), and every other expectation runs as always. The result says
-//                            `noBrowser: true`, and scripts/mutation-merge.mjs refuses to read such a table as a pass. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7.
+//                            `noBrowser: true`; scripts/mutation-merge.mjs reads the marks on each not-applicable record and baseline entry (what was NOT run), and refuses to read such a table as a pass.
+//                            The top-level flag says how the shard was run, for a person reading the file. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7.
 //         --build watch|full watch (default): one `dotnet fable watch -c Release` for the whole run, about 3 s a compile; full: `npm run build` every time,
 //                            the reference. Both make the build CLEAN, and check its digest, before every mutation.
 //
@@ -47,7 +48,7 @@ import { fileURLToPath } from 'node:url'
 import { join, dirname, resolve } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
 import { isLive, startOf, statOf } from './run-marker.mjs'
-import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile, MISSING_BROWSER, notApplicableBecause, failedBaseline } from './mutation-lib.mjs'
+import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile, MISSING_BROWSER, notApplicableBecause, ownSelfTest, failedBaseline } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
 // A flag given without a value is a usage error. It used to read as "not given", so `--ids "$LIST"` with an empty LIST, or a trailing `--shard`, ran the whole table
@@ -5560,8 +5561,8 @@ const MUTATIONS = [
     id: "delete-branches-never-deletes",
     file: "scripts/delete-branches.mjs",
     claim: "the deletion actually deletes",
-    find: "  for (const name of before) push(['push', remote, '--delete', name], cwd)\n",
-    replace: "  for (const name of before) void name\n",
+    find: "    try { push(['push', remote, `:refs/heads/${name}`], cwd) } catch",
+    replace: "    try { void name } catch",
     expect: "node scripts/delete-branches.mjs --self-test",
   },
   {
@@ -13382,8 +13383,8 @@ const MUTATIONS = [
     id: "no-browser-mutation-time-launch-ignored",
     file: "scripts/mutation-check.mjs",
     claim: "a mutation whose expectation cannot start a browser is not read as a catch under --no-browser",
-    find: "lastMissingBrowser = NO_BROWSER && MISSING_BROWSER.test(",
-    replace: "lastMissingBrowser = false && MISSING_BROWSER.test(",
+    find: "lastMissingBrowser = notApplicableBecause({ cmd, status: 1,",
+    replace: "lastMissingBrowser = false && notApplicableBecause({ cmd, status: 1,",
     expect: "node scripts/mutation-check.mjs --self-test",
   },
   {
@@ -13406,8 +13407,8 @@ const MUTATIONS = [
     id: "no-browser-classifier-ignores-flag",
     file: "scripts/mutation-lib.mjs",
     claim: "a missing browser is a hole only under --no-browser, and a failure otherwise",
-    find: "noBrowser && MISSING_BROWSER.test(text) ? 'no-browser'",
-    replace: "MISSING_BROWSER.test(text) ? 'no-browser'",
+    find: "noBrowser && !ownSelfTest(cmd) && MISSING_BROWSER.test(text) ? 'no-browser'",
+    replace: "!ownSelfTest(cmd) && MISSING_BROWSER.test(text) ? 'no-browser'",
     expect: "node scripts/mutation-check.mjs --self-test",
   },
   {
@@ -13433,6 +13434,294 @@ const MUTATIONS = [
     find: "if (noBrowserCmds.length > 0 || (data.records ?? []).some(r => r.noBrowser)) {",
     replace: "if (false) {",
     expect: "node scripts/mutation-merge.mjs --self-test",
+  },
+  {
+    id: "no-browser-run-row-hides-why",
+    file: "scripts/run-row.mjs",
+    claim: "a row that failed says why, so a row that could not launch a browser is read as one under --no-browser",
+    find: "if (!passed) for (const f of failures)",
+    replace: "if (false) for (const f of failures)",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-own-self-test-is-read",
+    file: "scripts/mutation-lib.mjs",
+    claim: "the harness's own self-test is never read as a missing browser, wherever its text is echoed",
+    find: "noBrowser && !ownSelfTest(cmd) && MISSING_BROWSER.test(text)",
+    replace: "noBrowser && MISSING_BROWSER.test(text)",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-own-self-test-too-wide",
+    file: "scripts/mutation-lib.mjs",
+    claim: "only the harness's own self-test is exempt from the missing-browser reading, not any script's",
+    find: "node scripts\\/mutation-check\\.mjs --self-test(?:\\s|$)/.test(String(cmd))",
+    replace: "node scripts\\/[a-z-]+\\.mjs --self-test(?:\\s|$)/.test(String(cmd))",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "no-browser-baseline-forgets-the-command",
+    file: "scripts/mutation-lib.mjs",
+    claim: "the baseline classifier is told which command it is classifying",
+    find: "const why = notApplicableBecause({ cmd, status, text, noBrowser })",
+    replace: "const why = notApplicableBecause({ status, text, noBrowser })",
+    expect: "node scripts/mutation-check.mjs --self-test",
+  },
+  {
+    id: "gate-checks-drops-the-launch-line",
+    file: "scripts/gate-checks.mjs",
+    claim: "a failing command's kept lines include Playwright's missing-browser message",
+    find: "|error [A-Z]|Executable doesn't exist/",
+    replace: "|error [A-Z]/",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "compare-report-lacks-problems",
+    file: "scripts/mutation-compare.mjs",
+    claim: "the equivalence report says what was wrong with the run it reports",
+    find: "problems: [...problems],",
+    replace: "",
+    expect: "node scripts/mutation-compare.mjs --self-test",
+  },
+  {
+    id: "gate-mode-exit-ignores-failed-rows",
+    file: "scripts/gate-mode.mjs",
+    claim: "a failing row exits 1 in every mode at any score",
+    find: "(failed > 0 || (mode !== 'quick' && total < bar) ? 1 : 0)",
+    replace: "((mode !== 'quick' && total < bar) ? 1 : 0)",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-exit-browserless-failure-is-green",
+    file: "scripts/gate-mode.mjs",
+    claim: "a browserless run with a failing row does not exit 0",
+    find: "(failed > 0 || (mode !== 'quick' && total < bar) ? 1 : 0)",
+    replace: "((failed > 0 && mode !== 'browserless') || (mode !== 'quick' && total < bar) ? 1 : 0)",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-exit-ignores-bar",
+    file: "scripts/gate-mode.mjs",
+    claim: "a score under the bar exits 1",
+    find: "(mode !== 'quick' && total < bar)",
+    replace: "(false)",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-exit-bar-asked-of-quick",
+    file: "scripts/gate-mode.mjs",
+    claim: "quick, which skipped rows, is not held to the bar",
+    find: "(mode !== 'quick' && total < bar)",
+    replace: "(total < bar)",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-closing-line-counts-all-na",
+    file: "scripts/gate-mode.mjs",
+    claim: "the closing line of a browserless run counts only the rows not run for want of a browser",
+    find: "r.state === 'N/A' && r.why === 'browser'",
+    replace: "r.state === 'N/A'",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-confidence-exit-hardcoded",
+    file: "scripts/confidence.mjs",
+    claim: "the exit of a gate with failing rows is exitFor's, in every mode",
+    find: "process.exit(exitFor({ mode: MODE, failed: failedRows.length, total, bar: BAR }))",
+    replace: "process.exit(BROWSERLESS ? 0 : 1)",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-confidence-pass-falls-through",
+    file: "scripts/confidence.mjs",
+    claim: "a run that passed exits through exitFor too",
+    find: "console.log('\\n  Gate passed \u2014 every row, not a passing average.\\n')\nprocess.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))",
+    replace: "console.log('\\n  Gate passed \u2014 every row, not a passing average.\\n')",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-confidence-na-row-unmarked",
+    file: "scripts/confidence.mjs",
+    claim: "a row not run for want of a browser is marked as that",
+    find: "results.push({ ...row, state: 'N/A', seconds: 0, why: 'browser' })",
+    replace: "results.push({ ...row, state: 'N/A', seconds: 0 })",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-confidence-closing-line-unused",
+    file: "scripts/confidence.mjs",
+    claim: "the closing line of a browserless run is browserlessLine's",
+    find: "${browserlessLine(results)}",
+    replace: "--browserless: no failures",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-final-step-claims-the-gate-ran",
+    file: ".github/workflows/verify-full.yml",
+    claim: "the final step says the browserless gate ran only when its step succeeded",
+    find: "elif [ \"$GATE_OUTCOME\" = success ]; then",
+    replace: "elif [ \"$GATE_OUTCOME\" != failure ]; then",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-browserless-gate-has-no-id",
+    file: ".github/workflows/verify-full.yml",
+    claim: "the browserless gate step has an id the final step can read",
+    find: "        id: browserless-gate\n",
+    replace: "",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-final-step-reads-no-outcome",
+    file: ".github/workflows/verify-full.yml",
+    claim: "the final step is given the browserless gate's outcome",
+    find: "          GATE_OUTCOME: ${{ steps.browserless-gate.outcome }}\n",
+    replace: "",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-exit-ignored",
+    file: "scripts/no-launch-check.mjs",
+    claim: "the trap check's exit status is the verdict's",
+    find: "process.exit(r.exit)",
+    replace: "process.exit(0)",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-log-env-dropped",
+    file: "scripts/no-launch-check.mjs",
+    claim: "a command is measured with the log its launches are written to",
+    find: "env: { ...process.env, ...trap.env, LAUNCH_LOG: log }",
+    replace: "env: { ...process.env, ...trap.env }",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-log-not-read",
+    file: "scripts/no-launch-check.mjs",
+    claim: "the launches a command made are read back from its log",
+    find: "launches: readFileSync(log, 'utf8').split('\\n').filter(Boolean), last: out.trim()",
+    replace: "launches: [], last: out.trim()",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-launchserver-untrapped",
+    file: "scripts/no-launch-check.mjs",
+    claim: "launchServer is a launch the trap sees",
+    find: "launchServer: trap(n + '.launchServer'), ",
+    replace: "",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-electron-untrapped",
+    file: "scripts/no-launch-check.mjs",
+    claim: "_electron.launch is a launch the trap sees",
+    find: "const app = n => ({ launch: trap(n + '.launch'), connect: trap(n + '.connect') })",
+    replace: "const app = n => ({ connect: trap(n + '.connect') })",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-node-version-unreachable",
+    file: "scripts/no-launch-check.mjs",
+    claim: "a Node without registerHooks is reported by name",
+    find: "typeof mod.registerHooks === 'function'",
+    replace: "true",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-node-options-replaced",
+    file: "scripts/proof-check.mjs",
+    claim: "a child of proof-check's self-test keeps the trap's NODE_OPTIONS",
+    find: "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'other-run.cjs')}`.trim() })",
+    replace: "go({ NODE_OPTIONS: `--require ${join(dir, 'other-run.cjs')}` })",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-scan-finds-nothing",
+    file: "scripts/no-launch-check.mjs",
+    claim: "a script that replaces NODE_OPTIONS is found",
+    find: "offenders.push(`scripts/${f}:${i + 1}`)",
+    replace: "void 0",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-scan-not-in-verdict",
+    file: "scripts/no-launch-check.mjs",
+    claim: "a script that replaces NODE_OPTIONS makes the verdict not ok",
+    find: "for (const o of scan?.offenders ?? []) problems.push(",
+    replace: "for (const o of []) problems.push(",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-empty-list-passes",
+    file: "scripts/no-launch-check.mjs",
+    claim: "an empty list of commands is not a pass",
+    find: "floor: file ? 1 : MIN_COMMANDS",
+    replace: "floor: 0",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "delete-branches-short-form",
+    file: "scripts/delete-branches.mjs",
+    claim: "a tag of the same name does not stop the deletion of the branch",
+    find: "push(['push', remote, `:refs/heads/${name}`], cwd)",
+    replace: "push(['push', remote, '--delete', name], cwd)",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-stops-at-the-first-failure",
+    file: "scripts/delete-branches.mjs",
+    claim: "a deletion that throws does not stop the list",
+    find: "} catch (e) { failed.push({ name, why: String(e.stderr ?? e.message ?? e).trim().split('\\n').pop() }) }",
+    replace: "} catch (e) { throw e }",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-failure-unnamed",
+    file: "scripts/delete-branches.mjs",
+    claim: "a deletion that failed is reported with its name and reason",
+    find: "failed.push({ name, why: String(e.stderr ?? e.message ?? e).trim().split('\\n').pop() })",
+    replace: "void e",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-failure-exits-zero",
+    file: "scripts/delete-branches.mjs",
+    claim: "a deletion that failed ends the run red",
+    find: "  process.exit(exitFor(r))",
+    replace: "  process.exit(0)",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "record-check-counts-browserless-as-citable",
+    file: "scripts/confidence-record-check.mjs",
+    claim: "a browserless run is not counted among the citable runs",
+    find: "all.filter(id => id.endsWith('-browserless')).length",
+    replace: "all.filter(id => false).length",
+    expect: "node scripts/confidence-record-check.mjs --self-test",
+  },
+  {
+    id: "delete-branches-left-exits-zero",
+    file: "scripts/delete-branches.mjs",
+    claim: "a branch still on the remote ends the run red",
+    find: "r.left.length > 0 || r.failed.length > 0 ? 1 : 0",
+    replace: "r.failed.length > 0 ? 1 : 0",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-failed-exits-zero",
+    file: "scripts/delete-branches.mjs",
+    claim: "a failed deletion ends the run red",
+    find: "r.left.length > 0 || r.failed.length > 0 ? 1 : 0",
+    replace: "r.left.length > 0 ? 1 : 0",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-scan-reads-table-data",
+    file: "scripts/no-launch-check.mjs",
+    claim: "a mutation table's find/replace text is not read as a child's NODE_OPTIONS",
+    find: "&& !/^\\s*(find|replace)\\s*:/.test(line)",
+    replace: "",
+    expect: "node scripts/no-launch-check.mjs --self-test",
   },
   {
     id: "gate-mode-browserless-ignored",
@@ -13986,7 +14275,7 @@ const run = (cmd, extra) => {
     // run's own limit, not a kill from outside: the command did not finish, and a check that cannot finish has failed. Told apart by the code, never by the name of the signal (review 6, 2026-11-05: a
     // mutated check that printed without end was reported as "ended by SIGTERM" and stopped the shard at that mutation, where before the signal rule it was a caught mutation).
     lastSignal = e.code === 'ENOBUFS' ? null : (e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null))
-    lastMissingBrowser = NO_BROWSER && MISSING_BROWSER.test(`${e.stdout ?? ''}${e.stderr ?? ''}`)
+    lastMissingBrowser = notApplicableBecause({ cmd, status: 1, text: `${e.stdout ?? ''}${e.stderr ?? ''}`, noBrowser: NO_BROWSER }) === 'no-browser'
     const tail = String(e.stderr ?? '').trim().split('\n').slice(-3).join(' | ').slice(0, 300)
     lastFailure = `${e.code ?? (e.status !== null && e.status !== undefined ? `exit ${e.status}` : `signal ${e.signal}`)}${tail ? `: ${tail}` : ''}`
     return false
@@ -15488,6 +15777,25 @@ if (process.argv.includes('--self-test')) {
         && nb3.status === 0 && /PASS  \[outbox-stub\]/.test(text(nb3)),
       `with: exit ${nb2.status}, back ${nb2Back}; ${text(nb2).slice(-260)} / without: exit ${nb3.status}; ${text(nb3).slice(-200)}`)
 
+    // THE REAL run-row.mjs, against a gate-checks stand-in whose row fails the way a row does when a command it ran could not launch a browser: `ok` keeps the lines that say why, and run-row has to print
+    // them (it printed `FAIL  <row>` and nothing else, so under --no-browser the four expectations that are `node scripts/run-row.mjs "<row>"` were failing baselines, not holes; review 2026-11-15, finding 4).
+    const rr = join(scratch, 'run-row-real')
+    mkdirSync(join(rr, 'scripts'), { recursive: true })
+    copyFileSync(join(dirname(here), 'run-row.mjs'), join(rr, 'scripts', 'run-row.mjs'))
+    writeFileSync(join(rr, 'scripts', 'gate-checks.mjs'),
+      "export const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const rows = [\n"
+      + `  { name: 'bad', run: () => { failures.push({ cmd: 'node scripts/render-check.mjs', why: [${JSON.stringify(MISSING.split('\n')[0])}], silent: false }); return false } },\n`
+      + "  { name: 'good', run: () => true },\n  { name: 'quiet', run: () => { failures.push({ cmd: 'node scripts/x.mjs', why: [], silent: true }); return false } },\n]\n")
+    const rrGo = row => spawnSync(process.execPath, ['scripts/run-row.mjs', row], { cwd: rr, encoding: 'utf8' })
+    const rrBad = rrGo('bad'), rrGood = rrGo('good'), rrQuiet = rrGo('quiet')
+    const rrText = `${rrBad.stdout}${rrBad.stderr}`
+    check('RUN-ROW SAYS WHY A ROW FAILED: the lines `ok` kept for the failing command come out of the process, so a row that could not launch a browser is read as one under --no-browser (and as a failure without it); a passing row prints nothing more',
+      rrBad.status === 1 && /^FAIL  bad$/m.test(rrBad.stdout) && /node scripts\/render-check\.mjs/.test(rrBad.stderr)
+        && notApplicableBecause({ cmd: 'node scripts/run-row.mjs "bad"', status: rrBad.status, text: rrText, noBrowser: true }) === 'no-browser'
+        && notApplicableBecause({ cmd: 'node scripts/run-row.mjs "bad"', status: rrBad.status, text: rrText, noBrowser: false }) === null
+        && rrGood.status === 0 && rrGood.stderr === '' && rrQuiet.status === 1 && /\(no output\)/.test(rrQuiet.stderr),
+      `bad: exit ${rrBad.status}, ${rrText.length} bytes, ${MISSING_BROWSER.test(rrText) ? 'carries' : 'lacks'} the launch line; good: exit ${rrGood.status}, ${rrGood.stderr.length} bytes on stderr; quiet: exit ${rrQuiet.status}`)
+
     // E1: a source mutation, SIGKILLed the moment it is applied.
     reset()
     const k1 = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
@@ -16427,6 +16735,11 @@ if (process.argv.includes('--self-test')) {
   const REAL = "browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell\n╔══╗\n║ Looks like Playwright was just installed or updated. ║\n║     npx playwright install ║"
   check('NO-BROWSER: Playwright\'s missing-browser text under --no-browser is not applicable; the same text without the flag is a failure',
     notApplicableBecause({ status: 1, text: REAL, noBrowser: true }) === 'no-browser' && notApplicableBecause({ status: 1, text: REAL, noBrowser: false }) === null, 'the flag is what makes a missing browser a hole instead of a failure')
+  const SELF = 'node scripts/mutation-check.mjs --self-test'
+  check('NO-BROWSER: the harness\'s own self-test is never a missing browser, though a failing check of it prints Playwright\'s text (it holds it as a fixture): as a baseline it stays a failure, and the same command elsewhere in a line is no self-test',
+    ownSelfTest(SELF) && ownSelfTest(`  ${SELF}  `) && !ownSelfTest('node scripts/mutation-check.mjs') && !ownSelfTest('node scripts/mutation-check.mjs --anchors') && !ownSelfTest('node scripts/other.mjs --self-test')
+    && notApplicableBecause({ cmd: SELF, status: 1, text: REAL, noBrowser: true }) === null && notApplicableBecause({ cmd: 'node scripts/x.mjs', status: 1, text: REAL, noBrowser: true }) === 'no-browser'
+    && failedBaseline({ cmd: SELF, status: 1, stdout: '', stderr: REAL, noBrowser: true }).notApplicable === undefined, 'the self-test needs no browser')
   check('NO-BROWSER: any other failure under --no-browser is still a failure (a real assertion, a crash, a timeout), and exit 3 is not applicable with or without the flag',
     notApplicableBecause({ status: 1, text: 'FAIL  [x] the score is wrong', noBrowser: true }) === null
     && notApplicableBecause({ status: 1, text: "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8080/", noBrowser: true }) === null

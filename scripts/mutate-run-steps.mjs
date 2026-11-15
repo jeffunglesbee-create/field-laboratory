@@ -42,8 +42,8 @@ const MUTATIONS = [
    'an in-progress job reports a complete tally, so a mid-run read looks like a finished one'],
 
   ['S5 the smallest failure is reported instead of the largest',
-   "  return summaries.sort((a, b) => b.skipped - a.skipped)[0]",
-   "  return summaries.sort((a, b) => a.skipped - b.skipped)[0]",
+   "  return summaries.sort((a, b) => hidden(b) - hidden(a) || b.skipped - a.skipped)[0]",
+   "  return summaries.sort((a, b) => hidden(a) - hidden(b) || a.skipped - b.skipped)[0]",
    'the job that hid the least is named, so the expensive red stays invisible behind the cheap one'],
 
   // THE ANCHOR SPANS BOTH LINES OF THE RETURN, and the first version of it did
@@ -81,6 +81,16 @@ const MUTATIONS = [
    "      `Nothing was skipped behind it — ${summary.ran - 1} other steps ran.${before}`",
    "      `Nothing was skipped behind it — ${summary.total - 1} other steps ran.${before}`",
    'the skipped steps are counted as having run'],
+
+  ['S13 the outage red is ranked by the tail behind its failing step alone (the review of 2026-11-15)',
+   "  const hidden = s => s.skipped + s.skippedBefore",
+   "  const hidden = s => s.skipped",
+   'a failed install has nothing behind it and twenty before it, so it loses to any other red job with a short tail, and the twenty checks that never ran vanish from the issue'],
+
+  ['S14 a tie is broken the wrong way',
+   "hidden(b) - hidden(a) || b.skipped - a.skipped",
+   "hidden(b) - hidden(a) || a.skipped - b.skipped",
+   'of two jobs that hid the same number, the one whose failing step skipped nothing behind it is reported'],
 
   ['S12 the failing step is found by its number, not its place in the job',
    "  const at = real.findIndex(s => s.conclusion === 'failure')",

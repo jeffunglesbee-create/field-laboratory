@@ -49,7 +49,7 @@ import { fileURLToPath } from 'node:url'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'
 import { runIdentity } from './checks.mjs'
-import { modeOf, actionFor, recordId } from './gate-mode.mjs'
+import { modeOf, actionFor, recordId, exitFor, browserlessLine } from './gate-mode.mjs'
 
 // The mode is decided by scripts/gate-mode.mjs, where its tests are. A contradiction (`--quick --browserless`) is a usage error: exit 2, nothing run, nothing recorded.
 let MODE
@@ -150,7 +150,7 @@ for (const row of rows) {
   }
   // --browserless: a row that needs a browser has no subject on this run. Not run, not scored, named (the same N/A a row that returns NOT_APPLICABLE gets).
   if (action === 'na') {
-    results.push({ ...row, state: 'N/A', seconds: 0 })
+    results.push({ ...row, state: 'N/A', seconds: 0, why: 'browser' })
     console.log(`  [   0s] N/A   ${row.name}  (--browserless: it needs a browser)`)
     continue
   }
@@ -162,7 +162,7 @@ for (const row of rows) {
   // printed as N/A and recorded by name below. A string is truthy, so this
   // branch has to come before `if (passed)` or it would score as a pass.
   if (passed === NOT_APPLICABLE) {
-    results.push({ ...row, state: 'N/A', seconds })
+    results.push({ ...row, state: 'N/A', seconds, why: 'no-subject' })
     console.log(`  [${String(seconds).padStart(4)}s] N/A   ${row.name}`)
     continue
   }
@@ -241,10 +241,10 @@ if (QUICK) {
     console.log(`\n  ${quickFailures.length} row(s) ran and FAILED:\n`)
     for (const r of quickFailures) console.log(`    - ${r.name}`)
     console.log('')
-    process.exit(1)
+    process.exit(exitFor({ mode: MODE, failed: quickFailures.length, total, bar: BAR }))
   }
   console.log('  No failures among the rows that ran.\n')
-  process.exit(0)
+  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
 }
 
 const failedRows = results.filter(r => r.state === 'FAIL')
@@ -268,7 +268,7 @@ if (failedRows.length > 0) {
   }
   console.log(`\n  The score above is ${total}/100 and is NOT the pass condition —`)
   console.log(`  every row must pass. Report the failing rows verbatim.\n`)
-  process.exit(1)
+  process.exit(exitFor({ mode: MODE, failed: failedRows.length, total, bar: BAR }))
 }
 
 // Unreachable while the conjunction holds, since every row passing scores 100.
@@ -277,14 +277,15 @@ if (failedRows.length > 0) {
 if (total < BAR) {
   console.log(`\n  Every row passed but the score is ${total}, below ${BAR}.`)
   console.log(`  The scoring has changed shape — fix that before trusting this run.\n`)
-  process.exit(1)
+  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
 }
 
 if (BROWSERLESS) {
   // Reached only with no failing row. It is still not a pass: the rows that need a browser were not run, they are named above and in the record, and a record of this mode
   // cannot back a score (confidence-record-check.mjs).
-  console.log(`\n  --browserless: no failures among the ${results.filter(r => r.state === 'PASS').length} rows that ran. ${notApplicable.length} row(s) that need a browser were NOT run (${notApplicable.reduce((a, r) => a + r.weight, 0)} points). This is NOT a pass.\n`)
-  process.exit(0)
+  console.log(`\n  ${browserlessLine(results)}\n`)
+  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
 }
 
 console.log('\n  Gate passed — every row, not a passing average.\n')
+process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))

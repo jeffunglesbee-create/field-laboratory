@@ -54,8 +54,11 @@ export function stepSummary(steps) {
  * The summary for whichever job in a run failed.
  *
  * A run has several jobs; only the one that failed has a skip tail worth
- * reporting. When more than one failed, the one with the largest tail is the
- * one that hid the most.
+ * reporting. When more than one failed, the one with the most steps that did
+ * not run is the one that hid the most: behind the failing step AND before it.
+ * A failed Chromium install is the shape with none behind it and twenty before
+ * (item 4 moved those into `skippedBefore`), and ranked by the tail alone it
+ * lost to any other red job with a short one (review 2026-11-15, finding 13).
  */
 export function worstFailure(jobs) {
   if (!Array.isArray(jobs)) return null
@@ -64,7 +67,8 @@ export function worstFailure(jobs) {
     .map(j => ({ job: j.name, ...(stepSummary(j.steps) ?? {}) }))
     .filter(s => s.failedStep)
   if (summaries.length === 0) return null
-  return summaries.sort((a, b) => b.skipped - a.skipped)[0]
+  const hidden = s => s.skipped + s.skippedBefore
+  return summaries.sort((a, b) => hidden(b) - hidden(a) || b.skipped - a.skipped)[0]
 }
 
 /** One sentence, or nothing. Never "0 skipped" from an unread run. */
@@ -150,6 +154,13 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     /Nothing was skipped behind it/.test(gateLine) && /20 steps before it were skipped/.test(gateLine) && !/did not run behind it/.test(gateLine), gateLine)
   check('...and the other-steps-ran figure is the steps that ran, not every step but the failing one',
     /— 2 other steps ran\./.test(gateLine), gateLine)
+  const claim = { name: 'claim-sweep', conclusion: 'failure', steps: [s('a', 'failure', 1), s('b', 'skipped', 2), s('c', 'skipped', 3)] }
+  const quiet = { name: 'browser-gate', conclusion: 'failure', steps: [s('a', 'failure', 1)] }
+  const outage = { name: 'verify', conclusion: 'failure', steps: gate }
+  check('THE OUTAGE RED IS THE ONE THAT HID THE MOST: twenty steps before the failing one and none behind it outrank a job with a two-step tail and one with nothing, in every order',
+    [[outage, claim, quiet], [quiet, claim, outage], [claim, outage], [claim, quiet, outage]].every(list => worstFailure(list).job === 'verify'), JSON.stringify([worstFailure([claim, quiet, outage]), worstFailure([quiet, outage])]))
+  check('...and between two jobs that hid the same number, the one with the tail behind its failing step is reported',
+    worstFailure([{ name: 'before', conclusion: 'failure', steps: [s('a', 'skipped', 1), s('b', 'skipped', 2), s('c', 'failure', 3)] }, { name: 'behind', conclusion: 'failure', steps: [s('c', 'failure', 1), s('a', 'skipped', 2), s('b', 'skipped', 3)] }]).job === 'behind')
   const tail = stepSummary([s('Build', 'success', 1), s('a', 'skipped', 2), s('Render', 'failure', 3), s('b', 'skipped', 4), s('c', 'skipped', 5)])
   check('a skip on each side of the failing step is counted on its own side', tail.skipped === 2 && tail.skippedBefore === 1, JSON.stringify(tail))
   check('a job with no failing step keeps counting every skipped step, and has no before-count',

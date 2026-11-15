@@ -65,7 +65,7 @@ const ok = cmd => {
   } catch (e) {
     const out = `${e.stdout ?? ''}\n${e.stderr ?? ''}`
     const lines = out.split('\n').map(l => l.trimEnd()).filter(Boolean)
-    const salient = lines.filter(l => /SURVIVED|^\s*FAIL|→|Error|error [A-Z]/.test(l))
+    const salient = lines.filter(l => /SURVIVED|^\s*FAIL|→|Error|error [A-Z]|Executable doesn't exist/.test(l))
     failures.push({
       cmd,
       why: (salient.length ? salient : lines).slice(-12),

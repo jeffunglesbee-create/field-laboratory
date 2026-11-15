@@ -39,14 +39,23 @@ export const existing = (names, remote, cwd) => {
   return names.filter(n => have.has(n))
 }
 
-/** Deletes the planned names that exist; returns `{ deleted, absent, left }`. `left` is what the remote still has afterwards. `push` is the command that deletes (a stand-in in the self-test). */
+/** Deletes the planned names that exist; returns `{ deleted, absent, left, failed }`. `left` is what the remote still has afterwards. `push` is the command that deletes (a stand-in in the self-test).
+ *  The refspec is `:refs/heads/<name>`, not `--delete <name>`: a TAG of the same name makes the short form ambiguous, and git then refuses it; the full ref names the branch and nothing else.
+ *  A deletion that throws is NAMED and does not stop the list: the names after it are still tried, and what is left is asked of the remote at the end (review 2026-11-15, finding 18: the first
+ *  failure ended the run, with the rest untried and no account of what was left). */
 export const apply = (names, remote, cwd, push = git) => {
   const before = existing(names, remote, cwd)
   const absent = names.filter(n => !before.includes(n))
-  for (const name of before) push(['push', remote, '--delete', name], cwd)
+  const failed = []
+  for (const name of before) {
+    try { push(['push', remote, `:refs/heads/${name}`], cwd) } catch (e) { failed.push({ name, why: String(e.stderr ?? e.message ?? e).trim().split('\n').pop() }) }
+  }
   const left = existing(names, remote, cwd)
-  return { deleted: before.filter(n => !left.includes(n)), absent, left }
+  return { deleted: before.filter(n => !left.includes(n)), absent, left, failed }
 }
+
+/** How a deletion run ends: red when a branch is still on the remote or a deletion failed. */
+export const exitFor = r => (r.left.length > 0 || r.failed.length > 0 ? 1 : 0)
 
 const main = () => {
   const args = process.argv.slice(2)
@@ -61,7 +70,9 @@ const main = () => {
   if (!args.includes('--apply')) { console.log('dry run (no --apply): nothing deleted'); return }
   const r = apply(p.ok, 'origin')
   console.log(`deleted ${r.deleted.length} of ${p.ok.length}: ${r.deleted.join(', ') || '(none)'}${r.absent.length ? `; already absent: ${r.absent.join(', ')}` : ''}`)
-  if (r.left.length > 0) { console.log(`STILL THERE: ${r.left.join(', ')}`); process.exit(1) }
+  for (const f of r.failed) console.log(`FAILED  ${f.name}: ${f.why}`)
+  if (r.left.length > 0) console.log(`STILL THERE: ${r.left.join(', ')}`)
+  process.exit(exitFor(r))
 }
 
 // --- self-test -----------------------------------------------------------------------
@@ -94,9 +105,24 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       for (const b of ['proof-c']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
       const silent = apply(['proof-c'], 'origin', work, () => '')
       check('A DELETION THAT CLAIMS TO HAVE WORKED AND DID NOT is caught by asking the remote afterwards: the branch is reported left, not deleted', silent.left.length === 1 && silent.deleted.length === 0, JSON.stringify(silent))
+      for (const b of ['proof-x', 'proof-y']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
+      g(['push', '-q', 'origin', 'HEAD:refs/tags/proof-x'], work)
+      const tagged = apply(['proof-x', 'proof-y'], 'origin', work)
+      check('A TAG OF THE SAME NAME DOES NOT STOP IT: both branches are deleted, the tag is left alone, and nothing failed',
+        JSON.stringify(tagged.deleted) === '["proof-x","proof-y"]' && tagged.failed.length === 0 && tagged.left.length === 0 && /refs\/tags\/proof-x/.test(g(['ls-remote', '--tags', 'origin'], work)), JSON.stringify(tagged))
+      for (const b of ['proof-p', 'proof-q']) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], work)
+      const flaky = apply(['proof-p', 'proof-q'], 'origin', work, (args, cwd) => {
+        if (args[2] === ':refs/heads/proof-p') throw Object.assign(new Error('boom'), { stderr: 'remote: permission denied\n' })
+        return git(args, cwd)
+      })
+      check('A DELETION THAT THROWS DOES NOT STOP THE LIST: the name after it is still deleted, the failure is named with its reason, and what is left is reported',
+        JSON.stringify(flaky.deleted) === '["proof-q"]' && flaky.failed.length === 1 && flaky.failed[0].name === 'proof-p' && flaky.failed[0].why === 'remote: permission denied' && JSON.stringify(flaky.left) === '["proof-p"]', JSON.stringify(flaky))
       const again = apply(['proof-a'], 'origin', work)
       check('...and running it again deletes nothing and fails nothing', again.deleted.length === 0 && again.absent.length === 1 && again.left.length === 0, JSON.stringify(again))
     } finally { rmSync(dir, { recursive: true, force: true }) }
+    check('THE EXIT: red when a branch is left or a deletion failed, green otherwise, and main() ends through it',
+      exitFor({ left: [], failed: [] }) === 0 && exitFor({ left: ['proof-a'], failed: [] }) === 1 && exitFor({ left: [], failed: [{ name: 'proof-a' }] }) === 1 && exitFor({ left: ['proof-a'], failed: [{ name: 'proof-a' }] }) === 1
+        && (src => src.slice(src.indexOf('const main = () => {'), src.indexOf('// --- self-test')).split('process.exit(exitFor(r))').length === 2)((await import('node:fs')).readFileSync(fileURLToPath(import.meta.url), 'utf8')), 'a deletion that failed must not end green')
     finish(summarize())
   } else main()
 }

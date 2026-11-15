@@ -130,6 +130,7 @@ READ-ONLY on the repository: it parses workflow YAML and reads scripts. The one 
 (rule 4), and only after the closed grammar has shown it can do nothing but print and exit: in an empty temporary
 directory with a minimal environment.
 """
+import itertools
 import json
 import os
 import re
@@ -157,13 +158,16 @@ TARGETS = [
     {"file": WORKFLOW, "job": JOB, "floors": (MIN_STEPS, MIN_BROWSER, MIN_PLAIN)},
     {"file": ".github/workflows/live-check.yml", "job": "live", "floors": (8, 5, 2)},
     # A composite action has no job: its steps are under `runs`, and `job` is None.
-    {"file": ".github/actions/mutation-shard/action.yml", "job": None, "floors": (5, 1, 3)},
-    {"file": ".github/workflows/verify-full.yml", "job": "full", "floors": (7, 2, 4)},
+    {"file": ".github/actions/mutation-shard/action.yml", "job": None, "floors": (5, 1, 3), "flagged": ("scripts/mutation-check.mjs",)},
+    {"file": ".github/workflows/verify-full.yml", "job": "full", "floors": (7, 2, 4), "flagged": ("scripts/confidence.mjs",)},
 ]
 # A comment line: its indentation, N (ASCII digits, no leading zero) and a reason that begins with a word character (a bare `--` or spaces is none).
 EXEMPT_NOTE = re.compile(r"^(\s*)#\s*browser-gate:\s*exempt\s+(0|[1-9][0-9]{0,3})\s+--\s+(\w.*?)\s*$")
 EXEMPT_REACH = 40       # the annotation sits within this many lines above the install command
 FINAL_OUTCOMES = ("failure", "skipped", "cancelled", "")   # what steps.chromium.outcome can be when the final step runs
+# What the outcome of ANY other step can be when the final step reads it (`GATE_OUTCOME: ${{ steps.<id>.outcome }}`): the final step has to fail for each, with each outcome of the install.
+ANY_OUTCOMES = ("success", "failure", "skipped", "cancelled", "")
+STEP_OUTCOME = re.compile(r"\$\{\{\s*steps\.([\w-]+)\.outcome\s*\}\}")
 FINAL_TIMEOUT = 20
 
 # CALLS AND IMPORTS, NOT WORDS. A word match read this very file (its docstring and its regex literals name every token
@@ -182,7 +186,12 @@ LAUNCH = re.compile(
 # (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 2). A script is a SPAWNER when its code imports child_process, and it spawns a browser when it names, by file
 # name, a script that launches one directly or through another spawner. That over-approximates (a name in a table that is never run) and fails closed.
 CHILD_PROCESS = re.compile(r"""from\s+['"](?:node:)?child_process['"]|require\(\s*['"](?:node:)?child_process['"]\s*\)|import\(\s*['"](?:node:)?child_process['"]""")
-SCRIPT_NAME = re.compile(r"""(?<![\w./-])((?:scripts/)?[\w.-]+\.(?:mjs|cjs|py))\b""")
+# A script name as a spawner writes it: bare (`spark-check.mjs`), under scripts/, path-qualified (`./scripts/x.mjs`, `../scripts/x.mjs`), behind a variable
+# (`${ROOT}/scripts/x.mjs`) or inside `new URL('./x.mjs', import.meta.url)`. The old pattern refused any name that a `/` preceded, so every one of those was invisible (review
+# 2026-11-15, finding 2). A match is resolved by script_candidates(); one that is no file is no name.
+SCRIPT_NAME = re.compile(r"""[\w.${}/-]+\.(?:mjs|cjs|js|py)\b""", re.I)
+# What a module imports is not what it runs: `import { x } from './gate-checks.mjs'` names a module and spawns nothing (the ENTRY ONLY decision below). The specifier is blanked before the names are read.
+IMPORT_SPEC = re.compile(r"""(?:\bfrom|\bimport\s*\(|\brequire\s*\()\s*['"][^'"]*['"]""")
 SPAWN_DEPTH = 6
 # The arguments with which a spawner runs none of the scripts it names. Each entry is a claim, kept true at run time by scripts/no-launch-check.mjs (which runs these
 # commands under a trap that logs any browser launch, children included) and read from this table by `--plain-commands`.
@@ -192,6 +201,10 @@ READONLY_MODES = {"scripts/mutation-check.mjs": ("--anchors", "--stranded"), "sc
 # A script that runs browser scripts only under that trap: it never launches a real browser, whatever its arguments. Its own text embeds launch calls (its fixtures), so the text
 # rule is skipped for it as well as the spawner rule.
 TRAPPED = frozenset({"scripts/no-launch-check.mjs"})
+# A script that RUNS THE GATE'S ROWS is a browser step whatever its text says: it imports scripts/gate-checks.mjs (an import is no spawn, above) and calls each row's `run`, and a third of
+# the rows drive a browser. Before this table `npm run gate` read as a browser step by coincidence, because a log message in confidence.mjs happened to name mutation-check.mjs (review
+# 2026-11-15, finding 2). The claim is kept true by gate_row_problems(), which requires the rows flagged `browser` to be exactly the rows that read as driving one, and at least MIN_BROWSER_ROWS.
+RUNS_ROWS = frozenset({"scripts/confidence.mjs", "scripts/run-row.mjs"})
 # A spawner that can be told it has NO browser. `mutation-check.mjs --no-browser` classes an expectation that cannot launch one (Playwright's missing-browser text) as not applicable
 # and runs the rest; without the flag it is a browser step. The flag is read as browser-free ONLY inside the audit of a target, and only for a step whose `if` makes it run solely when
 # the install did NOT succeed (no_browser_if), so it never runs with a browser installed. The claim is kept true by scripts/mutation-check.mjs (its self-test runs it end to end against
@@ -207,7 +220,7 @@ def is_install(step):
     return bool(INSTALL_CMD.search("\n".join(logical_lines(run_text(step)))))
 
 
-OUTCOME = re.compile(r"steps\.(\w+)\.outcome")
+OUTCOME = re.compile(r"steps\.([\w-]+)\.outcome")
 GATE_CLAUSE = f"steps.{INSTALL_ID}.outcome == 'success'"
 FINAL_CLAUSES = ["always()", f"steps.{INSTALL_ID}.outcome != 'success'"]
 # The clauses a browser step's `if` may carry besides the gate. Every one can only keep the step running or leave the gate
@@ -582,6 +595,18 @@ def entry_launches(path, read):
     return bool(LAUNCH.search(strip_comments(src))), None
 
 
+def script_candidates(path, token, read):
+    """The files a script name found in `path` can mean: as written (from the repository root), relative to the script's own directory, and by file name under scripts/. A leading
+    `${VAR}/` or `$VAR/` is dropped. Nothing outside the repository is one. A name that is no file is no problem: the caller reads nothing from it."""
+    bare = re.sub(r"^\$\{?\w+\}?/", "", token)
+    out = set()
+    for cand in (bare, os.path.join(os.path.dirname(path), token), "scripts/" + os.path.basename(token)):
+        cand = os.path.normpath(cand)
+        if not cand.startswith(".."):
+            out.add(cand)
+    return out
+
+
 def spawned_browser_scripts(path, read, depth=SPAWN_DEPTH, seen=()):
     """The scripts a script RUNS (it imports child_process and names them by file name) that launch a browser, directly or through another spawner."""
     path = os.path.normpath(path)
@@ -594,17 +619,11 @@ def spawned_browser_scripts(path, read, depth=SPAWN_DEPTH, seen=()):
     if not CHILD_PROCESS.search(src):
         return []
     out = []
-    for name in sorted(set(SCRIPT_NAME.findall(src))):
-        cand = os.path.normpath(name if name.startswith("scripts/") else "scripts/" + name)
-        if cand == path:
-            continue
-        try:
-            read(cand)
-        except (OSError, KeyError):
-            continue
-        if entry_launches(cand, read)[0] or spawned_browser_scripts(cand, read, depth - 1, seen + (path,)):
-            out.append(cand)
-    return out
+    for token in sorted(set(SCRIPT_NAME.findall(IMPORT_SPEC.sub("", src)))):
+        for cand in sorted(script_candidates(path, token, read)):
+            if entry_launches(cand, read)[0] or spawned_browser_scripts(cand, read, depth - 1, seen + (path,)):
+                out.append(cand)
+    return sorted(set(out))
 
 
 def readonly_mode(entry, args):
@@ -613,11 +632,13 @@ def readonly_mode(entry, args):
 
 
 def spawns_browser(entry, args, read, no_browser_ok=False):
-    """The browser scripts an entry spawns with these arguments: none for a TRAPPED script, for the arguments READONLY_MODES declares, and (only when the caller audits a target, which
-    checks the step's `if`) for the no-browser flag."""
+    """The browser scripts an entry spawns with these arguments: none for the arguments READONLY_MODES declares and (only when the caller audits a target, which checks the step's `if`) for
+    the no-browser flag. A TRAPPED script, and `--self-test`, never get this far: read_step skips them first."""
     entry = os.path.normpath(entry)
-    if entry in TRAPPED or readonly_mode(entry, args) or (no_browser_ok and NO_BROWSER_FLAGS.get(entry) in args):
+    if readonly_mode(entry, args) or (no_browser_ok and NO_BROWSER_FLAGS.get(entry) in args):
         return []
+    if entry in RUNS_ROWS:
+        return ["scripts/gate-checks.mjs"]
     return spawned_browser_scripts(entry, read)
 
 
@@ -671,16 +692,30 @@ def needs_browser(step, pkg, read):
 
 
 # ---------------------------------------------------------------- the final step, by effect
-def run_final(step, outcome, timeout=FINAL_TIMEOUT):
+def other_outcome_keys(step):
+    """The env variables of a step whose value is the outcome of a step OTHER than the install."""
+    out = []
+    for k, v in (step.get("env") or {}).items():
+        m = STEP_OUTCOME.fullmatch(str(v).strip())
+        if m and m.group(1) != INSTALL_ID:
+            out.append(str(k))
+    return sorted(out)
+
+
+def run_final(step, outcome, timeout=FINAL_TIMEOUT, others=None):
     """Run the final step's script as the runner runs a step with no `shell:` (`/usr/bin/bash -e {0}`: the job logs print it, and
-    there is NO pipefail), with the install's outcome in its env. Only called for a script final_script_problems() accepts."""
+    there is NO pipefail), with the install's outcome in its env, and the outcome of any other step it reads (`others`: variable -> outcome).
+    Only called for a script final_script_problems() accepts."""
     env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"}
     for k, v in (step.get("env") or {}).items():
         v = str(v)
-        if re.fullmatch(r"\$\{\{\s*steps\.chromium\.outcome\s*\}\}", v.strip()):
+        m = STEP_OUTCOME.fullmatch(v.strip())
+        if m and m.group(1) == INSTALL_ID:
             env[str(k)] = outcome
+        elif m:
+            env[str(k)] = (others or {}).get(str(k), "")
         elif "${{" in v:
-            raise Unreadable(f"env {k} uses an expression other than steps.chromium.outcome, which this guard cannot evaluate")
+            raise Unreadable(f"env {k} uses an expression other than steps.<id>.outcome, which this guard cannot evaluate")
         else:
             env[str(k)] = v
     with tempfile.TemporaryDirectory() as d:
@@ -745,10 +780,12 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
         bad.append(f"the final step {name} must use only echo, `exit N` and `[ ]` comparisons in if/elif/else/fi, so that running it here shows what the runner does: " + "; ".join(grammar[:3]))
         return bad
     failed = []
-    for outcome in FINAL_OUTCOMES:
-        label = repr(outcome)
+    keys = other_outcome_keys(step)
+    combos = [dict(zip(keys, vals)) for vals in itertools.product(ANY_OUTCOMES, repeat=len(keys))]
+    for outcome, combo in itertools.product(FINAL_OUTCOMES, combos):
+        label = repr(outcome) + (f" with {', '.join(f'{k}={v!r}' for k, v in combo.items())}" if combo else "")
         try:
-            r = run_final(step, outcome, timeout)
+            r = run_final(step, outcome, timeout, combo)
         except Unreadable as e:
             bad.append(f"the final step {name}: {e}")
             return bad
@@ -768,8 +805,9 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
 
 
 # ---------------------------------------------------------------- the rules
-def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
-    """Returns (violations, coverage). The workflow, package.json and scripts come in as arguments."""
+def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
+    """Returns (violations, coverage). The workflow, package.json and scripts come in as arguments. `flagged`: the spawners (NO_BROWSER_FLAGS) that must be run with their no-browser flag in a step
+    that runs only after a failed install: the rule that a failed install still leaves the browser-free part of their work done is a step that does it, and nothing else required the step to be there."""
     steps = job_steps(doc, job)
     jobdoc = ((doc or {}).get("jobs") or {}).get(job) or {}
     owner = "the composite action" if job is None else f"job `{job}`"
@@ -804,7 +842,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
         if s.get("id"):
             ids[s["id"]] = i
     for i, s in enumerate(steps):
-        for ref in OUTCOME.findall(if_text(s)):
+        for ref in OUTCOME.findall(if_text(s) + " " + " ".join(str(v) for v in (s.get("env") or {}).values())):
             if ref not in ids or ids[ref] >= i:
                 bad.append(f"step {name(s)} reads steps.{ref}.outcome but no earlier step has id `{ref}` (it would evaluate to null)")
 
@@ -820,9 +858,11 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
             continue
         r = read_step(s, pkg, read, no_browser_ok=True)
         if r["unresolved"]:
-            if always_if(if_text(s)) and i != last:
-                # NOT READ, AND NOT THE INSTALL'S TO SKIP: `if: always()` runs it whatever the install did. Were it to drive a browser it would fail in an outage, loudly, which is noise and not
-                # a hole. The ledger steps of verify-full are these (command substitutions and `node -e`, which the reader refuses); counted and printed, never silently accepted.
+            if always_if(if_text(s)) and i != last and not r["browser"] and not s.get("uses"):
+                # NOT READ, AND NOT THE INSTALL'S TO SKIP: `if: always()` runs it whatever the install did. The ledger steps of verify-full are these (command substitutions and `node -e`, which
+                # the reader refuses); counted and printed, never silently accepted. NOT a step the reader has already seen launch a browser: with no browser it fails, and a step that fails
+                # without `continue-on-error` skips every later step that has no status function, which is the outage failure this guard exists to end (review 2026-11-15, finding 1). Nor a `uses:`
+                # step: an action the guard cannot read (a local composite action can hold a browser step) is as unread as a command it cannot parse, and is not the ledger kind.
                 opaque.append((i, s))
                 continue
             unreadable += 1
@@ -835,6 +875,10 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
             bad.append(f"step {name(s)} needs a browser and must carry `steps.{INSTALL_ID}.outcome == 'success'` in its `if`, joined only by `&&` to always(), success(), !cancelled() or another `steps.<id>.outcome == 'success'` (it has {if_text(s) or 'no if'!r})")
     for i, s in plain:
         if no_browser_flagged(s, pkg, read):
+            others = sorted({os.path.normpath(e) for e, a in read_commands(run_text(s), pkg, read)["entries"] if NO_BROWSER_FLAGS.get(os.path.normpath(e)) not in a})
+            if others:
+                bad.append(f"step {name(s)} carries a no-browser flag and also runs {', '.join(others)}: the step is skipped whenever the install succeeded, so anything else in it is a check that never runs "
+                           f"on a good commit (put it in a step of its own)")
             if not no_browser_if(if_text(s)):
                 bad.append(f"step {name(s)} runs with a no-browser flag and must carry `steps.{INSTALL_ID}.outcome != 'success'` in its `if`, joined only by `&&` to always(), success() or !cancelled(): "
                            f"without it the flag would run with a browser installed, or the step would be skipped when the install failed (it has {if_text(s) or 'no `if`'!r})")
@@ -843,6 +887,11 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
             continue
         if f"steps.{INSTALL_ID}" in if_text(s):
             bad.append(f"step {name(s)} needs no browser and must not wait for the install (it has {if_text(s)!r}): an outage would skip it again")
+    for req in flagged:
+        have = any(no_browser_if(if_text(s)) and any(os.path.normpath(e) == req and NO_BROWSER_FLAGS[req] in a for e, a in read_commands(run_text(s), pkg, read)["entries"]) for i, s in plain if run_text(s))
+        if not have:
+            bad.append(f"{owner} must run `{req} {NO_BROWSER_FLAGS[req]}` in a step whose `if` makes it run only when the install did not succeed (`steps.{INSTALL_ID}.outcome != 'success'`): without that step a failed install leaves "
+                       f"the browser-free part of what {req} measures unrun, and nothing else here would notice")
     final_ok = 0
     if final_at is None:
         bad.append(f"the LAST step of {owner} must be the final step, whose `if` is exactly `always() && steps.{INSTALL_ID}.outcome != 'success'`: without one a failed install would leave the job GREEN with every browser step skipped, and any step after it that has no `always()` is skipped by the failure it makes")
@@ -853,40 +902,86 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
     return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "opaque": len(opaque), "final_ok": final_ok}
 
 
-ROW_START = re.compile(r"^  \{ name: (['\"])(.+?)\1, weight: (\d+)", re.M)
-ROW_CMD = re.compile(r"""(?:\bok|\bfails)\(\s*(?:'([^']+)'|"([^"]+)")|\ball\(([^)]*)\)""")
+ROW_START = re.compile(r"^[ \t]*\{[ \t]*name:[ \t]*(['\"])(.+?)\1,[ \t]*weight:[ \t]*(\d+)", re.M)
+ROW_CALL = re.compile(r"\b(ok|fails|all|execSync|execFileSync|spawnSync|spawn|exec)\b")
+ROW_ARG = re.compile(r"""\(\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)")\s*(?=[,)])""")
+ROW_ALL = re.compile(r"""\(\s*((?:'[^'\\\n]*'|"[^"\\\n]*")(?:\s*,\s*(?:'[^'\\\n]*'|"[^"\\\n]*"))*)\s*\)""")
+JS_TOKEN = re.compile(r"""('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`)|//[^\n]*|/\*.*?\*/""", re.S)
 MIN_ROWS, MIN_BROWSER_ROWS = 20, 6
 
 
+def _blank_comments(src):
+    """JavaScript comments become spaces (offsets kept); a string, which may hold `//` (a URL), is kept whole."""
+    return JS_TOKEN.sub(lambda m: m.group(0) if m.group(1) else re.sub(r"[^\n]", " ", m.group(0)), src)
+
+
+def _blank_strings(src):
+    """The contents of every string become NUL (offsets kept), so a word inside a command is not a use of that word."""
+    return JS_TOKEN.sub(lambda m: m.group(0)[0] + "\0" * (len(m.group(0)) - 2) + m.group(0)[-1] if m.group(1) else m.group(0), src)
+
+
 def gate_rows(root="."):
-    """[(name, weight, flagged, commands)] for the rows of scripts/gate-checks.mjs: `flagged` is whether the row carries `browser:` before its `run:`, `commands` the string
-    literals of its `ok(`, `fails(` and `all(` calls."""
+    """([(name, weight, flagged, commands)], [problem]) for the rows of scripts/gate-checks.mjs, read by a CLOSED GRAMMAR: a row is `{ name: '...', weight: N,` at the start of a line;
+    `flagged` is whether it carries `browser: true` or `browser: (...) =>` before its `run:`; `commands` are the string literals of its `ok(`, `fails(`, `all(` and `execSync(` calls.
+    Whatever the grammar does not cover is a PROBLEM, never "this row runs no browser": a row that does not start as above (the count of `weight:` keys is compared with the rows read),
+    a template literal, a call whose argument is not a plain string, a use of `ok`/`fails`/`all` that is not a call (`.every(ok)`), an unrecognised `browser:` value (review 2026-11-15, finding 3)."""
     text = Path(root, "scripts", "gate-checks.mjs").read_text()
     at = text.index("const rows = [")
-    body = text[at:]
+    end = text.find("\nexport {", at)
+    end = len(text) if end < 0 else end
+    body = _blank_comments(text[at:end])
+    shape = _blank_strings(body)
     starts = list(ROW_START.finditer(body))
-    out = []
+    problems, out = [], []
+    n_weight = len(re.findall(r"\bweight\s*:", shape))
+    if n_weight != len(starts):
+        problems.append(f"{n_weight} `weight:` keys in the rows array of scripts/gate-checks.mjs but {len(starts)} rows read: a row not written `{{ name: '...', weight: N` at the start of a line is not read, and a row not read is not compared")
     for k, m in enumerate(starts):
-        chunk = body[m.start():starts[k + 1].start() if k + 1 < len(starts) else len(body)]
-        head = chunk.split("run:", 1)[0]
+        lo, hi = m.start(), (starts[k + 1].start() if k + 1 < len(starts) else len(body))
+        chunk, cshape, name = body[lo:hi], shape[lo:hi], m.group(2)
+        run = re.search(r"\brun\s*:", cshape)
+        if run is None:
+            problems.append(f"gate row {name!r} has no `run:` this reader can find")
+            out.append((name, int(m.group(3)), False, []))
+            continue
+        flag = re.search(r"\bbrowser\s*:\s*([^\s,][^,\n]*)", cshape[:run.start()])
+        value = flag.group(1).strip() if flag else "false"
+        flagged = value.startswith("true") or value.startswith("(")
+        if not (flagged or value.startswith("false")):
+            problems.append(f"gate row {name!r}: `browser: {value[:30]}` is not `true`, `false` or a function: this reader cannot tell whether the row is flagged")
+        rest, rshape = chunk[run.end():], cshape[run.end():]
+        if "`" in rshape:
+            problems.append(f"gate row {name!r} contains a template literal: the command it runs is not a plain string this reader can read")
         cmds = []
-        for c in ROW_CMD.finditer(chunk):
-            if c.group(3) is not None:
-                cmds += [a or b for a, b in re.findall(r"""(?:'([^']+)'|"([^"]+)")""", c.group(3))]
+        for c in ROW_CALL.finditer(rshape):
+            word, lp = c.group(1), c.end() + len(rshape[c.end():]) - len(rshape[c.end():].lstrip())
+            if not rshape[lp:lp + 1] == "(":
+                problems.append(f"gate row {name!r} uses `{word}` other than as a call (`.every({word})`, a reference): this reader cannot see what it runs")
+                continue
+            if word == "all":
+                a = ROW_ALL.match(rest, lp)
+                if a is None:
+                    problems.append(f"gate row {name!r} calls `all(...)` with something other than plain string literals")
+                    continue
+                cmds += [x or y for x, y in re.findall(r"""(?:'([^']*)'|"([^"]*)")""", a.group(1))]
             else:
-                cmds.append(c.group(1) or c.group(2))
-        out.append((m.group(2), int(m.group(3)), "browser:" in head, cmds))
-    return out
+                a = ROW_ARG.match(rest, lp)
+                if a is None:
+                    problems.append(f"gate row {name!r} calls `{word}(...)` with a first argument that is not a plain string literal (a constant, a concatenation): this reader cannot see the command")
+                    continue
+                cmds.append(a.group(1) if a.group(1) is not None else a.group(2))
+        out.append((name, int(m.group(3)), flagged, cmds))
+    return out, problems
 
 
 def gate_row_problems(root, pkg, read):
     """The rows `confidence.mjs --browserless` does not apply (the ones flagged `browser`) against the rows whose commands READ as driving a browser: they must be the same rows.
     A row that drives one and is not flagged would run with no browser and fail for that; one that is flagged and does not would be left out for nothing. Returns [problem]."""
     try:
-        rows = gate_rows(root)
+        rows, bad = gate_rows(root)
     except (OSError, ValueError) as e:
         return [f"scripts/gate-checks.mjs could not be read for its rows ({type(e).__name__}): {e}"]
-    bad = []
+    bad = list(bad)
     if len(rows) < MIN_ROWS:
         bad.append(f"only {len(rows)} gate rows read from scripts/gate-checks.mjs, expected at least {MIN_ROWS}: the row reader read too little to mean anything")
     flagged = 0
@@ -1277,6 +1372,33 @@ def exempt_extra(root, rel, job, pkg, read, docs):
     return extra
 
 
+def caller_problems(rel, docs):
+    """The jobs that call the composite action at `rel` (a TARGET, whose last step goes red on a failed install by design). What it skips is the callers' to bear, and as an exempt site
+    that was pinned by N; as a target nothing looked, so each caller is audited here: the `uses:` step and its job carry no `continue-on-error` (it would turn the red end into a green
+    job), every step after it has a status function in its `if` (it is otherwise skipped by the red end), and every job that needs its job is certain to run."""
+    target = "./" + Path(rel).parent.as_posix()
+    bad = []
+    for crel, doc in docs.items():
+        for name, jobdoc, steps in _step_lists(doc):
+            for k, s in enumerate(steps):
+                if not (isinstance(s, dict) and str(s.get("uses", "")).rstrip("/") == target):
+                    continue
+                where = f"{crel}, job `{name}`"
+                if truthy(s.get("continue-on-error")):
+                    bad.append(f"{where}: the step that uses {target} has `continue-on-error`: the action ends red on a failed install, and this would leave the job green over it")
+                if truthy(jobdoc.get("continue-on-error")):
+                    bad.append(f"{where}: the job has `continue-on-error`: a failed install would leave it green")
+                for j, after in enumerate(steps[k + 1:], k + 2):
+                    if not isinstance(after, dict):
+                        continue
+                    res = step_runs_after_failure({"if": after.get("if")})
+                    if res == SKIPPED or (res == UNKNOWN and "always()" not in if_text(after)):
+                        bad.append(f"{where}: step {j} ({after.get('name') or run_text(after)[:40]!r}) follows {target} and is skipped when the action ends red (its `if` has no status function)")
+                for dep in dependents_not_certain(doc, name):
+                    bad.append(f"{where}: job `{dep}` needs it and is skipped when the action ends red (give it `if: always()`)")
+    return bad
+
+
 def exempt_sites(root, pkg, read):
     """(problems, table) for the installs outside the TARGET jobs. Each needs ONE `# browser-gate: exempt N -- reason` comment at its step's indentation within
     EXEMPT_REACH lines above its install command and after the previous install of the file, N being exempt_count(). A step added after an exempt install
@@ -1343,6 +1465,17 @@ def self_test():
         "scripts/spawn3.mjs": "const { execFileSync } = require('node:child_process')\nexecFileSync('node', ['scripts/spawn2.mjs'])\n",
         "scripts/spawn-bare.mjs": "import { execSync } from 'node:child_process'\nexecSync('node shot.mjs')\n",
         "scripts/spawn-dyn.mjs": "import('node:child_process').then(c => c.execSync('node scripts/shot.mjs'))\n",
+        "scripts/spawn-url.mjs": "import { spawnSync } from 'node:child_process'\nimport { fileURLToPath } from 'node:url'\nspawnSync(process.execPath, [fileURLToPath(new URL('./shot.mjs', import.meta.url))])\n",
+        "scripts/spawn-dot.mjs": "import { execSync } from 'node:child_process'\nexecSync('node ./scripts/shot.mjs')\n",
+        "scripts/spawn-up.mjs": "import { execSync } from 'node:child_process'\nexecSync('node ../scripts/shot.mjs')\n",
+        "scripts/spawn-var.mjs": "import { execSync } from 'node:child_process'\nexecSync(`node ${ROOT}/scripts/shot.mjs`)\n",
+        "scripts/imports-spawner.mjs": "import { execSync } from 'node:child_process'\nimport { run } from './spawner.mjs'\nexecSync('node scripts/pure.mjs')\n",
+        "scripts/sub/launch.mjs": "const b = await chromium.launch()\n",
+        "scripts/spawn-sub.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/sub/launch.mjs')\n",
+        "scripts/sub/spawn-rel.mjs": "import { execSync } from 'node:child_process'\nexecSync('node ./launch.mjs')\n",
+        "scripts/sub/spawn-bare2.mjs": "import { execSync } from 'node:child_process'\nexecSync('node shot.mjs')\n",
+        "scripts/spawn-out.mjs": "import { execSync } from 'node:child_process'\nexecSync('node ../../outside.mjs')\n",
+        "../outside.mjs": "const b = await chromium.launch()\n",
         "scripts/mentions.mjs": "// no child process: shot.mjs is only a name here\nconst name = 'scripts/shot.mjs'\n",
         "scripts/spawn-pure.mjs": "import { execSync } from 'node:child_process'\nexecSync('node scripts/pure.mjs')\n",
         "scripts/spawn-comment.mjs": "import { execSync } from 'node:child_process'\n// this once ran scripts/shot.mjs\nexecSync('node scripts/pure.mjs')\n",
@@ -2029,25 +2162,32 @@ def self_test():
         (root / ".github" / "workflows").mkdir(parents=True)
         (root / "package.json").write_text(json.dumps({"scripts": pkg}))
         for f, src in files.items():
-            if "/" in f:
+            if "/" in f and not f.startswith(".."):             # `../outside.mjs` is a fixture for a name that leaves the repository: it is never written
                 (root / f).parent.mkdir(parents=True, exist_ok=True)
                 (root / f).write_text(src)
         (root / ".github" / "workflows" / "verify.yml").write_text(yaml.safe_dump(wf([
             {"name": "before", "run": "node scripts/pure.mjs --self-test"}, inst,
             {"name": "st", "run": "node scripts/pure.mjs --self-test"}, {"name": "st2", "run": "node scripts/pure.mjs --self-test"},
             {"name": "ro", "run": "node scripts/mutation-check.mjs --anchors"}, {"name": "br", "run": "node scripts/shot.mjs"},
-            {"name": "brself", "run": "node scripts/shot.mjs --self-test"}, {"name": "plain", "run": "node scripts/pure.mjs"}, final])))
-        (root / ".github" / "workflows" / "probe.yml").write_text(PROBE + NOTE.format(n=1, why="x") + NAME + "      - name: s\n        run: node scripts/uses-lib.mjs --self-test\n")
+            {"name": "brself", "run": "node scripts/shot.mjs --self-test"}, {"name": "plain", "run": "node scripts/pure.mjs"},
+            {"name": "mixed", "run": "node scripts/l-launch.mjs --self-test\nnode scripts/l-launch.mjs"}, {"name": "py", "run": "python3 scripts/prose.py --self-test"}, final])))
+        (root / ".github" / "workflows" / "live-check.yml").write_text(yaml.safe_dump({"jobs": {"live": {"steps": [inst, {"name": "lst", "run": "node scripts/imports-spawner.mjs --self-test"}, final]}}}))
+        (root / ".github" / "workflows" / "probe.yml").write_text(PROBE + NOTE.format(n=1, why="x") + "      - name: Install Chromium\n        run: |\n          node scripts/mentions.mjs --self-test\n          npx playwright install chromium\n"
+                                                                + "      - name: s\n        run: node scripts/uses-lib.mjs --self-test\n")
         cmds = plain_commands(str(root))
     got = [(c["cmd"][1:], c["why"]) for c in cmds]
-    check("plain_commands lists each self-test and read-only mode of a browser-free step after an install, once, from the target job and from an exempt site, and nothing else",
-          got == [(["scripts/mutation-check.mjs", "--anchors"], "read-only mode"), (["scripts/pure.mjs", "--self-test"], "self-test"), (["scripts/shot.mjs", "--self-test"], "self-test"),
-                  (["scripts/uses-lib.mjs", "--self-test"], "self-test")], got)
+    check("plain_commands lists each self-test and read-only mode of a browser-free step after an install, once, from every target job and from an exempt site, and nothing else: not a step that "
+          "also launches a browser, not a python script, not a step that is the install itself",
+          got == [(["scripts/imports-spawner.mjs", "--self-test"], "self-test"), (["scripts/mutation-check.mjs", "--anchors"], "read-only mode"), (["scripts/pure.mjs", "--self-test"], "self-test"),
+                  (["scripts/shot.mjs", "--self-test"], "self-test"), (["scripts/uses-lib.mjs", "--self-test"], "self-test")], got)
     bad_q, tab_q = sites({"q.yml": site(2, steps_after="      - name: one\n        run: npm run pure\n      - name: two\n        run: npm run pure\n")})
     check("two skipped steps are BOTH counted", bad_q == [] and tab_q and tab_q[0][2] == 2, (bad_q, tab_q))
     check("the second target's floors are 8 steps, 5 browser steps and 2 browser-free steps (pinned, not read from TARGETS)",
           len(coverage_problems({"steps": 7, "browser": 4, "plain": 1}, (8, 5, 2))) == 3 and coverage_problems({"steps": 8, "browser": 5, "plain": 2}, (8, 5, 2)) == [] and
           TARGETS[1]["floors"] == (8, 5, 2) and TARGETS[1]["job"] == "live" and TARGETS[1]["file"] == ".github/workflows/live-check.yml" and TARGETS[0]["floors"] == (60, 10, 30))
+    check("the shard action's floors are 5 steps, 1 browser step and 3 browser-free steps and verify-full's `full` job's are 7, 2 and 4 (pinned, not read from TARGETS); each must run its no-browser spawner",
+          TARGETS[2]["floors"] == (5, 1, 3) and TARGETS[2]["job"] is None and TARGETS[2]["flagged"] == ("scripts/mutation-check.mjs",) and
+          TARGETS[3]["floors"] == (7, 2, 4) and TARGETS[3]["job"] == "full" and TARGETS[3]["flagged"] == ("scripts/confidence.mjs",))
     # ---- THE READER KNOWS WHAT live-check.yml RUNS
     check("`git config`, `add`, `commit`, `push`, `pull`, `rev-parse` are read", unresolved('git config user.name x; git add f; git commit -m m; git pull --rebase origin main; git push origin HEAD:main') == [] and unresolved("x=$(git rev-parse HEAD)") == [])
     check("a git global flag or a subcommand that runs something is unresolved (`-c`, `-C`, `bisect run`, `difftool`)",
@@ -2056,6 +2196,95 @@ def self_test():
           unresolved("dotnet tool restore") == [] and unresolved("dotnet fable src/L.fsproj --outDir build") == [] and unresolved("dotnet build") == [] and
           unresolved("dotnet run") != [] and unresolved("dotnet test") != [] and unresolved("dotnet tool run x") != [])
     check("`tr` is a safe head and a pipe into it is read (`DEPLOYED=$(curl -sSf url | tr -d '[:space:]')`)", unresolved("DEPLOYED=$(curl -sSf --max-time 30 \"$SITE/v.txt\" | tr -d '[:space:]')") == [] and browser("echo x | tr a b | node scripts/shot.mjs") is True)
+
+    # ---- THE 2026-11-15 REVIEW (outbox/cc-session-2026-11-15-gate-items-2-7.md): each of these failed on the guard as it was
+    for f, how in [("spawn-url.mjs", "`new URL('./x.mjs', import.meta.url)`"), ("spawn-dot.mjs", "`./scripts/x.mjs`"), ("spawn-up.mjs", "`../scripts/x.mjs`"), ("spawn-var.mjs", "`${ROOT}/scripts/x.mjs`")]:
+        check(f"a script that spawns a browser script by {how} is a browser step (a name a `/` precedes was invisible)", needs_browser({"run": f"node scripts/{f}"}, pkg, read) is True, f)
+    check("a script that only IMPORTS a spawner (`from './spawner.mjs'`) and spawns a plain script is not a browser step", needs_browser({"run": "node scripts/imports-spawner.mjs"}, pkg, read) is False)
+    check("a spawned script is found as written from the repository root (`scripts/sub/x.mjs`), relative to the spawner's own directory (`./x.mjs` from scripts/sub/) and by file name under scripts/ (a bare name from scripts/sub/)",
+          needs_browser({"run": "node scripts/spawn-sub.mjs"}, pkg, read) is True and needs_browser({"run": "node scripts/sub/spawn-rel.mjs"}, pkg, read) is True and
+          needs_browser({"run": "node scripts/sub/spawn-bare2.mjs"}, pkg, read) is True)
+    check("a name that leaves the repository (`../../outside.mjs`) is no spawn, whatever a reader would find there", needs_browser({"run": "node scripts/spawn-out.mjs"}, pkg, read) is False)
+    read_rows = lambda q: ("import { rows } from './gate-checks.mjs'\nfor (const r of rows) r.run()\n" if q in ("scripts/confidence.mjs", "scripts/run-row.mjs") else files[q])
+    check("a script that RUNS THE GATE'S ROWS (confidence.mjs, run-row.mjs) is a browser step whatever its text names; `--browserless` makes confidence.mjs browser-free only in a target's audit",
+          needs_browser({"run": "node scripts/confidence.mjs"}, pkg, read_rows) is True and needs_browser({"run": "node scripts/run-row.mjs x"}, pkg, read_rows) is True and
+          read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows)["browser"] is True and
+          read_step({"run": "node scripts/confidence.mjs --browserless"}, pkg, read_rows, no_browser_ok=True)["browser"] is False)
+    op_step = {"name": "ledger", "if": "always()", "run": "node -e \"console.log(1)\""}
+    op_browser = {"name": "ledger", "if": "always()", "run": "node scripts/shot.mjs\nnode -e \"console.log(1)\""}
+    w_op = wf([{"name": "build", "run": "npm run pure"}, inst, op_step, {"name": "pure", "run": "npm run pure"}, final])
+    w_ob = wf([{"name": "build", "run": "npm run pure"}, inst, op_browser, {"name": "pure", "run": "npm run pure"}, final])
+    check("an unreadable step with `if: always()` is OPAQUE and counted, not refused, when nothing in it is seen to launch a browser", bad_of(w_op) == [] and audit(w_op, pkg, read)[1]["opaque"] == 1, (bad_of(w_op), audit(w_op, pkg, read)[1]))
+    check("...but one the reader has SEEN launch a browser is not: it is refused as unreadable and as an ungated browser step (it fails in an outage and skips the steps behind it)",
+          any_of("cannot be read", bad_of(w_ob)) and any_of("needs a browser", bad_of(w_ob)) and audit(w_ob, pkg, read)[1]["opaque"] == 0, bad_of(w_ob))
+    w_last = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "z", "if": "always()", "run": "node -e \"1\""}])
+    check("the LAST step is never kept as opaque: an unreadable last step is refused as unreadable", any_of("cannot be read", bad_of(w_last)), bad_of(w_last))
+    w_use = wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "local", "if": "always()", "uses": "./.github/actions/x"}, {"name": "pure", "run": "npm run pure"}, final])
+    check("an action the guard cannot read with `if: always()` is refused, not kept: a local composite action may hold a browser step, and with none it fails and skips the steps behind it",
+          any_of("cannot be read", bad_of(w_use)) and audit(w_use, pkg, read)[1]["opaque"] == 0, bad_of(w_use))
+    final2 = {"name": "Chromium did not install", "if": "always() && steps.chromium.outcome != 'success'", "env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "GATE_OUTCOME": "${{ steps.gate.outcome }}"},
+              "run": "if [ \"$INSTALL_OUTCOME\" = skipped ]; then\n  echo \"::error::skipped\"\nelif [ \"$GATE_OUTCOME\" = success ]; then\n  echo \"::error::the gate ran\"\nelse\n  echo \"::error::the gate did not finish\"\nfi\nexit 1"}
+    w_f2 = lambda f: wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "gate", "id": "gate", "if": "steps.chromium.outcome != 'success'", "run": "node scripts/mutation-check.mjs --no-browser"}, f])
+    final3 = {**final2, "run": "if [ \"$GATE_OUTCOME\" = success ]; then\n  echo \"::error::the gate ran\"\n  exit 1\nfi"}
+    final4 = {**final2, "env": {**final2["env"], "GATE_OUTCOME": "${{ steps.nothing.outcome }}"}}
+    check("a final step may read another step's outcome (`GATE_OUTCOME: ${{ steps.gate.outcome }}`): it is run for each outcome of the install and of that step, and passes when it fails for all 20",
+          bad_of(w_f2(final2)) == [], bad_of(w_f2(final2)))
+    check("...one that fails for some outcome of the other step only (no `else`, so a skipped gate exits 0) is refused, naming the outcome pair",
+          any_of("GATE_OUTCOME='skipped'", bad_of(w_f2(final3))) and any_of("exit 0", bad_of(w_f2(final3))), bad_of(w_f2(final3)))
+    check("...and one that reads the outcome of a step that does not exist is refused like an `if` that does (it would evaluate to null)", any_of("no earlier step has id `nothing`", bad_of(w_f2(final4))), bad_of(w_f2(final4)))
+    nb_if = "always() && steps.chromium.outcome != 'success'"
+    w_nb = lambda step: wf([{"name": "build", "run": "npm run pure"}, inst, step, {"name": "pure", "run": "npm run pure"}, final])
+    nb_ok = {"name": "no browser", "if": nb_if, "run": "node scripts/mutation-check.mjs --no-browser"}
+    nb_extra = {"name": "no browser", "if": nb_if, "run": "node scripts/pure.mjs\nnode scripts/mutation-check.mjs --no-browser"}
+    check("a step with the no-browser flag may run only what carries it: another command in it is skipped on every good commit, and is refused", bad_of(w_nb(nb_ok)) == [] and any_of("also runs scripts/pure.mjs", bad_of(w_nb(nb_extra))),
+          (bad_of(w_nb(nb_ok)), bad_of(w_nb(nb_extra))))
+    req = ("scripts/mutation-check.mjs",)
+    run_req = lambda w: audit(w, pkg, read, final_timeout=5, flagged=req)[0]
+    check("a target that must run a spawner with its no-browser flag is refused when no step does, when the step has no `if`, and when a step with the right `if` runs something else; it passes with the step",
+          run_req(w_nb(nb_ok)) == [] and any_of("must run `scripts/mutation-check.mjs --no-browser`", run_req(good)) and
+          any_of("must run `scripts/mutation-check.mjs --no-browser`", run_req(w_nb({"name": "nb", "run": "node scripts/mutation-check.mjs --no-browser"}))) and
+          any_of("must run `scripts/mutation-check.mjs --no-browser`", run_req(w_nb({"name": "nb", "if": nb_if, "run": "node scripts/pure.mjs"}))), (run_req(w_nb(nb_ok)), run_req(good)))
+    callee, use = "a/action.yml", {"uses": "./a"}
+
+    def cp(steps, job_extra=None, more=None):
+        jobs = {"j": {"steps": steps, **(job_extra or {})}, **(more or {})}
+        return caller_problems(callee, {"w.yml": {"jobs": jobs}})
+    check("the callers of a composite action that is a target are audited: a step after it with no status function, `continue-on-error` on its `uses:` step or on its job, and a job that needs its job without `if: always()` are refused; `always()` (with another clause too) is accepted",
+          cp([use, {"run": "x"}]) != [] and cp([{**use, "continue-on-error": True}]) != [] and cp([use], {"continue-on-error": True}) != [] and cp([use, {"if": "success()", "run": "x"}]) != [] and
+          cp([use, {"if": "always()", "run": "x"}]) == [] and cp([use, {"if": "always() && steps.ids.outputs.ids != ''", "run": "x"}]) == [] and cp([use]) == [] and
+          cp([use], more={"k": {"needs": "j", "steps": [{"run": "x"}]}}) != [] and cp([use], more={"k": {"needs": "j", "if": "always()", "steps": [{"run": "x"}]}}) == [], (cp([use, {"run": "x"}]), cp([use])))
+
+    def grow(i, browser, cmd):
+        return f"  {{ name: 'p{i}', weight: 10,{' browser: true,' if browser else ''}\n    run: () => ok('{cmd}') }},\n"
+    base_rows = "".join(grow(i, i < 6, "node scripts/shot.mjs" if i < 6 else "node scripts/pure.mjs") for i in range(20))
+
+    def row_problems(extra=""):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "scripts").mkdir()
+            (Path(d) / "scripts" / "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + extra + "]\n\nexport { rows }\n")
+            return gate_row_problems(d, pkg, read)
+    check("gate rows: the fixture rows (6 flagged rows that drive a browser, 14 that do not) read clean", row_problems() == [], row_problems())
+    for label, extra, frag in [
+        ("a browser row written with a template literal", "  { name: 'x', weight: 10, skipQuick: true,\n    run: () => ok(`node scripts/shot.mjs`) },\n", "template literal"),
+        ("a browser row whose command is a constant", "  { name: 'x', weight: 10,\n    run: () => ok(SHOT) },\n", "not a plain string literal"),
+        ("a browser row that passes `ok` by reference", "  { name: 'x', weight: 10,\n    run: () => ['node scripts/shot.mjs'].every(ok) },\n", "other than as a call"),
+        ("a browser row run through execSync with a concatenation", "  { name: 'x', weight: 10,\n    run: () => execSync('node scripts/' + 'shot.mjs') },\n", "not a plain string literal"),
+        ("a browser row that says `browser:` only in a comment", "  { name: 'x', weight: 10,\n    // browser: not flagged\n    run: () => ok('node scripts/shot.mjs') },\n", "is not flagged"),
+        ("a browser row flagged `browser: false`", "  { name: 'x', weight: 10, browser: false,\n    run: () => ok('node scripts/shot.mjs') },\n", "is not flagged"),
+        ("a browser row indented four spaces (it is still read)", "    { name: 'x', weight: 10,\n      run: () => ok('node scripts/shot.mjs') },\n", "is not flagged"),
+        ("a row with `weight` first (it is not read, and the count of weight keys says so)", "  { weight: 10, name: 'x',\n    run: () => ok('node scripts/shot.mjs') },\n", "`weight:` keys"),
+        ("a row flagged `browser` that runs none", "  { name: 'x', weight: 10, browser: true,\n    run: () => ok('node scripts/pure.mjs') },\n", "would leave it out"),
+        ("an unrecognised `browser:` value", "  { name: 'x', weight: 10, browser: maybe,\n    run: () => ok('node scripts/pure.mjs') },\n", "is not `true`, `false` or a function"),
+    ]:
+        got = row_problems(extra)
+        check(f"gate rows: {label} is a problem", any_of(frag, got), got)
+    url_row = "  { name: 'x', weight: 10, browser: true,\n    run: () => ok(\"URL='http://localhost:8080/?d=1' node scripts/shot.mjs\") },\n"
+    fn_row = "  { name: 'x', weight: 10, browser: () => process.env.A === undefined,\n    run: () => all('node scripts/pure.mjs', 'node scripts/shot.mjs') },\n"
+    words_row = "  { name: 'x', weight: 10,\n    run: () => ok('node scripts/pure.mjs --all --ok --fails') },\n"
+    name_row = "  { name: 'x browser: true', weight: 10,\n    run: () => ok('node scripts/shot.mjs') },\n"
+    check("gate rows: the words ok, fails and all inside a command string are not calls, and a row whose NAME says `browser: true` is not flagged by it",
+          row_problems(words_row) == [] and any_of("is not flagged", row_problems(name_row)), (row_problems(words_row), row_problems(name_row)))
+    check("gate rows: a `//` inside a command string is not a comment, a `browser: () =>` flag is a flag, and `all('...', '...')` reads both commands", row_problems(url_row) == [] and row_problems(fn_row) == [], (row_problems(url_row), row_problems(fn_row)))
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
@@ -2112,7 +2341,9 @@ def real_tree(root="."):
         except yaml.YAMLError as e:
             bad.append(f"the target {tg['file']} is not valid YAML ({type(e).__name__}): this guard cannot read it")
             continue
-        problems, cov = audit(doc, pkg, read, job=tg["job"])
+        problems, cov = audit(doc, pkg, read, job=tg["job"], flagged=tg.get("flagged", ()))
+        if tg["job"] is None:
+            problems = problems + caller_problems(tg["file"], {f.relative_to(Path(root)).as_posix(): _doc(f) for f in workflow_files(root)})
         print(f"=== {tg['file']}, {'composite action' if tg['job'] is None else 'job `' + tg['job'] + '`'}: the browser steps wait for the Chromium install ===")
         print(f"  steps after the install read : {cov['steps']}")
         print(f"  need a browser (gated)       : {cov['browser']}")
@@ -2127,7 +2358,7 @@ def real_tree(root="."):
     row_problems = gate_row_problems(root, pkg, read)
     bad += [f"scripts/gate-checks.mjs: {b}" for b in row_problems]
     try:
-        read_rows = gate_rows(root)
+        read_rows = gate_rows(root)[0]
     except (OSError, ValueError):
         read_rows = None               # already a problem above
     if read_rows is not None:

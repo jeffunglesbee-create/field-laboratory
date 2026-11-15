@@ -108,6 +108,13 @@ const SCORE_RE = /\*\*Score:\s*(\d+)\/100\*\*/g
  */
 export const stripFences = text => text.replace(/^```[\s\S]*?^```/gm, '')
 
+/** How many recorded runs a score could cite, and how many are browserless (recorded under `<id>-browserless`, scripts/gate-mode.mjs, and backing no score). */
+export const countRuns = ids => {
+  const all = [...ids]
+  const browserless = all.filter(id => id.endsWith('-browserless')).length
+  return { citable: all.length - browserless, browserless }
+}
+
 /** Every score and citation an entry states outside its code blocks. */
 export function scoreClaimsIn(text) {
   const bare = stripFences(text)
@@ -448,6 +455,7 @@ if (SELF_TEST) {
   check('a BROWSERLESS run cannot back a score either, and the refusal says which mode it was',
     v(`<!-- confidence: run=${BLESSRUN} -->\n**Score: 100/100**\n`).some(x => x.includes('browserless')),
     JSON.stringify(v(`<!-- confidence: run=${BLESSRUN} -->\n**Score: 100/100**\n`)))
+  check('THE COUNT OF CITABLE RUNS leaves out a browserless run: it is recorded, and it backs no score', JSON.stringify(countRuns(['a-b', 'a-b-browserless', 'c-d'])) === '{"citable":2,"browserless":1}' && countRuns([]).citable === 0, JSON.stringify(countRuns(['a-b', 'a-b-browserless'])))
   check('...and the id a browserless run is really recorded under (`<id>-browserless`) is not one a citation can name: a score citing it cites no run',
     v(`<!-- confidence: run=${BLESSRUN}-browserless -->\n**Score: 100/100**\n`).some(x => x.includes('cites no gate run')),
     JSON.stringify(v(`<!-- confidence: run=${BLESSRUN}-browserless -->\n**Score: 100/100**\n`)))
@@ -509,7 +517,9 @@ const entries = readdirSync('outbox')
 const scored = entries.filter(e => e.scores.length > 0)
 
 console.log(`\n${scored.length} of ${entries.length} outbox entries state a confidence score`)
-console.log(`${runs.size} citable gate run(s) recorded in ${RECORD_PATH}, denominator ${weight}`)
+// A browserless run (id suffix `-browserless`, scripts/gate-mode.mjs) is recorded and can back no score, so it is not counted among the citable runs.
+const counted = countRuns(runs.keys())
+console.log(`${counted.citable} citable gate run(s) recorded in ${RECORD_PATH}${counted.browserless > 0 ? ` (and ${counted.browserless} browserless, which back no score)` : ''}, denominator ${weight}`)
 if (log.legacy.length > 0) {
   // Records written before run ids existed. Not citable, and not deleted: they
   // are the evidence for why the id exists.

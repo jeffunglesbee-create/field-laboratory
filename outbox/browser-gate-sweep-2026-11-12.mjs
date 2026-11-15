@@ -97,7 +97,7 @@ const CODE = [
   ['a continue-on-error expression counts as off', 'return v not in (None, False, "false", "False")', 'return v is True'],
   ['a stray continue-on-error on a step is accepted', 'if i != at and truthy(s.get("continue-on-error")):', 'if False:'],
   ['the install is counted as a stray continue-on-error', 'if i != at and truthy(s.get("continue-on-error")):', 'if truthy(s.get("continue-on-error")):'],
-  ['continue-on-error on the job is accepted', 'if truthy(jobdoc.get("continue-on-error")):', 'if False:'],
+  ["continue-on-error on the job is accepted", "    if truthy(jobdoc.get(\"continue-on-error\")):\n        bad.append(f\"{owner} has", "    if False:\n        bad.append(f\"{owner} has"],
   ['`if: false` is accepted', 'if is_false_if(s.get("if")):', 'if False:'],
   ['`if: false` as YAML\'s boolean is accepted', '.strip().lower()))', '.strip()))'],
   ['`if: 0` is accepted', '(?:false|0)(?:\\s*\\}\\})?", str(cond)', '(?:false)(?:\\s*\\}\\})?", str(cond)'],
@@ -244,21 +244,18 @@ const CODE = [
   ["a dependent that is certain to run is counted", "if step_runs_after_failure({\"if\": (j or {}).get(\"if\")}) != RUNS:\n                out.append(name)", "if True:\n                out.append(name)"],
   ["the dependents of a skipped dependent are not followed", "out.append(name)\n                queue.append(name)", "out.append(name)\n                pass"],
   ["a `needs:` written as one name is not read", "return [n] if isinstance(n, str) else [x for x in (n or []) if isinstance(x, str)]", "return [] if isinstance(n, str) else [x for x in (n or []) if isinstance(x, str)]"],
-  ["the callers of a composite action are not looked for", "target = \"./\" + Path(rel).parent.as_posix()", "target = \"./no-such-action\""],
+  ["the callers of a composite action are not looked for", "target = \"./\" + Path(rel).parent.as_posix()\n    extra = 0", "target = \"./no-such-action\"\n    extra = 0"],
   ["the steps after a composite action in its callers are not counted", "extra += exempt_count(steps, k, pkg, read, install_id=None) + len(dependents_not_certain(doc, name))", "extra += len(dependents_not_certain(doc, name))"],
   ["the jobs that need a calling job are not counted", "extra += exempt_count(steps, k, pkg, read, install_id=None) + len(dependents_not_certain(doc, name))", "extra += exempt_count(steps, k, pkg, read, install_id=None)"],
   ["what else a failed install skips is not added to N", "exempt_count(steps, at, pkg, read) + exempt_extra(root, rel, job, pkg, read, docs)", "exempt_count(steps, at, pkg, read)"],
   ["a target that is not valid YAML crashes the guard", "except yaml.YAMLError as e:\n            bad.append(f\"the target", "except ZeroDivisionError as e:\n            bad.append(f\"the target"],
   ["a script that does not import child_process is read as a spawner", "    if not CHILD_PROCESS.search(src):\n        return []", "    if False:\n        return []"],
-  ["the scripts a spawner names are not followed", "for name in sorted(set(SCRIPT_NAME.findall(src))):", "for name in []:"],
-  ["a name without scripts/ is not resolved under scripts/", "cand = os.path.normpath(name if name.startswith(\"scripts/\") else \"scripts/\" + name)", "cand = os.path.normpath(name)"],
+  ["the scripts a spawner names are not followed", "for token in sorted(set(SCRIPT_NAME.findall(IMPORT_SPEC.sub(\"\", src)))):", "for token in []:"],
   ["a spawn is followed one level only", "SPAWN_DEPTH = 6\n", "SPAWN_DEPTH = 1\n"],
   ["a spawner's comments are read as code", "    try:\n        src = strip_comments(read(path))\n    except (OSError, KeyError):\n        return []\n    if not CHILD_PROCESS", "    try:\n        src = read(path)\n    except (OSError, KeyError):\n        return []\n    if not CHILD_PROCESS"],
-  ["a script a spawner names that does not exist counts", "        try:\n            read(cand)\n        except (OSError, KeyError):\n            continue\n", ""],
   ["a spawner is read as launching only when it launches DIRECTLY (a spawner of a spawner is not followed)", "or spawned_browser_scripts(cand, read, depth - 1, seen + (path,))", "or False"],
   ["a read-only mode of a spawner is not honoured", "    return \"*\" in modes or bool(set(args) & set(modes))", "    return False"],
   ["a read-only mode `*` is not honoured", "    return \"*\" in modes or bool(set(args) & set(modes))", "    return bool(set(args) & set(modes))"],
-  ["a trapped script is read as a spawner", "    if entry in TRAPPED or readonly_mode(entry, args) or (no_browser_ok", "    if readonly_mode(entry, args) or (no_browser_ok"],
   ["a trapped script is read as a launcher", "if \"--self-test\" in args or os.path.normpath(entry) in TRAPPED:", "if \"--self-test\" in args:"],
   ["the spawn reader is never applied to a step", "        if not hit and spawns_browser(entry, args, read, no_browser_ok):\n            hit = True", "        if False:\n            hit = True"],
   ["the emitter lists the commands of browser steps", "            if r[\"browser\"] or r[\"unresolved\"]:\n                continue\n            for entry, args in read_commands(run_text(s), pkg, read)[\"entries\"]:", "            for entry, args in read_commands(run_text(s), pkg, read)[\"entries\"]:"],
@@ -273,7 +270,7 @@ const CODE = [
   ["the flag is never read (a no-browser run is a browser step)", "NO_BROWSER_FLAGS = {\"scripts/mutation-check.mjs\": \"--no-browser\", \"scripts/confidence.mjs\": \"--browserless\"}", "NO_BROWSER_FLAGS = {}"],
   ["a target's audit does not read the flag", "        r = read_step(s, pkg, read, no_browser_ok=True)\n", "        r = read_step(s, pkg, read, no_browser_ok=False)\n"],
   ["the `if` of a no-browser run is not checked", "            if not no_browser_if(if_text(s)):\n                bad.append(", "            if False:\n                bad.append("],
-  ["a no-browser run is not looked for", "        if no_browser_flagged(s, pkg, read):\n            if not no_browser_if", "        if False:\n            if not no_browser_if"],
+  ["a no-browser run is not looked for", "        if no_browser_flagged(s, pkg, read):\n            others = sorted", "        if False:\n            others = sorted"],
   ["a no-browser run is also held to the rule for steps that need no browser", "                           f\"without it the flag would run with a browser installed, or the step would be skipped when the install failed (it has {if_text(s) or 'no `if`'!r})\")\n            continue\n", "                           f\"without it the flag would run with a browser installed, or the step would be skipped when the install failed (it has {if_text(s) or 'no `if`'!r})\")\n"],
   ["a no-browser run needs no `!= 'success'` clause", "    return cl is not None and NO_BROWSER_CLAUSE in cl and all(p == NO_BROWSER_CLAUSE or NO_BROWSER_EXTRA.match(p) for p in cl)", "    return cl is not None and all(p == NO_BROWSER_CLAUSE or NO_BROWSER_EXTRA.match(p) for p in cl)"],
   ["a no-browser run may carry any other clause", "    return cl is not None and NO_BROWSER_CLAUSE in cl and all(p == NO_BROWSER_CLAUSE or NO_BROWSER_EXTRA.match(p) for p in cl)", "    return cl is not None and NO_BROWSER_CLAUSE in cl"],
@@ -281,28 +278,69 @@ const CODE = [
   ["a no-browser run may carry another step's outcome", "NO_BROWSER_EXTRA = re.compile(r\"^(?:always\\(\\)|success\\(\\)|!cancelled\\(\\))$\")", "NO_BROWSER_EXTRA = re.compile(r\"^(?:always\\(\\)|success\\(\\)|!cancelled\\(\\)|steps\\.\\w+\\.outcome == 'success')$\")"],
   ["a step with the flag is never recognised", "    return any(NO_BROWSER_FLAGS.get(os.path.normpath(e)) in a for e, a in read_commands(run_text(step), pkg, read)[\"entries\"])", "    return False"],
   ["a composite action's steps are not found (job None)", "    if job is None:                     # a composite action: its steps are under `runs`\n", "    if False:                     # a composite action: its steps are under `runs`\n"],
-  ["the composite action is not a target", "    {\"file\": \".github/actions/mutation-shard/action.yml\", \"job\": None, \"floors\": (5, 1, 3)},\n", ""],
-  ["the composite action has no floors", "\"job\": None, \"floors\": (5, 1, 3)}", "\"job\": None, \"floors\": (0, 0, 0)}"],
+  ["the composite action is not a target", "    {\"file\": \".github/actions/mutation-shard/action.yml\", \"job\": None, \"floors\": (5, 1, 3), \"flagged\": (\"scripts/mutation-check.mjs\",)},\n", ""],
   ["the composite action is not named in the report", "'composite action' if tg['job'] is None else 'job `' + tg['job'] + '`'", "'job `' + str(tg['job']) + '`'"],
   ["the composite action is called a job in its messages", "owner = \"the composite action\" if job is None else f\"job `{job}`\"", "owner = f\"job `{job}`\""],
   ["the emitter reads only the first target", "    for tg in TARGETS:\n        path = Path(root, tg[\"file\"])\n        if path.exists():", "    for tg in TARGETS[:1]:\n        path = Path(root, tg[\"file\"])\n        if path.exists():"],
-  ["an unreadable step that carries always() is not kept", "            if always_if(if_text(s)) and i != last:", "            if False:"],
-  ["an unreadable step with any `if` is kept", "            if always_if(if_text(s)) and i != last:", "            if i != last:"],
-  ["the last step may be kept without being read", "            if always_if(if_text(s)) and i != last:", "            if always_if(if_text(s)):"],
+  ["an unreadable step that carries always() is not kept", "            if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\"):", "            if False:"],
+  ["an unreadable step with any `if` is kept", "            if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\"):", "            if i != last and not r[\"browser\"] and not s.get(\"uses\"):"],
+  ["the last step may be kept without being read", "            if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\"):", "            if always_if(if_text(s)) and not r[\"browser\"] and not s.get(\"uses\"):"],
   ["`always() && x` counts as always()", "    return re.sub(r\"^\\s*\\$\\{\\{\\s*|\\s*\\}\\}\\s*$\", \"\", cond or \"\").strip() == \"always()\"", "    return re.sub(r\"^\\s*\\$\\{\\{\\s*|\\s*\\}\\}\\s*$\", \"\", cond or \"\").strip().startswith(\"always()\")"],
   ["a kept step is not counted", "                opaque.append((i, s))\n                continue", "                continue"],
-  ["verify-full's full job is not a target", "    {\"file\": \".github/workflows/verify-full.yml\", \"job\": \"full\", \"floors\": (7, 2, 4)},\n", ""],
-  ["verify-full's full job has no floors", "\"job\": \"full\", \"floors\": (7, 2, 4)}", "\"job\": \"full\", \"floors\": (0, 0, 0)}"],
+  ["verify-full's full job is not a target", "    {\"file\": \".github/workflows/verify-full.yml\", \"job\": \"full\", \"floors\": (7, 2, 4), \"flagged\": (\"scripts/confidence.mjs\",)},\n", ""],
+  ["verify-full's full job has no floors", "\"job\": \"full\", \"floors\": (7, 2, 4), \"flagged\"", "\"job\": \"full\", \"floors\": (0, 0, 0), \"flagged\""],
   ["the gate's flag is not declared", ", \"scripts/confidence.mjs\": \"--browserless\"}", "}"],
   ["a gate row that drives a browser need not be flagged", "        if reads and not flag:", "        if False:"],
   ["a gate row that is flagged need not drive a browser", "        if flag and not reads:", "        if False:"],
   ["too few gate rows are accepted", "    if len(rows) < MIN_ROWS:", "    if False:"],
   ["too few flagged gate rows are accepted", "    if flagged < MIN_BROWSER_ROWS:", "    if False:"],
   ["no gate row is read as driving a browser", "        reads = any(read_step({\"run\": c}, pkg, read)[\"browser\"] for c in cmds)", "        reads = False"],
-  ["no gate row is read as flagged", "        out.append((m.group(2), int(m.group(3)), \"browser:\" in head, cmds))", "        out.append((m.group(2), int(m.group(3)), False, cmds))"],
+  ["no gate row is read as flagged", "        out.append((name, int(m.group(3)), flagged, cmds))", "        out.append((name, int(m.group(3)), False, cmds))"],
   ["the gate rows are not compared in the real-tree path", "    row_problems = gate_row_problems(root, pkg, read)\n", "    row_problems = []\n"],
   ["the gate rows' problems are not reported", "    bad += [f\"scripts/gate-checks.mjs: {b}\" for b in row_problems]\n", ""],
   ["a gate-checks file that cannot be read is not a problem", "        return [f\"scripts/gate-checks.mjs could not be read for its rows ({type(e).__name__}): {e}\"]", "        return []"],
+  ["a name a `/` precedes is invisible (the old lookbehind)", "SCRIPT_NAME = re.compile(r\"\"\"[\\w.${}/-]+\\.(?:mjs|cjs|js|py)\\b\"\"\", re.I)", "SCRIPT_NAME = re.compile(r\"\"\"(?<![\\w./-])((?:scripts/)?[\\w.-]+\\.(?:mjs|cjs|py))\\b\"\"\")"],
+  ["an import specifier is a spawn name", "SCRIPT_NAME.findall(IMPORT_SPEC.sub(\"\", src))", "SCRIPT_NAME.findall(src)"],
+  ["a spawned script is not looked for as written", "for cand in (bare, os.path.join(os.path.dirname(path), token), \"scripts/\" + os.path.basename(token)):", "for cand in (os.path.join(os.path.dirname(path), token), \"scripts/\" + os.path.basename(token)):"],
+  ["a spawned script is not looked for beside the spawner", "for cand in (bare, os.path.join(os.path.dirname(path), token), \"scripts/\" + os.path.basename(token)):", "for cand in (bare, \"scripts/\" + os.path.basename(token)):"],
+  ["a spawned script is not looked for by file name under scripts/", "for cand in (bare, os.path.join(os.path.dirname(path), token), \"scripts/\" + os.path.basename(token)):", "for cand in (bare, os.path.join(os.path.dirname(path), token)):"],
+  ["a name that leaves the repository is read", "        if not cand.startswith(\"..\"):\n            out.add(cand)", "        if True:\n            out.add(cand)"],
+  ["a leading ${VAR}/ is not dropped", "bare = re.sub(r\"^\\$\\{?\\w+\\}?/\", \"\", token)", "bare = token"],
+  ["a script that runs the gate rows is not a browser step by declaration", "    if entry in RUNS_ROWS:\n        return [\"scripts/gate-checks.mjs\"]", "    if False:\n        return [\"scripts/gate-checks.mjs\"]"],
+  ["confidence.mjs does not run the gate rows", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/run-row.mjs\"})"],
+  ["run-row.mjs does not run the gate rows", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\", \"scripts/run-row.mjs\"})", "RUNS_ROWS = frozenset({\"scripts/confidence.mjs\"})"],
+  ["an unreadable always() step is opaque even when it launches a browser", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\"):", "if always_if(if_text(s)) and i != last and not s.get(\"uses\"):"],
+  ["an unreadable always() `uses:` step is opaque", "if always_if(if_text(s)) and i != last and not r[\"browser\"] and not s.get(\"uses\"):", "if always_if(if_text(s)) and i != last and not r[\"browser\"]:"],
+  ["a step with the no-browser flag may run anything else too", "others = sorted({os.path.normpath(e) for e, a in read_commands(run_text(s), pkg, read)[\"entries\"] if NO_BROWSER_FLAGS.get(os.path.normpath(e)) not in a})", "others = []"],
+  ["a step with the no-browser flag may run only the flagged command: the test is inverted", "if NO_BROWSER_FLAGS.get(os.path.normpath(e)) not in a})", "if NO_BROWSER_FLAGS.get(os.path.normpath(e)) in a})"],
+  ["a target need not run its no-browser spawner", "    for req in flagged:\n        have =", "    for req in ():\n        have ="],
+  ["the required no-browser step need not wait for the failed install", "have = any(no_browser_if(if_text(s)) and any(", "have = any(any("],
+  ["the required no-browser step need not carry the flag", "and NO_BROWSER_FLAGS[req] in a for e, a in read_commands", "and True for e, a in read_commands"],
+  ["the shard action is not required to run its no-browser spawner", "\"floors\": (5, 1, 3), \"flagged\": (\"scripts/mutation-check.mjs\",)}", "\"floors\": (5, 1, 3), \"flagged\": ()}"],
+  ["verify-full is not required to run its no-browser spawner", "\"floors\": (7, 2, 4), \"flagged\": (\"scripts/confidence.mjs\",)}", "\"floors\": (7, 2, 4), \"flagged\": ()}"],
+  ["the audit is not given the required spawners", "flagged=tg.get(\"flagged\", ()))", "flagged=())"],
+  ["the shard action has no floors", "\"floors\": (5, 1, 3), \"flagged\"", "\"floors\": (0, 0, 0), \"flagged\""],
+  ["the callers of a target action are not audited", "if tg[\"job\"] is None:\n            problems = problems + caller_problems(", "if False:\n            problems = problems + caller_problems("],
+  ["a caller's `uses:` step may carry continue-on-error", "if truthy(s.get(\"continue-on-error\")):\n                    bad.append(f\"{where}: the step that uses", "if False:\n                    bad.append(f\"{where}: the step that uses"],
+  ["a calling job may carry continue-on-error", "if truthy(jobdoc.get(\"continue-on-error\")):\n                    bad.append(f\"{where}: the job has", "if False:\n                    bad.append(f\"{where}: the job has"],
+  ["a step after the action with no status function is accepted", "if res == SKIPPED or (res == UNKNOWN and \"always()\" not in if_text(after)):", "if (res == UNKNOWN and \"always()\" not in if_text(after)):"],
+  ["a step after the action that may or may not run is accepted without always()", "if res == SKIPPED or (res == UNKNOWN and \"always()\" not in if_text(after)):", "if res == SKIPPED:"],
+  ["a step after the action with always() and another clause is refused", "if res == SKIPPED or (res == UNKNOWN and \"always()\" not in if_text(after)):", "if res == SKIPPED or res == UNKNOWN:"],
+  ["no step after the action is judged", "if res == SKIPPED or (res == UNKNOWN and \"always()\" not in if_text(after)):", "if False:"],
+  ["a job that needs the calling job is not judged", "for dep in dependents_not_certain(doc, name):\n                    bad.append(f\"{where}: job", "for dep in []:\n                    bad.append(f\"{where}: job"],
+  ["no caller is found", "if not (isinstance(s, dict) and str(s.get(\"uses\", \"\")).rstrip(\"/\") == target):\n                    continue\n                where", "if True:\n                    continue\n                where"],
+  ["a gate row indented four spaces is not read", "ROW_START = re.compile(r\"^[ \\t]*\\{[ \\t]*name:", "ROW_START = re.compile(r\"^  \\{[ \\t]*name:"],
+  ["the count of weight keys is not compared with the rows read", "if n_weight != len(starts):", "if False:"],
+  ["a template literal in a row is accepted", "if \"`\" in rshape:", "if False:"],
+  ["a use of ok/fails/all that is not a call is accepted", "if not rshape[lp:lp + 1] == \"(\":", "if False:"],
+  ["a first argument that continues past its string is read as the string", "\"([^\"\\\\\\n]*)\")\\s*(?=[,)])\"\"\")\nROW_ALL", "\"([^\"\\\\\\n]*)\")\"\"\")\nROW_ALL"],
+  ["execSync and its kin are not scanned in a row", "ROW_CALL = re.compile(r\"\\b(ok|fails|all|execSync|execFileSync|spawnSync|spawn|exec)\\b\")", "ROW_CALL = re.compile(r\"\\b(ok|fails|all)\\b\")"],
+  ["comments in the rows array are read as code", "body = _blank_comments(text[at:end])", "body = text[at:end]"],
+  ["the words inside a string are read as code", "shape = _blank_strings(body)", "shape = body"],
+  ["a browser flag written as a function is not a flag", "flagged = value.startswith(\"true\") or value.startswith(\"(\")", "flagged = value.startswith(\"true\")"],
+  ["a browser flag written `true` is not a flag", "flagged = value.startswith(\"true\") or value.startswith(\"(\")", "flagged = value.startswith(\"(\")"],
+  ["`browser: false` is a flag", "flagged = value.startswith(\"true\") or value.startswith(\"(\")", "flagged = bool(flag)"],
+  ["an unrecognised browser value is accepted", "if not (flagged or value.startswith(\"false\")):", "if False:"],
 ]
 
 // anchors that exist exactly once in verify.yml (the sweep asserts it). `ins` puts text directly under a step's name.
@@ -437,6 +475,12 @@ const OTHERS = [
   ["scripts/gate-checks.mjs", "gate rows: a row that needs no browser is flagged", "  { name: 'decoders accept both real captures', weight: 30,\n", "  { name: 'decoders accept both real captures', weight: 30, browser: true,\n"],
   ["scripts/gate-checks.mjs", "gate rows: the mutation row loses its flag", "    browser: () => process.env.GATE_MUTATION_SHARDS === undefined,\n", ""],
   ["scripts/gate-checks.mjs", "gate rows: a row starts to drive a browser (its command changes) and keeps no flag", "    run: () => ok('node scripts/zone-check.mjs') },", "    run: () => ok('node scripts/spark-check.mjs') },"],
+  [".github/workflows/verify-full.yml", "verify-full: the browserless gate is replaced by an unrelated browser-free step", "      - name: Confidence gate without a browser (--browserless)\n        if: steps.chromium.outcome != 'success'\n        env:\n          GATE_MUTATION_SHARDS: '8'\n          GITHUB_TOKEN: ${{ github.token }}\n        run: npm run gate:browserless\n", "      - name: The zone check\n        run: node scripts/zone-check.mjs\n"],
+  [".github/workflows/verify-full.yml", "verify-full: the browserless gate is replaced by an unrelated step behind the same `if`", "      - name: Confidence gate without a browser (--browserless)\n        if: steps.chromium.outcome != 'success'\n        env:\n          GATE_MUTATION_SHARDS: '8'\n          GITHUB_TOKEN: ${{ github.token }}\n        run: npm run gate:browserless\n", "      - name: The zone check\n        if: steps.chromium.outcome != 'success'\n        run: node scripts/zone-check.mjs\n"],
+  [".github/actions/mutation-shard/action.yml", "action: the no-browser run is replaced by an unrelated browser-free step", "    - name: Run the shard without a browser\n      if: steps.chromium.outcome != 'success'\n      shell: bash\n      env:\n        IDS: ${{ inputs.ids }}\n      run: |\n        if [ -n \"$IDS\" ]; then\n          node scripts/mutation-check.mjs --ids \"$IDS\" \\\n            --build \"${{ inputs.mode }}\" --no-browser \\\n", "    - name: Run the shard without a browser\n      if: steps.chromium.outcome != 'success'\n      shell: bash\n      env:\n        IDS: ${{ inputs.ids }}\n      run: |\n        node scripts/zone-check.mjs\n        if [ -n \"$IDS\" ]; then\n          node scripts/mutation-check.mjs --ids \"$IDS\" \\\n            --build \"${{ inputs.mode }}\" --no-browser \\\n"],
+  [".github/workflows/mutation-ids-probe.yml", "callers: a step after the action has no status function", "      - name: What the driver said about each id\n        if: always() && steps.ids.outputs.ids != ''\n", "      - name: What the driver said about each id\n        if: steps.ids.outputs.ids != ''\n"],
+  [".github/workflows/verify-full.yml", "callers: the shard job's `uses:` step swallows its failure", "      - uses: ./.github/actions/mutation-shard\n        with:\n          index: ${{ matrix.index }}\n", "      - uses: ./.github/actions/mutation-shard\n        continue-on-error: true\n        with:\n          index: ${{ matrix.index }}\n"],
+  [".github/workflows/mutation-ids-probe.yml", "callers: a step is added after the action with no status function", "      - name: What the driver said about each id\n", "      - name: A late step\n        run: echo late\n      - name: What the driver said about each id\n"],
 ]
 
 const prep = () => {
@@ -460,9 +504,11 @@ console.log(`unmutated copy: self-test exit ${c1.status} (${(c1.stdout.match(/(\
 rmSync(d0, { recursive: true, force: true })
 if (c1.status !== 0 || c2.status !== 0) bail(null, 'the unmutated copy is not green on both paths: nothing to sweep')
 
-let caught = 0, total = 0
+let caught = 0, total = 0, skippedByFilter = 0
+const ONLY = process.env.SWEEP_ONLY ? new RegExp(process.env.SWEEP_ONLY) : null
 const sweep = (kind, list, file, judge) => {
   for (const [name, from, to] of list) {
+    if (ONLY && !ONLY.test(name)) { skippedByFilter++; continue }
     total++
     const dir = prep()
     const f = join(dir, file)
@@ -484,5 +530,6 @@ const sweep = (kind, list, file, judge) => {
 sweep('CODE', CODE, join('scripts', 'check-browser-gate.py'), selfTest)
 sweep('WORKFLOW', WORKFLOW, join('.github', 'workflows', 'verify.yml'), realTree)
 for (const [file, name, from, to] of OTHERS) sweep('WORKFLOW', [[name, from, to]], file, realTree)
+if (ONLY) console.log(`\nSLICE /${process.env.SWEEP_ONLY}/: ran ${total} of ${total + skippedByFilter} mutations; ${skippedByFilter} were NOT run (a slice proves only what it ran)`)
 console.log(`\ncaught ${caught} of ${total} mutations (${CODE.length} of the guard's code, ${WORKFLOW.length} of verify.yml, ${OTHERS.length} of the other workflows it reads); ${EXCLUDED} more were NOT run, each named in this file's header as equivalent or as a crash`)
 process.exit(caught === total ? 0 : 1)

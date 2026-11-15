@@ -1120,7 +1120,7 @@ if (process.argv.includes('--self-test')) {
         '}', '',
       ].join('\n'))
     },
-  }, ({ dir, go, has, read }) => ({ r: go({ NODE_OPTIONS: `--require ${join(dir, 'other-run.cjs')}` }), builds: has('calls.log'), marker: read(MARKER_FILE), backups: backupsOf(read) }))
+  }, ({ dir, go, has, read }) => ({ r: go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'other-run.cjs')}`.trim() }), builds: has('calls.log'), marker: read(MARKER_FILE), backups: backupsOf(read) }))
   sc('A MARKER THAT APPEARS BETWEEN THE CHECK AND THE CREATE IS ANOTHER RUN, AND THE LOSER WRITES NOTHING: exit 1, no build runs, it says another run took the marker, and the other run\'s marker and both its backups are exactly as it left them (1 run)',
     raced.r.status === 1 && !raced.builds && raced.marker === 'THE OTHER RUN\n' && raced.backups.every(b => b === HOLDER) && !/symbolic link/.test(raced.r.stderr)
       && raced.r.stderr.includes(`proof-check: another run took ${MARKER_FILE} while this one was starting. Run this again once it has finished.`),
@@ -1146,7 +1146,7 @@ if (process.argv.includes('--self-test')) {
       '  return real.apply(this, arguments)',
       '}', '',
     ].join('\n')),
-  }, ({ dir, go, has }) => ({ r: go({ NODE_OPTIONS: `--require ${join(dir, 'fault.cjs')}` }), builds: has('calls.log') }))
+  }, ({ dir, go, has }) => ({ r: go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'fault.cjs')}`.trim() }), builds: has('calls.log') }))
   sc('A MARKER THAT CANNOT BE CREATED FOR A REASON THAT IS NOT ANOTHER RUN IS NOT CALLED ANOTHER RUN: the error is thrown (ENOSPC, planted), the run stops before any build, and nothing tells a person to wait (1 run, the non-EEXIST branch)',
     failingCreate.r.status === 1 && /ENOSPC/.test(failingCreate.r.stderr) && !/another run took/.test(failingCreate.r.stderr) && !failingCreate.builds,
     `status ${failingCreate.r.status}, builds ran ${failingCreate.builds}; ${failingCreate.r.stderr.slice(0, 200).replace(/\n/g, ' | ')}`)

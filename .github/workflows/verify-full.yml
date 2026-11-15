@@ -247,6 +247,7 @@ jobs:
       # shard jobs' results back); the six that drive a browser are reported NOT APPLICABLE by name; the record says `browserless` and cannot back a score; and the last step of the
       # job fails it. The shard jobs ran `--no-browser` for the same reason (.github/actions/mutation-shard), so the mutation row reports their holes as a verdict problem.
       - name: Confidence gate without a browser (--browserless)
+        id: browserless-gate
         if: steps.chromium.outcome != 'success'
         env:
           GATE_MUTATION_SHARDS: '8'
@@ -442,12 +443,15 @@ jobs:
         if: always() && steps.chromium.outcome != 'success'
         env:
           INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
+          GATE_OUTCOME: ${{ steps.browserless-gate.outcome }}
         run: |
           if [ "$INSTALL_OUTCOME" = skipped ]; then
             echo "::error::The Chromium install was skipped: an earlier step failed, or the run was cancelled before it. The peak slate and the six gate rows that need a browser were NOT run."
           elif [ "$INSTALL_OUTCOME" = cancelled ]; then
             echo "::error::The run was cancelled before the Chromium install finished. The peak slate and the six gate rows that need a browser were NOT run."
-          else
+          elif [ "$GATE_OUTCOME" = success ]; then
             echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The gate ran with --browserless: the peak slate and the six rows that need a browser were NOT run, so this run is not a pass."
+          else
+            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}), and the browserless gate did not finish (its outcome: ${GATE_OUTCOME:-none}): an earlier step failed, or a row did. The peak slate and the six rows that need a browser were NOT run, and this run is not a pass."
           fi
           exit 1

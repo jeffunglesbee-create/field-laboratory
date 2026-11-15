@@ -18,3 +18,7 @@ public/
 # run was killed — the marker carries the pid, so the next run can tell "killed,
 # heal it" from "still running, refuse". Never committed.
 .proof-state/
+
+# Python bytecode: importing scripts/check-browser-gate.py (the sweep and the review harnesses do) writes it, and a tracked copy dirties the tree the gate judges
+__pycache__/
+*.pyc
