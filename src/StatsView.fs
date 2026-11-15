@@ -147,7 +147,10 @@ let reportFor (schedule: Schedule.ScheduledGame list) (game: Game) : ScoutingRep
           // Drama, behind the ADR-002 amnesty witness: only a finished game may
           // show the peak, and `formatDramaPeak` demands the witness.
           match amnestyZone state, game.DramaPeak with
-          | Some zone, Some peak -> yield DramaRow(formatDramaPeak zone peak)
+          | Some zone, Some(Scored peak) -> yield DramaRow(formatDramaPeak zone peak)
+          // The relay's mark is stated as what it is. Printing it as a number
+          // put "DRAMA 0" under overtime finals (see `DramaReading`).
+          | Some _, Some NotScored -> yield DramaRow "not scored by the relay"
           | _ -> ()
 
           match Scout.broadcastOf game.Streams with

@@ -896,6 +896,11 @@ jobs:
       - name: Game state at fixed instants
         run: npm run check:state
 
+      # The relay's drama 0 (peak 0, no arc) is its "cannot be scored" mark.
+      # Read as a peak, it printed "DRAMA 0" under every NBA/NHL/NFL/CFB final.
+      - name: Drama 0 is the relay's mark, not a reading
+        run: npm run check:drama-reading
+
       # A row the desk cannot name both sides of must cost exactly that row.
       # `Decode.list` is all-or-nothing, so on 2026-08-13 one PGA Tour row with
       # NULL sides took the whole deployed slate down and live-check reported
