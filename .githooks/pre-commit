@@ -97,8 +97,8 @@ npm run --silent check:setup-script
 # step's script turns it red with no workflow touched, and a comment naming
 # playwright does not (outbox/brief-hook-premises-2026-11-15.txt, B4). Both read
 # files and run nothing: no network, no build, no browser. Needs PyYAML (python3 -m
-# pip install pyyaml). Without it the browser guard says so, check-push-lands.py
-# stops on ModuleNotFoundError, and either way the commit stops, which is the point.
+# pip install pyyaml). Without it each guard says so and the commit stops, which is
+# the point.
 npm run --silent check:browser-gate
 npm run --silent check:push-lands
 
