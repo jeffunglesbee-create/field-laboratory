@@ -1,0 +1,7 @@
+# Review 4 of 48f504e: the Chromium guard, findings 21 to 30 (session note, 2026-11-15)
+
+Branch `gate-guard-r4`, from 48f504e, all changes in `scripts/check-browser-gate.py` (no other file under `scripts/`). Each finding was reproduced on a copy of the tree at 48f504e (the review's own inputs), fixed as a class, given fixtures, and each fix was then BROKEN ON PURPOSE in a copy of the guard (one find/replace, anchor asserted unique), the copy's `--self-test` run, and the failing checks counted.
+
+| finding | what changed | check that turned red when the fix was broken (failing checks) | self-test after this commit |
+|---|---|---|---|
+| 29 | `NPM_CONFIG_DANGEROUS` and `npm_config_key()`/`dangerous_var()` (npm's own reading: any case of the prefix, `_` for `-`) replace `in DANGEROUS_VARS` at the three sites (inline assignment, a step's env, a job's or workflow's env). Keys read from npm 10.9.4's config reference: script-shell, node-options, prefix, workspace, workspaces, include-workspace-root, userconfig, globalconfig. `shell` is left out: the reference says it is `npm explore`'s shell. | `dangerous_var ignores npm_config_`: 2 failing, first `NPM_CONFIG_DANGEROUS: every member does its job on an input where its absence changes the verdict`; prefix case-sensitive: 3; `_` kept: 3; job/workflow env only DANGEROUS_VARS: 1 (`finding 29: the spelling is npm's...`). Each of the 8 keys deleted, equalities off: caught by its own job check. | 536/536 |

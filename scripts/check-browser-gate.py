@@ -111,7 +111,8 @@ playwright or calls chromium.launch, and the arguments do not include `--self-te
     `python3`, `npx playwright` and a short list of commands that cannot start a browser (SAFE_HEADS). Anything else, a
     wrapper (`timeout`, `env`, `xvfb-run`, `bash -c`, `time`, `exec`, `xargs`), a command substitution inside quotes, a
     heredoc or process substitution, a script with no extension, an npm pass-through argument, a missing script or a
-    cycle, a node flag in the `--opt=value` form that is not understood, NODE_OPTIONS or PATH set in front of a command, is
+    cycle, a node flag in the `--opt=value` form that is not understood, NODE_OPTIONS or PATH set in front of a command (or npm's own
+    spelling of them, `npm_config_node_options`, `NPM_CONFIG_SCRIPT_SHELL`: DANGEROUS_VARS and NPM_CONFIG_DANGEROUS), is
     UNRESOLVED and refused: the author writes the plain form, or gates the step on the install. Before the 2026-11-12
     review this reader dropped what it did not parse and called the step browser-free; seven forms of that were reproduced,
     and a second review found twelve more (a `#` inside a word, `--import=`, `<( )`, `NODE_OPTIONS=` and others), now fixed.
@@ -394,6 +395,26 @@ NODE_INLINE = {"-e", "--eval", "-p", "--print", "-i", "--interactive", "-", "--r
 NODE_INLINE_EQ = ("--eval=", "--print=", "--run=")
 # Variables that change WHAT a command runs without appearing in it: a preload through NODE_OPTIONS, a shadowing PATH.
 DANGEROUS_VARS = frozenset({"NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME"})
+# npm has its own spelling of some of those, and reads it from the environment: `npm_config_<key>`, in ANY letter case, with `_` for `-` (@npmcli/config loadEnv, npm 10.9.4:
+# `/^npm_config_/i`, then `key.replace(/(?!^)_/g, '-').toLowerCase()`). `npm_config_node_options` is NODE_OPTIONS for every node npm starts (a preload into each script, which the guard
+# refused only under its own name), and `NPM_CONFIG_SCRIPT_SHELL` is the shell `npm run` hands the script to (review of 48f504e, finding 29: both read as `npm run <browser-free script>`).
+# Read from npm's own config reference (docs/content/using-npm/config.md), the keys that change WHICH command `npm run` executes: `script-shell` and `node-options` (how a script is started),
+# `prefix` ("forces non-global commands to run in the specified folder": another package.json), `workspace`, `workspaces` and `include-workspace-root` (the same script of another package) and
+# `userconfig`, `globalconfig` (a config file that sets any of the above). NOT `shell`: the docs say it is the shell of `npm explore`, and the guard refuses `npm explore` as a subcommand it does not read.
+NPM_CONFIG_DANGEROUS = frozenset({"script-shell", "node-options", "prefix", "userconfig", "globalconfig", "workspace", "workspaces", "include-workspace-root"})
+
+
+def npm_config_key(name):
+    """The npm config key an environment variable name sets, as npm reads it, or None when the name is no `npm_config_` one."""
+    m = re.match(r"npm_config_(.*)$", str(name), re.I | re.S)
+    return None if m is None else re.sub(r"(?!^)_", "-", m.group(1)).lower()
+
+
+def dangerous_var(name):
+    """Whether setting this variable changes what the commands of a step run: DANGEROUS_VARS, or an `npm_config_` spelling of an npm key that does (NPM_CONFIG_DANGEROUS)."""
+    return str(name) in DANGEROUS_VARS or npm_config_key(name) in NPM_CONFIG_DANGEROUS
+
+
 INSTALL_LINE = re.compile(r"^(?:timeout(?: --kill-after=\d+)? \d+ )?npx playwright install(?: [\w-]+)*$")
 FINAL_HEADS = frozenset({"echo", "exit", "[", "test"})
 PY_FLAGS = {"-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"}
@@ -592,8 +613,8 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
         for g in groups:
             w = command_words(g)
             assigned = [x.split("=", 1)[0] for x in (list(g[:len(g) - len(w)]) + (list(w[1:]) if w and w[0] == "export" else [])) if re.match(r"^[A-Za-z_]\w*=", x)]
-            if any(a in DANGEROUS_VARS for a in assigned):
-                out["unresolved"].append(f"`{' '.join(g)[:80]}`: it sets {', '.join(a for a in assigned if a in DANGEROUS_VARS)}, which changes what the commands after it run")
+            if any(dangerous_var(a) for a in assigned):
+                out["unresolved"].append(f"`{' '.join(g)[:80]}`: it sets {', '.join(a for a in assigned if dangerous_var(a))}, which changes what the commands after it run")
             if not w:
                 continue
             head, shown = w[0], " ".join(w)[:80]
@@ -772,7 +793,7 @@ def read_step(step, pkg, read, no_browser_ok=False):
     if step.get("working-directory") not in (None, "."):
         res["unresolved"].append(f"working-directory: {step.get('working-directory')!r}: relative script paths would mean something else")
     for k in env_map(step):
-        if str(k) in DANGEROUS_VARS:
+        if dangerous_var(k):
             res["unresolved"].append(f"env: {k} changes what the commands of this step run")
     out = read_commands(script, pkg, read)
     res["unresolved"] += out["unresolved"]
@@ -940,7 +961,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
         bad.append(f"the install step {name(inst)} must be ONE `npx playwright install ...` command (optionally behind `timeout N`): it has `continue-on-error`, so anything else in it that fails is swallowed and the job is green over it")
     for scope, env in (("job", jobdoc.get("env")), ("workflow", (doc or {}).get("env"))):
         for k in (env or {}):
-            if str(k) in DANGEROUS_VARS:
+            if dangerous_var(k):
                 bad.append(f"the {scope}'s env sets {k}, which changes what every command in it runs")
     for i, s in enumerate(steps):
         if i != at and truthy(s.get("continue-on-error")):
@@ -2687,6 +2708,23 @@ def self_test():
         if not any_of("GREEN", res):
             broken.append(v)
     check("ANY_OUTCOMES: a final step that exits 0 for exactly one outcome of another step is refused, for each of the five outcomes", not broken, broken)
+
+    # ---- ROUND 5: THE THIRD REVIEW'S FINDINGS (21 to 30 of the review of 48f504e). Each fixture below failed on the guard as it stood, or is the pin of an alternative that no fixture reached. Every family is a LITERAL
+    # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
+
+    # FINDING 29. npm's own spelling of the variables that change what a script runs.
+    unresolved_env = lambda k: read_step({"run": "npm run pure", "env": {k: "x"}}, pkg, read)["unresolved"]
+    PINNED_NPM_CONFIG = ("script-shell", "node-options", "prefix", "userconfig", "globalconfig", "workspace", "workspaces", "include-workspace-root")
+    vocab("NPM_CONFIG_DANGEROUS", NPM_CONFIG_DANGEROUS, PINNED_NPM_CONFIG, lambda k: any_of("changes what the commands of this step run", unresolved_env("npm_config_" + k.replace("-", "_"))) and
+          any_of("changes what the commands of this step run", unresolved_env("NPM_CONFIG_" + k.replace("-", "_").upper())) and any_of("changes what the commands of this step run", unresolved_env("npm_config_" + k)) and
+          any_of("changes what the commands after it run", unresolved(f"npm_config_{k.replace('-', '_')}=x npm run pure")))
+    check("finding 29: the spelling is npm's: any case of the prefix and the key, `_` or `-`, and the job's and the workflow's env too; an npm key that changes no command (`loglevel`, `shell`, `cache`) and a name that is no npm_config_ one are not refused",
+          all(any_of("changes what the commands", unresolved_env(k)) for k in ("Npm_Config_Node_Options", "NPM_CONFIG_node_options", "npm_config_Script_Shell")) and
+          not any(any_of("changes what the commands", unresolved_env(k)) for k in ("npm_config_loglevel", "NPM_CONFIG_SHELL", "npm_config_cache", "my_npm_config_node_options", "npm_config_", "npm_configscript_shell")) and
+          any_of("the job's env sets", audit({"jobs": {"verify": {"env": {"NPM_CONFIG_SCRIPT_SHELL": "x"}, "steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]) and
+          any_of("the workflow's env sets", audit({"env": {"npm_config_node_options": "x"}, "jobs": {"verify": {"steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]))
+    check("finding 29: npm_config_key reads the name as npm does (`_` to `-` except at the start of the key, lower case, no prefix is None)",
+          npm_config_key("NPM_CONFIG_Script_Shell") == "script-shell" and npm_config_key("npm_config__x_y") == "_x-y" and npm_config_key("npm_config_") == "" and npm_config_key("X_npm_config_a") is None and npm_config_key("PATH") is None)
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
