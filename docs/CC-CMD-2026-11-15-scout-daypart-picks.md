@@ -60,6 +60,8 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
    Still open: the 11:00 edge, and the 100 games in no window.
    CHANGED 2026-11-16 by the owner: **the 7pm window moves to 7:30pm**, i.e. 18:30-20:30 ET. Measured on the same 30 days before the change was agreed: it gains 39 games (20:30 27 NBA, NHL, MLS, CFB; 20:15 8 and 20:20 4 NFL night games) and loses 17 (18:00 15 NHL, CFB, NBA; 18:15 2 CFB): **1,176 of 1,254 in a window (93.8%), 78 in none.** It still ends before the 10pm window begins (21:00), so it shares no edge.
 
+   ANSWERED 2026-11-16 by the owner: **a weekend 11:00 kickoff belongs to the 10am window** (5 games in the 30 days). On weekdays there is no 10am window, so 11:00 belongs to the 12pm window. Asked the same day, measured, not changed: moving the 3pm window to 3:30pm (14:30-16:30) gains 26 (16:05 5 NFL, Ligue 1; 16:15 6 CFB; 16:25 9 NFL; 16:30 6 MLS, CFB, CFL) and loses 32 (14:00: La Liga, EFL Trophy, Ligue 1, NHL, MLS, CFB), 1,170 inside against 1,176.
+
    **The windows, as they now stand (ET):** every day 11:00-13:00, 14:00-16:00, 18:30-20:30, 21:00-23:00; Saturdays and Sundays also 06:30-08:30 and 09:00-11:00.
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
