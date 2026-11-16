@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0f65bc4` | 2026-11-16 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of aa9f7af [skip ci] |
+| `aa9f7af` | 2026-11-16 | [tls-first-red-2026-11-16.md](tls-first-red-2026-11-16.md) | docs: the first weather red after the TLS stage reads as a fit, 1 of 3 reds readable |
+| `4225895` | 2026-11-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `5e78f3a` | 2026-11-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-16 [skip ci] |
+| `5e78f3a` | 2026-11-16 | [sport-vocabulary-2026-11-16T08-09-16-658Z.json](sport-vocabulary-2026-11-16T08-09-16-658Z.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
+| `46a765e` | 2026-11-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `e0a22e4` | 2026-11-15 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-15T23:10 [skip ci] |
+| `225fe88` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1985b7c` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
 | `1985b7c` | 2026-11-15 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
 | `1985b7c` | 2026-11-15 | [sport-vocabulary-2026-11-15T18-42-58-008Z.json](sport-vocabulary-2026-11-15T18-42-58-008Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |

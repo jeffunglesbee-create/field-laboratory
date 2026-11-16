@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Questions 1 and 2 (the owner's standard ET windows), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; weekend morning windows added the same day, 7pm moved to 7:30pm 2026-11-16; open: the shared 11:00 edge, games in no window, and 3 to 4. Not to be built until they are answered. Filing is not permission to build.
+**Status:** SPECIFIED 2026-11-16: every design question is answered by the owner (windows and edges, out-of-window games, empty windows shown, a game in its kickoff window only, its own section, the name Deep Cuts). Ready to build on the owner's word. Golf stays out until field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md` gives it a real start.
 
 ---
 
@@ -60,12 +60,39 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
    Still open: the 11:00 edge, and the 100 games in no window.
    CHANGED 2026-11-16 by the owner: **the 7pm window moves to 7:30pm**, i.e. 18:30-20:30 ET. Measured on the same 30 days before the change was agreed: it gains 39 games (20:30 27 NBA, NHL, MLS, CFB; 20:15 8 and 20:20 4 NFL night games) and loses 17 (18:00 15 NHL, CFB, NBA; 18:15 2 CFB): **1,176 of 1,254 in a window (93.8%), 78 in none.** It still ends before the 10pm window begins (21:00), so it shares no edge.
 
-   **The windows, as they now stand (ET):** every day 11:00-13:00, 14:00-16:00, 18:30-20:30, 21:00-23:00; Saturdays and Sundays also 06:30-08:30 and 09:00-11:00.
+   ANSWERED 2026-11-16 by the owner: **a weekend 11:00 kickoff belongs to the 10am window** (5 games in the 30 days). On weekdays there is no 10am window, so 11:00 belongs to the 12pm window. Asked the same day, measured, not changed: moving the 3pm window to 3:30pm (14:30-16:30) gains 26 (16:05 5 NFL, Ligue 1; 16:15 6 CFB; 16:25 9 NFL; 16:30 6 MLS, CFB, CFL) and loses 32 (14:00: La Liga, EFL Trophy, Ligue 1, NHL, MLS, CFB), 1,170 inside against 1,176.
+
+   CHANGED 2026-11-16 by the owner: **the afternoon becomes 12pm / 2pm / 4pm**, i.e. 11:00-13:00, 13:00-15:00, 15:00-17:00, replacing 11:00-13:00 and 14:00-16:00. Measured before it was agreed: 1,228 of 1,254 in a window (97.9%), 26 in none (18:00 15, 00:00 4 PGA Tour, 17:30 3, 18:15 2, 10:30 2 weekday Europa / Conference). The alternative asked about the same day, 2pm plus 3:30pm, reached 1,214 but put 135 games in both windows, and was not taken. Two new shared edges: **13:00 (56 games) and 15:00 (102, including the midweek Champions League slot)**, each open: which window it belongs to.
+
+   **The windows, as they now stand (ET):** every day 11:00-13:00, 13:00-15:00, 15:00-17:00, 18:30-20:30, 21:00-23:00; Saturdays and Sundays also 06:30-08:30 and 09:00-11:00. Shared edges, all ruled: 11:00 on weekends to the 10am window; **13:00 to the 12pm window and 15:00 to the 4pm window** (owner, 2026-11-16).
+
+   The 26 in no window, read row by row the same day: 4 are PGA Tour rows whose `start_time` is local midnight ET with no `home` or `away` (a tournament dated, not a tee time; two of them carry a start the day before their `date`). They have no sides and no moneyline, so no gate can qualify them and they never reach Deep Cuts. The other 22 are each 30 minutes or less from a window: 17:30 (3) is 30 min after the 4pm window; 18:00 (15) and 18:15 (2) are 30 and 15 min before the 7:30pm window; weekday 10:30 (2) is 30 min before the 12pm window. No kickoff in the 30 days sits equidistant between two windows (17:45 would). ANSWERED 2026-11-16 by the owner: **a game in no window joins the nearest window, and a kickoff exactly halfway between two goes to the later one.** So every game with a kickoff time has exactly one window.
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
-3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
-4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
+3. **Empty dayparts:** said, or left out? ANSWERED 2026-11-16 by the owner: **shown** ("Empty window: yes"): a window with no qualifier is listed and says so. On the slate above, most hours have no qualifier.
+4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in? ANSWERED 2026-11-16 by the owner: **no** ("Later window, no"): a game belongs only to the window it kicks off in (by the window rules above).
 5. **Relation to the single pick:** ANSWERED 2026-11-15 by the owner: "option c, should not replace any section of picks; it's its own thing." It is a separate section; Field's Pick, Scout's Pick and Pick'em stay as they are.
 6. **Its name.** ANSWERED 2026-11-15 by the owner: **Deep Cuts**. The working name had been "What to Watch", set aside because that exact string is already a bold section header in the client's series-preview prompt (`jubilant-bassoon/src/legacy/field.js` 35199, `**What to Watch** — 2 sentences ...`), and "watch" is the word ADR-002's summary of the patent claim uses for element 4 ("Displays a **recommendation** (watch/skip/switch)"). The name is not the claim test (all four elements are, `docs/ADR-002-CONTEXT.md`), and no legal verdict is made here (Rule 45).
+
+## Golf, read 2026-11-16
+
+The owner's word: golf "usually ... starts at 7am local time", which in ET runs from about 2am (events in Europe) to 1pm (Hawaii). Recorded as the owner's statement; not measured here, because no source this repo reads carries a tee time:
+
+- ARCHIVE_DB, 2026-10-16 to 2026-11-15: the `golf` rows (one per tournament round per day, `home` the tournament, `away` the round, e.g. "R3") have `start_time` null, `venue` null, `streams` null and no odds. The `PGA Tour` rows carry `start_time` at 04:00Z or 05:00Z, which is midnight ET, with `home` and `away` null.
+- ESPN's PGA scoreboard, read the same day through the FIELD browser tool (`site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard`, the Austin Championship, Round 4 suspended): the competition's `date` is `2026-11-12T05:00Z` and it carries **`timeValid: false`**, ESPN's own statement that the time is not a time. No venue object, and no tee time on any of its 120 competitors (keys: `athlete, id, linescores, order, score, statistics, type, uid`). Its broadcast is `ESPN+/Golf Chnl`, which the archive rows do not record.
+- The relay's `handleESPNGolfScoreboard` (field-relay-nba `src/index.js` 3765) keeps `ev.date` and drops `timeValid`, so the midnight placeholder reaches the archive as if it were a start.
+
+So golf cannot be placed in a window without inventing a time, and on today's data it cannot qualify for Scout either (no sides, no moneyline, no outlets). For Deep Cuts golf is out until a real tee-time source exists. Placing it by "7am local" would also need the venue's time zone, which neither source carries.
+
+### Golf, a tee-time source found (2026-11-16, after the owner's screenshot)
+
+The owner sent a Google answer citing the PGA Tour, Yahoo Sports and others: first tee about 6:50-7:40am local for rounds 1-2, 8-9am for round 3, 7:30-8:30am for round 4; last tee about 1-3pm local. Recorded as that source's general pattern, not measured here. It makes golf a day-long event spanning several windows, which is question 4's subject.
+
+Measured the same day through the FIELD browser tool:
+- ESPN's site summary does not serve golf: `site.web.api.espn.com/apis/site/v2/sports/golf/pga/summary?event=401850980` answers 404, "Summary not supported for sport 'golf'".
+- ESPN's core event record (`sports.core.api.espn.com/v2/sports/golf/leagues/pga/events/401850980`) also says `timeValid: false` at `2026-11-12T05:00Z`. Its venue object holds no time zone (`venues` is a reference); `courses[0]` carries the course and its city: Omni Barton Creek Resort & Spa (Fazio Canyons Course), Austin, TX.
+- **Each player's status record carries a real tee time, in UTC.** `.../events/401850980/competitions/401850980/competitors/11183/status`: `teeTime` `2026-11-16T15:31Z`, `startHole` 1, period 4, position 1, state `pre` (the suspended Round 4, resumed Monday; 15:31Z is 10:31am ET). Because the time is UTC, no venue time zone is needed to place it.
+
+The cost, not measured: tee times are per player, one request per competitor (120 on this event's scoreboard) per round, unless an endpoint that lists a round's tee sheet exists; none was found. Fetching them is relay work (field-relay-nba Rule 78, API-COST-A: cache like the existing golf routes).
 
 ## Constraints any build must keep
 

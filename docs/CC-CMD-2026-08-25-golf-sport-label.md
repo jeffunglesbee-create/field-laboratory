@@ -220,3 +220,11 @@ per Rule 87 §4. Two things this change deliberately did not touch:
 That CC-CMD's first task is a probe, and it says explicitly: if the probe shows
 the generic golf line is harmless, close it WITHDRAWN. The defect is read from
 source and has not been observed in output.
+
+## 2026-11-16: the pre-game seed still writes `sport='PGA Tour'` rows (BUILD-ON-A, added here)
+
+Found while filing field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md`. Step 2 gated the final-score catch-up (`if (gm.individual) continue;`, relay `src/index.js` ~8650). The **pre-game seed** (`[ARCHIVE-SEED]`, ~8758 at relay `397b961`) posts every `gameMeta` entry to `/archive/game` with no `individual` check, so each PGA event is still seeded as `sport='PGA Tour'` with empty sides and ESPN's midnight placeholder as `start_time`.
+
+ARCHIVE_DB, read 2026-11-16, `sport='PGA Tour'` since 2026-10-16: `PGA Tour_2026-10-22_e401850917` (start `2026-10-22T04:00Z`), `..._2026-10-29_e401850978` (`2026-10-29T04:00Z`), `..._2026-11-06_e401850979` (`2026-11-05T05:00Z`), `..._2026-11-13_e401850980` (`2026-11-12T05:00Z`); `home`, `away` and `streams` null, no odds. So the done condition ("no `sport='PGA Tour'` row on a tournament day") does not hold, by a path step 2 did not reach. Whether `cc-cmd-followup.mjs` reported `false` on those dates was not read in this pass. The yesterday sweep (~8835-8880) shows no `individual` check either in its first lines; not read in full.
+
+Not fixed here: the fix is the same one-line gate on the seed write, and it belongs to this CC-CMD's step 2. Step 4 (deleting historical rows) still needs human approval.
