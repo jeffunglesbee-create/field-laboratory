@@ -997,8 +997,8 @@ def flagged_step_ok(s, req, pkg, read):
                 return False                                                  # an `if` without its `else`, or an empty branch: a default run (no ids) would run nothing
             depth = 0
             continue
-        if re.match(r"echo ", line) and not FORBIDDEN_IN_LINE.search(line):
-            continue
+        if re.match(r"echo ", line) and not FORBIDDEN_IN_LINE.search(blank_quoted(line)):
+            continue                                                          # an echo's quoted message is text: `;` `|` `&` `<` `>` inside it start nothing; a `$( )` or a backtick pair inside it still runs, and blank_quoted keeps those (review of 4b5395e6, hunt-guard-5)
         if not re.match(r"(?:node|npm) ", line) or FORBIDDEN_IN_LINE.search(line) or re.search(r"\s--\s", line):
             return False
         # A branch's work is the spawner, not any `node`/`npm` line: a then-branch of only `npm ci` ran nothing for the `--ids` path (review of 48f504e, finding 24). (That the spawner carries its flag is
@@ -1311,7 +1311,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
         have = any(flagged_step_ok(s, req, pkg, read) for i, s in plain)
         if not have:
             bad.append(f"{owner} must run `{req} {NO_BROWSER_FLAGS[req]}` as real work in a step whose `if` makes it run only when the install did not succeed (`steps.{INSTALL_ID}.outcome != 'success'`), "
-                       f"in the closed form (one `node`/`npm` command per line, no `||` `&&` `;` or pipe, only that spawner, with {', '.join(WORK_ARGS.get(req, ())) or 'its flag'} and none of {', '.join(NOT_WORK.get(req, ())) or 'a mode that does no work'}): "
+                       f"in the closed form (one `node`/`npm` command per line, or an `echo` line, with no `||` `&&` `;` `<` `>` or pipe outside quotes and no `$( )` or backtick anywhere, only that spawner, with {', '.join(WORK_ARGS.get(req, ())) or 'its flag'} and none of {', '.join(NOT_WORK.get(req, ())) or 'a mode that does no work'}): "
                        f"without it a failed install leaves the browser-free part of what {req} measures unrun, and nothing else here would notice")
     final_ok = 0
     if final_at is None:
@@ -3355,6 +3355,17 @@ def self_test():
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
     check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # ROUND 6 (review of 4b5395e6, hunt-guard-5). An `echo` line of the required no-browser step is read with its QUOTED text blanked: a `;` `|` `&` `<` `>` inside a message starts nothing, so a notice with an arrow or a
+    # semicolon is no refusal of the whole step. What runs inside a quote stays refused: a `$( )` or a backtick pair in a double-quoted string (blank_quoted keeps both), and every one of those characters outside quotes.
+    PINNED_ECHO_TEXT = ['echo "no browser; running the browser-free rows"', 'echo "::notice::chromium install failed -> the gate runs --browserless"', "echo 'a | b & c > d'", 'echo "a && b || c"', 'echo "a < b"', 'echo "a; b" "c | d"']
+    PINNED_ECHO_RUNS = ['echo "$(npm run shot)"', 'echo "x `date`"', 'echo x; npm run shot', 'echo x > scripts/pure.mjs', 'echo x | tee y', 'echo x && true', 'echo x || true', 'echo "unterminated; npm run shot', "echo 'a' ; exit 0",
+                        'echo "a" > f', 'echo x &', 'echo "a" "$(date)"', 'echo "a" >> f', 'echo "it\'s" ; npm run shot']
+    check(f"round 6 (hunt-guard-5): the required no-browser step with an echo whose quoted message holds `;` `|` `&` `<` or `>` (one of these {len(PINNED_ECHO_TEXT)}) is the work, and is not refused",
+          all(conf(f"{e}\nnpm run gate:bl") == [] for e in PINNED_ECHO_TEXT), [(e, conf(f"{e}\nnpm run gate:bl")) for e in PINNED_ECHO_TEXT if conf(f"{e}\nnpm run gate:bl")])
+    check(f"round 6 (hunt-guard-5): ...while an echo that runs something (a `$( )` or a backtick pair inside double quotes) or has one of those characters OUTSIDE quotes (one of these {len(PINNED_ECHO_RUNS)}) is still refused",
+          all(any_of("must run `scripts/confidence.mjs --browserless`", conf(f"{e}\nnpm run gate:bl")) for e in PINNED_ECHO_RUNS), [e for e in PINNED_ECHO_RUNS if not any_of("must run `scripts/confidence.mjs --browserless`", conf(f"{e}\nnpm run gate:bl"))])
+    check("round 6 (hunt-guard-5): ...and the refusal says an echo line is allowed and where its characters may sit", any_of("or an `echo` line, with no `||`", conf('echo x; npm run shot\nnpm run gate:bl')), conf('echo x; npm run shot\nnpm run gate:bl'))
 
     # ROUND 5, GROUP 1 (review of 5b5a89b, B1 and A24). The comment cutter is bash's: a `#` is a comment only where a word begins and nothing is open (quotes, `${ }`, `$( )`, a backtick pair, `$'...'`).
     PINNED_COMMENT_STARTS = [
