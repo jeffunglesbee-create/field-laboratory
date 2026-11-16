@@ -229,7 +229,12 @@ WRAPPER_REASON = re.compile(r"^`([^`]*)`: `([^`]+)` is not a command this guard 
 # wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through. Review of 48f504e, finding 23: the allowlist used to name EVERY `git X is not a subcommand` and every
 # `node with inline code` reason, and `git rebase -x 'node scripts/render-check.mjs'`, `git -c alias.s='!cmd' s`, `node -e "...execSync(...)"` and `node --run <package script>` each run a command; it also
 # let any two-word command that looked like `a -b` through as "arithmetic" (`make -s`, `deno -A`). Arithmetic is masked where the line is split (ARITH_EXPANSION), so it is no longer a reason to read.
-BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
+# THE TOOLS HERE ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. Review of 9043fa75, A23: the list also held tools that run another command from their arguments (`awk 'BEGIN{system("npm run x")}'`, `sed '1e cmd'`,
+# `sed 's/x/cmd/e'`, `sort --compress-program=cmd`) and tools that overwrite a file, which can replace a script this guard has already read (`tee`, `cp`, `mv`, `rm`, `sed -i`, `sort -o`, `uniq IN OUT`). Each was
+# read as "runs no other command" and kept a step opaque. Removed: sed, awk, sort, uniq, tee, rm, cp, mv. Kept, and why: mktemp (makes a NEW file or directory, never replaces one), grep/egrep/fgrep (print the
+# matching lines: no exec, no output file), read (a builtin: one line into shell variables), cat/cut/tr/head/tail/tac (print), wc (counts), date/basename/dirname/stat/ls (print), mkdir (a directory, never
+# replaces a file), sleep and wait (wait), jq (filters JSON: no exec, no write), diff/cmp (compare), touch (creates an empty file or sets a time: never changes the content of one that is there).
+BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir",
                           "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"})
 OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting")]
 # The git subcommands that only read the repository and run nothing: the ones an unreadable step may use and stay opaque (`git merge-base --is-ancestor` is the ledger's). Not GIT_SUBS: those are read by
@@ -3009,7 +3014,7 @@ def self_test():
     # A `uses:` step is never the ledger kind. Its reason is built from the action's own name, so a name that ends in the words of a benign reason would be kept as opaque by the reason test alone.
     res = audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "uses": "./local/action: git x is not a subcommand this guard reads"}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
     check("an unreadable `uses:` step under always() is refused, not kept as opaque, even when the action's name ends in the words of a benign reason", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
-    res = unread('D=$(mktemp -d); grep -c x "$D/f" | sed s/a/b/; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
+    res = unread('D=$(mktemp -d); grep -c x "$D/f" | cut -d, -f1; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
     check("...while a step made of text and file tools, substitutions, arithmetic and inline node (the ledger kind) stays opaque", res[0] == [] and res[1]["opaque"] == 1, res)
     PINNED_WRAPPERS = ("timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot")
     check("every wrapper head the guard knows is pinned by a fixture of its own (the list is literal: a loop over WRAPPER_HEADS would lose a fixture with the head a change deleted)", set(PINNED_WRAPPERS) == set(WRAPPER_HEADS), sorted(WRAPPER_HEADS))
@@ -3089,8 +3094,8 @@ def self_test():
         check(f"{family}: the members the guard knows are exactly the {len(literal)} pinned (a literal list, so a loop cannot lose a fixture with the member a change deletes)", set(literal) == set(const), sorted(const))
         broken = [m for m in literal if not job(m)]
         check(f"{family}: every member does its job on an input where its absence changes the verdict", not broken, broken)
-    vocab("BENIGN_HEADS", BENIGN_HEADS, ("mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
-                                         "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"), lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
+    PINNED_BENIGN = ("mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait")
+    vocab("BENIGN_HEADS", BENIGN_HEADS, PINNED_BENIGN, lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
     vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr"), lambda h: unresolved(f"{h} x") == [])
     vocab("GIT_SUBS", GIT_SUBS, ("config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch", "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"),
           lambda s: unresolved(f"git {s} x") == [])
@@ -3259,6 +3264,21 @@ def self_test():
         check(f"A21/A22: `{cmd}` (a redirect or a case pattern in a step that runs nothing but text tools) is still kept as opaque", kept(cmd), cmd)
     for cmd in ('echo "$(date)" 2>&1 & timeout 5 x', 'echo "$(date)" >&2 && npm run pure', 'echo "$(date)" &>/dev/null; npm run pure'):
         check(f"A22: a real `&` or `&&` still starts a command after a redirect's own `&` (`{cmd}`)", refused(cmd), cmd)
+
+    # GROUP 3, A23: THE BENIGN TOOLS ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. BENIGN_HEADS held tools that run another command from their arguments (awk's system(), sed's `e` command and `s///e` flag, sort's
+    # --compress-program) and tools that overwrite a file the guard has already read (tee, cp, mv, rm, sed -i, sort -o, `uniq IN OUT`). The eight are removed; each kept tool has one line of why at BENIGN_HEADS.
+    vocab("BENIGN_HEADS, on a raw line", BENIGN_HEADS, PINNED_BENIGN, lambda h: not raw_line_hides(f'{h} x y "$(date)"'))
+    PINNED_REMOVED_BENIGN = ("sed", "awk", "sort", "uniq", "tee", "rm", "cp", "mv")
+    check("A23: the eight tools that run a command or overwrite a file are not benign (a literal list: none is in BENIGN_HEADS)", not set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS, sorted(set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS))
+    for h in PINNED_REMOVED_BENIGN:
+        check(f"A23: `{h}` is refused under always() as a plain step, after a pipe, and on an unreadable line: not kept as opaque", refused(f"{h} x y") and refused(f"echo x | {h} x y") and refused(f'echo "$(date)"; {h} x y'), h)
+    for cmd in ("awk 'BEGIN{system(\"npm run shot\")}'", "sed -n '1e npm run shot' /dev/null", "echo x | sed 's/x/npm run shot/e'", "sort --compress-program=./x.sh /dev/null", "sed -i 's/a/b/' scripts/render-check.mjs", "sort -o scripts/render-check.mjs a",
+                "tee scripts/render-check.mjs", "cp a scripts/render-check.mjs", "mv a scripts/render-check.mjs", "rm scripts/render-check.mjs", "uniq a scripts/render-check.mjs", "node scripts/pure.mjs | tee outbox/x.txt"):
+        check(f"A23: `{cmd}` (the review's three, and each way another tool runs a command or replaces a file) is refused under always(), not kept as opaque", refused(cmd), cmd)
+    check("A23: ...and the remedy for a step that wants a file written is a redirect, which the splitter reads: `node scripts/pure.mjs > outbox/x.txt` is read clean", unread("node scripts/pure.mjs > outbox/x.txt")[0] == [], unread("node scripts/pure.mjs > outbox/x.txt")[0])
+    PINNED_NEVER_BENIGN = ("find", "xargs", "env", "tar", "install", "dd", "ln", "gawk", "mawk")
+    check("A23: the other tools the review names (find -exec, xargs, env, tar --to-command, install, dd, ln, gawk, mawk) are not in BENIGN_HEADS, and each is refused under always() (a literal list)",
+          not set(PINNED_NEVER_BENIGN) & BENIGN_HEADS and all(refused(f"{h} x y") for h in PINNED_NEVER_BENIGN), [h for h in PINNED_NEVER_BENIGN if h in BENIGN_HEADS or not refused(f"{h} x y")])
 
     # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
     both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'

@@ -144,3 +144,60 @@ Red on purpose (`PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>`
 | `browser-gate-heads-redirect-spaced` | the target must be glued to the operator | 3 |
 | `browser-gate-heads-redirect-in-prefix` | redirections are not read before the command word | 17 |
 | `browser-gate-heads-redirect-ampersand` | the `&` of `2>&1` is a separator | 3 |
+
+## Commit 4: the benign tools only print, count, compare, list or create (A23)
+
+`BENIGN_HEADS` is what an unreadable always() step may use and stay opaque (the reason `\`X\` is not a command this guard can read` is benign for these, and so is a head of these on a raw line). It held
+tools that run another command from their arguments and tools that overwrite a file the guard has already read. Each tool decided by what it does, probed in this sandbox (`--help`, and a run for the
+positive controls), not by habit.
+
+Removed (8 of the 32 that were in the list):
+
+| tool | why it is not benign | the control |
+|---|---|---|
+| `sed` | the `e` command and the `s///e` flag run a command; `-i` and `w` write files | `printf 'x\n' \| sed 's/x/echo RAN_BY_SED_E/e'` printed `RAN_BY_SED_E` |
+| `awk` | `system()` and a pipe to a command run one | `awk 'BEGIN{system("echo RAN_BY_AWK")}'` printed `RAN_BY_AWK` |
+| `sort` | `--compress-program=PROG` runs a program; `-o FILE` overwrites a file | `--help` lists both |
+| `uniq` | the second operand, `uniq IN OUT`, is a file it overwrites | `--help`: `uniq [OPTION]... [INPUT [OUTPUT]]` |
+| `tee` | overwrites every file it is given | `echo hi \| tee F` wrote F |
+| `rm` | deletes a script the guard has read | |
+| `cp`, `mv` | overwrite a script the guard has read | |
+
+Kept (24), each with the one line of why (also in the comment at `BENIGN_HEADS`): `mktemp` makes a NEW file or directory, never replaces one; `grep`, `egrep`, `fgrep` print matching lines (no exec,
+no output file); `read` is a builtin that puts one line in shell variables; `cat`, `cut`, `tr`, `head`, `tail`, `tac` print; `wc` counts; `date`, `basename`, `dirname`, `stat`, `ls` print; `mkdir` makes a
+directory, never replaces a file; `sleep` and `wait` wait; `jq` filters JSON (jq 1.7: no exec, no write); `diff` and `cmp` compare; `touch` creates an empty file or sets a time, never changes the content of
+one that is there. Probe: `--help` of the 22 external tools of the 24 (`read` and `wait` are builtins) for an exec, in-place or output-file option: 22 of 22 have none (the two hits were grep's `-o,
+--only-matching` and cut's `--output-delimiter`, which write no file). The tools the review names that were never in the list (`find`, `xargs`, `env`, `tar`, `install`, `dd`, `ln`, `gawk`, `mawk`) are
+pinned as not benign and refused (9 of 9), so a later edit cannot add one.
+
+REAL TREE DIFFERENCE (audited jobs): of the 32 `if: always()` run steps of `.github/**` that have an unresolved reason, 2 are in an audited job (the four targets: `verify` of verify.yml, `live` of
+live-check.yml, the mutation-shard composite action, `full` of verify-full.yml), and both are `full`'s: `Keep the mutation baseline` and `Record this measurement` of verify-full.yml (`sed 's/^+//'`).
+With the workflows as at 674c5f99 the new guard reads them as refused and the real tree stops saying `verdict: gated` (`FAIL: 6 problem(s)`, exit 1, run in a copy of that tree). The list is not weakened:
+commit 1 rewrote the two lines with `cut -c2-`, and with it the real tree is byte-identical to before this whole series (`verdict: gated`, `--plain-commands` 70). Other differences, all in jobs the
+guard does not classify (an exempt install site's always() steps are not read for opacity): `alternate-colour-probe.yml` `Why the remaining cards stay plain` and `Spellings that resolve to nothing`,
+`font-dependence-probe.yml` `The verdicts`: each ends `| tee outbox/...` (`tee -a "$GITHUB_STEP_SUMMARY"`), now refused. That is the cost of the decision: a step that pipes into `tee FILE` under
+always() in an audited job is refused; the remedy is a redirect (`> FILE`), which the splitter reads (fixture). Against 48f504e: 34 steps, 4 kept to refused (those three and
+`font-dependence-probe.yml` `Commit`, which is `git rebase --abort`), and `drift-sentinel.yml` `Append to the drift log` back to kept.
+
+Self-test: 881 to 906 (25 new checks: the raw-line family of the 24, the literal list of the 8, one per removed tool for its three shapes, 12 inputs the review names or implies, the redirect remedy,
+the never-benign list). The ledger-kind fixture used `sed s/a/b/` and now uses `cut -d, -f1`; the pinned list of `BENIGN_HEADS` is the 24.
+
+Red on purpose (`PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>`; failing checks of the mutated copy): each puts ONE tool back.
+
+| id | the break | failing checks |
+|---|---|---|
+| `browser-gate-benign-sed` | `sed` is benign again | 7 |
+| `browser-gate-benign-awk` | `awk` | 5 |
+| `browser-gate-benign-sort` | `sort` | 6 |
+| `browser-gate-benign-uniq` | `uniq` | 5 |
+| `browser-gate-benign-tee` | `tee` | 6 |
+| `browser-gate-benign-rm` | `rm` | 5 |
+| `browser-gate-benign-cp` | `cp` | 5 |
+| `browser-gate-benign-mv` | `mv` | 5 |
+| `browser-gate-benign-find` | `find` (never in the list) | 3 |
+| `browser-gate-benign-raw-line` | the raw-line scan no longer allows the benign list | 25 |
+
+Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): four CODE entries now have a find text that is not in the guard, because their anchor is the whole old `BENIGN_HEADS` literal:
+`` `mktemp` is not an ordinary head ``, `` `grep` is not an ordinary head ``, `` `sed` is not an ordinary head `` and `` `read` is not an ordinary head `` (13 of 428 not exactly once before, 17
+after). `sed` is no longer a member, so its entry has nothing to remove and should be dropped; the other three need the new literal as their anchor. No entry for `COMMAND_HEAD`, `command_heads`,
+`raw_line_hides` or `hides_a_launcher` changed its find text.
