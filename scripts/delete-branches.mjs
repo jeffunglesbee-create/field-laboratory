@@ -342,29 +342,43 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       // --apply is the Delete step, the one that calls it with no flag is the Plan step: DEL_RUN_RE, PLAN_RUN_RE), its first line is the `- ` line two columns left of that, and its env line is the one that holds
       // INPUT_RE; every anchor and every replacement is cut from the pin's own lines. What is still literal is a line of the pin that no step owns (the triggers, `contents: write`, `required: true`, the input's
       // description): a literal that is no longer in the pin is a FAIL line that quotes it. An anchor that cannot be found names the regexp that found nothing (below).
+      // ROUND 6b, F-C-1: the two mutants that were still built from the literal `"$BRANCHES"` (the input inlined into the run line, the list not after a bare --) are cut from the pin too. The Delete run is the whole
+      // of its `run:` value (a line under it, indented deeper, belongs to it), the variable's name is the key of the env line INPUT_RE found, its reference is whatever spelling of that name the run has (`$NAME`,
+      // `${NAME}`, quoted or not), and the bare -- is found where it stands. So an intended edit that renames the variable, braces it or wraps the line, made to the workflow and to the pin, is no false red. A mutant whose
+      // EDIT finds nothing to change (its pattern matches nothing in its anchor) is unbuilt and named, with the pattern, as a literal anchor that is not in the pin is: it is never a `survived`.
       const makeOn = pin => (from, to) => (pin.split(from).length === 2 ? pin.replace(from, () => to) : null)
       const wfMake = makeOn(WORKFLOW_PIN)
       const DEL_RUN_RE = /^\s+run: .*delete-branches\.mjs --apply /, PLAN_RUN_RE = /^\s+run: .*delete-branches\.mjs -- /, INPUT_RE = /\$\{\{ inputs\.branches \}\}/
       const indentOf = l => l.length - l.trimStart().length
-      const cat = (...parts) => (parts.includes(null) ? null : parts.join(''))
-      const sub = (text, from, to) => (text === null ? null : text.replace(from, () => to))
+      // A MUTANT'S EDIT THAT FINDS NOTHING TO EDIT IS NOT A MUTANT (round 6b, F-C-1). `sub` used to leave the text as it was when its pattern matched nothing, the mutant was then the pin itself, and the pin comparison
+      // reported it as `survived`: a label that names neither the pattern nor where to edit it. `sub` now answers a Miss (it carries the pattern), `cat` passes a Miss on, and the builder reports it as unbuilt.
+      class Miss { constructor(from) { this.from = from } }
+      const cat = (...parts) => { const bad = parts.find(p => p === null || p instanceof Miss); return bad === undefined ? parts.join('') : bad }
+      const sub = (text, from, to) => (text === null || text instanceof Miss ? text : (typeof from === 'string' ? text.includes(from) : from.test(text)) ? text.replace(from, () => to) : new Miss(from))
       const anchorsOf = pinText => {
         const lines = pinText.split('\n')
         const find = (re, from = 0, to = lines.length) => { for (let i = from; i < to; i++) if (re.test(lines[i])) return i; return -1 }
         const stepStart = at => { if (at < 0) return -1; for (let i = at; i >= 0; i--) if (lines[i].trimStart().startsWith('- ') && indentOf(lines[i]) === indentOf(lines[at]) - 2) return i; return -1 }
+        // A run: value may go on over the lines under it (YAML reads a plain scalar's continuation): the last line of it is the last line, directly below, that is indented deeper than the `run:` line.
+        const runEnd = at => { if (at < 0) return -1; let e = at; while (e + 1 < lines.length && lines[e + 1].trim() !== '' && indentOf(lines[e + 1]) > indentOf(lines[at])) e++; return e }
         const delRun = find(DEL_RUN_RE), planRun = find(PLAN_RUN_RE), delFirst = stepStart(delRun), planFirst = stepStart(planRun)
         const delEnv = delFirst < 0 ? -1 : find(INPUT_RE, delFirst, delRun), planEnv = planFirst < 0 ? -1 : find(INPUT_RE, planFirst, planRun)
+        const delEnd = runEnd(delRun)
+        // The input reaches the Delete run through the variable its INPUT_RE line sets: the variable's name, and its reference in whatever spelling the run line gives it (`$NAME`, `${NAME}`, quoted or not), are read off the pin.
+        const envLine = delEnv < 0 ? '' : lines[delEnv]
+        const VAR = /^\s*([A-Za-z_][A-Za-z0-9_]*):/.exec(envLine)?.[1] ?? null, EXPR = INPUT_RE.exec(envLine)?.[0] ?? null
         const missing = [
-          [delRun, "the Delete step's run line (no line of the pin matches DEL_RUN_RE: a `run:` that calls delete-branches.mjs with --apply)"],
-          [planRun, "the Plan step's run line (no line of the pin matches PLAN_RUN_RE: a `run:` that calls delete-branches.mjs with no flag before the bare --)"],
-          [delFirst, "the Delete step's first line (no `- ` line two columns left of its run line)"], [planFirst, "the Plan step's first line (no `- ` line two columns left of its run line)"],
-          [delEnv, "the Delete step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"], [planEnv, "the Plan step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"],
-        ].filter(([at]) => at < 0).map(([, why]) => why)
+          [delRun < 0, "the Delete step's run line (no line of the pin matches DEL_RUN_RE: a `run:` that calls delete-branches.mjs with --apply)"],
+          [planRun < 0, "the Plan step's run line (no line of the pin matches PLAN_RUN_RE: a `run:` that calls delete-branches.mjs with no flag before the bare --)"],
+          [delFirst < 0, "the Delete step's first line (no `- ` line two columns left of its run line)"], [planFirst < 0, "the Plan step's first line (no `- ` line two columns left of its run line)"],
+          [delEnv < 0, "the Delete step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"], [planEnv < 0, "the Plan step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"],
+          [delEnv >= 0 && VAR === null, "the Delete step's env variable (its INPUT_RE line is not `NAME: ${{ inputs.branches }}`, so the run line's reference to the input cannot be read off)"],
+        ].filter(([none]) => none).map(([, why]) => why)
         const block = (x, y) => lines.slice(x, y + 1).join('\n')
         const at = (i, f) => (i < 0 ? null : f(lines[i]))
         return {
-          lines, delRun, planRun, delFirst, planFirst, delEnv, planEnv, missing,
-          DEL: at(delRun, l => l.trim()), PLAN: at(planRun, l => `${l.trim()}\n`), DEL_STEP: at(delFirst, l => `${l}\n`), PLAN_STEP: at(planFirst, l => `${l}\n`),
+          lines, delRun, delEnd, planRun, delFirst, planFirst, delEnv, planEnv, missing, VAR, EXPR, REF: VAR === null ? null : new RegExp(`\\$\\{?${VAR}\\}?`),
+          DEL: delRun < 0 ? null : block(delRun, delEnd).trimStart(), PLAN: at(planRun, l => `${l.trim()}\n`), DEL_STEP: at(delFirst, l => `${l}\n`), PLAN_STEP: at(planFirst, l => `${l}\n`),
           DEL_ENV: delEnv < 0 ? null : block(delFirst, delEnv),
           keys: at(delFirst, l => ' '.repeat(indentOf(l) + 2)), dash: at(delFirst, l => ' '.repeat(indentOf(l))), cont: at(delRun, l => ' '.repeat(indentOf(l) + 2)),
           // The two steps side by side, in the pin's own order, with whatever lies between them kept in place: [the text from the Plan step to the end of the Delete step, the same with the two blocks exchanged].
@@ -373,16 +387,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
       // A LITERAL list of edits, each of which must be a problem. The pin comparison makes them all one mechanism; the list is how that is shown. Each is [what, the anchor in the pin, its replacement], null where the step was not found.
       const mutantsOn = pinText => {
-        const A = anchorsOf(pinText), make = makeOn(pinText), { DEL, PLAN, DEL_STEP, PLAN_STEP, DEL_ENV, keys, dash, cont, swap } = A
+        const A = anchorsOf(pinText), make = makeOn(pinText), { DEL, PLAN, DEL_STEP, PLAN_STEP, DEL_ENV, REF, EXPR, keys, dash, cont, swap } = A
         const list = [
           ['--apply dropped from the Delete step', DEL, sub(DEL, ' --apply', '')],
           ['--apply on the dry run', PLAN, sub(PLAN, 'delete-branches.mjs -- ', 'delete-branches.mjs --apply -- ')],
-          ['the list not after a bare --', DEL, sub(DEL, ' -- ', ' ')],
+          ['the list not after a bare --', DEL, sub(DEL, / --(?=\s)/, '')],
           ['continue-on-error on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'continue-on-error: true\n')],
           ['continue-on-error as a quoted key', DEL_STEP, cat(DEL_STEP, keys, '"continue-on-error": true\n')],
           ['a condition on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'if: always()\n')],
           ['a shell: key on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'shell: bash {0}\n')],
-          ['the input inlined into the run line', DEL, sub(DEL, '"$BRANCHES"', '"${{ inputs.branches }}"')],
+          ['the input inlined into the run line', DEL, REF === null || EXPR === null ? null : sub(DEL, REF, EXPR)],
           ['a schedule trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  schedule:\n    - cron: "0 * * * *"\n  workflow_dispatch:\n'],
           ['a push trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  push:\n  workflow_dispatch:\n'],
           ['a trigger after a blank line', 'on:\n  workflow_dispatch:\n', 'on:\n  workflow_dispatch:\n\n  push:\n'],
@@ -406,12 +420,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
           ['the input not required', 'required: true', 'required: false'],
           ['the input description changed', "description: 'Comma-separated", "description: 'Comma separated"],
         ]
-        return { built: list.map(([what, from, to]) => ({ what, from, text: from === null || to === null ? null : make(from, to) })), missing: A.missing }
+        // `kind` says why a mutant is unbuilt: 'step' (nothing to anchor on), 'miss' (its edit's pattern, `miss`, matches nothing in its anchor), 'once' (its literal anchor is not in the pin exactly once).
+        return { built: list.map(([what, from, to]) => {
+          const kind = from === null || to === null ? 'step' : to instanceof Miss ? 'miss' : null
+          const text = kind === null ? make(from, to) : null
+          return { what, from, text, kind: kind ?? (text === null ? 'once' : null), miss: kind === 'miss' ? to.from : null }
+        }), missing: A.missing }
       }
       /** The failing detail of an unbuilt mutant: the literal anchors that are not in the pin once (quoted, so the pin line to edit is named), the mutants that had no step to anchor on, the step or line that was not located, and where to edit. */
       const unbuiltMessage = ({ built, missing }) => {
-        const unbuilt = built.filter(m => m.text === null), noStep = unbuilt.filter(m => m.from === null), notOnce = unbuilt.filter(m => m.from !== null)
-        return `no unique anchor in the pin for: ${[...notOnce.map(m => `${m.what} (the anchor ${JSON.stringify(m.from.length > 80 ? `${m.from.slice(0, 80)}...` : m.from)} is not in the pin exactly once)`), ...(noStep.length ? [`no step to anchor on for ${noStep.map(m => m.what).join(', ')}`] : [])].join('; ')}.${missing.length ? ` Not located: ${missing.join('; ')}.` : ''} Each step is found in WORKFLOW_PIN by DEL_RUN_RE, PLAN_RUN_RE and INPUT_RE, and the lines no step owns are literals of the mutant list: edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs`
+        const unbuilt = built.filter(m => m.text === null), noStep = unbuilt.filter(m => m.kind === 'step'), notOnce = unbuilt.filter(m => m.kind === 'once'), missed = unbuilt.filter(m => m.kind === 'miss')
+        const quoted = s => JSON.stringify(s.length > 80 ? `${s.slice(0, 80)}...` : s)
+        return `no unique anchor in the pin for: ${[...notOnce.map(m => `${m.what} (the anchor ${JSON.stringify(m.from.length > 80 ? `${m.from.slice(0, 80)}...` : m.from)} is not in the pin exactly once)`), ...missed.map(m => `${m.what} (its edit ${m.miss} matches nothing in its anchor ${quoted(m.from)})`), ...(noStep.length ? [`no step to anchor on for ${noStep.map(m => m.what).join(', ')}`] : [])].join('; ')}.${missing.length ? ` Not located: ${missing.join('; ')}.` : ''} Each step is found in WORKFLOW_PIN by DEL_RUN_RE, PLAN_RUN_RE and INPUT_RE, and the lines no step owns are literals of the mutant list: edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs`
       }
       const A = anchorsOf(WORKFLOW_PIN), { DEL, DEL_STEP } = A
       const wfBuilt = mutantsOn(WORKFLOW_PIN).built
@@ -422,6 +442,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       // AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, made to the pin and to the workflow together, keeps every mutant built and caught (round 6, finding B13: `NOTE: x` after the Delete step's env line turned
       // this self-test red, 32 of 33, and renaming the Delete step, 31 of 33). Each edit below is made to the PIN's lines, at the places `anchorsOf` located; the mutants are then built from the EDITED pin and held to it.
       const edited = fn => { const ls = [...A.lines]; fn(ls); return ls.join('\n') }
+      const refLine = ls => ls.findIndex((l, i) => i >= A.delRun && i <= A.delEnd && A.REF.test(l))   // the line of the Delete run that holds the reference to the input: the run line, or a line under it when it is wrapped
       const wfEdits = A.missing.length ? [] : [
         ["a key added to the Delete step's env", edited(ls => ls.splice(A.delEnv + 1, 0, `${' '.repeat(indentOf(ls[A.delEnv]))}NOTE: x`))],
         ["a key added to the Plan step's env", edited(ls => ls.splice(A.planEnv + 1, 0, `${' '.repeat(indentOf(ls[A.planEnv]))}NOTE: x`))],
@@ -429,13 +450,22 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         ['the Plan step renamed', edited(ls => { ls[A.planFirst] = `${ls[A.planFirst]} first` })],
         ['a flag added to the Delete run line', edited(ls => { ls[A.delRun] = ls[A.delRun].replace(' --apply', () => ' --apply --quiet') })],
         ['a step added between the Plan step and the Delete step', edited(ls => ls.splice(A.delFirst, 0, `${' '.repeat(indentOf(ls[A.delFirst]))}- run: echo between`))],
+        // The Delete run's reference to the input, in the three ways an intended edit changes it (round 6b, F-C-1: each of these, made to the pin and to the workflow, turned this self-test red). The variable's name and its
+        // reference are read off the pin (A.VAR, A.REF) and the edits are made wherever the pin has them, so an edit of the real pin that already renames, braces or wraps leaves these as meaningful as before: the rename
+        // adds a prefix, the brace form and the wrapping toggle.
+        ["the Delete step's variable renamed (its env key and its reference in the run line)", edited(ls => { ls[A.delEnv] = ls[A.delEnv].replace(`${A.VAR}:`, () => `PROOF_${A.VAR}:`); const r = refLine(ls); ls[r] = ls[r].replace(A.REF, m => m.replace(A.VAR, () => `PROOF_${A.VAR}`)) })],
+        ['the reference in the Delete run line spelled the other way, braced or unbraced', edited(ls => { const r = refLine(ls); ls[r] = ls[r].replace(A.REF, m => (m.startsWith('${') ? `$${A.VAR}` : `\${${A.VAR}}`)) })],
+        ['the Delete run line wrapped over two lines before its last word, or joined to one when it already is wrapped', edited(ls => {
+          if (A.delEnd > A.delRun) ls.splice(A.delRun, A.delEnd - A.delRun + 1, ls.slice(A.delRun, A.delEnd + 1).map((l, i) => (i === 0 ? l : l.trim())).join(' '))
+          else { const l = ls[A.delRun], cut = l.lastIndexOf(' '); ls.splice(A.delRun, 1, l.slice(0, cut), `${' '.repeat(indentOf(l) + 2)}${l.slice(cut + 1)}`) }
+        })],
       ]
       const wfEdited = wfEdits.map(([what, pin]) => {
         const m = mutantsOn(pin)
         return { what, built: m.built.filter(x => x.text !== null).length, unbuilt: m.built.filter(x => x.text === null).map(x => x.what), survived: m.built.filter(x => x.text !== null && workflowProblems(x.text, pin).length === 0).map(x => x.what), selfClean: workflowProblems(pin, pin).length === 0 && workflowProblems(WORKFLOW_PIN, pin).length === 1 }
       })
-      check('AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, MADE TO THE PIN, KEEPS EVERY MUTANT BUILT AND CAUGHT (a key added to either env, either step renamed, a flag added to the Delete run line, a step added between them): 30 of 30 built from the edited pin, none survives, the edited pin is its own pin and the old pin is not it',
-        wfEdited.length === 6 && wfEdited.every(r => r.built === 30 && r.unbuilt.length === 0 && r.survived.length === 0 && r.selfClean), A.missing.length ? unbuiltMessage({ built: [], missing: A.missing }) : JSON.stringify(wfEdited))
+      check('AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, MADE TO THE PIN, KEEPS EVERY MUTANT BUILT AND CAUGHT (a key added to either env, either step renamed, a flag added to the Delete run line, a step added between them, the Delete step\'s variable renamed, its reference braced, its run line wrapped): 30 of 30 built from the edited pin, none survives, the edited pin is its own pin and the old pin is not it',
+        wfEdited.length === 9 && wfEdited.every(r => r.built === 30 && r.unbuilt.length === 0 && r.survived.length === 0 && r.selfClean), A.missing.length ? unbuiltMessage({ built: [], missing: A.missing }) : JSON.stringify(wfEdited))
       // ...and an anchor that CANNOT be found is named, with what to edit: the Delete step given no --apply in the pin leaves no line for DEL_RUN_RE, and a pin with no `contents: write` leaves a literal of the list with nothing to find.
       const noApply = A.missing.length ? null : mutantsOn(edited(ls => { ls[A.delRun] = ls[A.delRun].replace(' --apply', '') })), noApplyMsg = unbuiltMessage(noApply ?? { built: [], missing: A.missing })
       const noToken = mutantsOn(WORKFLOW_PIN.replace('contents: write', () => 'contents: read')), noTokenMsg = unbuiltMessage(noToken)
@@ -443,6 +473,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         noApply !== null && noApply.missing.length === 3 && noApply.built.some(m => m.text === null && m.from === null) && /the Delete step's run line \(no line of the pin matches DEL_RUN_RE/.test(noApplyMsg) && /no step to anchor on for --apply dropped from the Delete step, /.test(noApplyMsg)
           && noToken.built.filter(m => m.text === null).length === 1 && /the token cannot write \(the anchor "contents: write" is not in the pin exactly once\)/.test(noTokenMsg) && !/Not located/.test(noTokenMsg)
           && [noApplyMsg, noTokenMsg].every(m => /edit the regexp or the literal that no longer matches the pin, in the self-test of scripts\/delete-branches\.mjs/.test(m)), `${noApplyMsg} | ${noTokenMsg}`)
+      // ...and so is a mutant whose EDIT finds nothing to change (round 6b, F-C-1): it is unbuilt, named with the pattern that matched nothing, and never counted as a survivor. The Delete run line given no reference to the
+      // input (a list written into it) leaves `the input inlined into the run line` nothing to inline; the other twenty-nine mutants are built and each is a problem.
+      const noRefPin = A.missing.length ? null : edited(ls => { const r = refLine(ls); ls[r] = ls[r].replace(A.REF, () => 'proof-a') })
+      const noRef = noRefPin === null ? null : mutantsOn(noRefPin), noRefMsg = unbuiltMessage(noRef ?? { built: [], missing: A.missing })
+      check('A MUTANT WHOSE EDIT FINDS NOTHING TO CHANGE IS A FAIL LINE, NOT A SURVIVOR: a pin whose Delete run line has no reference to the input leaves `the input inlined into the run line` unbuilt (the other 29 are built and none survives), and the message names the mutant, the pattern that matched nothing and where to edit',
+        noRef !== null && noRef.built.length === 30 && noRef.built.filter(m => m.text === null).map(m => m.what).join() === 'the input inlined into the run line' && noRef.built.every(m => m.text === null || workflowProblems(m.text, noRefPin).length > 0)
+          && noRefMsg.includes('the input inlined into the run line (its edit ') && noRefMsg.includes(String(A.REF)) && /edit the regexp or the literal that no longer matches the pin, in the self-test of scripts\/delete-branches\.mjs/.test(noRefMsg), noRefMsg)
       const wfFirst = workflowProblems(wfBuilt.find(m => m.what.startsWith('a wrapped continuation of the Delete run ending || true'))?.text ?? '')
       check('THE PROBLEM NAMES THE FIRST LINE THAT DIFFERS (expected and found) and says an intended edit also edits the pin',
         wfFirst.length === 1 && wfFirst[0].includes(`at significant line ${significant(WORKFLOW_PIN).length + 1} `) && /expected nothing \(the text ends here\), found `\s*\|\| true`/.test(wfFirst[0]) && /also edits WORKFLOW_PIN/.test(wfFirst[0]), wfFirst.join(' | '))
