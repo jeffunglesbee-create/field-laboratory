@@ -172,7 +172,7 @@ export const workflowProblems = text => {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (parseArgs(process.argv.slice(2)).selfTest) {
     const { createChecks, finish } = await import('./checks.mjs')
-    const { chmodSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } = await import('node:fs')
+    const { chmodSync, mkdtempSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } = await import('node:fs')
     const { tmpdir } = await import('node:os')
     const { join } = await import('node:path')
     const { check, summarize } = createChecks()
@@ -221,19 +221,30 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       // MAIN, END TO END, as the workflow starts it (round 4, findings 16-18: main() was never run by the self-test, so a dry run that deleted, a refusal that exited 0 and an argv parse that dropped a list
       // all stayed green). Each scenario is a fresh bare repository standing in for the remote, and main() is a child process run in a clone of it.
       const SELF = fileURLToPath(import.meta.url)
-      const fixture = (name, def, branches, rejectDeletes = false) => {
+      // `rejectDeletes`: true refuses every deletion, a branch name refuses that branch's only. `vanishAfterPush`: the remote is READ through a symlink and WRITTEN through its real path (`pushurl`), and the first
+      // accepted push removes the symlink, so the question asked after the pushes cannot be answered (a remote that becomes unreadable between the pushes and the final ls-remote).
+      const fixture = (name, def, branches, { rejectDeletes = false, vanishAfterPush = false } = {}) => {
         const rem = join(dir, `${name}.git`), wk = join(dir, name)
         g(['init', '-q', '--bare', '-b', def, rem]); g(['init', '-q', '-b', def, wk])
         g(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], wk)
         g(['remote', 'add', 'origin', rem], wk)
         for (const b of branches) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], wk)
         if (rejectDeletes) {
-          writeFileSync(join(rem, 'hooks', 'pre-receive'), '#!/bin/sh\nwhile read old new ref; do\n  case "$new" in *[!0]*) ;; *) echo "deletion refused by the fixture" >&2; exit 1 ;; esac\ndone\n')
+          const refused = rejectDeletes === true ? '*' : `refs/heads/${rejectDeletes}`
+          writeFileSync(join(rem, 'hooks', 'pre-receive'), `#!/bin/sh\nwhile read old new ref; do\n  case "$new" in *[!0]*) ;; *) case "$ref" in ${refused}) echo "deletion refused by the fixture" >&2; exit 1 ;; esac ;; esac\ndone\n`)
           chmodSync(join(rem, 'hooks', 'pre-receive'), 0o755)
+        }
+        if (vanishAfterPush) {
+          const link = join(dir, `${name}.link`)
+          symlinkSync(rem, link)
+          g(['remote', 'set-url', 'origin', link], wk); g(['remote', 'set-url', '--push', 'origin', rem], wk)
+          writeFileSync(join(rem, 'hooks', 'post-receive'), `#!/bin/sh\nrm -f '${link}'\n`)
+          chmodSync(join(rem, 'hooks', 'post-receive'), 0o755)
         }
         return { remote: rem, work: wk }
       }
-      const heads = f => JSON.stringify(g(['ls-remote', '--heads', 'origin'], f.work).split('\n').filter(Boolean).map(l => l.split('\t')[1].replace('refs/heads/', '')).sort())
+      const headsAt = (f, where) => JSON.stringify(g(['ls-remote', '--heads', where], f.work).split('\n').filter(Boolean).map(l => l.split('\t')[1].replace('refs/heads/', '')).sort())
+      const heads = f => headsAt(f, 'origin'), realHeads = f => headsAt(f, f.remote)
       const runMain = (f, ...args) => { const r = spawnSync(process.execPath, [SELF, ...args], { cwd: f.work, encoding: 'utf8', timeout: 60000 }); return { status: r.status, out: `${r.stdout}${r.stderr}` } }
       const a1 = parseArgs(['--apply', '--', 'proof-a']), a2 = parseArgs(['--', '--self-test']), a3 = parseArgs(['--force,proof-a']), a4 = parseArgs(['proof-a', 'proof-b'])
       const a5 = parseArgs(['--self-test']), a6 = parseArgs(['proof-a']), a7 = parseArgs([])
@@ -272,7 +283,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       check('A LIST THAT STARTS WITH `--` IS REFUSED, not taken for a flag: `-- --self-test` exits 2 naming it and prints no self-test result, `--force,proof-a` exits 2 as an unknown option, and nothing is deleted',
         selfList.status === 2 && /REFUSED  --self-test: it is not a throwaway/.test(selfList.out) && !/checks passed/.test(selfList.out) && flagList.status === 2 && /unknown option --force,proof-a/.test(flagList.out) && heads(m5) === '["main","proof-a"]',
         `${selfList.status} ${selfList.out.slice(-200)} | ${flagList.status} ${flagList.out.slice(-200)} | ${heads(m5)}`)
-      const m6 = fixture('m6', 'main', ['main', 'proof-p'], true)
+      const m6 = fixture('m6', 'main', ['main', 'proof-p'], { rejectDeletes: true })
       const rejected = runMain(m6, '--apply', '--', 'proof-p')
       check('A DELETION THE REMOTE REJECTS ENDS THE RUN RED through main(): exit 1, FAILED with the remote\'s reason, STILL THERE, and the branch is on the remote',
         rejected.status === 1 && /FAILED  proof-p: .*deletion refused by the fixture/.test(rejected.out) && /STILL THERE: proof-p/.test(rejected.out) && heads(m6) === '["main","proof-p"]', `exit ${rejected.status}; ${rejected.out.slice(-400)}`)
@@ -280,6 +291,19 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const vanished = apply(['proof-u', 'proof-v'], 'origin', m7.work, (args, cwd) => { git(args, cwd); if (args[2] === ':refs/heads/proof-v') renameSync(m7.remote, `${m7.remote}.gone`) })
       check('A FINAL QUESTION THAT FAILS KEEPS THE ACCOUNT: apply() returns instead of throwing, says why it could not confirm, names what was pushed without an error as unconfirmed, and the run exits 1',
         typeof vanished.unverified === 'string' && vanished.unverified.length > 0 && JSON.stringify(vanished.unconfirmed) === '["proof-u","proof-v"]' && vanished.failed.length === 0 && vanished.deleted.length === 0 && exitFor(vanished) === 1, JSON.stringify(vanished))
+      // MAIN'S OWN ACCOUNT WHEN THE FINAL QUESTION FAILS (round 5, A16 and A20). The check above runs apply() alone; the print and the exit that main() makes of its `unverified` result were never run, so
+      // dropping the COULD NOT CONFIRM line or exiting 0 there stayed green. Here the remote becomes unreadable after the pushes, and main() is run as the workflow runs it.
+      const m8 = fixture('m8', 'main', ['main', 'proof-u', 'proof-v'], { vanishAfterPush: true })
+      const unconfirmed = runMain(m8, '--apply', '--', 'proof-u,proof-v')
+      check('MAIN, WHEN WHAT IS LEFT CANNOT BE ASKED (the remote unreadable after the pushes): exit 1, `deleted 0 of 2`, COULD NOT CONFIRM with the reason, both names listed as pushed without an error, and the remote really lost both',
+        unconfirmed.status === 1 && /deleted 0 of 2: \(none\)/.test(unconfirmed.out) && /COULD NOT CONFIRM what is left on the remote \(.+\); pushed without an error: proof-u, proof-v$/m.test(unconfirmed.out) && realHeads(m8) === '["main"]',
+        `exit ${unconfirmed.status}; ${unconfirmed.out.slice(-400)}; ${realHeads(m8)}`)
+      // ...and with one deletion REJECTED as well: the rejected branch is FAILED, and is not listed as pushed without an error (its push did not succeed, so it was not pushed).
+      const m9 = fixture('m9', 'main', ['main', 'proof-r', 'proof-s'], { rejectDeletes: 'proof-r', vanishAfterPush: true })
+      const mixed = runMain(m9, '--apply', '--', 'proof-r,proof-s')
+      check('MAIN, A REJECTED DELETION AND A FINAL QUESTION THAT FAILS: exit 1, FAILED proof-r with the remote\'s reason, only proof-s is listed as pushed without an error (not the rejected proof-r), and proof-r is still on the remote',
+        mixed.status === 1 && /FAILED  proof-r: .*deletion refused by the fixture/.test(mixed.out) && /COULD NOT CONFIRM .+; pushed without an error: proof-s$/m.test(mixed.out) && !/pushed without an error: .*proof-r/.test(mixed.out) && realHeads(m9) === '["main","proof-r"]',
+        `exit ${mixed.status}; ${mixed.out.slice(-500)}; ${realHeads(m9)}`)
       // THE WORKFLOW IS COMPARED TO ITS PIN (round 5, findings 12-14). Two different things are proven, and neither is built from the other's text:
       //  - the REAL file is read and must be the pin: a table entry (or a person) that edits the real workflow gets a FAIL line here that names the line that differs;
       //  - the MUTANTS are built from the PIN constant, never from the file, so editing the file cannot make the mutant builder fail (it used to throw "anchor is not unique" before workflowProblems

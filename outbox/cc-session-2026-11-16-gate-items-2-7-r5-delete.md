@@ -80,3 +80,28 @@ The B14 "as a wrapped continuation" part of (c) is the literal mutants `a wrappe
 Denominators (Rule 91): the self-test counts `wfMutants.length === 30` workflow edits (each must be a problem) and 5 benign edits (a comment line, an indented comment line, a blank line, trailing space, CRLF: none may be a problem); 10 new entries, 5 narrowed; `node scripts/mutation-check.mjs --anchors`: `checked 1675 of 1678 mutation anchors; 0 stale`.
 
 Self-test: `node scripts/delete-branches.mjs --self-test` 23/23 at 9043fa75 -> 28/28 at this commit (the old workflow check replaced by six: real file is the pin, every mutant built, the 30 edits, the message, the 5 benign edits, the builder's null).
+
+## Commit 2: main()'s own account when the final question fails (A16) and the rejected branch listed as pushed (A20 near variant)
+
+What changed (all in the self-test and the table; `main()` and `apply()` are untouched):
+
+- `fixture()` takes `{ rejectDeletes, vanishAfterPush }`. `rejectDeletes` is `true` (every deletion refused, as before) or a branch name (that branch's only). `vanishAfterPush` is the reviewer's fixture: the clone READS the remote through a symlink (`url`) and WRITES it through its real path (`remote.origin.pushurl`), and a `post-receive` hook removes the symlink, so the first accepted push makes the remote unreadable and the final `git ls-remote` fails.
+- Two new checks run `main()` as a child process over those fixtures and assert its printed text and its exit code:
+  - `MAIN, WHEN WHAT IS LEFT CANNOT BE ASKED`: exit 1, `deleted 0 of 2: (none)`, `COULD NOT CONFIRM what is left on the remote (...); pushed without an error: proof-u, proof-v`, and the remote (read by its real path) really lost both (`["main"]`).
+  - `MAIN, A REJECTED DELETION AND A FINAL QUESTION THAT FAILS` (A20 near variant): `proof-r` refused by a `pre-receive` hook and `proof-s` accepted, final question failing: exit 1, `FAILED  proof-r: ... deletion refused by the fixture`, `pushed without an error: proof-s` and NOT `proof-r`, and `proof-r` still on the remote (`["main","proof-r"]`).
+- Real entry point output for the second fixture (run by hand outside the self-test): `deleted 0 of 2: (none)` / `FAILED  proof-r: ... remote: deletion refused by the fixture ...` / `COULD NOT CONFIRM what is left on the remote (fatal: '.../rem.link' does not appear to be a git repository | ...); pushed without an error: proof-s` / exit 1, remote heads `main proof-r`.
+
+Before this commit (reviewer's 16f / 16g / 20e, reproduced as table entries below): removing the `COULD NOT CONFIRM` print, exiting 0 from main() for an unverified result, and listing a rejected branch as pushed all ended `23/23 checks passed`.
+
+Red on purpose, `node scripts/mutation-check.mjs --only <id>` (each `2/2 checks passed`), and the FAIL lines the same mutation produces in a scratch copy of the self-test (4 of 4, each exit 1, no stack trace):
+
+```
+PASS  [delete-branches-main-unverified-not-printed]        FAIL x2: both new MAIN checks (the COULD NOT CONFIRM line is gone)
+PASS  [delete-branches-main-unverified-exits-zero]         FAIL: MAIN, WHEN WHAT IS LEFT CANNOT BE ASKED (exit 0) and THE EXIT (its source slice)
+PASS  [delete-branches-main-unconfirmed-names-dropped]     FAIL x2: both new MAIN checks (`pushed without an error: (none)`)
+PASS  [delete-branches-unconfirmed-lists-the-rejected]     FAIL: MAIN, A REJECTED DELETION AND A FINAL QUESTION THAT FAILS only (the A20 near variant; the apply()-level check has no failed push and stays green)
+```
+
+Self-test: 28 -> 30 checks. `node scripts/mutation-check.mjs --anchors`: `checked 1679 of 1682 mutation anchors; 0 stale`.
+
+Observation, not changed (Rule 69): when the final question fails the first line of main()'s account reads `deleted 0 of 2: (none)` although the pushes went through; the next line (`COULD NOT CONFIRM ... pushed without an error: ...`) corrects it. That is `r.deleted` meaning "confirmed deleted", and the new fixture pins both lines, so a change to the wording is a deliberate edit of the fixture.
