@@ -240,6 +240,8 @@ GIT_REASON = re.compile(r"^`[^`]*`: git (\S+) is not a subcommand this guard rea
 RAW_WORDS = frozenset({"for", "select", "case", "esac", "fi", "done", "in", "}", ":"})
 # Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), and the keywords that precede one.
 # Review of 48f504e, finding 22: the head used to be `(\S+)`, which swallowed a `;` or `(` written without a space, so a wrapper after `echo "at $(date)";` was never a head.
+# What is QUOTED, or a trailing comment, is not looked at for a head: command_heads cuts the comment (strip_comment) and blanks the content of every quoted string (blank_quoted) before this runs, so a `;`, `|`,
+# `&` or `(` inside an echo message starts nothing. Review of 9043fa75, B0 and B8.
 COMMAND_SEP_SYMBOLS = (";", "|", "&", "(", "{", "`", "!")
 COMMAND_SEP_WORDS = ("then", "do", "else", "if", "elif", "while", "until")
 _SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)"}
@@ -829,9 +831,73 @@ def spawns_browser(entry, args, read, no_browser_ok=False):
     return spawned_browser_scripts(entry, read)
 
 
+def blank_quoted(line):
+    """The line with the CONTENT of every quoted string replaced, character for character, by `_`; the quotes stay, so a quoted word is still one word. Single quotes: all of it. Double quotes (and `$'...'`,
+    where a backslash escapes the next character): all of it EXCEPT the body of a `$( ... )` or a backtick pair inside, which is code and is kept as it is. A quoted string that is the command word itself
+    (`"timeout" 5 x`, `"$RUNNER" x`) becomes the word `_______`: no head this guard allows. A quote that never closes on the line is not a string (a multi-line message, a heredoc line): the text from the outermost
+    one is left as it is, so more of the line is read, the safe direction. The scanner is comment_start's, a stack of what is open. Review of 9043fa75, B0 and B8: heads were scanned for in the raw text, quotes
+    and all, so `echo "at $(date) (utc)"` had a head `utc` and `printf '| %s |\n' "$(date)"` a head `%s`."""
+    n, out, stack, starts, parens, i = len(line), list(line), [], [], [], 0
+    while i < n:
+        c, nxt, top = line[i], line[i + 1:i + 2], (stack[-1] if stack else "")
+        if top == "'":
+            if c == "'":
+                stack.pop()
+                starts.pop()
+            else:
+                out[i] = "_"
+        elif top in ('"', "$'"):
+            if c == "\\":
+                out[i:i + 2] = "_" * len(line[i:i + 2])                    # an escaped character (`\"`, `\$`, a backslash-backtick) is text
+                i += 2
+                continue
+            if c == ('"' if top == '"' else "'"):
+                stack.pop()
+                starts.pop()
+            elif top == '"' and c == "$" and nxt == "(":
+                stack.append("$(")
+                starts.append(i)
+                parens.append(1)
+                i += 2
+                continue
+            elif top == '"' and c == "`":
+                stack.append("`")
+                starts.append(i)
+            else:
+                out[i] = "_"
+        elif c == "\\":
+            i += 2                                                          # code: the next character belongs to this one
+            continue
+        elif top == "$(" and c in "()":
+            parens[-1] += (c == "(") - (c == ")")
+            if parens[-1] == 0:
+                stack.pop()
+                starts.pop()
+                parens.pop()
+        elif top == "`" and c == "`":
+            stack.pop()
+            starts.pop()
+        elif c in "'\"`":
+            stack.append(c)
+            starts.append(i)
+        elif c == "$" and nxt in ("'", "("):
+            stack.append("$" + nxt)
+            starts.append(i)
+            if nxt == "(":
+                parens.append(1)
+            i += 2
+            continue
+        i += 1
+    open_strings = [at for kind, at in zip(stack, starts) if kind in ("'", '"', "$'")]
+    if open_strings:
+        out[min(open_strings):] = line[min(open_strings):]
+    return "".join(out)
+
+
 def command_heads(line):
-    """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD)."""
-    line = ARITH_EXPANSION.sub("0", line)
+    """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD). What bash does not run as a command is not looked at: a trailing comment is cut where bash cuts it
+    (strip_comment) and the content of every quoted string is blanked (blank_quoted); arithmetic is masked first, as the splitter does."""
+    line = blank_quoted(strip_comment(ARITH_EXPANSION.sub("0", line)))
     return [(m.group(1), line[m.end():]) for m in COMMAND_HEAD.finditer(line)]
 
 
@@ -3073,7 +3139,7 @@ def self_test():
     check("COMMAND_SEP_SYMBOLS and COMMAND_SEP_WORDS: the members the guard knows are exactly the pinned (literal tables)", set(PINNED_SEP_SYMBOLS) == set(COMMAND_SEP_SYMBOLS) and set(PINNED_SEP_WORDS) == set(COMMAND_SEP_WORDS), (COMMAND_SEP_SYMBOLS, COMMAND_SEP_WORDS))
     for sep, text in {**PINNED_SEP_SYMBOLS, **PINNED_SEP_WORDS}.items():
         check(f"finding 22: a wrapper after `{sep}` is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
-    for text in ('echo "at $(date)" && timeout 5 x', 'echo x || timeout 5 x', 'A=1 timeout 5 x', 'A="x y" timeout 5 x', "A='x y' timeout 5 x", 'x=$(timeout 5 y)', '"timeout" 5 x', "'timeout' 5 x", "true; then timeout 5 x", "true;timeout 5 x"):
+    for text in ('echo "at $(date)" && timeout 5 x', 'echo x || timeout 5 x', 'A=1 timeout 5 x', 'A="x y" timeout 5 x', "A='x y' timeout 5 x", 'x=$(timeout 5 y)', 'echo "$(date)"; "timeout" 5 x', "echo \"$(date)\"; 'timeout' 5 x", "true; then timeout 5 x", "true;timeout 5 x"):
         check(f"finding 22: a wrapper behind `&&`, `||`, an assignment (quoted value too), `$(` or a quote is found (`{text}`)", hides_a_launcher([], text) is True, text)
     check("finding 22: ...and a word that is no command start is not (`${timeout}`, `echo timeout`, `a;b`, a `$((n * 2))` and a keyword's own word)",
           not any(hides_a_launcher([], t) for t in ('echo "${timeout}" x', "echo timeout 5", "a;b", 'sleep $((n * 2))', "if true; then echo x; fi", "echo hi!timeout 5", '[ "$X" != timeout ]')))
@@ -3109,6 +3175,47 @@ def self_test():
         check(f"finding 23: `{cmd}` is no arithmetic (it is a command and a flag): refused under always(), not kept", refused(cmd), cmd)
     check("finding 23: ...arithmetic is masked where the line is split: `sleep $((attempt * 3))` is `sleep 0`, and one that holds a substitution is still unreadable",
           split_commands("sleep $((attempt * 3))") == [["sleep", "0"]] and split_commands('echo "$((a+1))" b') == [["echo", "0", "b"]] and unresolved("sleep $(( $(date) + 1 ))") != [])
+
+    # ---- ROUND 5, PART B (review of 9043fa75: B0 B8 A21 A22 A23 B9).
+    # GROUP 1, B0 and B8: WHAT IS QUOTED, AND A TRAILING COMMENT, IS NOT A COMMAND. command_heads cuts the comment and blanks the content of every quoted string (blank_quoted) before it looks for a head, so a `;`, `|`, `&` or `(`
+    # inside a message starts nothing. Each pair is a literal, and each pinned output was checked by hand against what bash reads as a string (a `$( )` or backtick body inside double quotes is code, and stays).
+    PINNED_BLANKS = [
+        ("echo 'a;b|c(d)'", "echo '________'"),
+        ('echo "a; b"', 'echo "____"'),
+        ('echo "x $(date; foo) y"', 'echo "__$(date; foo)__"'),
+        ('echo "x `date` y"', 'echo "__`date`__"'),
+        ("echo $'it\\'s; x'", "echo $'________'"),
+        ('echo \\"a; b', 'echo \\"a; b'),
+        ('echo "a \\" ; b"', 'echo "________"'),
+        ('echo "a $(echo "b; c") d"', 'echo "__$(echo "____")__"'),
+        ('echo "a `echo "b;c"` d"', 'echo "__`echo "___"`__"'),
+        ('echo "a $(f (b)) c; d"', 'echo "__$(f (b))_____"'),
+        ('echo "it\'s; ok"', 'echo "________"'),
+        ("echo 'say \"hi; there\"'", "echo '_______________'"),
+        ('echo ${x:-"a;b"}', 'echo ${x:-"___"}'),
+        ('echo "\\`a; b\\`"', 'echo "________"'),
+        ('echo "x; npm run y', 'echo "x; npm run y'),
+        ("echo \"a\" 'b; c", "echo \"_\" 'b; c"),
+        ('echo "" \'\'', 'echo "" \'\''),
+        ('"timeout" 5 x', '"_______" 5 x'),
+    ]
+    broken = [(i, blank_quoted(i), o) for i, o in PINNED_BLANKS if blank_quoted(i) != o]
+    check(f"B0/B8: blank_quoted gives exactly the pinned output on {len(PINNED_BLANKS)} literal inputs (single quotes, double quotes, `$'...'`, an escaped quote, the bodies of `$( )` and backticks inside double quotes, nested quotes, a quote that never closes)", not broken, broken)
+    PINNED_HEADS = [('echo "at $(date) (utc)"', ["echo", "date"]), ('echo "done; see the log $(date)"', ["echo", "date"]), ('echo "started $(date) | ok"', ["echo", "date"]),
+                    ("printf '| %s | %s |\\n' \"$(date)\"", ["printf", "date"]), ('echo "at $(date)" # note: one line; no retry', ["echo", "date"]), ('echo "$(date)"; npm run x # a; timeout 5 y', ["echo", "date", "npm"]),
+                    ('echo "a # b" ; timeout 5 x', ["echo", "timeout"]), ('echo "n $((attempt * 3))" "$(date)"', ["echo", "date"])]
+    broken = [(t, [h for h, _ in command_heads(t)], w) for t, w in PINNED_HEADS if [h for h, _ in command_heads(t)] != w]
+    check(f"B0/B8: command_heads gives exactly the pinned heads on {len(PINNED_HEADS)} literal lines (a word after a `;` `|` `(` inside a message or after a comment's `#` is no head; a `#` inside quotes is no comment)", not broken, broken)
+    for cmd in ('echo "at $(date) (utc)"', 'echo "done; see the log $(date)"', 'echo "started $(date) | ok"', 'echo "tried 3 times; giving up at $(date)"', 'echo "at $(date)" # note: one line; no retry',
+                'echo "push rejected (attempt 2 of 3) at $(date)"', 'echo "record landed (sha $(git rev-parse HEAD))"', 'echo "a $(date) && b & c"', 'echo "n $((attempt * 3))" "$(date)"',
+                "printf '| %s | %s |\\n' \"$(date)\"", "echo '$(timeout 5 x)' \"$(date)\"", 'echo "$(date)" # npm run pure'):
+        check(f"B0/B8: `{cmd}` (a message, or a comment, that holds a `;` `|` `&` `(` or a command's name) is kept as opaque: nothing in it is run", kept(cmd), cmd)
+    drift_echo = 'echo "\\`status\\` is \\`ok\\`, \\`malformed\\` (a nested JSON field stopped decoding),"'
+    drift_printf = "printf '| %s | %s | %s | %s | %s | %s |\\n' \\\n  \"$(date -u +'%Y-%m-%d %H:%M')\" \"${{ steps.sentinel.outputs.date }}\" \\\n  \"$GAMES\" \"$STATUS\" \"$MALFORMED\" \"${NOTE:-—}\" >> outbox/drift-log.md"
+    check("B8: the two lines of drift-sentinel.yml's `Append to the drift log` that 5b5a89b refused (an echo of backticks and a parenthesis; a printf whose format holds `|` and `%s`) are kept again", kept(drift_echo) and kept(drift_printf), (drift_echo, drift_printf))
+    for cmd in ('echo "note; $(date)" && npm run pure', 'echo "$(date)"; timeout 5 x', 'echo "at $(timeout 5 x)"', 'echo "at `timeout 5 x`"', 'echo "$(date)"; npm run pure # a note', 'echo "a # b $(date)"; npm run pure',
+                'echo \\"; npm run pure; \\" "$(date)"', 'echo "x; npm run pure', 'echo "$(date)"; "timeout" 5 x', "echo \"$(date)\"; 'timeout' 5 x", 'echo "$(date)"; "$RUNNER" x', '"timeout" 5 node scripts/pure.mjs'):
+        check(f"B0/B8: `{cmd}` still hides a command that runs (outside the quotes, inside a `$( )` or backtick body, before a comment, after an escaped quote, a quote that never closes, a quoted command word): refused, not kept", refused(cmd), cmd)
 
     # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
     both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'

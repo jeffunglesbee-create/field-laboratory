@@ -42,3 +42,57 @@ first character of each; `cut -c2-` removes the first character of each. Proved,
 
 This commit is on its own so it can be taken or dropped with the A23 commit that needs it (it does not depend on it: `cut` is in the list today, the real tree is `gated` with and
 without it).
+
+## Commit 2: what is quoted, and a trailing comment, is not a command (B0, B8)
+
+`command_heads` (which `raw_line_hides` and the wrapper scan of `hides_a_launcher` both read) searched the RAW line for command positions, quotes and comment included. It now cuts the
+trailing comment where bash cuts it (`strip_comment`, part A's `comment_start`) and runs `blank_quoted` first: a small stack machine in `comment_start`'s style that replaces, character for
+character, the CONTENT of every quoted string with `_` (the quotes stay, so a quoted word is still one word). Single quotes and `$'...'`: all of it (a backslash escapes in the second).
+Double quotes: all of it EXCEPT the body of a `$( ... )` and of a backtick pair inside, which are code and stay visible (their own quotes nest). A quote that never closes on the line (a
+multi-line message, a heredoc line) is not a string: the text from it is left as it is, so more of the line is read. Arithmetic is masked first, as the splitter does.
+
+One deliberate difference from "blank every quoted string": a quoted string that IS the command word (`"timeout" 5 x`, `"$RUNNER" x`) becomes the word `_______`, because the quotes stay.
+That is a head this guard does not allow, so `echo "$(date)"; "timeout" 5 x` is refused as an unknown command rather than read as nothing. Erasing the quotes with the content would have kept
+it (a quoted command word is reachable: `"$BIN" --flag`). The two finding-22 fixtures that named `"timeout" 5 x` and `'timeout' 5 x` as heads of a READABLE line (empty reasons) became
+`echo "$(date)"; "timeout" 5 x` (an unreadable line, which is the only place the raw scan decides); the readable form is refused by the splitter's own reason, now also a fixture
+(`"timeout" 5 node scripts/pure.mjs`).
+
+| input (unreadable always() line) | before (674c5f99) | now |
+|---|---|---|
+| `echo "tried 3 times; giving up at $(date)"` (B0 a) | refused: head `giving` | kept |
+| `echo "at $(date)" # note: one line; no retry` (B0 b) | refused: head `no` | kept |
+| `echo "at $(date) (utc)"` (B8) | refused: head `utc` | kept |
+| `echo "done; see the log $(date)"`, `echo "started $(date) \| ok"` (B8) | refused: heads `see`, `ok` | kept |
+| `printf '\| %s \| %s \|\n' "$(date)"` (B8) | refused: head `%s` | kept |
+| `echo "push rejected (attempt 2 of 3) at $(date)"`, `echo "record landed (sha $(git rev-parse HEAD))"` (the review's skeptic 1) | refused | kept |
+| controls: `echo "note; $(date)" && npm run pure`, `echo "at $(timeout 5 x)"`, `echo "at \`timeout 5 x\`"`, `echo "$(date)"; npm run pure # a note`, `echo "a # b $(date)"; npm run pure` | refused | refused |
+
+Self-test: 812 to 839 (`python3 scripts/check-browser-gate.py --self-test`; 27 new checks: a table of 18 `blank_quoted` inputs, a table of 8 `command_heads` lines, 12 kept, 1 for the two real
+lines of drift-sentinel.yml, 12 still-refused). Against 674c5f99's `command_heads` 12 of the 27 are red (the others are the controls, which the old scan refused by accident, and the
+`blank_quoted` unit table, which tests the new function).
+
+Population (every `run` step of `.github/**` with `if: always()` and an unresolved reason in either guard; `python3 /dev/shm/r5b-scratch/population.py`, not committed): 34 steps at
+48f504e against this branch (32 against 674c5f99: part A removed two from the unresolved set). Kept to refused since 48f504e: 2 before this commit, 1 after. `drift-sentinel.yml`
+`Append to the drift log` is kept again. `font-dependence-probe.yml` `Commit` stays refused, for a reason unrelated to quotes: it runs `git rebase --abort`, which the guard cannot tell
+from `git rebase -x` (a policy choice the review names; `GIT_READONLY` is not widened here). Neither job is audited, the real tree is unchanged: `python3 scripts/check-browser-gate.py`
+`verdict: gated`, byte-identical to the output before the commit (`diff` empty), `--plain-commands` 70 commands.
+
+Red on purpose, each `PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>` and the FAIL lines of the mutated copy (a crash is not counted; none crashed):
+
+| id | the break | failing checks |
+|---|---|---|
+| `browser-gate-heads-single-quote-content` | single-quoted content is not blanked | 5 |
+| `browser-gate-heads-double-quote-content` | double-quoted content is not blanked | 10 |
+| `browser-gate-heads-escape-in-string` | a backslash in a double-quoted string escapes nothing | 2 |
+| `browser-gate-heads-escape-in-code` | a backslash outside quotes escapes nothing | 1 |
+| `browser-gate-heads-substitution-body` | the body of `$( )` inside double quotes is blanked | 3 |
+| `browser-gate-heads-backtick-body` | the body of a backtick pair inside double quotes is blanked | 2 |
+| `browser-gate-heads-paren-count` | parentheses inside `$( )` are not counted | 1 |
+| `browser-gate-heads-unterminated-visible` | a quote that never closes is blanked to the end of the line | 2 |
+| `browser-gate-heads-comment-cut` | the trailing comment is not cut | 2 |
+| `browser-gate-heads-quotes-blanked` | `blank_quoted` is not called | 11 |
+| `browser-gate-heads-arithmetic-masked` | arithmetic is not masked before the scan | 3 |
+
+A twelfth mutant I tried, "mask arithmetic AFTER blanking", is equivalent (the mask only matches text that blanking leaves alone) and is not in the table: an equivalent mutant is no check.
+Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): no CODE entry's find text changed (`node /dev/shm/r5b-scratch/sweep_anchors.mjs`: 13 of 428 entries are not exactly once before
+and after this commit, the same 13, all from earlier rounds).
