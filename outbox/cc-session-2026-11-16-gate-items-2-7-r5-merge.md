@@ -45,3 +45,43 @@ Fix: such a head is read as running its script FILE only when no flag makes it r
 
 ### G-new-3 (REACHABLE, false red, a text defect): the importer scan told a reporting script that `confidence.mjs` runs it
 `scripts/list-gate-rows.mjs` with `import { rows } from './gate-checks.mjs'` and `rows.sort(...)` for display is refused (`changes rows ... and confidence.mjs runs it`), by me in a scratch worktree at `c6b1c33f` as by the verifier; the control `[...rows].sort(...)` is clean. The refusal is right to be broad: a module is loaded in `confidence.mjs`'s process through its import graph, and a reader of that graph that missed one import form would be a false green; a file that only reports is a separate process and harmless, but telling the two apart needs that reader. Not built (the code would add a failure mode to prevent a one-line rewrite). The message was false for a standalone script and gave no remedy; it now says the rows of `confidence.mjs`'s own process are what a change would reach, that the file is refused whether or not it is loaded there, and that a reporting file works on a copy (`[...rows].sort(...)`). Text only; the importer fixtures match on `changes \`` and are unchanged (912/912).
+
+### The verification round, finished (workflow `wf_f9f5e556-127`: 66 agents, 2026-11-16, run on `c6b1c33f`)
+
+**Denominators (Rule 91).** Five verifiers: the trap re-ran 10 of 10 ids, the guard 20 of 20, the gate and delete 16 of 16; one population agent ran 22 cases (16 ordinary edits and 6 measurements of the real tree: 563 of 563 steps with `run:` or `uses:` read by both guards, 4 of 4 final steps, 23 rows with 7 flagged, 7 importers, the delete pin, 14 node-options lines); one hunter mutated 167 clauses of the guard (58 left the self-test at 909/909; 22 of those equivalent or message-only) and one hunter mutated 139 clauses of the trap, gate-mode, confidence and delete files. Two skeptics read each new finding that was not already triaged by hand (`G-new-*` of the first verifier were; the id `G-new-1` of the gate and delete verifier was NOT, and is the pins branch's finding F-D below). The real tree was green on every real input; no finding is a red on a file that exists today.
+
+**Dispositions, one line per finding.** "round 6" is `outbox/cc-session-2026-11-16-gate-items-2-7-r6-guard.md`; "CC-CMD n" is item n of `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`; "pins" is `proof-r6-pins`, the branch of the non-guard fixes.
+
+| finding | result | disposition |
+|---|---|---|
+| guard A24, A25, A28, B1 to B9 (12 ids) | CLOSED | none needed |
+| guard A21, A22 | still pass, CONTRIVED (`&>file` and `VAR=$(cmd)` heads) | CC-CMD 4 |
+| guard A23 (`node --run`, `node -e` behind a script name) | still passes; a regression of round 5 | fixed in the merge round, `4e5395fb` (G-new-1) |
+| guard A26 | CONTRIVED | CC-CMD 5 |
+| guard A27, hunt-guard-9, G-pop-5, G-pop-6 | CONTRIVED (aliases, element writes, subdirectory importers); G-pop-5 is a false red on a parameter called `rows` | CC-CMD 6; the refusal's message now names the rename (`945daddf`) |
+| guard A29 | CONTRIVED half | the write and its name on different lines are closed (`74a58539`: hunt-guard-1, hunt-guard-2); a name built from pieces and a step before the install: CC-CMD 7 |
+| guard A30, hunt-guard surv-2, -3, -5, -6, surv-contrived, surv-cosmetic | clauses no fixture can fail; each guards a contrived or cosmetic input | CC-CMD 8 |
+| guard B0 | false red, present before round 5, fails closed | CC-CMD 1 (design from the existing `shellViews`); a heredoc is in 2 of 402 `run:` steps in the tree, both outside the audited jobs |
+| trap A0 to A6, B10, B11 | CLOSED | none needed |
+| trap A7, O-new-3, O-new-4 | contrived or cosmetic | CC-CMD 10 |
+| gate and delete A8 to A20, B12 (14 ids) | CLOSED | none needed |
+| delete B13 | false red remains (mutants built from hard-coded blocks of the pin) | pins F-C |
+| delete B14, O-new-5, G-pop-8 | contrived; G-pop-8 a design | CC-CMD 11 |
+| gate-mode O-new-2 | false red: a new row reds two literal denominators | pins F-B |
+| gate-mode G-new-1 of the gate and delete verifier | self-test reads `confidence.mjs` as text | pins F-D |
+| trap O-new-1, G-pop-7 | a reworded comment on the allowlist reds the trap, and the detail has no remedy | pins F-A |
+| G-pop-1 (`tee`, `cp`, `mv`, `rm`, `uniq`, `sed`, `awk`, `sort` refused in an always() step) | both skeptics UPHELD, REACHABLE | five of the eight restored (`8299add0`); `sed`, `awk`, `sort` stay refused (each can run a command): CC-CMD 2, an owner decision |
+| G-pop-2 (a `$VAR` in the final step's echo; a trailing comment) | one UPHELD, one REFUTED | (a) already fixed at `697042ee`; (b) the message names the remedy (`945daddf`) |
+| G-pop-3 (`echo ... >> "$GITHUB_PATH"` refused, no remedy named) | both REFUTED (COSMETIC, CONTRIVED) | not changed |
+| G-pop-4 (`import * as g` of `gate-checks.mjs` refused) | both REFUTED (CONTRIVED) | not changed; the refusal names the accepted form |
+| hunt-guard-1 (`{ echo NODE_OPTIONS=...; } >> "$GITHUB_ENV"`) | one UPHELD REACHABLE, one REFUTED | fixed (`74a58539`) |
+| hunt-guard-2 (`NAME<<DELIM`) | CONTRIVED | fixed with hunt-guard-1 |
+| hunt-guard-3 (a step before the install) | CONTRIVED | CC-CMD 7 |
+| hunt-guard-4 (backslash then a space) | CONTRIVED | CC-CMD 4 |
+| hunt-guard-5 (`;` in an echo message) | both UPHELD, REACHABLE | fixed (`7144cdc2`) |
+| hunt-guard-6 | both REFUTED | none |
+| hunt-guard-7 (`.npmrc` in a quoted message) | one UPHELD REACHABLE, one REFUTED | CC-CMD 9 |
+| hunt-guard-8 | both UPHELD, REACHABLE | the message names the rename (`945daddf`); CC-CMD 6 |
+| hunt-guard-surv-1 (apostrophe in double quotes), surv-4 (a dot on the next line) | one UPHELD REACHABLE, one REFUTED | fixtures and mutation entries (`945daddf`) |
+
+**One premise of round 4 was wrong, and is corrected here.** A23 removed `tee`, `cp`, `mv`, `rm` and `uniq` from the tools the guard reads as running nothing, because they can replace a script it has already read. The population verifier showed `echo x > scripts/render-check.mjs` is read clean: the guard accepted the redirect and refused the tool, so the refusal bought nothing and refused `| tee outbox/x.txt`. I had classed it, in this round's first reading, as a deliberate trade for the owner; the reproduction (round 6, first table) shows the trade was not made, the premise failed.

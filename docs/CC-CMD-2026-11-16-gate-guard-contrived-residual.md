@@ -48,7 +48,7 @@ Run 2026-11-16 at `7144cdc2`: an always() step added to `verify-full.yml` with `
 
 ### 4. The splitter's head positions and assignment prefix — CONTRIVED, false green (round 4 A21, A22; hunt-guard surv-contrived)
 
-Passing inputs, each on a line that is already unreadable because of a quoted `$( )`: `echo "$(date)"; &>/dev/null npm run check:peak`; `echo "$(date)"; X=$(date) npm run check:peak`; `echo "$(date)"; A=$(date) timeout 5 ./x.sh`; `echo "$(date)"; A=1 B=$(date) timeout 5 ./x.sh`; `3>/dev/null timeout 5 x`; `FOO= timeout 5 x`; a case arm with three or more alternatives (`a|b|c) timeout 5 x ;;`). Causes: `&>`, `&>>` and `<>` are not in `COMMAND_REDIRECTS`; `_CHAR` excludes `(`, so `VAR=$(cmd) npm ...` reads as the assignment head `VAR=$`; the file-descriptor class is `\d*` in one mutant and `[12]?` in another and no fixture tells them apart. None occurs under `.github/` or in `package.json`. Close when each has a fixture and a mutation entry, or WON'T FIX.
+Passing inputs, each on a line that is already unreadable because of a quoted `$( )`: `echo "$(date)"; &>/dev/null npm run check:peak`; `echo "$(date)"; X=$(date) npm run check:peak`; `echo "$(date)"; A=$(date) timeout 5 ./x.sh`; `echo "$(date)"; A=1 B=$(date) timeout 5 ./x.sh`; `3>/dev/null timeout 5 x`; `FOO= timeout 5 x`; a case arm with three or more alternatives (`a|b|c) timeout 5 x ;;`); and a backslash followed by a space or a tab at the end of a line, which `logical_lines` joins with the next line because it strips the line's trailing whitespace before it counts the backslashes (`echo hi \ ` then `node scripts/shot.mjs`, where bash ends the first command at the newline: the launcher on the next line is read as an argument of `echo`); `grep -rnP '\\[ \t]+$' .github package.json` finds 0 such lines today. Causes: `&>`, `&>>` and `<>` are not in `COMMAND_REDIRECTS`; `_CHAR` excludes `(`, so `VAR=$(cmd) npm ...` reads as the assignment head `VAR=$`; the file-descriptor class is `\d*` in one mutant and `[12]?` in another and no fixture tells them apart. None occurs under `.github/` or in `package.json`. Close when each has a fixture and a mutation entry, or WON'T FIX.
 
 ### 5. A regular-expression literal in a gate row — CONTRIVED, false green (round 4 A26)
 
@@ -76,6 +76,10 @@ A survivor is a clause whose removal or loosening leaves the self-test green. Ro
 | script-name quote | `lit[0] in "'\""` to `lit[0] in "'"` | a double-quoted script name |
 | importer suffix and glob | drop `.cjs` or `.js`; `glob("*")` to `glob("*.mjs")` | a `.cjs` or `.js` importer, a non-`.mjs` file |
 | `comment_start` `$'` | drop `and not in_dq` | `echo "a $'b # c" # r` loses its comment |
+| `comment_start` paren stack | drop `parens.pop()` after a nested `$( ... $( ... ) ... )` | the outer substitution never closes and the trailing comment is not cut |
+| `GITHUB_PATH_REF` braces | `\$\{?GITHUB_PATH\b` to `\$GITHUB_PATH\b` | `"${GITHUB_PATH}"` is not read as a write (the table pins the braces for `$GITHUB_ENV` only) |
+| `FINAL_ARG` empty double quotes | `"[^"`\\]*"` to `"[^"`\\]+"` | a final step with `echo ""` (a blank line) is refused and no check notices |
+| `gate_rows` trimmed shape | `blanked[:end], shape_all[:end]` to `blanked[:end], shape_all` | the array's trimming is pinned through `end` and not through the `shape` that counts `weight:` keys |
 | four more, cosmetic | `ff-ws-bracket`, `ff-head-split`, `le-env-boundary`, `le-assigned-lookbehind`, `le-npmrc-boundary`, `le-path-first`, `ch-amp-lookahead`, `imp-specifier-*` | messages, spellings the shell treats alike, or a bound another clause enforces |
 
 Close when each has a fixture that fails the mutant (Rule 90), or the row is ruled out.
