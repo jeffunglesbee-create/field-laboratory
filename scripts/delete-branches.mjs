@@ -168,9 +168,19 @@ export const workflowProblems = text => {
   return []
 }
 
+/** THE SELF-TEST'S CHILDREN CARRY THIS IN THEIR ENVIRONMENT, and a run that carries it refuses `--self-test` at once (round 5, A18 observation). The self-test runs main() as child processes; a main() whose argv parse
+ *  lets `--self-test` through (the round-4 defect, re-introduced by an edit or a mutation) ran the self-test again inside every child, which started children of its own: 86 orphaned processes and a 120 s timeout
+ *  before the harness saw anything. With the marker, the second level is refused with exit 2 before it reads a fixture, so the recursion cannot start, whatever the parse does. */
+export const SELF_TEST_CHILD = 'DELETE_BRANCHES_SELF_TEST_CHILD'
+
 // --- self-test -----------------------------------------------------------------------
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (parseArgs(process.argv.slice(2)).selfTest) {
+    if (process.env[SELF_TEST_CHILD]) { console.error(`REFUSED  --self-test: this process is a child of a self-test (${SELF_TEST_CHILD} is set), and a self-test child never runs the self-test`); process.exit(2) }
+    // THE MARKER IS SET HERE, ONCE, in this process's own environment, so that every child it starts inherits it (a child started with `{ ...process.env }` too). Read first: a value of 'probe' says this
+    // process was started by the refusal fixture below, which only happens to run the self-test when the guard above is absent.
+    const isProbeChild = process.env[SELF_TEST_CHILD] === 'probe'
+    process.env[SELF_TEST_CHILD] = '1'
     const { createChecks, finish } = await import('./checks.mjs')
     const { chmodSync, mkdtempSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } = await import('node:fs')
     const { tmpdir } = await import('node:os')
@@ -245,7 +255,20 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
       const headsAt = (f, where) => JSON.stringify(g(['ls-remote', '--heads', where], f.work).split('\n').filter(Boolean).map(l => l.split('\t')[1].replace('refs/heads/', '')).sort())
       const heads = f => headsAt(f, 'origin'), realHeads = f => headsAt(f, f.remote)
-      const runMain = (f, ...args) => { const r = spawnSync(process.execPath, [SELF, ...args], { cwd: f.work, encoding: 'utf8', timeout: 60000 }); return { status: r.status, out: `${r.stdout}${r.stderr}` } }
+      // Every child the self-test starts inherits the marker, which the self-test set in its own environment before it started any (see SELF_TEST_CHILD and `isProbeChild`).
+      const spawnChild = (argv, cwd) => { const r = spawnSync(process.execPath, argv, { cwd, encoding: 'utf8', timeout: 60000 }); return { status: r.status, out: `${r.stdout}${r.stderr}` } }
+      const runMain = (f, ...args) => spawnChild([SELF, ...args], f.work)
+      // THE RECURSION CANNOT START (round 5, A18 observation): a child that carries the marker and is asked for --self-test refuses at once, and every child the self-test starts carries it. The refusal
+      // fixture runs a child with the marker 'probe'; a child that finds it set to 'probe' is the guard's absence (it ran the self-test instead of refusing), so it skips this fixture and the recursion stops
+      // here, at one level, with the parent's check red. (Without the explicit 'probe' the child would inherit the marker and be refused, so dropping it from this call cannot start a recursion either.)
+      if (!isProbeChild) {
+        const probe = spawnSync(process.execPath, [SELF, '--self-test'], { cwd: dir, encoding: 'utf8', timeout: 60000, env: { ...process.env, [SELF_TEST_CHILD]: 'probe' } })
+        const asked = { status: probe.status, out: `${probe.stdout}${probe.stderr}` }
+        check('A SELF-TEST CHILD IS REFUSED THE SELF-TEST AT ONCE: `--self-test` with the marker set exits 2 saying so, and prints no check result',
+          asked.status === 2 && /REFUSED  --self-test: this process is a child of a self-test/.test(asked.out) && !/checks passed/.test(asked.out), `exit ${asked.status}; ${asked.out.slice(-300)}`)
+        const carried = spawnChild(['-e', "process.stdout.write(process.env.DELETE_BRANCHES_SELF_TEST_CHILD ?? 'unset')"], dir)
+        check('EVERY CHILD THE SELF-TEST STARTS CARRIES THE MARKER (a literal name, not the constant read back): the child prints 1', SELF_TEST_CHILD === 'DELETE_BRANCHES_SELF_TEST_CHILD' && carried.out === '1', `${SELF_TEST_CHILD}; child printed ${JSON.stringify(carried.out)}`)
+      }
       const a1 = parseArgs(['--apply', '--', 'proof-a']), a2 = parseArgs(['--', '--self-test']), a3 = parseArgs(['--force,proof-a']), a4 = parseArgs(['proof-a', 'proof-b'])
       const a5 = parseArgs(['--self-test']), a6 = parseArgs(['proof-a']), a7 = parseArgs([])
       check('THE ARGV: a list after a bare `--` is a list whatever it starts with (`--self-test` is a name to refuse, not a flag), an unknown `--x` before it is an error, two lists are an error, and a list with no `--` still works',

@@ -105,3 +105,26 @@ PASS  [delete-branches-unconfirmed-lists-the-rejected]     FAIL: MAIN, A REJECTE
 Self-test: 28 -> 30 checks. `node scripts/mutation-check.mjs --anchors`: `checked 1679 of 1682 mutation anchors; 0 stale`.
 
 Observation, not changed (Rule 69): when the final question fails the first line of main()'s account reads `deleted 0 of 2: (none)` although the pushes went through; the next line (`COULD NOT CONFIRM ... pushed without an error: ...`) corrects it. That is `r.deleted` meaning "confirmed deleted", and the new fixture pins both lines, so a change to the wording is a deliberate edit of the fixture.
+
+## Commit 3: a self-test child never runs the self-test (A18 observation)
+
+The observation: when the self-test's child run of `-- --self-test` was mutated to run the self-test again (`delete-branches-list-after-dashdash-is-a-flag`, the round-4 defect re-introduced), the self-test recursed. Measured here before the change, on a scratch copy at commit 2 with that mutation applied (`timeout -s KILL 30`): 8 live `delete-branches.mjs` processes at 14 s, no output at 30 s (the reviewer saw 86 orphans and a 120 s timeout); all killed by hand afterwards.
+
+What changed, by construction:
+
+- `export const SELF_TEST_CHILD = 'DELETE_BRANCHES_SELF_TEST_CHILD'`. The entry point refuses `--self-test` at once, exit 2 with a message that says why, when that variable is set in its environment (before it reads a fixture or imports anything).
+- The self-test sets the variable in ITS OWN `process.env`, once, after passing that guard, so every child it starts inherits it (a child started with `{ ...process.env }` too); it is not an option that each spawn has to remember. `spawnChild`/`runMain` pass no `env`.
+- The refusal fixture runs `--self-test` with the variable set to `probe`. A child that finds `probe` is the guard's ABSENCE (it ran the self-test instead of refusing), so it skips this one fixture and the recursion ends at one level with the parent's check red. A careless edit of the probe's explicit env (dropping `probe`) cannot recurse either: the child then inherits the parent's `1` and is refused (checked: scratch copy with the explicit env removed, 32/32, 3.2 s, 0 leftover processes).
+- A second fixture asserts, with a LITERAL variable name (`SELF_TEST_CHILD === 'DELETE_BRANCHES_SELF_TEST_CHILD'`), that a child the self-test starts through `spawnChild` sees `1`.
+
+Red on purpose (`node scripts/mutation-check.mjs --only <id>`, each `2/2 checks passed`; wall 6 to 9 s through the harness; and the FAIL lines the same mutation gives in a scratch copy, 5 of 5 exit 1, no stack trace, 0 leftover processes after each):
+
+```
+PASS  [delete-branches-self-test-child-guard-removed]         FAIL: A SELF-TEST CHILD IS REFUSED THE SELF-TEST AT ONCE (exit 0, the probe child ran the self-test and stopped at one level; 5.4 s)
+PASS  [delete-branches-self-test-child-refusal-exits-zero]    FAIL: A SELF-TEST CHILD IS REFUSED ... (exit 0 with the refusal text)
+PASS  [delete-branches-self-test-children-without-marker]     FAIL: EVERY CHILD THE SELF-TEST STARTS CARRIES THE MARKER (child printed "unset")
+PASS  [delete-branches-self-test-spawn-strips-the-marker]     FAIL: EVERY CHILD ... CARRIES THE MARKER (child printed "unset")
+PASS  [delete-branches-list-after-dashdash-is-a-flag]         FAIL x2: THE ARGV, A LIST THAT STARTS WITH `--` IS REFUSED (2.9 s in a scratch copy, 0 leftover processes; before this commit that same mutation ran away as above)
+```
+
+Self-test: 30 -> 32 checks (`node scripts/delete-branches.mjs --self-test`). `node scripts/mutation-check.mjs --anchors`: `checked 1683 of 1686 mutation anchors; 0 stale`.
