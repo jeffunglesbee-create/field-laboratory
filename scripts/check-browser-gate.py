@@ -1135,7 +1135,7 @@ FINAL_ARG = r'(?:[A-Za-z0-9_.:,=/@%+-]+|"[^"`\\]*")'
 FINAL_ECHO = re.compile(r"echo(?:[ \t]+" + FINAL_ARG + r")+")
 FINAL_REF = re.compile(r"\$(?:(" + FINAL_NAME + r")|\{(" + FINAL_NAME + r")(?::-([^$`\\\"'}]*))?\})")
 FINAL_SHAPES = ('`if [ "$NAME" = WORD ]; then`, `elif [ "$NAME" != WORD ]; then`, `else`, `fi`, `exit N` (N from 1 to 255) and `echo ARG...` (an ARG is letters, digits and `_.:,=/@%+-`, or a double-quoted string with no backtick or backslash '
-                'whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`; NAME is any variable: an echo prints, it changes neither the exit status nor the `::error::` line); nothing after the command, not even a comment')
+                'whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`; NAME is any variable: an echo prints, it changes neither the exit status nor the `::error::` line); nothing after the command, not even a comment (a comment goes on a line of its own above it)')
 # A `$` in a test that is no `$NAME` of the step's env, named so that the refusal says which it is (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}`): only a diagnostic, the shapes above are what decides.
 VAR_REF = re.compile(r"\$(?:\{([^}]*)\}|([A-Za-z_]\w*)|(.?))")
 
@@ -1508,7 +1508,7 @@ def importer_rows_problems(root):
                 name = m.group(1) or m.group(2) or "rows"
                 use = re.search(r"(?<![\w$.])" + re.escape(name) + r"(?:\s*\.\s*(?:" + "|".join(ARRAY_MUTATORS) + r")\s*\(|\s*\[[^\]]*\]\s*=(?![=>])|\s*\.\s*length\s*=(?!=)|\s*=(?![=>]))", shape)
                 if use and not shape[:use.start()].endswith(("const ", "let ", "var ")):
-                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs the rows of its own process (this file is refused whether or not it is loaded there: a file that only lists or reports the rows works on a copy, `[...{name}].sort(...)`)")
+                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs the rows of its own process (this file is refused whether or not it is loaded there: a file that only lists or reports the rows works on a copy, `[...{name}].sort(...)`; the match is by NAME, so a parameter or a local that is also called `{name}` reads as the import: rename it)")
     return bad
 
 
@@ -2284,6 +2284,9 @@ def self_test():
           any_of("must be exactly `if [", mut(final_run('if test "$INSTALL_OUTCOME" = skipped; then\n  echo "::error::s"\nelse\n  echo "::error::o"\nfi\nexit 1'))))
     check("the final step with `exit 1` commented out and nothing else is refused", any_of("GREEN", mut(final_run(ERR + "# exit 1"))))
     check("the final step with `exit 10` is accepted (any non-zero reddens the job)", mut(final_run(ERR + "exit 10")) == [], mut(final_run(ERR + "exit 10")))
+    check("round 6 (G-pop-2): a trailing comment after `exit 1` or after the echo is refused, and the refusal says where the comment goes (a line of its own above the command); a comment line above the command is accepted",
+          all(any_of("a comment goes on a line of its own above it", mut(final_run(run))) for run in (ERR + "exit 1 # always", 'echo "::error::x" # reworded\nexit 1'))
+          and mut(final_run("# the install did not succeed\n" + ERR + "exit 1")) == [], [mut(final_run(ERR + "exit 1 # always")), mut(final_run("# the install did not succeed\n" + ERR + "exit 1"))])
     check("the final step with `continue-on-error: true` is refused (its failure becomes success)",
           any_of("continue-on-error", mut(lambda s: s[-1].update({"continue-on-error": True}))))
     check("the final step with `continue-on-error: ${{ expr }}` is refused (an expression cannot be shown off)",
@@ -3377,7 +3380,7 @@ def self_test():
     # ROUND 5, GROUP 1 (review of 5b5a89b, B1 and A24). The comment cutter is bash's: a `#` is a comment only where a word begins and nothing is open (quotes, `${ }`, `$( )`, a backtick pair, `$'...'`).
     PINNED_COMMENT_STARTS = [
         ('echo hi # note', 8), ('echo hi', None), ('# whole', 0), ('a;# c', 2), ('a|#c', 2), ('a&#c', 2), ('(#c', 1), ('(a)#c', 3), ('echo $(a)#c', None), ('echo ${x}#c', None),
-        ('echo ${x} #c', 10), ('echo ${y:- #}; exit 0', None), ('echo ${x/ #/z}; exit 0', None), ('echo ${y:-"}"} z # c', 17), ('echo ${y:-a${z:- #}} # c', 21),
+        ('echo ${x} #c', 10), ('echo ${y:- #}; exit 0', None), ('echo ${x/ #/z}; exit 0', None), ('echo ${y:-"}"} z # c', 17), ('echo ${y:-a${z:- #}} # c', 21), ('echo "it\'s" # c', 12), ('echo "it\'s ok" # a; b', 15), ('echo "don\'t" # see: x | y', 13),
         ("echo $'it\\'s # x' ; exit 0", None), ("echo $'a # b' # c", 14), ('echo $"a # b" # c', 14), ('echo "a # b" # c', 13), ("echo 'a # b' # c", 13), ('echo "a \\" # b" # c', 16),
         ('echo a\\ #b # c', 11), ('echo "a"#b # c', 11), ('echo $(echo a # b) ; exit 0', None), ('echo $(echo a) # c', 15), ('echo $( (a) # b ) ; exit 0', None), ('echo $((1+2)) # c', 14),
         ('echo $(f $(g) # x) ; exit 0', None), ('echo `a # b` ; exit 0', None), ('echo `a` # c', 9), ('echo `a \\` # b` ; exit 0', None), ('echo $# # c', 8), ('echo ${x##*/} # c', 14),
@@ -3528,6 +3531,13 @@ def self_test():
     for m in PINNED_ARRAY_MUTATORS:
         got = row_pr_importer(f"import {{ rows }} from './gate-checks.mjs'\nrows.{m}(1)\n")
         check(f"round 5 (A27): `rows.{m}(...)` in a file that imports rows is refused", any_of("changes `rows`", got), got)
+    # ROUND 6 (review of 4b5395e6, imp-use-dot-method-ws). A method call with the dot on the next line, or spaces around it, is the same call.
+    for label, src in [("`rows` and `.push(...)` on two lines, as a formatter writes a chain", "import { rows } from './gate-checks.mjs'\nrows\n  .push({})\n"), ("`rows . push(1)`", "import { rows } from './gate-checks.mjs'\nrows . push(1)\n"),
+                       ("`rows\n  .sort(...)`", "import { rows } from './gate-checks.mjs'\nrows\n  .sort((a, b) => a.weight - b.weight)\n")]:
+        got = row_pr_importer(src)
+        check(f"round 6 (imp-use-dot-method-ws): {label} is refused", any_of("changes `rows`", got), got)
+    check("round 6 (hunt-guard-8, G-pop-5): the refusal says the match is by NAME and the remedy is a rename: a parameter called `rows` in a file that imports `rows` reads as the import",
+          any_of("so a parameter or a local that is also called `rows` reads as the import: rename it", row_pr_importer("import { rows } from './gate-checks.mjs'\nfunction render(rows) { const lines = []; rows.push('x'); return lines }\n")))
     for label, src in [("the review's `rows.push({...})` after `import { rows, ok, failures, NOT_APPLICABLE }`", "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nrows.push({ name: 'pushed by the importer', weight: 1, run: () => ok('node scripts/shot.mjs') })\n"),
                        ("an alias (`rows as gateRows`)", "import { rows as gateRows } from './gate-checks.mjs'\ngateRows.splice(0, 1)\n"), ("`const { rows } = await import(...)`", "const { rows } = await import('./gate-checks.mjs')\nrows.unshift({})\n"),
                        ("`const { rows: r } = require(...)`", "const { rows: r } = require('./gate-checks.mjs')\nr.pop()\n"), ("`rows.length = 0`", "import { rows } from './gate-checks.mjs'\nrows.length = 0\n"),
