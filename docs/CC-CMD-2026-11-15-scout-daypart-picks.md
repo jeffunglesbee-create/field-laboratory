@@ -83,6 +83,17 @@ The owner's word: golf "usually ... starts at 7am local time", which in ET runs 
 
 So golf cannot be placed in a window without inventing a time, and on today's data it cannot qualify for Scout either (no sides, no moneyline, no outlets). For Deep Cuts golf is out until a real tee-time source exists. Placing it by "7am local" would also need the venue's time zone, which neither source carries.
 
+### Golf, a tee-time source found (2026-11-16, after the owner's screenshot)
+
+The owner sent a Google answer citing the PGA Tour, Yahoo Sports and others: first tee about 6:50-7:40am local for rounds 1-2, 8-9am for round 3, 7:30-8:30am for round 4; last tee about 1-3pm local. Recorded as that source's general pattern, not measured here. It makes golf a day-long event spanning several windows, which is question 4's subject.
+
+Measured the same day through the FIELD browser tool:
+- ESPN's site summary does not serve golf: `site.web.api.espn.com/apis/site/v2/sports/golf/pga/summary?event=401850980` answers 404, "Summary not supported for sport 'golf'".
+- ESPN's core event record (`sports.core.api.espn.com/v2/sports/golf/leagues/pga/events/401850980`) also says `timeValid: false` at `2026-11-12T05:00Z`. Its venue object holds no time zone (`venues` is a reference); `courses[0]` carries the course and its city: Omni Barton Creek Resort & Spa (Fazio Canyons Course), Austin, TX.
+- **Each player's status record carries a real tee time, in UTC.** `.../events/401850980/competitions/401850980/competitors/11183/status`: `teeTime` `2026-11-16T15:31Z`, `startHole` 1, period 4, position 1, state `pre` (the suspended Round 4, resumed Monday; 15:31Z is 10:31am ET). Because the time is UTC, no venue time zone is needed to place it.
+
+The cost, not measured: tee times are per player, one request per competitor (120 on this event's scoreboard) per round, unless an endpoint that lists a round's tee sheet exists; none was found. Fetching them is relay work (field-relay-nba Rule 78, API-COST-A: cache like the existing golf routes).
+
 ## Constraints any build must keep
 
 - ADR-002 / RUWT: pull only. A per-daypart pick must never become a notification at the start of each daypart (field-relay-nba CLAUDE.md, Rule A). Boolean gates, no composite score shown, as now.
