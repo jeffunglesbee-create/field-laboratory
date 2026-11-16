@@ -24,10 +24,14 @@
 // controls there, not a measurement.
 // ALSO NOT covered (round 5, A7): a launch through a VENDORED COPY of the library outside node_modules/playwright(-core)/ (`require('<repo>/vendor/pwcore')`: the hook stubs the two package
 // names and any path that lands inside those directories, so a copy elsewhere loads the real library). No script does it, and it is a deliberate evasion, not an edit.
-// The trap reaches a child through NODE_OPTIONS, so a child started with a NODE_OPTIONS that does not build on the inherited one runs outside it:
-// scripts/ (every .mjs, .cjs and .js under it, fixtures included; not .py or .sh, which start no Node child with an environment of their own, and not this file) is scanned for that
-// (nodeOptionsReplacers, printed as `scanned N scripts`), and the scan is DEFAULT-DENY: a line that names the variable is clean only in the one form the scripts use, the inherited value first
-// and flags of our own after it. scripts/proof-check.mjs, whose self-test replaced it for two of its children, now appends (review 2026-11-15, finding 14).
+// The trap reaches a child through NODE_OPTIONS, so a child started with a NODE_OPTIONS that does not build on the inherited one runs outside it. scripts/ (every .mjs, .cjs and .js under it,
+// fixtures included, node_modules excepted; not .py or .sh, which start no Node child with an environment of their own, and not this file, whose own trap value is built in makeTrap and is
+// vouched for at run time by the controls) is scanned for that, BY ALLOWLIST AT LINE GRANULARITY (scanTrapLoss, printed as `scanned N scripts`): every line that names the node options in
+// ANY spelling (NODE_OPTIONS; npm's own `npm_config_node_options`, `NPM_CONFIG_NODE_OPTIONS` and `--node-options`, which npm turns into the NODE_OPTIONS of the script it starts) must equal,
+// trimmed, a line on KNOWN_NODE_OPTIONS_LINES, per file, and a listed line that is no longer there is reported too. There is no comment cutting and no parsing, so there is no quote, escape or
+// leading-comment spelling to find: every round of review found another spelling in the classifier of the line, and an allowlist has no classifier. A new line is added to the list on purpose, in the commit
+// that writes it (a comment that says it without the word needs no entry). NOT covered by the scan: a name built at run time (`['NODE_' + 'OPTIONS']`) and a value set outside scripts/ (an
+// .npmrc, a package.json script, a workflow's env).
 // A launch made through a PATH to the library entry (`require('/abs/node_modules/playwright-core')`) is trapped as well: the hook stubs any resolution that lands inside the library from outside it.
 //
 //   node scripts/no-launch-check.mjs              (from the repository root; needs Node 22.15 or later, `npm ci`, the build, and python3 with PyYAML)
@@ -112,50 +116,72 @@ export async function pool(items, width, worker) {
   return results
 }
 
-/** The scripts that name NODE_OPTIONS on a line that does not build on the inherited value: the trap reaches a child only through NODE_OPTIONS, so a child started with a value of its own, a filtered
- *  copy of the inherited one, or the variable removed, runs outside it. DEFAULT-DENY (review 2026-11-15, round 4, finding 0): the first version looked for the spellings that replace it, and every spelling it
- *  did not list read clean (a same-line read that strips the trap, a filter, `env -u`, `unset`, `Reflect.deleteProperty`, a computed key). Now a line that names the word is clean only when it holds the
- *  one form the scripts use, `${process.env.NODE_OPTIONS ?? ''} --flag`: the inherited value first, flags of our own after it. Anything else is an offender, a message that only mentions the variable
- *  included (say it without the word, or append). Not code, so not read: a comment line, a block-comment body, a trailing `// comment` (cut quote-aware: a ` // ` inside a string does not hide what
- *  follows it, and a quote the cutter cannot pair leaves the line whole, the safe side), and the `find:`, `replace:` and `claim:` lines of the mutation table (the text of a mutation, not a call).
- *  Covers every .mjs, .cjs and .js under `dir`, subdirectories included (scripts/fixtures), `node_modules` excepted. NOT covered, said where the verdict is: .py and .sh scripts, and an environment built
- *  without ever naming the variable (`env -i`, `env: { PATH }`): invisible to a scan of text. This file builds the trap's own value on the line above and is not scanned. */
-export function nodeOptionsReplacers(dir, skip = ['no-launch-check.mjs']) {
+/** Every spelling under which a process's node options are named: NODE_OPTIONS, and the ones npm turns into the NODE_OPTIONS of the script it starts (`npm_config_node_options`, `NPM_CONFIG_NODE_OPTIONS`,
+ *  `--node-options=`: round 5, B10). A line that matches is read by a person once, in the commit that adds it to the list below, and by nothing else. */
+export const SPELLINGS = /node[_-]?options/i
+
+/** THE LINES, per file, that may name the node options (trimmed, exact), each one read when it was added: the trap reaches a child only through NODE_OPTIONS, so a line that names it is either the appending form
+ *  (`${process.env.NODE_OPTIONS ?? ''} --flag`, the inherited value first), a comment, or text of the mutation table, and a new one is reviewed by being committed here. DEFAULT-DENY by construction (round 5, A0, A1, B10):
+ *  the first scan listed the spellings that replace the value, the second cut comments with a quote-aware scanner and called a line clean if the appending form was anywhere on it, and every round found another line
+ *  that read clean (an append and a replace on one line, an append then `.replace`, code after a leading block comment, a quote kind or an escape the cutter mishandled, npm's own spellings). Nothing here classifies a line.
+ *  A line quoted here is a second copy of itself: a mutation-table entry that targets THIS file must anchor on text that does not name the variable, or its anchor is found twice (`check:mutation-anchors` says so). */
+export const KNOWN_NODE_OPTIONS_LINES = {
+  "scripts/mutate-copy-check.mjs": [
+    "// write whose path is under <root>/scripts/ and logs every write. For a .mjs script the guard is a preload (NODE_OPTIONS --require) that wraps the fs write",
+    ": { cmd: process.execPath, env: { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${JSON.stringify(guard)}`.trim() } })",
+  ],
+  "scripts/mutation-check.mjs": [
+    "id: \"no-launch-check-node-options-replaced\",",
+    "claim: \"a child of proof-check's self-test keeps the trap's NODE_OPTIONS\",",
+    "find: \"go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'other-run.cjs')}`.trim() })\",",
+    "replace: \"go({ NODE_OPTIONS: `--require ${join(dir, 'other-run.cjs')}` })\",",
+  ],
+  "scripts/network-exempt-check.mjs": [
+    "env: { ...process.env, ...env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import ${PRELOAD}`.trim(), NO_NETWORK_MARK: mark, NO_NETWORK_MODE: mode },",
+  ],
+  "scripts/no-network-preload.mjs": [
+    "//   NODE_OPTIONS=\"--import file:///…/scripts/no-network-preload.mjs\" node scripts/some-script.mjs",
+  ],
+  "scripts/proof-check.mjs": [
+    "// A MARKER THAT APPEARS BETWEEN THE CHECK AND THE CREATE, a regular file standing for the other run's: a module preloaded into the child (NODE_OPTIONS=--require) creates it just before the run's own exclusive",
+    "}, ({ dir, go, has, read }) => ({ r: go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'other-run.cjs')}`.trim() }), builds: has('calls.log'), marker: read(MARKER_FILE), backups: backupsOf(read) }))",
+    "// planted where it happens: a module preloaded into the child (NODE_OPTIONS=--require) wraps `fs.writeFileSync` and fails the marker's exclusive create, and only that, with ENOSPC. Coverage (Rule 91): one run.",
+    "}, ({ dir, go, has }) => ({ r: go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'fault.cjs')}`.trim() }), builds: has('calls.log') }))",
+  ],
+}
+
+/** The scripts that name the node options on a line that is not on `known`, and the listed lines that are not there (so the list cannot rot). `dir` is the scripts directory, `known` is keyed by `scripts/<path>`.
+ *  Reads every .mjs, .cjs and .js under `dir`, subdirectories included (scripts/fixtures), `node_modules` excepted and `skip` excepted (this file: it builds the trap's own value in makeTrap, and the controls vouch for
+ *  that). Returns the denominators: `files` scanned, `lines` that name the node options (every one is listed or refused), the `offenders` ({ at, text }) and the `stale` entries ({ file, text }).
+ *  NOT covered, said where the verdict is: .py and .sh scripts, a name built at run time, and a value set outside scripts/. */
+export function scanTrapLoss(dir, known = KNOWN_NODE_OPTIONS_LINES, skip = ['no-launch-check.mjs']) {
   const list = (rel = '') => readdirSync(join(dir, rel), { withFileTypes: true }).flatMap(e => {
     const path = rel ? `${rel}/${e.name}` : e.name
     return e.isDirectory() ? (e.name === 'node_modules' ? [] : list(path)) : /\.(mjs|cjs|js)$/.test(e.name) ? [path] : []
   })
   const files = list().filter(f => !skip.includes(f)).sort()
-  const offenders = []
-  const APPENDS = /\$\{process\.env\.NODE_OPTIONS \?\? ''\} --/
-  const withoutComment = line => {
-    let quote = null
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i]
-      if (quote) { if (c === '\\') i++; else if (c === quote) quote = null }
-      else if (c === '"' || c === "'" || c === '`') quote = c
-      else if (c === '/' && line[i + 1] === '/' && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i)
-    }
-    return line
-  }
+  const offenders = [], seen = new Set()
+  let lines = 0
   for (const f of files) {
-    let inBlock = false
+    const allowed = new Set(known[`scripts/${f}`] ?? [])
     readFileSync(join(dir, f), 'utf8').split('\n').forEach((raw, i) => {
-      if (inBlock) { if (raw.includes('*/')) inBlock = false; return }
-      if (/^\s*\/\*/.test(raw) && !raw.includes('*/')) { inBlock = true; return }
-      if (/^\s*(\/\/|\*|\/\*)/.test(raw) || /^\s*(find|replace|claim)\s*:/.test(raw)) return
-      const line = withoutComment(raw)
-      if (/\bNODE_OPTIONS\b/.test(line) && !APPENDS.test(line)) offenders.push(`scripts/${f}:${i + 1}`)
+      if (!SPELLINGS.test(raw)) return
+      lines++
+      const text = raw.trim()
+      if (allowed.has(text)) seen.add(`scripts/${f}\0${text}`)
+      else offenders.push({ at: `scripts/${f}:${i + 1}`, text })
     })
   }
-  return { files: files.length, offenders }
+  const stale = Object.entries(known).flatMap(([file, texts]) => texts.filter(text => !seen.has(`${file}\0${text}`)).map(text => ({ file, text })))
+  return { files: files.length, lines, offenders, stale }
 }
 
 /** THE ONE DEFINITION of a clean command: it exited 0 (a command killed by a signal has no exit status at all, `null`, and the timeout path is exactly that) and attempted no launch. The per-command label,
  *  the problems of the verdict and the count in its closing line are all read through this, so they cannot disagree (round 5, A2: the label had an expression of its own, and a killed command printed `ok`). */
 export const isClean = r => r.exit === 0 && r.launches.length === 0
 
-/** The verdict from the measurements: ok only when every command is clean (isClean), every control saw a launch, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned) no script replaces NODE_OPTIONS. */
+/** The verdict from the measurements: ok only when every command is clean (isClean), every control saw a launch, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned)
+ *  every line of scripts/ that names the node options is on the list and every listed line is still there. */
 export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = null, expected = null) {
   const problems = []
   if (results.length < minCommands) problems.push(`only ${results.length} command(s) were measured, fewer than the ${minCommands} this check expects: the list is not trustworthy`)
@@ -166,11 +192,12 @@ export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = 
     if (r.launches.length) problems.push(`\`${r.cmd.join(' ')}\` attempted a browser launch (${[...new Set(r.launches)].join(', ')})`)
     else problems.push(`\`${r.cmd.join(' ')}\` did not complete (exit ${r.exit}${r.signal ? `, ${r.signal}` : ''}: ${r.last.slice(0, 120)}), so it is not established that it launches nothing`)
   }
-  for (const o of scan?.offenders ?? []) problems.push(`${o} starts a child with a NODE_OPTIONS that replaces the inherited one, so the trap does not reach it (append: \`\${process.env.NODE_OPTIONS ?? ''} --require ...\`)`)
+  for (const o of scan?.offenders ?? []) problems.push(`${o.at} names the node options in a line that is not on the list (KNOWN_NODE_OPTIONS_LINES in scripts/no-launch-check.mjs): \`${o.text.slice(0, 200)}\`. A child started with a value of its own, a filtered copy, or none runs outside the trap. Append to the inherited value (\`\${process.env.NODE_OPTIONS ?? ''} --require ...\`) and add the line to the list on purpose, or say it without the word`)
+  for (const t of scan?.stale ?? []) problems.push(`${t.file} is listed with a line that is no longer in it: \`${t.text.slice(0, 200)}\` (delete it from KNOWN_NODE_OPTIONS_LINES, so the list does not outlive what it allows)`)
   const clean = results.filter(isClean).length
   const line = `checked ${results.length} of ${results.length} commands: ${clean} exited 0 with 0 launches; controls: ${controls.length - blind.length} of ${controls.length} saw a launch`
     + (expected !== null ? `; the guard's list is the pinned ${expected}` : '')
-    + (scan ? `; scanned ${scan.files} scripts for a NODE_OPTIONS that replaces the trap's: ${scan.offenders.length} found (.mjs/.cjs/.js under scripts/, this file and .py/.sh excepted)` : '')
+    + (scan ? `; scanned ${scan.files} scripts: ${scan.lines - scan.offenders.length} of ${scan.lines} lines that name the node options are on the list, ${scan.stale.length} listed line(s) are gone (.mjs/.cjs/.js under scripts/, this file and .py/.sh excepted)` : '')
   return { ok: problems.length === 0, problems, line }
 }
 
@@ -228,7 +255,7 @@ async function main() {
   const cmds = file ? JSON.parse(readFileSync(file, 'utf8')) : plainCommands()
   const width = Number(process.env.NO_LAUNCH_JOBS ?? Math.min(4, availableParallelism()))
   const o = mainOptions(file)
-  const r = await measure({ cmds, trap, dir, width, floor: o.floor, expected: o.expected, scan: o.scan ? nodeOptionsReplacers(join(ROOT, 'scripts')) : null })
+  const r = await measure({ cmds, trap, dir, width, floor: o.floor, expected: o.expected, scan: o.scan ? scanTrapLoss(join(ROOT, 'scripts')) : null })
   process.exit(r.exit)
 }
 
@@ -316,9 +343,15 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const blindControls = okControls.map((c, i) => (i === 2 ? { ...c, launches: [] } : c))
     check('MUTATION: a control that left no line means the instrument cannot see: NOT ESTABLISHED', !verdictOf(mk(30), blindControls).ok && /cannot see a launch/.test(verdictOf(mk(30), blindControls).problems[0]))
     check('MUTATION: a vacuous list (too few commands) is not ok', !verdictOf(mk(3), okControls).ok && /fewer than the 20/.test(verdictOf(mk(3), okControls).problems[0]))
-    check('a scanned scripts directory is part of the verdict: an offender makes it not ok, and the line says how many scripts were scanned',
-      !verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).ok && /NODE_OPTIONS that replaces/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).problems[0])
-        && verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).ok && /scanned 5 scripts for a NODE_OPTIONS that replaces the trap's: 0 found/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).line))
+    const scanOk = { files: 5, lines: 3, offenders: [], stale: [] }
+    const scanBad = { files: 5, lines: 3, offenders: [{ at: 'scripts/x.mjs:3', text: 'go({ a: 1 })' }], stale: [] }
+    const scanStale = { files: 5, lines: 3, offenders: [], stale: [{ file: 'scripts/y.mjs', text: 'a line that is gone' }] }
+    check('a scanned scripts directory is part of the verdict: a line that is not on the list makes it not ok and is named with its text, a listed line that is gone does too, and the line says how many scripts were scanned and how many lines were on the list',
+      !verdictOf(mk(30), okControls, 20, scanBad).ok && /scripts\/x\.mjs:3 names the node options in a line that is not on the list/.test(verdictOf(mk(30), okControls, 20, scanBad).problems[0]) && /go\(\{ a: 1 \}\)/.test(verdictOf(mk(30), okControls, 20, scanBad).problems[0])
+        && !verdictOf(mk(30), okControls, 20, scanStale).ok && /scripts\/y\.mjs is listed with a line that is no longer in it: `a line that is gone`/.test(verdictOf(mk(30), okControls, 20, scanStale).problems[0])
+        && verdictOf(mk(30), okControls, 20, scanOk).ok && /scanned 5 scripts: 3 of 3 lines that name the node options are on the list, 0 listed line\(s\) are gone/.test(verdictOf(mk(30), okControls, 20, scanOk).line)
+        && /scanned 5 scripts: 2 of 3 lines/.test(verdictOf(mk(30), okControls, 20, scanBad).line),
+      JSON.stringify([verdictOf(mk(30), okControls, 20, scanBad).problems, verdictOf(mk(30), okControls, 20, scanStale).problems, verdictOf(mk(30), okControls, 20, scanOk).line]))
     // THE ONE DEFINITION OF A CLEAN COMMAND (round 5, A2): the label, the problems and the closing count are read through isClean. A LITERAL table, one row per way a command can end.
     const CLEAN_CASES = [[{ exit: 0, signal: null, launches: [] }, true], [{ exit: null, signal: 'SIGKILL', launches: [] }, false], [{ exit: 1, signal: null, launches: [] }, false], [{ exit: 0, signal: null, launches: ['chromium.launch'] }, false], [{ exit: 3, signal: null, launches: ['chromium.launch'] }, false], [{ exit: null, signal: 'SIGTERM', launches: ['firefox.launch'] }, false]]
     check('isClean: exit 0 with no launch is clean, and a signal (exit null), a non-zero exit and a launch are each not (6 rows)', CLEAN_CASES.map(([r]) => isClean(r)).join() === 'true,false,false,false,false,false' && CLEAN_CASES.length === 6, CLEAN_CASES.map(([r]) => isClean(r)).join())
@@ -340,9 +373,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('THE PIN IS THE GUARD\'S COUNT TODAY: `python3 scripts/check-browser-gate.py --plain-commands` lists exactly EXPECTED_COMMANDS commands (change the constant with the step that changes the list)',
       live.status === 0 && (() => { try { return JSON.parse(live.stdout).length === EXPECTED_COMMANDS } catch { return false } })(), `status ${live.status}; ${live.stderr.slice(0, 200)}`)
 
-    // A CHILD STARTED WITHOUT THE TRAP'S NODE_OPTIONS runs outside the trap, so scripts/ is scanned for one, DEFAULT-DENY: a line that names the variable is clean only in the appending form
-    // (review 2026-11-15, finding 14: scripts/proof-check.mjs replaced it for two children; round 4, finding 0: a same-line read that strips the trap, a filter, `env -u`, `unset`, `Reflect.deleteProperty` and a
-    // computed key all read clean under the first scan). The expected offenders are a LITERAL list, and the clean files a literal list too, so a regex that stops finding a spelling loses an offender and not a fixture.
+    // A CHILD STARTED WITHOUT THE TRAP'S NODE_OPTIONS runs outside the trap, so scripts/ is scanned for a line that names it, BY ALLOWLIST: every such line must be on the list, per file, whatever else is on it. The
+    // inputs are LITERAL, one file each, so a scan that stops refusing a spelling loses an offender and not a fixture (round 5: a line with an append AND a replace, an append then a strip, code after a leading
+    // block comment, the four quote and escape and slash spellings a comment cutter mishandles, and npm's own three spellings all read clean under the classifier this replaced).
     const scanDir = join(dir, 'scan')
     mkdirSync(join(scanDir, 'sub'), { recursive: true })
     const OFFENDING = {
@@ -351,32 +384,68 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       'trailing.mjs': "go({ NODE_OPTIONS: '--require x' }) // ${process.env.NODE_OPTIONS ?? ''} --require",
       'envassign.mjs': "process.env.NODE_OPTIONS = '--require x'", 'envdelete.mjs': 'delete process.env.NODE_OPTIONS',
       'message.mjs': "console.log('NODE_OPTIONS is not set')",
-      // the spellings the first scan read as clean
       'sameline.mjs': "go({ ...process.env, NODE_OPTIONS: process.env.NODE_OPTIONS?.replace(/--require=\\S+/g, '') })",
       'filter.mjs': "go(Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'NODE_OPTIONS')))",
       'envu.mjs': 'execSync("env -u NODE_OPTIONS node x.mjs")', 'unset.mjs': 'execSync("unset NODE_OPTIONS; node x.mjs")',
       'reflect.mjs': 'Reflect.deleteProperty(env, "NODE_OPTIONS")', 'computed.mjs': 'go({ ["NODE_OPTIONS"]: "--x" })',
       'andread.mjs': "go({ NODE_OPTIONS: process.env.NODE_OPTIONS && '--x' })",
-      // the three parts of the old regexes no fixture reached
       'bracket.mjs': "env['NODE_OPTIONS'] = ''", 'comma.mjs': 'go({ ...process.env, NODE_OPTIONS })', 'hidden.mjs': "go({ a: 'x // y', NODE_OPTIONS: '--x' })",
       'script.cjs': "env.NODE_OPTIONS = ''", 'script.js': "env.NODE_OPTIONS = ''", 'sub/deep.mjs': "env.NODE_OPTIONS = ''",
+      // round 5, A0: the same line class, with the appending form on it, or a comment in front of it
+      'v1-append-and-replace.mjs': "const a = { NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --no-warnings` }, b = { ...process.env, NODE_OPTIONS: '--no-warnings' }",
+      'v2-append-then-strip.mjs': "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --no-warnings`.replace(/--require=\\S+/g, '') })",
+      'v5-leading-block-comment.mjs': "/* c */ execFileSync(node, [child], { env: { ...process.env, NODE_OPTIONS: '--no-warnings' } })",
+      // round 5, A1: what a quote-aware comment cutter mishandles (a double quote, a backtick, an escaped quote, a slash that is not a comment)
+      'q-double.mjs': 'go({ a: "x // y", NODE_OPTIONS: \'--x\' })', 'q-backtick.mjs': "go({ a: `x // y`, NODE_OPTIONS: '--x' })",
+      'q-escape.mjs': "go({ a: 'it\\'s // x', NODE_OPTIONS: '--x' })", 'q-slash.mjs': "go(p.split(/\\//), { NODE_OPTIONS: '--x' })",
+      // round 5, B10: npm's own spellings, which npm turns into the NODE_OPTIONS of the script it starts
+      'npm-lower.mjs': "execSync('npm run launch --silent', { env: { ...process.env, npm_config_node_options: '--max-old-space-size=100' } })",
+      'npm-upper.mjs': "execSync('npm run launch --silent', { env: { ...process.env, NPM_CONFIG_NODE_OPTIONS: '--max-old-space-size=100' } })",
+      'npm-flag.mjs': "execSync('npm run launch --silent --node-options=--max-old-space-size=100')",
+      'npm-flag-word.mjs': "execFileSync('npm', ['run', 'launch', '--node-options', '--max-old-space-size=100'])",
+      // a comment that names it is not exempt: it is on the list or it says it without the word
+      'comment.mjs': '// NODE_OPTIONS=--require x is only written here', 'docline.mjs': ' * NODE_OPTIONS: a doc comment line',
+      'table.mjs': '    find: "go({ NODE_OPTIONS: x })",',
     }
     for (const [name, line] of Object.entries(OFFENDING)) writeFileSync(join(scanDir, name), `${line}\n`)
-    const CLEAN = ['envappend.mjs', 'inherits.mjs', 'mentions.mjs', 'table.mjs']
-    writeFileSync(join(scanDir, 'envappend.mjs'), "process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require x`\n")
-    writeFileSync(join(scanDir, 'inherits.mjs'), "go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })\n")
-    writeFileSync(join(scanDir, 'mentions.mjs'), "// NODE_OPTIONS=--require x is only written here\n/* NODE_OPTIONS: a block comment */\n * NODE_OPTIONS: a doc comment line\n/*\n  NODE_OPTIONS: a block comment body\n*/\n")
-    writeFileSync(join(scanDir, 'table.mjs'), '  {\n    claim: "a child keeps NODE_OPTIONS",\n    find: "go({ NODE_OPTIONS: x })",\n    replace: "go({ NODE_OPTIONS: y })",\n  },\n')
+    // ON THE LIST, in the file it is listed for: clean. Everything else about these files is refused: an edited line, the same line in another file, a second line beside a listed one.
+    const APPEND_LINE = "process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require x`"
+    writeFileSync(join(scanDir, 'envappend.mjs'), `${APPEND_LINE}\n`)
+    writeFileSync(join(scanDir, 'inherits.mjs'), "  go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })  \n")           // listed trimmed: indentation does not matter
+    writeFileSync(join(scanDir, 'listed-comment.mjs'), '// NODE_OPTIONS=--require x is only written here\n')
+    writeFileSync(join(scanDir, 'edited.mjs'), "process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ''} --require y`\n")                // listed as `--require x`: the edit is a different line
+    writeFileSync(join(scanDir, 'beside.mjs'), `${APPEND_LINE}\ngo({ ...process.env, NODE_OPTIONS: '--x' })\n`)                              // the listed line, and a replacing one beside it
+    writeFileSync(join(scanDir, 'elsewhere.mjs'), `${APPEND_LINE}\n`)                                                                          // the listed text, in a file it is not listed for
+    writeFileSync(join(scanDir, 'plain.mjs'), "console.log('nothing to see')\n")                                                              // names nothing: not counted
     writeFileSync(join(scanDir, 'notes.txt'), 'env.NODE_OPTIONS = ""\n')                       // not a script: its extension is not read
     mkdirSync(join(scanDir, 'node_modules'), { recursive: true })
     writeFileSync(join(scanDir, 'node_modules', 'dep.mjs'), 'env.NODE_OPTIONS = ""\n')          // a dependency is not ours
-    const scanned = nodeOptionsReplacers(scanDir)
-    const EXPECTED_OFFENDERS = ['assign.mjs', 'delete.mjs', 'envassign.mjs', 'envdelete.mjs', 'quoted.mjs', 'quoted2.mjs', 'replaces.mjs', 'shorthand.mjs', 'trailing.mjs', 'message.mjs',
-      'sameline.mjs', 'filter.mjs', 'envu.mjs', 'unset.mjs', 'reflect.mjs', 'computed.mjs', 'andread.mjs', 'bracket.mjs', 'comma.mjs', 'hidden.mjs', 'script.cjs', 'script.js', 'sub/deep.mjs'].map(f => `scripts/${f}:1`).sort()
-    check('SCAN, DEFAULT-DENY: 23 files that name NODE_OPTIONS in a way that does not append to the inherited value are found (every spelling the first scan read as clean, the three parts of its regexes no fixture reached, a .cjs, a .js and a subdirectory), each with its line; the appending form, comments, the mutation table\'s text, a .txt and node_modules are not',
-      JSON.stringify(scanned) === JSON.stringify({ files: 27, offenders: EXPECTED_OFFENDERS }) && Object.keys(OFFENDING).length === 23 && CLEAN.length === 4, JSON.stringify(scanned))
-    const real = nodeOptionsReplacers(join(ROOT, 'scripts'))
-    check('...and no script in scripts/ names it without appending to the inherited value (proof-check.mjs did, for two of its children)', real.offenders.length === 0 && real.files >= 50, JSON.stringify(real))
+    const KNOWN_FIXTURE = {
+      'scripts/envappend.mjs': [APPEND_LINE], 'scripts/inherits.mjs': ["go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require x`.trim() })"],
+      'scripts/listed-comment.mjs': ['// NODE_OPTIONS=--require x is only written here'],
+      'scripts/edited.mjs': [APPEND_LINE], 'scripts/beside.mjs': [APPEND_LINE],
+      'scripts/gone.mjs': ['a listed file that does not exist'],                                       // stale: the file is not there
+      'scripts/plain.mjs': ['a listed line that is not in its file'],                                    // stale: the file names nothing
+    }
+    const scanned = scanTrapLoss(scanDir, KNOWN_FIXTURE)
+    const OFFENDING_NAMES = ['replaces', 'quoted', 'quoted2', 'shorthand', 'assign', 'delete', 'trailing', 'envassign', 'envdelete', 'message', 'sameline', 'filter', 'envu', 'unset', 'reflect', 'computed', 'andread', 'bracket', 'comma', 'hidden',
+      'script.cjs', 'script.js', 'sub/deep', 'v1-append-and-replace', 'v2-append-then-strip', 'v5-leading-block-comment', 'q-double', 'q-backtick', 'q-escape', 'q-slash', 'npm-lower', 'npm-upper', 'npm-flag', 'npm-flag-word', 'comment', 'docline', 'table']
+    const withExt = n => (/\.[cm]?js$/.test(n) ? n : `${n}.mjs`)
+    const EXPECTED_OFFENDERS = [...OFFENDING_NAMES.map(n => `scripts/${withExt(n)}:1`), 'scripts/edited.mjs:1', 'scripts/beside.mjs:2', 'scripts/elsewhere.mjs:1'].sort()
+    const gotAt = scanned.offenders.map(o => o.at).sort()
+    check('SCAN, ALLOWLIST: 40 lines that name the node options and are not on the list are each refused with its file, line and text (every spelling the earlier classifiers read clean: append and replace on one line, append then strip, code after a leading block comment, the quote/escape/slash forms, npm\'s three spellings, comments and the mutation table\'s text, a .cjs, a .js, a subdirectory)',
+      JSON.stringify(gotAt) === JSON.stringify(EXPECTED_OFFENDERS) && OFFENDING_NAMES.length === 37 && Object.keys(OFFENDING).length === 37 && gotAt.length === 40, JSON.stringify({ expected: EXPECTED_OFFENDERS, got: gotAt }))
+    check('...and the offender carries the line\'s own text (v1, the append-and-replace line, is refused WITH the appending form on it)', scanned.offenders.some(o => o.at === 'scripts/v1-append-and-replace.mjs:1' && o.text === OFFENDING['v1-append-and-replace.mjs']), JSON.stringify(scanned.offenders.find(o => /v1-append/.test(o.at))))
+    check('...and four lines ON the list are clean: the appending form, the same line with indentation around it, a listed comment, and the listed line of a file that also holds another (only the other is refused)',
+      !gotAt.some(a => /envappend|inherits|listed-comment/.test(a)) && gotAt.includes('scripts/beside.mjs:2') && !gotAt.includes('scripts/beside.mjs:1'), JSON.stringify(gotAt.filter(a => /envappend|inherits|listed-comment|beside/.test(a))))
+    check('...and the list is PER FILE: a listed line in a file it is not listed for is refused (elsewhere.mjs), and an edit of a listed line is a different line (edited.mjs)', gotAt.includes('scripts/elsewhere.mjs:1') && gotAt.includes('scripts/edited.mjs:1'), JSON.stringify(gotAt.filter(a => /elsewhere|edited/.test(a))))
+    check('...and a STALE entry is reported (a listed file that does not exist, a listed line that is not in its file, a listed line that was edited), and nothing else is: 3 stale of 7 listed lines',
+      JSON.stringify(scanned.stale.map(t => `${t.file}|${t.text}`).sort()) === JSON.stringify([`scripts/edited.mjs|${APPEND_LINE}`, 'scripts/gone.mjs|a listed file that does not exist', 'scripts/plain.mjs|a listed line that is not in its file']), JSON.stringify(scanned.stale))
+    check('...and the denominators are what was scanned: 44 scripts (a .txt and node_modules are not read, nor are they counted) holding 44 lines that name the node options, of which 4 are on the list',
+      scanned.files === 44 && scanned.lines === 44 && scanned.lines - scanned.offenders.length === 4, JSON.stringify({ files: scanned.files, lines: scanned.lines, offenders: scanned.offenders.length }))
+    const real = scanTrapLoss(join(ROOT, 'scripts'))
+    check(`...and the real scripts/ has every line that names the node options on the list and every listed line still there (${real.lines - real.offenders.length} of ${real.lines} lines on the list in ${real.files} scripts, ${real.stale.length} stale)`,
+      real.offenders.length === 0 && real.stale.length === 0 && real.lines >= 10 && real.files >= 50, JSON.stringify({ files: real.files, lines: real.lines, offenders: real.offenders, stale: real.stale }))
 
     // THE NODE VERSION GUARD: reachable. A named import of registerHooks is a link error on a Node without it, before any message.
     check('A NODE WITHOUT registerHooks IS REPORTED, not a link error: the test is `typeof` on the namespace', trapSupported({}) === false && trapSupported({ registerHooks() {} }) === true && trapSupported() === true, `this Node ${process.version}`)
