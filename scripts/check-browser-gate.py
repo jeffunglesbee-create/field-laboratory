@@ -51,10 +51,13 @@ WHAT THIS CHECKS, on each target job (rules 1 to 8) and on every other install (
      empty), exits non-zero and prints `::error::`. The effect is tested, not the text: a comment that says `exit 1`, an
      echo that mentions it, an `exit 0` before it or an `if false; then exit 1; fi` all contain the characters and none of
      them reddens the job. Because the guard's run and the runner's differ in everything but the script (files, variables
-     the runner sets, the shell's options), the script is a CLOSED GRAMMAR: only echo, `exit N` (a literal non-zero
-     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect, and a comparison reads only a
-     variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more: `[ "$GITHUB_ACTIONS" != true ]`
-     fails here and passes there); anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
+     the runner sets, the shell's options, a YAML scalar's spelling), the script is a CLOSED FORM: every logical line is, whole,
+     one of `if [ "$NAME" OP WORD ]; then`, `elif [ ... ]; then`, `else`, `fi`, `exit N` (a literal integer 1 to 255) and
+     `echo ARG...` (FINAL_SHAPES: plain words and double-quoted strings whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`),
+     NAME a variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more:
+     `[ "$GITHUB_ACTIONS" != true ]` fails here and passes there), and an `env:` value is a YAML string (`true` unquoted is a
+     boolean a runner passes as `true` and a Python run would pass as `True`); nothing after a command, not even a comment, and
+     anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
      `always()` is skipped by the failure it makes.
   5. every `steps.<id>` an `if` mentions is the id of an earlier step (a renamed id evaluates to null and skips every
      browser step without a word)
@@ -226,7 +229,12 @@ WRAPPER_REASON = re.compile(r"^`([^`]*)`: `([^`]+)` is not a command this guard 
 # wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through. Review of 48f504e, finding 23: the allowlist used to name EVERY `git X is not a subcommand` and every
 # `node with inline code` reason, and `git rebase -x 'node scripts/render-check.mjs'`, `git -c alias.s='!cmd' s`, `node -e "...execSync(...)"` and `node --run <package script>` each run a command; it also
 # let any two-word command that looked like `a -b` through as "arithmetic" (`make -s`, `deno -A`). Arithmetic is masked where the line is split (ARITH_EXPANSION), so it is no longer a reason to read.
-BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
+# THE TOOLS HERE ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. Review of 9043fa75, A23: the list also held tools that run another command from their arguments (`awk 'BEGIN{system("npm run x")}'`, `sed '1e cmd'`,
+# `sed 's/x/cmd/e'`, `sort --compress-program=cmd`) and tools that overwrite a file, which can replace a script this guard has already read (`tee`, `cp`, `mv`, `rm`, `sed -i`, `sort -o`, `uniq IN OUT`). Each was
+# read as "runs no other command" and kept a step opaque. Removed: sed, awk, sort, uniq, tee, rm, cp, mv. Kept, and why: mktemp (makes a NEW file or directory, never replaces one), grep/egrep/fgrep (print the
+# matching lines: no exec, no output file), read (a builtin: one line into shell variables), cat/cut/tr/head/tail/tac (print), wc (counts), date/basename/dirname/stat/ls (print), mkdir (a directory, never
+# replaces a file), sleep and wait (wait), jq (filters JSON: no exec, no write), diff/cmp (compare), touch (creates an empty file or sets a time: never changes the content of one that is there).
+BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir",
                           "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"})
 OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting")]
 # The git subcommands that only read the repository and run nothing: the ones an unreadable step may use and stay opaque (`git merge-base --is-ancestor` is the ledger's). Not GIT_SUBS: those are read by
@@ -235,14 +243,28 @@ GIT_READONLY = frozenset({"merge-base", "rev-list", "symbolic-ref", "describe", 
 GIT_REASON = re.compile(r"^`[^`]*`: git (\S+) is not a subcommand this guard reads")
 # A command word on a RAW line (one the splitter could not split) is allowed when it is one of these: the benign tools, the safe heads, and the words that open or close a shell construct and run nothing.
 RAW_WORDS = frozenset({"for", "select", "case", "esac", "fi", "done", "in", "}", ":"})
-# Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), and the keywords that precede one.
+# Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), the keywords that precede one,
+# the `)` that closes a case pattern, and the leading redirections of a command.
 # Review of 48f504e, finding 22: the head used to be `(\S+)`, which swallowed a `;` or `(` written without a space, so a wrapper after `echo "at $(date)";` was never a head.
+# Review of 9043fa75, A21 and A22: a command after a case pattern (`case "$(date)" in *) npm run check:peak ;; esac`) or after a leading redirection (`>/dev/null timeout 5 ./x.sh`) was no head either, so an
+# unreadable always() line with a launcher there was kept as opaque.
+#   - a case pattern is `word)`, `a|b)` or `(word)`, at the start of the line or after `in`, `;;` or `;&` (COMMAND_CASE_STARTS; `;;&` is a `;` and a `;&`): the command after its `)` starts there. It is not a pattern after `$(`:
+#     `echo $(date) now` has no head `now`.
+#   - a leading redirection is `[N]OP TARGET` before the command word, the operator glued to its target or spaced from it (COMMAND_REDIRECTS): `>/dev/null npm run x`, `2>&1 timeout 5 x`, `< file cmd`.
+# What is QUOTED, or a trailing comment, is not looked at for a head: command_heads cuts the comment (strip_comment) and blanks the content of every quoted string (blank_quoted) before this runs, so a `;`, `|`,
+# `&` or `(` inside an echo message starts nothing. Review of 9043fa75, B0 and B8.
 COMMAND_SEP_SYMBOLS = (";", "|", "&", "(", "{", "`", "!")
 COMMAND_SEP_WORDS = ("then", "do", "else", "if", "elif", "while", "until")
-_SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)"}
+COMMAND_CASE_STARTS = (";;", ";&", "in")
+COMMAND_REDIRECTS = (">>", "<<<", ">&", "<&", ">", "<")
+_SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)", "&": r"(?<![<>])&(?!>)"}                      # a `&` is a separator, not the `&` of `2>&1`, `>&2`, `<&0` or `&>file`
+_CHAR = r"""(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')"""                                                       # one character of a shell word: a bare one, or a whole quoted string
+_ARM_WORD = r"""[^\s;|&()<>`]+"""
+_CASE_ARM = r"(?:^|" + "|".join(rf"\b{w}\b" if w.isalpha() else re.escape(w) for w in COMMAND_CASE_STARTS) + r")\s*\(?" + _ARM_WORD + r"(?:\|" + _ARM_WORD + r")*\)"
+_REDIRECT = r"\d*(?:" + "|".join(re.escape(r) for r in COMMAND_REDIRECTS) + r")\s*" + _CHAR + r"+\s+"
 COMMAND_HEAD = re.compile(
-    r"""(?:^|""" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
-    r"""(?:[A-Za-z_]\w*=(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')*\s+)*["']*"""                          # VAR=value words (quoted values too) and a quote before the head
+    r"""(?:""" + _CASE_ARM + "|^|" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
+    r"""(?:[A-Za-z_]\w*=""" + _CHAR + r"""*\s+|""" + _REDIRECT + r""")*["']*"""                              # VAR=value words (quoted values too), leading redirections, and a quote before the head
     r"""(?!(?:""" + "|".join(COMMAND_SEP_WORDS) + r""")\b|[{!](?:\s|$))([^\s;|&()<>`"']+)""")
 # An arithmetic expansion, `$((attempt * 3))`: only names, numbers, `$name` and the operators, so it runs nothing and cannot hold a substitution. It is replaced by `0` before a line is split or searched for heads.
 ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
@@ -250,6 +272,7 @@ ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
 # its flag (`mutation-check.mjs --list-ids --no-browser`, `confidence.mjs --quick --browserless`, `... || true`), so it is a closed form now: every line is one `node`/`npm` command (no `||`, `&&`, `;`, pipe
 # or substitution) or the bare `if [ -n "$X" ]; then`, `else`, `fi`; nothing but the spawner runs; the arguments a mode that does no work would carry are refused (NOT_WORK), and the arguments real work
 # carries (WORK_ARGS) are each present in some command, so deleting one branch of the shard action's if/else is seen. The threat model is a careless edit, not a deliberate one: `if [ -n "$NEVER" ]` passes.
+# The npm scripts a step runs (`npm run gate:browserless` and its pre/post hooks and nested `npm run`s) are part of it: each body is ONE command line with none of FORBIDDEN_IN_LINE (review of 5b5a89b, B5).
 NOT_WORK = {"scripts/mutation-check.mjs": ("--self-test", "--list-ids", "--anchors", "--stranded", "--heal", "--only"), "scripts/confidence.mjs": ("--quick", "--self-test", "--help")}
 WORK_ARGS = {"scripts/mutation-check.mjs": ("--ids", "--shard", "--out"), "scripts/confidence.mjs": ()}
 FORBIDDEN_IN_LINE = re.compile(r"\|\||&&|[;|&<>`]|\$\(")
@@ -344,16 +367,19 @@ def env_map(step):
 
 
 def logical_lines(script):
-    """A script's command lines: continuations joined, whole-line comments dropped."""
+    """A script's command lines, as bash reads them: a backslash at the end of a line joins the next one, unless that backslash is inside a comment (a comment ends at the newline, whatever it ends
+    with), and whole-line comments are dropped. A trailing comment stays on the line; strip_comment cuts it where bash does. Review of 5b5a89b, finding 1: `echo hi # note \\` joined the line
+    after it, whose commands (`exit 0`, a browser launch) were then never read."""
     out, cur = [], ""
     for raw in script.splitlines():
         line = raw.rstrip()
-        if line.lstrip().startswith("#"):
+        if not cur and line.lstrip().startswith("#"):
             continue
-        if line.endswith("\\"):
-            cur += line[:-1] + " "
+        text = cur + line
+        if (len(line) - len(line.rstrip("\\"))) % 2 == 1 and comment_start(text) is None:       # an odd run of backslashes: the last one escapes the newline
+            cur = text[:-1] + " "
             continue
-        out.append((cur + line).strip())
+        out.append(text.strip())
         cur = ""
     if cur:
         out.append(cur.strip())
@@ -364,32 +390,62 @@ class Unreadable(Exception):
     pass
 
 
-def strip_comment(line):
-    """Bash starts a comment only at a `#` that BEGINS a word, outside quotes: `$#`, `${x##*/}` and `/#top` are not comments
-    (shlex's commenters would drop the rest of the line at each of them, and a command after it would go unread)."""
-    out, q, i = [], None, 0
-    while i < len(line):
-        c = line[i]
-        if q:
-            out.append(c)
-            if q == '"' and c == "\\" and i + 1 < len(line):
-                i += 1
-                out.append(line[i])
-            elif c == q:
-                q = None
-        elif c == "\\" and i + 1 < len(line):
-            out.append(c)
-            i += 1
-            out.append(line[i])
-        elif c in "'\"":
-            q = c
-            out.append(c)
-        elif c == "#" and (not out or out[-1].isspace() or out[-1] in ";&|()"):
-            break
+def comment_start(line):
+    """The index of the `#` where bash starts a comment on this line, or None. A `#` starts one only where a WORD begins (the start of the line, whitespace, or one of `; & | ( )` before it) and only
+    at the top level: not inside single or double quotes, `$'...'` (a backslash escapes the next character there, so `$'it\\'s # x'` is one string; `$"..."` is a double-quoted string), `${ ... }` (`${y:- #}`, `${x/ #/z}`),
+    `$( ... )` (parentheses counted) or a backtick pair. The scanner keeps a stack of what is open; inside `${ }` and `$( )` the quotes and the other openers nest. `$#`, `${x##*/}`, `/#top`,
+    `a\\ #b` and `"a"#b` are not comments (shlex's commenters would drop the rest of the line at each, and a command after it would go unread). Where this reads MORE than bash runs (a `#` in
+    `$( ... )` is a comment in bash) the classifier has more text to read, the safe direction. Review of 5b5a89b, finding 1 and finding 24 of the review before: a quote-aware cutter that did not
+    know `${ }` or `$'...'` cut at a `#` that bash does not, and everything after it (a `; exit 0`, `|| true`, a browser launch) went unread."""
+    stack, parens, boundary, i, n = [], [], True, 0, len(line)
+    while i < n:
+        c, top, was_top = line[i], (stack[-1] if stack else ""), not stack
+        if top == "'":
+            if c == "'":
+                stack.pop()
+        elif c == "\\":
+            i += 1                                                   # the next character belongs to this one
+        elif top == "$'" or top == "`":
+            if c == top[-1]:
+                stack.pop()
+        elif c == '"' and top == '"':
+            stack.pop()
+        elif c == "}" and top == "${":
+            stack.pop()
+        elif top == "$(" and c in "()":
+            parens[-1] += 1 if c == "(" else -1
+            if parens[-1] == 0:
+                stack.pop()
+                parens.pop()
         else:
-            out.append(c)
+            nxt, in_dq = line[i + 1:i + 2], top == '"'
+            if c == "'" and not in_dq:
+                stack.append("'")
+            elif c == '"':
+                stack.append('"')
+            elif c == "`":
+                stack.append("`")
+            elif c == "$" and nxt == "'" and not in_dq:
+                stack.append("$'")
+                i += 1
+            elif c == "$" and nxt == "{":
+                stack.append("${")
+                i += 1
+            elif c == "$" and nxt == "(":
+                stack.append("$(")
+                parens.append(1)
+                i += 1
+            elif c == "#" and was_top and boundary:
+                return i
+        boundary = was_top and not stack and (c.isspace() or c in ";&|()")
         i += 1
-    return "".join(out)
+    return None
+
+
+def strip_comment(line):
+    """The line without its trailing comment, cut where bash starts it (comment_start)."""
+    at = comment_start(line)
+    return line if at is None else line[:at]
 
 
 SEPARATORS = {"&&", "||", "|&", ";;", ";", "|", "&", "(", ")"}
@@ -458,8 +514,31 @@ def dangerous_var(name):
     return str(name) in DANGEROUS_VARS or npm_config_key(name) in NPM_CONFIG_DANGEROUS
 
 
+# WHAT A COMMAND WRITES FOR THE STEPS AFTER IT. The reader drops a redirect's target, so `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` read as `echo`: a step that was then called browser-free had
+# changed what every LATER step runs (a preload into each node, a directory first on the PATH, npm's own config), which is what an `env:` key of the same names is refused for. A write to `$GITHUB_PATH` of anything, to
+# `$GITHUB_ENV` of a name dangerous_var knows (`NAME=` on the same line), or a file named `.npmrc`, makes the step unresolved. Other `$GITHUB_ENV` writes (`RELAY_SHA=$sha`) and `$GITHUB_OUTPUT` are not refused. A name
+# built at run time (`echo "$V" >> "$GITHUB_ENV"` after `V="NODE_OPTIONS=..."` on another line) is not seen: a residual, filed. Review of 5b5a89b, A29.
+GITHUB_PATH_REF = re.compile(r"\$\{?GITHUB_PATH\b")
+GITHUB_ENV_REF = re.compile(r"\$\{?GITHUB_ENV\b")
+ASSIGNED_NAME = re.compile(r"(?<![\w$])([A-Za-z_]\w*)=")
+NPMRC_REF = re.compile(r"\.npmrc\b")
+
+
+def later_step_effects(text):
+    """[why] the command text (its comment already cut) changes what the steps after it run, in a way this reader cannot follow."""
+    out = []
+    if GITHUB_PATH_REF.search(text):
+        out.append("it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step")
+    if GITHUB_ENV_REF.search(text):
+        names = sorted({n for n in ASSIGNED_NAME.findall(text) if dangerous_var(n)})
+        if names:
+            out.append(f"it writes {', '.join(names)} to $GITHUB_ENV, which changes what the commands of every later step run")
+    if NPMRC_REF.search(text):
+        out.append("it names a .npmrc file, which sets npm's own config (script-shell, node-options...) for every later `npm run`")
+    return out
+
+
 INSTALL_LINE = re.compile(r"^(?:timeout(?: --kill-after=\d+)? \d+ )?npx playwright install(?: [\w-]+)*$")
-FINAL_HEADS = frozenset({"echo", "exit", "[", "test"})
 PY_FLAGS = {"-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"}
 NPM_FLAGS = {"-s", "--silent", "-q", "--quiet", "--no-audit", "--no-fund", "--no-update-notifier", "--if-present"}
 SCRIPT_FILE = re.compile(r"^[\w./\-]+\.(?:mjs|cjs|js)$")
@@ -651,14 +730,16 @@ def read_npm(w, pkg, read, seen, depth, out, shown):
         elif depth >= MAX_DEPTH:
             out["unresolved"].append(f"`{shown}`: package.json scripts nested more than {MAX_DEPTH} deep")
         else:
+            out["bodies"].append((n, body))                 # every package script the step runs, pre/post hooks and nested `npm run`s included (flagged_step_ok reads their text)
             read_commands(body, pkg, read, seen | {n}, depth + 1, out)
 
 
 def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     """Everything a script starts: {entries: [(file, args)], direct: bool, unresolved: [why]}."""
     if out is None:
-        out = {"entries": [], "direct": False, "unresolved": [], "raw": []}
+        out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
     for line in logical_lines(script):
+        out["unresolved"] += [f"`{line[:80]}`: {why}" for why in later_step_effects(strip_comment(line))]
         try:
             groups = split_commands(line)
         except Unreadable as e:
@@ -767,9 +848,73 @@ def spawns_browser(entry, args, read, no_browser_ok=False):
     return spawned_browser_scripts(entry, read)
 
 
+def blank_quoted(line):
+    """The line with the CONTENT of every quoted string replaced, character for character, by `_`; the quotes stay, so a quoted word is still one word. Single quotes: all of it. Double quotes (and `$'...'`,
+    where a backslash escapes the next character): all of it EXCEPT the body of a `$( ... )` or a backtick pair inside, which is code and is kept as it is. A quoted string that is the command word itself
+    (`"timeout" 5 x`, `"$RUNNER" x`) becomes the word `_______`: no head this guard allows. A quote that never closes on the line is not a string (a multi-line message, a heredoc line): the text from the outermost
+    one is left as it is, so more of the line is read, the safe direction. The scanner is comment_start's, a stack of what is open. Review of 9043fa75, B0 and B8: heads were scanned for in the raw text, quotes
+    and all, so `echo "at $(date) (utc)"` had a head `utc` and `printf '| %s |\n' "$(date)"` a head `%s`."""
+    n, out, stack, starts, parens, i = len(line), list(line), [], [], [], 0
+    while i < n:
+        c, nxt, top = line[i], line[i + 1:i + 2], (stack[-1] if stack else "")
+        if top == "'":
+            if c == "'":
+                stack.pop()
+                starts.pop()
+            else:
+                out[i] = "_"
+        elif top in ('"', "$'"):
+            if c == "\\":
+                out[i:i + 2] = "_" * len(line[i:i + 2])                    # an escaped character (`\"`, `\$`, a backslash-backtick) is text
+                i += 2
+                continue
+            if c == ('"' if top == '"' else "'"):
+                stack.pop()
+                starts.pop()
+            elif top == '"' and c == "$" and nxt == "(":
+                stack.append("$(")
+                starts.append(i)
+                parens.append(1)
+                i += 2
+                continue
+            elif top == '"' and c == "`":
+                stack.append("`")
+                starts.append(i)
+            else:
+                out[i] = "_"
+        elif c == "\\":
+            i += 2                                                          # code: the next character belongs to this one
+            continue
+        elif top == "$(" and c in "()":
+            parens[-1] += (c == "(") - (c == ")")
+            if parens[-1] == 0:
+                stack.pop()
+                starts.pop()
+                parens.pop()
+        elif top == "`" and c == "`":
+            stack.pop()
+            starts.pop()
+        elif c in "'\"`":
+            stack.append(c)
+            starts.append(i)
+        elif c == "$" and nxt in ("'", "("):
+            stack.append("$" + nxt)
+            starts.append(i)
+            if nxt == "(":
+                parens.append(1)
+            i += 2
+            continue
+        i += 1
+    open_strings = [at for kind, at in zip(stack, starts) if kind in ("'", '"', "$'")]
+    if open_strings:
+        out[min(open_strings):] = line[min(open_strings):]
+    return "".join(out)
+
+
 def command_heads(line):
-    """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD)."""
-    line = ARITH_EXPANSION.sub("0", line)
+    """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD). What bash does not run as a command is not looked at: a trailing comment is cut where bash cuts it
+    (strip_comment) and the content of every quoted string is blanked (blank_quoted); arithmetic is masked first, as the splitter does."""
+    line = blank_quoted(strip_comment(ARITH_EXPANSION.sub("0", line)))
     return [(m.group(1), line[m.end():]) for m in COMMAND_HEAD.finditer(line)]
 
 
@@ -848,7 +993,13 @@ def flagged_step_ok(s, req, pkg, read):
             branch_cmds += 1
     if depth != 0:
         return False
-    entries = [(os.path.normpath(e), a) for e, a in read_commands(text, pkg, read)["entries"]]
+    ran = read_commands(text, pkg, read)
+    # THE NPM SCRIPTS THE STEP RUNS ARE PART OF THE STEP. The workflow line `npm run gate:browserless` passes the closed form above, and the body it runs is read here with the same form: ONE command line with none of
+    # FORBIDDEN_IN_LINE, so `exit 0; node scripts/confidence.mjs --browserless`, `node scripts/confidence.mjs --browserless || true` and `...; exit 0` in package.json do no work or swallow the spawner's failure
+    # exactly as they would on the step's own line (review of 5b5a89b, B5).
+    if any(len(logical_lines(body)) != 1 or FORBIDDEN_IN_LINE.search(strip_comment(logical_lines(body)[0])) for _, body in ran["bodies"]):
+        return False
+    entries = [(os.path.normpath(e), a) for e, a in ran["entries"]]
     mine = [a for e, a in entries if e == req and NO_BROWSER_FLAGS[req] in a]
     if not mine or len(mine) != len(entries):
         return False
@@ -942,59 +1093,67 @@ def run_final(step, outcome, timeout=FINAL_TIMEOUT, others=None):
                               capture_output=True, text=True, timeout=timeout)
 
 
-# A `$` in a word of a `[ ]` or `test`: `$NAME` or `${NAME}`, and nothing else (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}` all differ between the guard's run and the runner's, or hide a lookup).
+# THE FINAL STEP IS A CLOSED FORM. The guard RUNS the step under bash, for each outcome the install can have, and can only know the runner does the same if the two runs read nothing that differs: a file (the
+# guard's directory is empty), a variable the runner sets (the guard's run has PATH, LC_ALL and the step's own `env:`), a glob, `~`, a pipe (the runner's shell has no pipefail), a stringified YAML value. Tokenising
+# the lines and refusing what looked foreign left a hole each time a spelling was missed (review of 48f504e, finding 28, then B2, B3, B4 and B6 of the review of 5b5a89b: a `#` that was no comment, an assignment line,
+# an unquoted `*`, `~`, `true` read as `True`), so no line is judged by what is in it: each logical line must BE one of these shapes, whole, with nothing after it (a whole-line comment is dropped before this).
+#   if [ "$NAME" OP WORD ]; then      elif [ "$NAME" OP WORD ]; then      else      fi      exit N      echo ARG...
+# NAME is a variable of the step's own `env:`; OP is `=`, `!=` or `==`; WORD is a bare run of `A-Za-z0-9_.:-` or the same in double quotes; N is a literal integer from 1 to 255; each ARG is a bare run of
+# `A-Za-z0-9_.:,=/@%+-` or a double-quoted string with no backtick and no backslash whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}` (NAME a variable of the step's `env:`, DEFAULT free of `$`, a backtick,
+# a backslash, `"`, `'` and `}`: bash 5.2 reads a `'` inside `"${x:-it's}"` as the start of a quoted string and stops with `unexpected EOF`). The four real final steps (verify.yml, verify-full.yml, live-check.yml and the
+# mutation-shard action) are exactly these.
+FINAL_NAME = r"[A-Za-z_][A-Za-z0-9_]*"
+FINAL_IF = re.compile(r'(?:if|elif)[ \t]+\[[ \t]+"\$(' + FINAL_NAME + r')"[ \t]+(?:=|!=|==)[ \t]+(?:[A-Za-z0-9_.:-]+|"[A-Za-z0-9_.:-]*")[ \t]+\];[ \t]+then')
+FINAL_EXIT = re.compile(r"exit[ \t]+([1-9][0-9]{0,2})")
+FINAL_ARG = r'(?:[A-Za-z0-9_.:,=/@%+-]+|"[^"`\\]*")'
+FINAL_ECHO = re.compile(r"echo(?:[ \t]+" + FINAL_ARG + r")+")
+FINAL_REF = re.compile(r"\$(?:(" + FINAL_NAME + r")|\{(" + FINAL_NAME + r")(?::-([^$`\\\"'}]*))?\})")
+FINAL_SHAPES = ('`if [ "$NAME" = WORD ]; then`, `elif [ "$NAME" != WORD ]; then`, `else`, `fi`, `exit N` (N from 1 to 255) and `echo ARG...` (an ARG is letters, digits and `_.:,=/@%+-`, or a double-quoted string with no backtick or backslash '
+                'whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`; NAME is a variable of the step\'s own `env:`); nothing after the command, not even a comment')
+# A `$` in a test that is no `$NAME` of the step's env, named so that the refusal says which it is (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}`): only a diagnostic, the shapes above are what decides.
 VAR_REF = re.compile(r"\$(?:\{([^}]*)\}|([A-Za-z_]\w*)|(.?))")
 
 
+def final_line_problem(line, env_names):
+    """None when `line` is one of the lines a final step may consist of (see FINAL_SHAPES), else why not."""
+    if line in ("else", "fi"):
+        return None
+    head = line.split(None, 1)[0] if line.split() else ""
+    m = FINAL_IF.fullmatch(line)
+    if m:
+        return None if m.group(1) in env_names else (f"a test reads ${m.group(1)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                                                     f"compare only a variable the step's `env:` defines")
+    if head == "exit":
+        n = FINAL_EXIT.fullmatch(line)
+        return None if n and int(n.group(1)) <= 255 else "exit must be followed by a literal non-zero integer, 1 to 255, and nothing else"
+    if head == "echo":
+        if not FINAL_ECHO.fullmatch(line):
+            return "echo takes only words of letters, digits and `_.:,=/@%+-` and double-quoted strings with no backtick or backslash: no redirect, pipe, `;`, glob, `~` or comment"
+        for arg in re.findall(r"[ \t](" + FINAL_ARG + ")", line):
+            body = arg[1:-1] if arg.startswith('"') else ""
+            if "$" in FINAL_REF.sub("", body):
+                return "a `$` in an echo is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`"
+            foreign = sorted({a or b for a, b, _ in FINAL_REF.findall(body)} - set(env_names))
+            if foreign:
+                return f"echo reads ${', $'.join(foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`)"
+        return None
+    if head in ("if", "elif", "[", "test"):
+        refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for m in VAR_REF.finditer(line)}
+        foreign = sorted(refs - set(env_names))
+        if foreign:
+            return (f"a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                    f"compare only a variable the step's `env:` defines")
+        return 'an `if` or `elif` must be exactly `if [ "$NAME" = WORD ]; then` (a variable of the step\'s `env:` against a plain word): no `test`, no `[[`, no file or string operator, no glob, no second statement on the line'
+    return f"`{head}` is not echo, exit or a test"
+
+
 def final_script_problems(script, env_names=()):
-    """The final step's script may use ONLY echo, `exit N` (N a literal non-zero integer) and `[ ]`/`test` comparisons, in
-    if/elif/else/fi. The guard runs it to see that it fails, and can only know that it fails the same way on the runner if it
-    touches nothing the two places differ in: a file (the guard's cwd is empty), a variable the runner sets, a pipe (the
-    runner has no pipefail), a redirect, a command that is not one of these. A comparison may read only a variable the step's
-    own `env:` defines (`env_names`): the guard's run gives the script PATH, LC_ALL and that env, so `[ "$GITHUB_ACTIONS" != true ]`
-    fails here and passes on every runner (review of 48f504e, finding 28). Returns [why]."""
+    """Every logical line of the final step's script must be one of FINAL_SHAPES (final_line_problem). Returns [why], one per line that is not."""
     bad = []
     for line in logical_lines(script):
-        try:
-            lex = shlex.shlex(strip_comment(line), posix=True, punctuation_chars=True)
-            lex.whitespace_split = True
-            lex.commenters = ""
-            toks = list(lex)
-        except ValueError as e:
-            bad.append(f"`{line[:60]}`: unbalanced quoting ({e}); each line must be complete")
-            continue
-        flat = []
-        for tok in toks:          # a command substitution is refused by read_step() for EVERY step after the install, this one included
-            if tok and all(c in "();<>|&" for c in tok):
-                flat.extend(OPERATORS.findall(tok))
-            else:
-                flat.append(tok)
-        stray = [o for o in flat if o in SEPARATORS | REDIRECTS | {"<<"} and o != ";"]
-        if stray:
-            bad.append(f"`{line[:60]}`: {stray[0]!r} (a pipe, a redirect or a list operator is not reproducible here)")
-            continue
-        group = []
-        for tok in flat + [";"]:
-            if tok != ";":
-                group.append(tok)
-                continue
-            w = command_words(group)
-            group = []
-            if not w:
-                continue
-            head = w[0]
-            if head not in FINAL_HEADS:
-                bad.append(f"`{' '.join(w)[:60]}`: `{head}` is not echo, exit or a test")
-            elif head == "exit" and not (len(w) == 2 and re.fullmatch(r"[1-9][0-9]*", w[1])):
-                bad.append(f"`{' '.join(w)[:60]}`: exit must be followed by a literal non-zero integer")
-            elif head in ("[", "test") and any(x.startswith("-") for x in w[1:]):
-                bad.append(f"`{' '.join(w)[:60]}`: a file or string operator in a test; compare the outcome with = or !=")
-            elif head in ("[", "test"):
-                refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for x in w[1:] for m in VAR_REF.finditer(x)}
-                foreign = sorted(refs - set(env_names))
-                if foreign:
-                    bad.append(f"`{' '.join(w)[:60]}`: a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
-                               f"compare only a variable the step's `env:` defines")
+        why = final_line_problem(line, set(env_names))
+        if why:
+            bad.append(f"`{line[:60]}`: {why}")
     return bad
 
 
@@ -1006,9 +1165,15 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
     if not run_text(step).strip():
         bad.append(f"the final step {name} has no script to fail with")
         return bad
-    grammar = final_script_problems(run_text(step), {str(k) for k in env_map(step)})
+    notstr = [(k, v) for k, v in env_map(step).items() if not (isinstance(k, str) and isinstance(v, str))]
+    if notstr:         # `STRICT: true` is the YAML boolean: a runner hands the step `true`, and a run that stringified it as Python does would hand it `True` (review of 5b5a89b, B6)
+        k, v = notstr[0]
+        bad.append(f"the final step {name}: env {k!r} is {v!r}, which YAML reads as {'null' if v is None else type(v).__name__} and not as a string: a runner passes it as its YAML text and this guard's run would pass Python's, so the two runs differ. "
+                   f"Quote the value so that both see the same text")
+        return bad
+    grammar = final_script_problems(run_text(step), set(env_map(step)))
     if grammar:
-        bad.append(f"the final step {name} must use only echo, `exit N` and `[ ]` comparisons in if/elif/else/fi, so that running it here shows what the runner does: " + "; ".join(grammar[:3]))
+        bad.append(f"the final step {name} must be made only of these lines, so that running it here shows what the runner does: {FINAL_SHAPES}. Refused: " + "; ".join(grammar[:3]))
         return bad
     failed = []
     keys = other_outcome_keys(step)
@@ -1137,6 +1302,8 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
     return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "opaque": len(opaque), "final_ok": final_ok}
 
 
+# What may follow the `]` that closes the rows array (comments blanked): a `;`, the end of the file, or a NEW statement, which starts on a later line with a name (a `(`, `[`, `.`, operator or `in`/`instanceof` there would continue the expression).
+ROWS_END = re.compile(r"[ \t]*;|\s*\n\s*(?!(?:in|instanceof)\b)[A-Za-z_$]|\s*\Z")
 ROW_START = re.compile(r"^[ \t]*\{[ \t]*name:[ \t]*(['\"])(.+?)\1,[ \t]*weight:[ \t]*(\d+)", re.M)
 # A call is a word NOT preceded by `.` or a word character (`res.ok`, `/a/.exec(x)` and `arr.all(...)` are property accesses, not calls of these).
 ROW_CALL = re.compile(r"(?<![.\w$])(ok|fails|all|execSync|execFileSync|spawnSync|spawn|exec)\b")
@@ -1153,13 +1320,17 @@ SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvf
 SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:" + "|".join(SCRIPTISH_HEADS) + r")\b|(?:^|\s)(?:\$\{?\w+\}?/|\.{1,2}/)*scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")
 # The calls that only READ a path, so a script path as their first argument is a file and not a command (the arguments of `readFileSync('scripts/gate-checks.mjs')` in a row that checks a script's text).
 ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+ROW_SCRIPT_FILE = re.compile(r"[\w./-]+\.(?:mjs|cjs|js|py)")                  # a string that is, whole, a script's file name or path
 ROW_READ_ARG = re.compile(r"""(?<![.\w$])(?:""" + "|".join(ROW_READ_CALLS) + r""")\s*\(\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)")""")
 # JAVASCRIPT TOKENS: strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, found by a scanner that remembers the last
-# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, `return`
-# or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
+# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, one of
+# REGEX_AFTER_WORDS (`return`, `typeof`, `void`, `in`, `case`, `else`...) or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
 # one, hiding the call between them). "Last significant" skips whitespace INCLUDING NEWLINES and comments: `=>` at the end of a line and `/it's/.test(s) && ok(...)` on the next is one regular expression and one
 # call (review of 48f504e, finding 26: the lookbehind of a single regular expression saw only the character before the whitespace on the same line, and the quote swallowed the call).
 REGEX_AFTER = frozenset("(,=:[!&|?{};")
+# The WORDS after which an expression starts, so a `/` is a regular expression and not a division: `typeof /it's/.test(s)`, `void /x/`, `x in /y/`, `case /z/`, `else /w/`, `do /v/` (review of 5b5a89b, A26; `return` was the only one). A word after a `.` is a
+# property name (`cfg.do / 2`), not one of these. Not read: a regular expression after `)` (`if (s) /it's/.test(s)`), which only a parser can tell from a division; it is a residual, filed.
+REGEX_AFTER_WORDS = frozenset({"return", "typeof", "void", "delete", "in", "of", "instanceof", "new", "throw", "case", "else", "do"})
 JS_STRING = re.compile(r"""'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`""", re.S)
 JS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 JS_REGEX = re.compile(r"""/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*""")
@@ -1180,7 +1351,7 @@ def js_tokens(src):
             i = m.end()
             continue
         m = JS_STRING.match(src, i)
-        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev in ("=>", "return")):
+        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev == "=>" or prev in REGEX_AFTER_WORDS):
             m = JS_REGEX.match(src, i)
         if m:
             out.append((i, m.end(), True))
@@ -1188,7 +1359,7 @@ def js_tokens(src):
             continue
         m = JS_WORD.match(src, i)
         if m:
-            i, prev = m.end(), ("return" if m.group(0) == "return" else "x")
+            i, prev = m.end(), (m.group(0) if m.group(0) in REGEX_AFTER_WORDS and prev != "." else "x")
             continue
         if src.startswith("=>", i):
             i, prev = i + 2, "=>"
@@ -1236,6 +1407,19 @@ def _matching_paren(shape, lp):
     return -1
 
 
+def _matching_bracket(shape, lb):
+    """The index of the `]` that closes the `[` at shape[lb] (strings and regular expressions are blanked, so their brackets do not count), or -1."""
+    depth = 0
+    for k in range(lb, len(shape)):
+        if shape[k] == "[":
+            depth += 1
+        elif shape[k] == "]":
+            depth -= 1
+            if depth == 0:
+                return k
+    return -1
+
+
 def _matching_brace(shape, lb):
     """The index of the `}` that closes the `{` at shape[lb] (strings and regular expressions are blanked, so their braces do not count), or -1."""
     depth = 0
@@ -1249,6 +1433,41 @@ def _matching_brace(shape, lb):
     return -1
 
 
+# A FILE THAT IMPORTS `rows` FROM scripts/gate-checks.mjs must not change the array: confidence.mjs iterates it, and `rows.push(...)` between its inventory comparison (diffAgainst, which compares names and weights
+# once) and its loop adds a row nothing read. `{ rows }`, `{ rows as r }` and `{ rows: r }` (a static import, `await import(...)`, `require(...)`) are the bindings; each use of the binding is a mutation when an Array method
+# that changes the array (ARRAY_MUTATORS), an assignment to an index or to `length`, or a reassignment follows it. Read from the importer's text with comments and strings blanked. An import that is not that form
+# (`import * as g`, a default, an `import()` that is not destructured) is a file this reader cannot attribute. Review of 5b5a89b, A27.
+ROWS_IMPORT = re.compile(r"""\{([^{}]*)\}\s*(?:from|=\s*(?:await\s+)?(?:import|require)\s*\()\s*['"][\w./-]*gate-checks\.mjs['"]""")
+ROWS_ANY_IMPORT = re.compile(r"""(?:\bfrom|\bimport\s*\(|\brequire\s*\()\s*['"][\w./-]*gate-checks\.mjs['"]""")
+ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
+
+
+def importer_rows_problems(root):
+    """[problem] for the files under scripts/ that import `rows` from gate-checks.mjs and change it."""
+    bad = []
+    for f in sorted(Path(root, "scripts").glob("*")):
+        if f.suffix not in (".mjs", ".cjs", ".js") or f.name == "gate-checks.mjs":
+            continue
+        raw = f.read_text(errors="replace")
+        if "gate-checks.mjs" not in raw or not ROWS_ANY_IMPORT.search(raw):
+            continue
+        blanked = _blank_comments(raw)
+        braced = list(ROWS_IMPORT.finditer(blanked))
+        if len(braced) < len(ROWS_ANY_IMPORT.findall(blanked)):
+            bad.append(f"scripts/{f.name} imports scripts/gate-checks.mjs other than as `{{ names }}` (`import * as`, a default, an `import()` that is not destructured): this reader cannot tell what it does to `rows`")
+        shape = _blank_strings(blanked)
+        for imp in braced:
+            for item in imp.group(1).split(","):
+                m = re.fullmatch(r"\s*rows(?:\s+as\s+(\w+)|\s*:\s*(\w+))?\s*", item)
+                if not m:
+                    continue
+                name = m.group(1) or m.group(2) or "rows"
+                use = re.search(r"(?<![\w$.])" + re.escape(name) + r"(?:\s*\.\s*(?:" + "|".join(ARRAY_MUTATORS) + r")\s*\(|\s*\[[^\]]*\]\s*=(?![=>])|\s*\.\s*length\s*=(?!=)|\s*=(?![=>]))", shape)
+                if use and not shape[:use.start()].endswith(("const ", "let ", "var ")):
+                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs it")
+    return bad
+
+
 def gate_rows(root="."):
     """([(name, weight, flagged, commands)], [problem]) for the rows of scripts/gate-checks.mjs, read by a CLOSED GRAMMAR: a row is `{ name: '...', weight: N,` at the start of a line; its `run:` is an arrow
     function or one of ROW_HELPERS; `flagged` is whether it carries `browser: true` or `browser: (...) =>` before its `run:`; `commands` are the string literals of its `ok(`, `fails(`, `all(`,
@@ -1258,12 +1477,20 @@ def gate_rows(root="."):
     `spawnSync('node', ['scripts/x.mjs'])`) (review 2026-11-15, finding 3 and round 2, finding 2)."""
     text = Path(root, "scripts", "gate-checks.mjs").read_text()
     at = text.index("const rows = [")
-    end = text.find("\nexport {", at)
-    end = len(text) if end < 0 else end
-    body = _blank_comments(text[at:end])
-    shape = _blank_strings(body)
-    starts = list(ROW_START.finditer(body))
+    blanked = _blank_comments(text[at:])
+    shape_all = _blank_strings(blanked)
     problems, out = [], []
+    # THE ARRAY ENDS AT ITS OWN `]`, wherever the file goes on from there: `];`, a helper written between the array and `export {`, are not part of it (they made the last row "not followed by a comma", a false red, review of
+    # 5b5a89b, B7). What may follow is a `;` or a new statement on a later line (ROWS_END): `].concat(more)`, `].map(...)` and `][0]` change the array that is exported.
+    rb = _matching_bracket(shape_all, shape_all.index("["))
+    end = len(blanked) if rb < 0 else rb + 1
+    body, shape = blanked[:end], shape_all[:end]
+    if rb < 0:
+        problems.append("the rows array of scripts/gate-checks.mjs does not close with a `]` this reader can find")
+    elif not ROWS_END.match(shape_all[end:]):
+        problems.append(f"the rows array of scripts/gate-checks.mjs is followed by `{shape_all[end:].strip()[:30]}`, which changes the array that is exported (`].concat(more)`, `].map(...)`, `][0]`): the rows read are not the rows `confidence.mjs` runs")
+    starts = list(ROW_START.finditer(body))
+    problems += importer_rows_problems(root)
     n_weight = len(re.findall(r"\bweight\s*:", shape))
     if n_weight != len(starts):
         problems.append(f"{n_weight} `weight:` keys in the rows array of scripts/gate-checks.mjs but {len(starts)} rows read: a row not written `{{ name: '...', weight: N` at the start of a line is not read, and a row not read is not compared")
@@ -1271,6 +1498,7 @@ def gate_rows(root="."):
     # first row, nothing but a comma between one row's `}` and the next row (a spread `...more`, a variable, a call, a row written with quoted keys or two on a line is none of the rows read), nothing but
     # `]` after the last; and the name `rows` is used nowhere else but its declaration and its `export { ... }` (`rows.push(...)`, `rows.splice`, `rows.unshift`, `rows = ...`, `rows[...] = ...`, `...rows`
     # change the array after it is read here). Review of 48f504e, finding 27: a row outside the literal, or with quoted keys, was not read, not counted and not compared.
+    # In every file that IMPORTS `rows` from it the name may be read but not changed (importer_rows_problems; review of 5b5a89b, A27).
     whole = _blank_strings(_blank_comments(text))
     spans = [(x.start(), x.end()) for x in re.finditer(r"\bexport\s*\{[^}]*\}", whole)]
     stray = [x for x in re.finditer(r"(?<![\w$])(?:(?<=\.\.\.)|(?<!\.))rows\b(?!\s*:)", whole) if x.start() != at + len("const ") and not any(s <= x.start() < e for s, e in spans)]
@@ -1335,6 +1563,14 @@ def gate_rows(root="."):
             lit = rest[s:e]
             if is_lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
                 problems.append(f"gate row {name!r} names a command ({lit[1:-1][:50]!r}) that no `ok(`, `fails(`, `all(`, `execSync(` or `shardedSuite(` call takes: this reader cannot attribute it")
+            # A STRING THAT IS A SCRIPT'S FILE NAME IS A SCRIPT THE ROW RUNS, wherever it sits (`['render-check.mjs'], { cwd: 'scripts' }`, `path.join('scripts', 'render-check.mjs')`, `'scripts/' + 'render-check.mjs'`): when it
+            # names a file that exists under scripts/ or at the root, the row is read as running that script, so a browser script behind it is classed as one (review of 5b5a89b, A25: SCRIPTISH needs `scripts/` in the string).
+            # A path a call that only READS takes (`have`) is a file, not a run.
+            if is_lit and lit[0] in "'\"" and ROW_SCRIPT_FILE.fullmatch(lit[1:-1]) and lit[1:-1] not in have:
+                for cand in (Path(root, "scripts", lit[1:-1]), Path(root, lit[1:-1])):
+                    if cand.is_file():
+                        cmds.append(("python3 " if lit[1:-1].endswith(".py") else "node ") + cand.relative_to(root).as_posix())
+                        break
         out.append((name, int(m.group(3)), flagged, cmds))
     return out, problems
 
@@ -1999,9 +2235,9 @@ def self_test():
     check("the final step with `# exit 1` and then `true` is refused (`true` is not echo, exit or a test)", any_of("is not echo, exit or a test", mut(final_run(ERR + "# exit 1\ntrue"))))
     check("the final step that only ECHOES `exit 1` is refused", any_of("GREEN", mut(final_run('echo "::error::would exit 1 but does not"'))))
     check("the final step with `exit 0` before `exit 1` is refused (exit takes a literal non-zero integer)", any_of("literal non-zero integer", mut(final_run(ERR + "exit 0\nexit 1"))))
-    check("the final step with `if false; then exit 1; fi` is refused (`false` is not a test)", any_of("is not echo, exit or a test", mut(final_run(ERR + "if false; then exit 1; fi"))))
-    check("a final step whose `if` tests the outcome with `test` instead of `[ ]` is accepted",
-          mut(final_run('if test "$INSTALL_OUTCOME" = skipped; then echo "::error::s"; else echo "::error::o"; fi\nexit 1')) == [])
+    check("the final step with `if false; then exit 1; fi` is refused (`false` is not a test, and a one-line `if` is not one of the shapes)", any_of("must be exactly `if [", mut(final_run(ERR + "if false; then exit 1; fi"))))
+    check("a final step whose `if` tests the outcome with `test` instead of `[ ]` is refused (round 5: the closed form has one spelling of a test, `[ \"$NAME\" OP WORD ]`)",
+          any_of("must be exactly `if [", mut(final_run('if test "$INSTALL_OUTCOME" = skipped; then\n  echo "::error::s"\nelse\n  echo "::error::o"\nfi\nexit 1'))))
     check("the final step with `exit 1` commented out and nothing else is refused", any_of("GREEN", mut(final_run(ERR + "# exit 1"))))
     check("the final step with `exit 10` is accepted (any non-zero reddens the job)", mut(final_run(ERR + "exit 10")) == [], mut(final_run(ERR + "exit 10")))
     check("the final step with `continue-on-error: true` is refused (its failure becomes success)",
@@ -2013,9 +2249,9 @@ def self_test():
     check("a command that fails (`false`) is refused: it is not echo, exit or a test, and what it does is the runner's business, not this run's",
           any_of("is not echo, exit or a test", mut(final_run(ERR + "false\nexit 0"))))
     check("a pipe in the final step is refused (the runner's default shell has no pipefail, so `false | true` exits 0 there)",
-          any_of("a pipe, a redirect", mut(final_run(ERR + "false | true\nexit 0"))))
+          any_of("`false` is not echo, exit or a test", mut(final_run(ERR + "false | true\nexit 0"))))
     check("a write to a runner file (`>> \"$GITHUB_STEP_SUMMARY\"`, unset here, set there) is refused",
-          any_of("a pipe, a redirect", mut(final_run(ERR + 'echo x >> "$GITHUB_STEP_SUMMARY"\nexit 1'))))
+          any_of("echo takes only words", mut(final_run(ERR + 'echo x >> "$GITHUB_STEP_SUMMARY"\nexit 1'))))
     check("a command that reads the checkout (`cat outbox/INDEX.md`, absent from this run's empty directory) is refused",
           any_of("is not echo, exit or a test", mut(final_run(ERR + "cat outbox/INDEX.md\nexit 1"))))
     check("a command substitution in the final step is refused (by the reader, which reads every step, and the script is not run)", any_of("a command substitution", mut(final_run(ERR + 'echo "$(touch x)"\nexit 1'))))
@@ -2034,7 +2270,7 @@ def self_test():
           sum(1 for b in mut(lambda s: s.append({"name": "appended", "run": "npm run pure"})) if "LAST step" in b) == 1)
     check("the final step is run for all four outcomes, not one: a script that fails only for `failure` is refused for the other three",
           any_of("did not for: 'skipped': exit 0, so the job would be GREEN; 'cancelled': exit 0, so the job would be GREEN; '': exit 0",
-                 mut(final_run('if [ "$INSTALL_OUTCOME" = failure ]; then echo "::error::f"; exit 1; fi'))))
+                 mut(final_run('if [ "$INSTALL_OUTCOME" = failure ]; then\n  echo "::error::f"\n  exit 1\nfi'))))
 
     # ---- A STRAY continue-on-error ELSEWHERE swallows a red step
     check("`continue-on-error` on a plain step is refused", any_of("only the install may", mut(lambda s: s[3].update({"continue-on-error": True}))))
@@ -2778,7 +3014,7 @@ def self_test():
     # A `uses:` step is never the ledger kind. Its reason is built from the action's own name, so a name that ends in the words of a benign reason would be kept as opaque by the reason test alone.
     res = audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "uses": "./local/action: git x is not a subcommand this guard reads"}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
     check("an unreadable `uses:` step under always() is refused, not kept as opaque, even when the action's name ends in the words of a benign reason", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
-    res = unread('D=$(mktemp -d); grep -c x "$D/f" | sed s/a/b/; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
+    res = unread('D=$(mktemp -d); grep -c x "$D/f" | cut -d, -f1; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
     check("...while a step made of text and file tools, substitutions, arithmetic and inline node (the ledger kind) stays opaque", res[0] == [] and res[1]["opaque"] == 1, res)
     PINNED_WRAPPERS = ("timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot")
     check("every wrapper head the guard knows is pinned by a fixture of its own (the list is literal: a loop over WRAPPER_HEADS would lose a fixture with the head a change deleted)", set(PINNED_WRAPPERS) == set(WRAPPER_HEADS), sorted(WRAPPER_HEADS))
@@ -2858,8 +3094,8 @@ def self_test():
         check(f"{family}: the members the guard knows are exactly the {len(literal)} pinned (a literal list, so a loop cannot lose a fixture with the member a change deletes)", set(literal) == set(const), sorted(const))
         broken = [m for m in literal if not job(m)]
         check(f"{family}: every member does its job on an input where its absence changes the verdict", not broken, broken)
-    vocab("BENIGN_HEADS", BENIGN_HEADS, ("mktemp", "grep", "egrep", "fgrep", "sed", "awk", "read", "cat", "tee", "cut", "tr", "sort", "uniq", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "rm", "cp", "mv",
-                                         "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"), lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
+    PINNED_BENIGN = ("mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait")
+    vocab("BENIGN_HEADS", BENIGN_HEADS, PINNED_BENIGN, lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
     vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr"), lambda h: unresolved(f"{h} x") == [])
     vocab("GIT_SUBS", GIT_SUBS, ("config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch", "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"),
           lambda s: unresolved(f"git {s} x") == [])
@@ -2898,7 +3134,11 @@ def self_test():
     # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
     kept = lambda cmd: (lambda res: res[0] == [] and res[1]["opaque"] == 1)(unread(cmd))
     refused = lambda cmd: (lambda res: any_of("cannot be read", res[0]) and res[1]["opaque"] == 0)(unread(cmd))
-    row_pr = lambda body, head="", close="]", after="": (lambda d: (Path(d, "scripts").mkdir(), Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after), gate_row_problems(d, pkg, read))[2])(tempfile.mkdtemp())
+    def row_pr(body, head="", close="]", after=""):          # a temporary directory that is removed (the lambda this replaced left one behind per call: 202 per self-test run)
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after)
+            return gate_row_problems(d, pkg, read)
     one_row = lambda run, name="x": f"  {{ name: '{name}', weight: 10,\n    run: {run} }},\n"
 
     # FINDING 21. The raw line of an unreadable always() step: a command on it that is not an allowed head hides a launcher, whether or not the reader could tell what it launches.
@@ -2916,7 +3156,7 @@ def self_test():
     check("COMMAND_SEP_SYMBOLS and COMMAND_SEP_WORDS: the members the guard knows are exactly the pinned (literal tables)", set(PINNED_SEP_SYMBOLS) == set(COMMAND_SEP_SYMBOLS) and set(PINNED_SEP_WORDS) == set(COMMAND_SEP_WORDS), (COMMAND_SEP_SYMBOLS, COMMAND_SEP_WORDS))
     for sep, text in {**PINNED_SEP_SYMBOLS, **PINNED_SEP_WORDS}.items():
         check(f"finding 22: a wrapper after `{sep}` is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
-    for text in ('echo "at $(date)" && timeout 5 x', 'echo x || timeout 5 x', 'A=1 timeout 5 x', 'A="x y" timeout 5 x', "A='x y' timeout 5 x", 'x=$(timeout 5 y)', '"timeout" 5 x', "'timeout' 5 x", "true; then timeout 5 x", "true;timeout 5 x"):
+    for text in ('echo "at $(date)" && timeout 5 x', 'echo x || timeout 5 x', 'A=1 timeout 5 x', 'A="x y" timeout 5 x', "A='x y' timeout 5 x", 'x=$(timeout 5 y)', 'echo "$(date)"; "timeout" 5 x', "echo \"$(date)\"; 'timeout' 5 x", "true; then timeout 5 x", "true;timeout 5 x"):
         check(f"finding 22: a wrapper behind `&&`, `||`, an assignment (quoted value too), `$(` or a quote is found (`{text}`)", hides_a_launcher([], text) is True, text)
     check("finding 22: ...and a word that is no command start is not (`${timeout}`, `echo timeout`, `a;b`, a `$((n * 2))` and a keyword's own word)",
           not any(hides_a_launcher([], t) for t in ('echo "${timeout}" x', "echo timeout 5", "a;b", 'sleep $((n * 2))', "if true; then echo x; fi", "echo hi!timeout 5", '[ "$X" != timeout ]')))
@@ -2948,10 +3188,99 @@ def self_test():
     vocab("INLINE_PROPS", INLINE_PROPS, PINNED_INLINE_PROPS, lambda q: inline_code_is_pure(f"console.{q}(1)") is True and inline_code_is_pure(f"console.{q}x(1)") is False)
     check("finding 23: the closed grammar has no `[`, template literal, `=`, `;`, `{` or a word of its own (each is refused) and a parameter is the one name before `=>`",
           not any(inline_code_is_pure(c) for c in ("console['log'](1)", "console.log(`x`)", "x=1", "console.log(1);", "{}", "console.log(this)", "console.log(d=>d.x(e))", "d=>x", "")) and inline_code_is_pure("process.on('x', d=>console.log(d))"))
-    for cmd in ("make -s", "deno -A", "foo * 3", "bun -x", "xargs -r"):
+    # Review of 9043fa75, B9: the list used to end with `xargs -r`, a WRAPPER_HEAD, refused on the wrapper path whatever the arithmetic rule says, so putting the exemption back left it green and it pinned nothing.
+    # Every entry is now a command that is neither a wrapper nor benign (`ninja -v` replaced it), with a single-dash or operator second word; the mutant that puts the exemption back turns all five red.
+    for cmd in ("make -s", "deno -A", "foo * 3", "bun -x", "ninja -v"):
         check(f"finding 23: `{cmd}` is no arithmetic (it is a command and a flag): refused under always(), not kept", refused(cmd), cmd)
     check("finding 23: ...arithmetic is masked where the line is split: `sleep $((attempt * 3))` is `sleep 0`, and one that holds a substitution is still unreadable",
           split_commands("sleep $((attempt * 3))") == [["sleep", "0"]] and split_commands('echo "$((a+1))" b') == [["echo", "0", "b"]] and unresolved("sleep $(( $(date) + 1 ))") != [])
+
+    # ---- ROUND 5, PART B (review of 9043fa75: B0 B8 A21 A22 A23 B9).
+    # GROUP 1, B0 and B8: WHAT IS QUOTED, AND A TRAILING COMMENT, IS NOT A COMMAND. command_heads cuts the comment and blanks the content of every quoted string (blank_quoted) before it looks for a head, so a `;`, `|`, `&` or `(`
+    # inside a message starts nothing. Each pair is a literal, and each pinned output was checked by hand against what bash reads as a string (a `$( )` or backtick body inside double quotes is code, and stays).
+    PINNED_BLANKS = [
+        ("echo 'a;b|c(d)'", "echo '________'"),
+        ('echo "a; b"', 'echo "____"'),
+        ('echo "x $(date; foo) y"', 'echo "__$(date; foo)__"'),
+        ('echo "x `date` y"', 'echo "__`date`__"'),
+        ("echo $'it\\'s; x'", "echo $'________'"),
+        ('echo \\"a; b', 'echo \\"a; b'),
+        ('echo "a \\" ; b"', 'echo "________"'),
+        ('echo "a $(echo "b; c") d"', 'echo "__$(echo "____")__"'),
+        ('echo "a `echo "b;c"` d"', 'echo "__`echo "___"`__"'),
+        ('echo "a $(f (b)) c; d"', 'echo "__$(f (b))_____"'),
+        ('echo "it\'s; ok"', 'echo "________"'),
+        ("echo 'say \"hi; there\"'", "echo '_______________'"),
+        ('echo ${x:-"a;b"}', 'echo ${x:-"___"}'),
+        ('echo "\\`a; b\\`"', 'echo "________"'),
+        ('echo "x; npm run y', 'echo "x; npm run y'),
+        ("echo \"a\" 'b; c", "echo \"_\" 'b; c"),
+        ('echo "" \'\'', 'echo "" \'\''),
+        ('"timeout" 5 x', '"_______" 5 x'),
+    ]
+    broken = [(i, blank_quoted(i), o) for i, o in PINNED_BLANKS if blank_quoted(i) != o]
+    check(f"B0/B8: blank_quoted gives exactly the pinned output on {len(PINNED_BLANKS)} literal inputs (single quotes, double quotes, `$'...'`, an escaped quote, the bodies of `$( )` and backticks inside double quotes, nested quotes, a quote that never closes)", not broken, broken)
+    PINNED_HEADS = [('echo "at $(date) (utc)"', ["echo", "date"]), ('echo "done; see the log $(date)"', ["echo", "date"]), ('echo "started $(date) | ok"', ["echo", "date"]),
+                    ("printf '| %s | %s |\\n' \"$(date)\"", ["printf", "date"]), ('echo "at $(date)" # note: one line; no retry', ["echo", "date"]), ('echo "$(date)"; npm run x # a; timeout 5 y', ["echo", "date", "npm"]),
+                    ('echo "a # b" ; timeout 5 x', ["echo", "timeout"]), ('echo "n $((attempt * 3))" "$(date)"', ["echo", "date"])]
+    broken = [(t, [h for h, _ in command_heads(t)], w) for t, w in PINNED_HEADS if [h for h, _ in command_heads(t)] != w]
+    check(f"B0/B8: command_heads gives exactly the pinned heads on {len(PINNED_HEADS)} literal lines (a word after a `;` `|` `(` inside a message or after a comment's `#` is no head; a `#` inside quotes is no comment)", not broken, broken)
+    for cmd in ('echo "at $(date) (utc)"', 'echo "done; see the log $(date)"', 'echo "started $(date) | ok"', 'echo "tried 3 times; giving up at $(date)"', 'echo "at $(date)" # note: one line; no retry',
+                'echo "push rejected (attempt 2 of 3) at $(date)"', 'echo "record landed (sha $(git rev-parse HEAD))"', 'echo "a $(date) && b & c"', 'echo "n $((attempt * 3))" "$(date)"',
+                "printf '| %s | %s |\\n' \"$(date)\"", "echo '$(timeout 5 x)' \"$(date)\"", 'echo "$(date)" # npm run pure'):
+        check(f"B0/B8: `{cmd}` (a message, or a comment, that holds a `;` `|` `&` `(` or a command's name) is kept as opaque: nothing in it is run", kept(cmd), cmd)
+    drift_echo = 'echo "\\`status\\` is \\`ok\\`, \\`malformed\\` (a nested JSON field stopped decoding),"'
+    drift_printf = "printf '| %s | %s | %s | %s | %s | %s |\\n' \\\n  \"$(date -u +'%Y-%m-%d %H:%M')\" \"${{ steps.sentinel.outputs.date }}\" \\\n  \"$GAMES\" \"$STATUS\" \"$MALFORMED\" \"${NOTE:-—}\" >> outbox/drift-log.md"
+    check("B8: the two lines of drift-sentinel.yml's `Append to the drift log` that 5b5a89b refused (an echo of backticks and a parenthesis; a printf whose format holds `|` and `%s`) are kept again", kept(drift_echo) and kept(drift_printf), (drift_echo, drift_printf))
+    for cmd in ('echo "note; $(date)" && npm run pure', 'echo "$(date)"; timeout 5 x', 'echo "at $(timeout 5 x)"', 'echo "at `timeout 5 x`"', 'echo "$(date)"; npm run pure # a note', 'echo "a # b $(date)"; npm run pure',
+                'echo \\"; npm run pure; \\" "$(date)"', 'echo "x; npm run pure', 'echo "$(date)"; "timeout" 5 x', "echo \"$(date)\"; 'timeout' 5 x", 'echo "$(date)"; "$RUNNER" x', '"timeout" 5 node scripts/pure.mjs'):
+        check(f"B0/B8: `{cmd}` still hides a command that runs (outside the quotes, inside a `$( )` or backtick body, before a comment, after an escaped quote, a quote that never closes, a quoted command word): refused, not kept", refused(cmd), cmd)
+
+    # GROUP 2, A21 and A22: WHERE A COMMAND STARTS. After the `)` of a case pattern and after leading redirections (COMMAND_CASE_STARTS, COMMAND_REDIRECTS); the `&` of `2>&1`, `>&2`, `<&0` and `&>file` is no separator.
+    # The arm pattern in these fixtures is `true)` (an allowed head) so that only the arm rule, not the old `;` rule, exposes the wrapper after it.
+    PINNED_CASE_STARTS = {"in": 'case "$(date)" in true) timeout 5 x ;; esac', ";;": 'case "$(date)" in a) true ;; true) timeout 5 x ;; esac', ";&": 'case "$(date)" in a) true ;& true) timeout 5 x ;; esac',
+                          "^": 'true) timeout 5 "$(date)" ;;'}
+    check("COMMAND_CASE_STARTS: the members the guard knows are exactly the three pinned, and the start of the line (literal table)", set(PINNED_CASE_STARTS) - {"^"} == set(COMMAND_CASE_STARTS), COMMAND_CASE_STARTS)
+    for start, text in PINNED_CASE_STARTS.items():
+        check(f"A21: the command after a case pattern that follows `{start}` is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for text in ('case "$(date)" in (true) timeout 5 x ;; esac', 'case "$(date)" in a|true) timeout 5 x ;; esac', 'case "$(date)" in *.sh|true) timeout 5 x ;; esac', 'case "$(date)" in a) true ;;& true) timeout 5 x ;; esac'):
+        check(f"A21: a pattern in parentheses, one of several joined by `|`, or one after `;;&` (a `;` and a `;&`) ends at its `)`: the wrapper after it is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    PINNED_REDIRECTS = {">>": ">>/dev/null timeout 5 x", "<<<": "<<<x timeout 5 x", ">&": ">&2 timeout 5 x", "<&": "<&0 timeout 5 x", ">": ">/dev/null timeout 5 x", "<": "< /dev/null timeout 5 x"}
+    check("COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)", set(PINNED_REDIRECTS) == set(COMMAND_REDIRECTS), COMMAND_REDIRECTS)
+    for op, text in PINNED_REDIRECTS.items():
+        check(f"A22: a wrapper after a leading `{op}` redirection is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for text in ("> /dev/null timeout 5 x", "2>&1 timeout 5 x", "2>/dev/null timeout 5 x", '> "$LOG" timeout 5 x', "A=1 >/dev/null timeout 5 x", ">/dev/null A=1 timeout 5 x", ">/dev/null 2>&1 timeout 5 x", "if true; then >/dev/null timeout 5 x; fi",
+                 'echo "$(date)"; >/dev/null timeout 5 x'):
+        check(f"A22: a wrapper after a redirection that is spaced from its target, has a file descriptor, a quoted target, an assignment or a keyword in front, or follows another is found (`{text}`)",
+              hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for unreadable, plain, said in [('case "$(date)" in *) npm run shot ;; esac', 'case "$X" in *) npm run shot ;; esac', "needs a browser"),
+                                    ('echo "$(date)"; >/dev/null npm run shot', ">/dev/null npm run shot", "needs a browser"),
+                                    ('case "$(date)" in *) xvfb-run -a ./run-checks.sh ;; esac', 'case "$X" in *) xvfb-run -a ./run-checks.sh ;; esac', "cannot be read"),
+                                    ('echo "$(date)" > /dev/null; >/dev/null timeout 5 ./x.sh', ">/dev/null timeout 5 ./x.sh", "cannot be read")]:
+        check(f"A21/A22: `{unreadable}` (a launcher after a case pattern or a leading redirect, on a line the splitter cannot read) is refused, as its plain form `{plain}` is (the review's four inputs, each with its control)",
+              refused(unreadable) and any_of(said, unread(plain)[0]) and unread(plain)[1]["opaque"] == 0, (unread(unreadable), unread(plain)))
+    check("A21/A22: a redirect AFTER the command is no start (`echo x >/dev/null` has the one head `echo` and is read clean), and a word after a `$( )` is no case pattern's command (`echo $(date) now` has no head `now`)",
+          [h for h, _ in command_heads("echo x >/dev/null")] == ["echo"] and [h for h, _ in command_heads("echo $(date) now")] == ["echo", "date"] and unread("echo x >/dev/null")[0] == [], unread("echo x >/dev/null")[0])
+    for cmd in ('echo "$(date)" > /dev/null', 'echo "$(date)"; > file', 'case "$(date)" in *) echo x ;; esac', 'case "$(date)" in a|b) echo "$(date)" ;; *) echo y ;; esac',
+                'echo "at $(date)" 2>&1', 'echo "$(date)" >&2', 'echo "x $(date)" &>/dev/null', 'echo "$(date)" >> log 2>&1', 'for f in a b; do echo "$(date)" >/dev/null; done'):
+        check(f"A21/A22: `{cmd}` (a redirect or a case pattern in a step that runs nothing but text tools) is still kept as opaque", kept(cmd), cmd)
+    for cmd in ('echo "$(date)" 2>&1 & timeout 5 x', 'echo "$(date)" >&2 && npm run pure', 'echo "$(date)" &>/dev/null; npm run pure'):
+        check(f"A22: a real `&` or `&&` still starts a command after a redirect's own `&` (`{cmd}`)", refused(cmd), cmd)
+
+    # GROUP 3, A23: THE BENIGN TOOLS ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. BENIGN_HEADS held tools that run another command from their arguments (awk's system(), sed's `e` command and `s///e` flag, sort's
+    # --compress-program) and tools that overwrite a file the guard has already read (tee, cp, mv, rm, sed -i, sort -o, `uniq IN OUT`). The eight are removed; each kept tool has one line of why at BENIGN_HEADS.
+    vocab("BENIGN_HEADS, on a raw line", BENIGN_HEADS, PINNED_BENIGN, lambda h: not raw_line_hides(f'{h} x y "$(date)"'))
+    PINNED_REMOVED_BENIGN = ("sed", "awk", "sort", "uniq", "tee", "rm", "cp", "mv")
+    check("A23: the eight tools that run a command or overwrite a file are not benign (a literal list: none is in BENIGN_HEADS)", not set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS, sorted(set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS))
+    for h in PINNED_REMOVED_BENIGN:
+        check(f"A23: `{h}` is refused under always() as a plain step, after a pipe, and on an unreadable line: not kept as opaque", refused(f"{h} x y") and refused(f"echo x | {h} x y") and refused(f'echo "$(date)"; {h} x y'), h)
+    for cmd in ("awk 'BEGIN{system(\"npm run shot\")}'", "sed -n '1e npm run shot' /dev/null", "echo x | sed 's/x/npm run shot/e'", "sort --compress-program=./x.sh /dev/null", "sed -i 's/a/b/' scripts/render-check.mjs", "sort -o scripts/render-check.mjs a",
+                "tee scripts/render-check.mjs", "cp a scripts/render-check.mjs", "mv a scripts/render-check.mjs", "rm scripts/render-check.mjs", "uniq a scripts/render-check.mjs", "node scripts/pure.mjs | tee outbox/x.txt"):
+        check(f"A23: `{cmd}` (the review's three, and each way another tool runs a command or replaces a file) is refused under always(), not kept as opaque", refused(cmd), cmd)
+    check("A23: ...and the remedy for a step that wants a file written is a redirect, which the splitter reads: `node scripts/pure.mjs > outbox/x.txt` is read clean", unread("node scripts/pure.mjs > outbox/x.txt")[0] == [], unread("node scripts/pure.mjs > outbox/x.txt")[0])
+    PINNED_NEVER_BENIGN = ("find", "xargs", "env", "tar", "install", "dd", "ln", "gawk", "mawk")
+    check("A23: the other tools the review names (find -exec, xargs, env, tar --to-command, install, dd, ln, gawk, mawk) are not in BENIGN_HEADS, and each is refused under always() (a literal list)",
+          not set(PINNED_NEVER_BENIGN) & BENIGN_HEADS and all(refused(f"{h} x y") for h in PINNED_NEVER_BENIGN), [h for h in PINNED_NEVER_BENIGN if h in BENIGN_HEADS or not refused(f"{h} x y")])
 
     # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
     both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'
@@ -2966,6 +3295,49 @@ def self_test():
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
     check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # ROUND 5, GROUP 1 (review of 5b5a89b, B1 and A24). The comment cutter is bash's: a `#` is a comment only where a word begins and nothing is open (quotes, `${ }`, `$( )`, a backtick pair, `$'...'`).
+    PINNED_COMMENT_STARTS = [
+        ('echo hi # note', 8), ('echo hi', None), ('# whole', 0), ('a;# c', 2), ('a|#c', 2), ('a&#c', 2), ('(#c', 1), ('(a)#c', 3), ('echo $(a)#c', None), ('echo ${x}#c', None),
+        ('echo ${x} #c', 10), ('echo ${y:- #}; exit 0', None), ('echo ${x/ #/z}; exit 0', None), ('echo ${y:-"}"} z # c', 17), ('echo ${y:-a${z:- #}} # c', 21),
+        ("echo $'it\\'s # x' ; exit 0", None), ("echo $'a # b' # c", 14), ('echo $"a # b" # c', 14), ('echo "a # b" # c', 13), ("echo 'a # b' # c", 13), ('echo "a \\" # b" # c', 16),
+        ('echo a\\ #b # c', 11), ('echo "a"#b # c', 11), ('echo $(echo a # b) ; exit 0', None), ('echo $(echo a) # c', 15), ('echo $( (a) # b ) ; exit 0', None), ('echo $((1+2)) # c', 14),
+        ('echo $(f $(g) # x) ; exit 0', None), ('echo `a # b` ; exit 0', None), ('echo `a` # c', 9), ('echo `a \\` # b` ; exit 0', None), ('echo $# # c', 8), ('echo ${x##*/} # c', 14),
+        ('echo ${#x} # c', 11), ('echo a#b # c', 9), ('x=#a # c', 5), ('echo "$(echo "a # b")" # c', 23), ("echo 'a' # c", 9),
+    ]
+    check(f"comment_start: the index of the comment's `#` is exactly this on each of these {len(PINNED_COMMENT_STARTS)} lines (text in `${{ }}`, `${{x/ #/z}}`, `$'a\\'b # c'`, `$( )` with nested parentheses, a backtick pair, quotes and after an escaped space; "
+          "a comment after `;`, `|`, `&`, `(`, `)` and a space; none in `$#`, `${{#x}}`, `${{x##*/}}`, `a#b`, `x=#a`, `\"a\"#b`, `$(a)#c`, `${{x}}#c`)",
+          all(comment_start(src) == want for src, want in PINNED_COMMENT_STARTS), [(src, comment_start(src), want) for src, want in PINNED_COMMENT_STARTS if comment_start(src) != want])
+    check("strip_comment cuts at that index and leaves a line with none as it is", strip_comment("echo hi # note") == "echo hi " and strip_comment("echo ${y:- #}; exit 0") == "echo ${y:- #}; exit 0")
+    PINNED_LOGICAL = [("echo hi # note \\\nexit 0", ["echo hi # note \\", "exit 0"]), ("echo a \\\n# c\nexit 0", ["echo a  # c", "exit 0"]), ("echo a \\\n  b", ["echo a    b"]), ("echo a \\\\\nexit 0", ["echo a \\\\", "exit 0"]),
+                      ("# whole\necho a", ["echo a"]), ("echo a \\\nb \\\nc", ["echo a  b  c"])]
+    check(f"logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after a comment line that follows a continuation, or as the second of two (`\\\\`), on each of these {len(PINNED_LOGICAL)} scripts",
+          all(logical_lines(src) == want for src, want in PINNED_LOGICAL), [(src, logical_lines(src), want) for src, want in PINNED_LOGICAL if logical_lines(src) != want])
+    for label, text in [("(a) `echo ${y:- #}; exit 0` before the spawner (B1)", "echo ${y:- #}; exit 0\nnpm run gate:bl"), ("(b) `|| true` after a `${y:- #}` (B1)", "node scripts/confidence.mjs --browserless ${y:- #}|| true"),
+                        ("a trailing comment that ends in a backslash, then `exit 0` (B1's backslash route)", "echo skipping # note \\\nexit 0\nnpm run gate:bl"),
+                        ("a comment line after a continuation, then `exit 0`", "echo skipping \\\n# note\nexit 0\nnpm run gate:bl"), ("`echo $'it\\'s # x' ; exit 0` (A24)", "echo $'it\\'s # x' ; exit 0\nnpm run gate:bl"),
+                        ("`${x/ #/z}` before `; exit 0`", "echo ${x/ #/z}; exit 0\nnpm run gate:bl")]:
+        check(f"round 5: the required no-browser step with {label} does no work and is refused", any_of("must run `scripts/confidence.mjs --browserless`", conf(text)), conf(text))
+    check("round 5: ...while a real trailing comment after an expansion (`echo ${y:-x} # note`) is still cut, and the step is the work", conf("echo ${y:-x} # note\nnpm run gate:bl") == [], conf("echo ${y:-x} # note\nnpm run gate:bl"))
+    for label, run in [("`echo ${y:- #}; node scripts/shot.mjs` (B1(c))", "echo ${y:- #}; node scripts/shot.mjs"), ("`echo hi # note \\` and the launch on the next line (B1(c)'s backslash route)", "echo hi # note \\\nnode scripts/shot.mjs")]:
+        check(f"round 5: a step with {label} needs a browser, and without the gate is refused", needs_browser({"run": run}, pkg, read) is True and any_of("must carry", mut(lambda s, run=run: s.insert(2, {"name": "x", "run": run}))), run)
+
+    # ROUND 5, GROUP 3 (review of 5b5a89b, B5). The npm script the required no-browser step runs is read with the same closed form as the step's own line: ONE command line, none of FORBIDDEN_IN_LINE.
+    CONF = "node scripts/confidence.mjs --browserless"
+    body_ok = lambda body, text="npm run gate:bl", **hooks: flagged_step_ok(nbv(text), "scripts/confidence.mjs", {**pkg, "gate:bl": body, **hooks}, read)
+    PINNED_BODIES_REFUSED = [("exit 0; " + CONF + " (B5)", "exit 0; " + CONF), (CONF + " || true (B5)", CONF + " || true"), (CONF + "; exit 0 (B5)", CONF + "; exit 0"), ("true && " + CONF, "true && " + CONF),
+                             (CONF + " | cat", CONF + " | cat"), (CONF + " &", CONF + " &"), (CONF + " > out.txt", CONF + " > out.txt"), ("a backtick", CONF + " `date`"), ("a `$(`", CONF + " $(date)"),
+                             ("two lines", "echo a\n" + CONF), ("an empty body", "")]
+    check(f"round 5 (B5): the three bodies of the review and {len(PINNED_BODIES_REFUSED) - 3} more shapes (`&&`, a pipe, `&`, a redirect, a backtick, `$(`, two lines, an empty body) in package.json are refused for the step `npm run gate:bl`, which is accepted with the real body",
+          all(not body_ok(b) for _, b in PINNED_BODIES_REFUSED) and body_ok(CONF), [label for label, b in PINNED_BODIES_REFUSED if body_ok(b)])
+    check("round 5 (B5): ...a hook (`pregate:bl`, `postgate:bl`) and a nested script (`npm run inner`, itself behind a second one) with a forbidden character are refused too, and a plain hook and a plain nested script are accepted",
+          not body_ok(CONF, **{"pregate:bl": "exit 0; true"}) and not body_ok(CONF, **{"postgate:bl": "true || true"}) and not body_ok("npm run inner", inner=CONF + " || true") and not body_ok("npm run inner", inner="npm run inner2", inner2=CONF + "; exit 0")
+          and body_ok(CONF, **{"pregate:bl": "echo ok"}) and body_ok(CONF, **{"postgate:bl": "echo ok"}) and body_ok("npm run inner", inner=CONF))
+    check("round 5 (B5): ...a trailing comment in the body is cut where bash cuts it (accepted), and the body's `#` inside `${ }` is not a comment (the `|| true` after it is read: refused)",
+          body_ok(CONF + " # note") and body_ok(CONF + " # a; b || c") and not body_ok(CONF + " ${y:- #}|| true"))
+    real_scripts = json.loads(Path(__file__).resolve().parent.parent.joinpath("package.json").read_text())["scripts"]
+    check("round 5 (B5): the real package.json's `gate:browserless` is one `node scripts/confidence.mjs --browserless` line and the required step `npm run gate:browserless` is accepted with it",
+          flagged_step_ok(nbv("npm run gate:browserless"), "scripts/confidence.mjs", real_scripts, read) and real_scripts["gate:browserless"] == CONF, real_scripts.get("gate:browserless"))
 
     # FINDING 25. A script path that no call this reader understands takes is a command it cannot attribute, however it is passed.
     for label, run in [("`cp.spawnSync(process.execPath, [...])`", "() => cp.spawnSync(process.execPath, ['scripts/shot.mjs']).status === 0"), ("`helpers.runAll([...])`", "() => helpers.runAll(['scripts/shot.mjs'])"),
@@ -3018,16 +3390,79 @@ def self_test():
     for label, after in [("`rows.push(...)` after the export", f"rows.push({row_x})\n"), ("`rows.splice(0, 1)`", "rows.splice(0, 1)\n"), ("`rows.unshift(...)`", f"rows.unshift({row_x})\n"), ("`rows = []`", "rows = []\n"),
                          ("`rows[0] = ...`", "rows[0] = {}\n"), ("`rows.length = 0`", "rows.length = 0\n"), ("`...rows` in another array", "const all = [...rows]\n"), ("`rows.pop()`", "rows.pop()\n")]:
         check(f"finding 27: {label} is refused: the array is changed after it is read", any_of("`rows` is used", row_pr("", after=after)), row_pr("", after=after))
-    check("finding 27: ...also in a statement between the array and the export",
-          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
+    check("finding 27: ...also in a statement between the array and the export (round 5, B7: refused for that, and no longer ALSO told its last row is not followed by a comma, which it is)",
+          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and not any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
     check("finding 27: ...while `rows` as an object key, a property (`x.rows`) and one more name in the export are not a use", row_pr("", after="const a = { rows: 1 }\nconst b = x.rows.length\n") == [])
     check("finding 27: a spread, a variable or a call in front of the first row is refused", all(any_of("something before its first row", row_pr("", head=h)) for h in ("  ...more,\n", "  someRow,\n", "  makeRow(),\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/pure.mjs') },\n")))
     check("finding 27: ...and between two rows or after the last (`...more,`, a variable, a row with quoted keys, two rows on one line, `].concat(more)`)",
           all(any_of("is not followed by a comma", row_pr(b)) for b in ("  ...more,\n", "  someRow,\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/shot.mjs') },\n",
                                                                         "  { name: 'q', weight: 1, run: () => ok('node scripts/pure.mjs') }, { name: 'r', weight: 1, run: () => ok('node scripts/pure.mjs') },\n"))
-          and any_of("is not followed by a comma", row_pr("", close="].concat(more)")))
+          and any_of("changes the array that is exported", row_pr("", close="].concat(more)")))
     check("finding 27: a row with no comma after it (not the last: JavaScript allows that one) is refused, and the real file's shape (`},` then `]`, and a last row with no comma) is clean",
           any_of("is not followed by a comma", row_pr("", head=one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n"))) and row_pr(one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n")) == [])
+
+    # ROUND 5, GROUP 4 (review of 5b5a89b, B7, A25, A26, A27). The rows reader.
+    # B7: the array ends at its own `]`. A `;` or a statement after it is no part of it; something that continues the expression is.
+    for label, close in [("`];`", "];"), ("a statement between the array and the export (`const helperLater = 1`)", "]\nconst helperLater = 1"), ("a comment after the `]`", "] // end of the rows"), ("two statements and a `;`", "];\nconst a = 1;\nconst b = 2")]:
+        check(f"round 5 (B7): the rows array followed by {label} reads clean (the last row is followed by `]`, which it is)", row_pr("", close=close) == [], row_pr("", close=close))
+    for label, close in [("`].concat(more)`", "].concat(more)"), ("`]` and `.concat(more)` on the next line", "]\n.concat(more)"), ("`].map(...)`", "].map(r => r)"), ("`][0]`", "][0]"), ("a call on the next line (`(more)`)", "]\n(more)"),
+                         ("an index on the next line (`[0]`)", "]\n[0]"), ("`] in x` on one line", "] in x"), ("`in x` on the next line", "]\nin x"), ("`instanceof X` on the next line", "]\ninstanceof X")]:
+        check(f"round 5 (B7): the rows array followed by {label} is refused: it changes the array that is exported", any_of("changes the array that is exported", row_pr("", close=close)), row_pr("", close=close))
+    # A25: a string that is a script's file name is a script the row runs, wherever it sits.
+    def row_pr_files(body, names=("shot.mjs", "pure.mjs", "probe.py"), root_names=("pre-launch.cjs",)):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + body + "]\n\nexport { rows }\n")
+            for n in names:
+                Path(d, "scripts", n).write_text("x")
+            for n in root_names:
+                Path(d, n).write_text("x")
+            return gate_row_problems(d, pkg, read)
+    for label, run in [("`['shot.mjs'], { cwd: 'scripts' }` (A25)", "() => cp.spawnSync(process.execPath, ['shot.mjs'], { cwd: 'scripts' }).status === 0"), ("`path.join('scripts', 'shot.mjs')` (A25)", "() => cp.spawnSync(process.execPath, [path.join('scripts', 'shot.mjs')]).status === 0"),
+                       ("`['scripts/' + 'shot.mjs']` (A25)", "() => cp.spawnSync(process.execPath, ['scripts/' + 'shot.mjs']).status === 0"), ("a `.py` file (`['probe.py']`)", "() => helpers.runAll(['probe.py'])"),
+                       ("a file at the repository root (`['pre-launch.cjs']`)", "() => cp.spawnSync(process.execPath, ['pre-launch.cjs'])")]:
+        got = row_pr_files(one_row(run))
+        check(f"round 5 (A25): a row with {label} drives a browser and is not flagged", any_of("gate row 'x' drives a browser", got), got)
+    check("round 5 (A25): ...while the same call in a row flagged `browser: true`, a script that launches none, a name that is no file, and a path a call that only READS takes (`readFileSync('shot.mjs')`) read clean",
+          all(row_pr_files(b) == [] for b in ("  { name: 'x', weight: 10, browser: true,\n    run: () => cp.spawnSync(process.execPath, ['shot.mjs'], { cwd: 'scripts' }) },\n", one_row("() => cp.spawnSync(process.execPath, ['pure.mjs'], { cwd: 'scripts' })"),
+                                              one_row("() => cp.spawnSync(process.execPath, ['no-such.mjs'], { cwd: 'scripts' })"), one_row("() => ok('node scripts/pure.mjs') && readFileSync('shot.mjs', 'utf8').includes('x')"))),
+          [row_pr_files(b) for b in (one_row("() => cp.spawnSync(process.execPath, ['pure.mjs'], { cwd: 'scripts' })"),)])
+    # A26: a regular expression after a keyword that starts an expression.
+    PINNED_REGEX_WORDS = ("return", "typeof", "void", "delete", "in", "of", "instanceof", "new", "throw", "case", "else", "do")
+    check("REGEX_AFTER_WORDS: the words after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)", set(PINNED_REGEX_WORDS) == set(REGEX_AFTER_WORDS), sorted(REGEX_AFTER_WORDS))
+    for w in PINNED_REGEX_WORDS:
+        check(f"round 5 (A26): a regular expression after `{w}` (and after `{w}` and a newline) is one: the call after its quote is read", rx(f"{w} ") and rx(f"{w}\n      "), w)
+    check("round 5 (A26): ...a word after a `.` is a property name, not one of them: `cfg.do / 2 && ok(...) / 3` is a division and the call between the slashes is read, and a word that only STARTS with one (`typeofx`, `index`) is a name",
+          any_of("drives a browser", row_pr(one_row("() => cfg.do / 2 && ok('node scripts/shot.mjs') / 3"))) and any_of("drives a browser", row_pr(one_row("() => typeofx / 2 && ok('node scripts/shot.mjs') / 3"))) and
+          any_of("drives a browser", row_pr(one_row("() => index / 2 && ok('node scripts/shot.mjs') / 3"))))
+    PINNED_TOKENS_5 = [("typeof /it's/.test(s)", [(7, 13, True)]), ("x in /a'b/", [(5, 10, True)]), ("do /a'b/", [(3, 8, True)]), ("cfg.do / 2 / 3", []), ("typeofx / 2 / 3", []), ("case /a'b/:", [(5, 10, True)])]
+    check("round 5 (A26): the scanner's tokens are exactly these on each of these inputs (a regular expression after `typeof`, `in`, `do`, `case`; a division after a property named `do` and after a name that starts with a keyword)",
+          all(js_tokens(src) == want for src, want in PINNED_TOKENS_5), [(src, js_tokens(src), want) for src, want in PINNED_TOKENS_5 if js_tokens(src) != want])
+    # A27: a file that imports `rows` from gate-checks.mjs must not change it (confidence.mjs iterates it after its inventory comparison, which sees names and weights once).
+    def row_pr_importer(src, name="importer.mjs"):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + "]\n\nexport { rows }\n")
+            Path(d, "scripts", name).write_text(src)
+            return gate_row_problems(d, pkg, read)
+    PINNED_ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
+    check("ARRAY_MUTATORS: the Array methods that change the array are exactly the nine pinned (a literal list)", set(PINNED_ARRAY_MUTATORS) == set(ARRAY_MUTATORS) and len(ARRAY_MUTATORS) == 9, ARRAY_MUTATORS)
+    for m in PINNED_ARRAY_MUTATORS:
+        got = row_pr_importer(f"import {{ rows }} from './gate-checks.mjs'\nrows.{m}(1)\n")
+        check(f"round 5 (A27): `rows.{m}(...)` in a file that imports rows is refused", any_of("changes `rows`", got), got)
+    for label, src in [("the review's `rows.push({...})` after `import { rows, ok, failures, NOT_APPLICABLE }`", "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nrows.push({ name: 'pushed by the importer', weight: 1, run: () => ok('node scripts/shot.mjs') })\n"),
+                       ("an alias (`rows as gateRows`)", "import { rows as gateRows } from './gate-checks.mjs'\ngateRows.splice(0, 1)\n"), ("`const { rows } = await import(...)`", "const { rows } = await import('./gate-checks.mjs')\nrows.unshift({})\n"),
+                       ("`const { rows: r } = require(...)`", "const { rows: r } = require('./gate-checks.mjs')\nr.pop()\n"), ("`rows.length = 0`", "import { rows } from './gate-checks.mjs'\nrows.length = 0\n"),
+                       ("`rows[0] = {}`", "import { rows } from './gate-checks.mjs'\nrows[0] = {}\n"), ("`rows = []`", "import { rows } from './gate-checks.mjs'\nrows = []\n")]:
+        got = row_pr_importer(src)
+        check(f"round 5 (A27): {label} is refused: the array is changed after it is read", any_of("changes `", got), got)
+    check("round 5 (A27): ...an import that is not `{ names }` (`import * as g`) is a file this reader cannot attribute", any_of("other than as `{ names }`", row_pr_importer("import * as g from './gate-checks.mjs'\ng.rows.push(1)\n")))
+    check("round 5 (A27): ...while reads (`for ... of rows`, `.map`, `.find`, `.length`, a spread, a copy that is pushed to), a mutation in a comment or a string, a property named `rows`, a local `rows` in a file that does not import it, "
+          "and a `let rows` that shadows it in a function, read clean",
+          all(row_pr_importer(src) == [] for src in ("import { rows } from './gate-checks.mjs'\nfor (const r of rows) r.run()\nconsole.log(rows.length, rows.map(r => r.name), rows.find(r => r.name === 'x'), [...rows])\nconst copy = [...rows]\ncopy.push(1)\n",
+                                                     "import { rows } from './gate-checks.mjs'\n// rows.push(1)\nconst t = 'rows.push(1)'\nconst o = { rows: 1 }\no.rows.push(2)\nx.rows = 3\n",
+                                                     "import { ok } from './gate-checks.mjs'\nconst rows = []\nrows.push(1)\n", "import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n")),
+          [row_pr_importer(src) for src in ("import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n",)])
 
     # FINDING 28. The final step's tests read only what the step's own `env:` defines.
     for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),
@@ -3035,10 +3470,65 @@ def self_test():
                         ("`${}`", '[ "${}" != x ]'), ("a variable of the second operand", '[ "$INSTALL_OUTCOME" != "$GITHUB_REF" ]'), ("a variable inside `test`", 'test "$GITHUB_ACTIONS" != true')]:
         res = mut(final_run(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
         check(f"finding 28: a test that reads {label} is refused (the guard's run does not set it)", any_of("which this guard's run does not set", res), res)
-    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME`, `${INSTALL_OUTCOME}`, a literal env value of its own, and a variable-free comparison",
+    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME` and a literal env value of its own, against a bare word, a quoted word, with `=`, `==` and `!=`",
           all(mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})) == []
-              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "${INSTALL_OUTCOME}" = skipped ]', '[ "$MODE" = strict ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"')))
-    check("finding 28: ...and the variable of a test in the grammar's `echo` is not a test (`echo \"$GITHUB_ACTIONS\"` prints, it decides nothing)", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1')) == [])
+              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "$MODE" = strict ]', '[ "$MODE" != "strict" ]', '[ "$MODE" == strict ]')))
+    check("round 5 (A28): ...and every other spelling of a test is refused, whatever it reads: `${NAME}`, `[ a = b ]`, `test`, `[[ ]]`, two variables, an unquoted NAME, an unquoted `*` or `~` (A28 a and b, B4), `-n`",
+          all(any_of("must be exactly `if [", mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})))
+              for t in ('[ "${INSTALL_OUTCOME}" = skipped ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"', '[[ "$MODE" = strict ]]', '[ "$MODE" = "$INSTALL_OUTCOME" ]', '[ $MODE = strict ]', '[ * = "*" ]', '[ ~ != /home/runner ]', '[ * != x ]', '[ -n "$MODE" ]')))
+    check("finding 28: ...and a variable of the runner in an `echo` is refused too (round 5: the closed form lets an echo print only a variable of the step's `env:`)",
+          any_of("echo reads $GITHUB_ACTIONS, which this guard's run does not set", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1'))))
+
+    # ROUND 5, GROUP 2 (review of 5b5a89b, B2, B3, B4, B6 and A28). The final step is a CLOSED FORM: each logical line is one of FINAL_SHAPES, whole, and a line that is anything else is refused whatever it holds.
+    final_with = lambda run, **env: mut(final_run(run, env={"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **env}))
+    refused_final = lambda run, **env: any_of("must be made only of these lines", final_with(run, **env))
+    b2 = 'echo "::error::The Chromium install did not succeed" ${y:- #}; if [ "$GITHUB_ACTIONS" != true ]; then exit 1; fi'
+    check("round 5 (B2): a hidden test of a runner-only variable behind `${y:- #}` on the echo's own line is refused: the line is not an echo, whole", refused_final(b2) and any_of("echo takes only words", final_with(b2)), final_with(b2))
+    check("round 5 (B2): ...and behind a comment that ends in a backslash, with the test on the next line", refused_final('echo "::error::x" # \\\nif [ "$GITHUB_ACTIONS" != true ]; then\n  exit 1\nfi'))
+    b3 = 'X=$GITHUB_ACTIONS\nif [ "$X" != true ]; then\n  echo "::error::The Chromium install did not succeed"\n  exit 1\nfi'
+    check("round 5 (B3): an assignment line (`X=$GITHUB_ACTIONS`) that carries a runner variable into a test of the step's own env is refused", any_of("is not echo, exit or a test", final_with(b3, X="a")), final_with(b3, X="a"))
+    for label, test in [("`[ * != x ]` (B4)", '[ * != x ]'), ("`[ * = \"*\" ]` (A28 a)", '[ * = "*" ]'), ("`[ ~ != /home/runner ]` (A28 b)", '[ ~ != /home/runner ]')]:
+        check(f"round 5: the final step with {label} is refused (a glob reads the runner's directory, `~` its HOME)", refused_final(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
+    b6 = 'if [ "$STRICT" != true ]; then\n  echo "::error::x"\n  exit 1\nfi\necho "::error::y"\nexit 1'
+    for label, val in [("a YAML boolean (`STRICT: true`)", True), ("a YAML integer", 1), ("a YAML float", 1.5), ("a YAML null", None), ("a YAML list", ["a"])]:
+        check(f"round 5 (B6): a final step whose env holds {label} is refused, with the advice to quote it", any_of("Quote the value", final_with(b6, STRICT=val)), final_with(b6, STRICT=val))
+    check("round 5 (B6): ...and the same value written as a string (`STRICT: \"true\"`) is run with `true`, not `True`, and accepted", final_with(b6, STRICT="true") == [], final_with(b6, STRICT="true"))
+    REAL_FINALS = [(".github/workflows/verify.yml", "verify"), (".github/workflows/verify-full.yml", "full"), (".github/workflows/live-check.yml", "live"), (".github/actions/mutation-shard/action.yml", None)]
+    real_finals = [(rel, job_steps(yaml.safe_load(Path(__file__).resolve().parent.parent.joinpath(rel).read_text()), job)[-1]) for rel, job in REAL_FINALS]
+    check(f"round 5: the {len(REAL_FINALS)} real final steps (verify.yml, verify-full.yml, live-check.yml, the mutation-shard action) are the last step by their `if` and inside the closed form, untouched",
+          all(is_final_if(if_text(st)) and final_script_problems(run_text(st), set(env_map(st))) == [] for _, st in real_finals), [(rel, final_script_problems(run_text(st), set(env_map(st)))) for rel, st in real_finals])
+    PINNED_FINAL_OK = [
+        'if [ "$INSTALL_OUTCOME" = skipped ]; then', 'elif [ "$MODE" != "strict" ]; then', 'if [ "$MODE" == a.b:c_d-e ]; then', 'if [ "$MODE" = "" ]; then', 'else', 'fi', 'exit 1',
+        'exit 255', 'echo x', 'echo -n x', 'echo ::error::x', 'echo a=b c:d e/f g@h i%j k+l',
+        'echo "::error::a b, c (d)? $INSTALL_OUTCOME ${INSTALL_OUTCOME} ${INSTALL_OUTCOME:-none, is it?} $MODE"', 'echo "it\'s" "a # b" "{x}" "~" "*"',
+    ]
+    PINNED_FINAL_NEAR_MISS = [
+        'if [ "$INSTALL_OUTCOME" = skipped ]; then # c', 'if [ "$INSTALL_OUTCOME" = skipped ]; then echo x', 'if [ "$INSTALL_OUTCOME" = skipped ] && [ a = b ]; then',
+        'if [ "$INSTALL_OUTCOME" -eq 1 ]; then', 'if [ "$INSTALL_OUTCOME" = skipped* ]; then', 'if [ "$INSTALL_OUTCOME" = ~ ]; then', 'if [ "$INSTALL_OUTCOME" = $MODE ]; then',
+        'if [ "$INSTALL_OUTCOME" = "a b" ]; then', 'if [ "$INSTALL_OUTCOME" = a/b ]; then', 'if [ "$INSTALL_OUTCOME" = a=b ]; then', 'if [ "$MISSING" = x ]; then',
+        'if [ "${INSTALL_OUTCOME}" = x ]; then', "if [ '$INSTALL_OUTCOME' = x ]; then", 'if [ $INSTALL_OUTCOME = x ]; then', 'if ! [ "$INSTALL_OUTCOME" = x ]; then',
+        'if [ "$INSTALL_OUTCOME" = x ];then', 'if [ "$INSTALL_OUTCOME" = x ] ; then', 'if [ "$INSTALL_OUTCOME" > x ]; then', 'if [[ "$INSTALL_OUTCOME" = x ]]; then',
+        'if test "$INSTALL_OUTCOME" = x; then', 'if [ "$INSTALL_OUTCOME" = x ]', 'elif [ "$INSTALL_OUTCOME" -n ]; then', 'then', 'else # c', 'else echo x', 'fi;', 'fi # c', 'done', 'exit',
+        'exit 0', 'exit 256', 'exit 01', 'exit -1', 'exit 1000', 'exit 1 # c', 'exit 1;', 'exit "1"', 'exit $?', 'exit 1 2', 'echo', 'echo x > f', 'echo x | cat', 'echo x; exit 0',
+        'echo $MODE', 'echo "$(date)"', 'echo "`date`"', 'echo "a\\b"', 'echo "$GITHUB_ACTIONS"', 'echo "${GITHUB_ACTIONS:-x}"', 'echo "${INSTALL_OUTCOME:-a$b}"',
+        'echo "${INSTALL_OUTCOME:-it\'s}"', 'echo "${INSTALL_OUTCOME#x}"', 'echo "$?"', 'echo "$"', 'echo ~', 'echo *', 'echo {a,b}', 'echo a b # c', 'echo "a" b"c"', "echo 'a'", 'echo "a',
+        'echo a&b', "echo $'a'", 'X=$GITHUB_ACTIONS', 'X=a', 'true', 'false', 'cat f', '[ "$MODE" = x ]', ':', 'exit 1 && echo x',
+    ]
+    FIN_ENV = {"INSTALL_OUTCOME", "MODE"}
+    check(f"round 5: each of these {len(PINNED_FINAL_OK)} lines is one of the shapes (each of `if`, `elif`, `else`, `fi`, `exit N`, `echo ARG...` with a bare run, a quoted string and all three `$` forms) and is accepted",
+          all(final_script_problems(l, FIN_ENV) == [] for l in PINNED_FINAL_OK), [(l, final_script_problems(l, FIN_ENV)) for l in PINNED_FINAL_OK if final_script_problems(l, FIN_ENV)])
+    check(f"round 5: each of these {len(PINNED_FINAL_NEAR_MISS)} near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${{NAME}}` and an unquoted NAME in a test, a variable the env lacks, `exit 0`, `exit 256`, a redirect, a pipe, a command substitution, "
+          "a backslash, a bare `$`, `~`, `*`, `{{a,b}}`, single quotes, an assignment, `true`) is refused", all(final_script_problems(l, FIN_ENV) != [] for l in PINNED_FINAL_NEAR_MISS), [l for l in PINNED_FINAL_NEAR_MISS if final_script_problems(l, FIN_ENV) == []])
+    PINNED_ECHO_BARE, PINNED_ECHO_NOT_BARE, PINNED_WORD_BARE, PINNED_WORD_NOT_BARE = "aZ09_.:,=/@%+-", "!#$&'()*;<>?[\\]^`{|}~\"", "aZ09_.:-", ",=/@%+!#$&'()*;<>?[\\]^`{|}~\""
+    PINNED_DQ_OK, PINNED_DQ_NOT = " !#%&'()*+,-./:;<=>?@[]^_{|}~", "`\\$"
+    check(f"round 5: the characters of a bare echo word are exactly these {len(PINNED_ECHO_BARE)} (and each of these {len(PINNED_ECHO_NOT_BARE)} others is refused inside one), a bare WORD of a test exactly these {len(PINNED_WORD_BARE)} (and each of {len(PINNED_WORD_NOT_BARE)} others refused), "
+          f"a double-quoted echo string takes each of these {len(PINNED_DQ_OK)} punctuation characters and refuses a backtick, a backslash and a lone `$`",
+          all(final_script_problems(f"echo a{c}b", FIN_ENV) == [] for c in PINNED_ECHO_BARE) and all(final_script_problems(f"echo a{c}b", FIN_ENV) != [] for c in PINNED_ECHO_NOT_BARE)
+          and all(final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV) == [] for c in PINNED_WORD_BARE) and all(final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV) != [] for c in PINNED_WORD_NOT_BARE)
+          and all(final_script_problems(f'echo "a{c}b"', FIN_ENV) == [] for c in PINNED_DQ_OK) and all(final_script_problems(f'echo "a{c}b"', FIN_ENV) != [] for c in PINNED_DQ_NOT),
+          [c for c in PINNED_ECHO_BARE if final_script_problems(f"echo a{c}b", FIN_ENV)] + [c for c in PINNED_ECHO_NOT_BARE if not final_script_problems(f"echo a{c}b", FIN_ENV)] +
+          [c for c in PINNED_WORD_BARE if final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV)] + [c for c in PINNED_WORD_NOT_BARE if not final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV)] +
+          [c for c in PINNED_DQ_OK if final_script_problems(f'echo "a{c}b"', FIN_ENV)] + [c for c in PINNED_DQ_NOT if not final_script_problems(f'echo "a{c}b"', FIN_ENV)])
 
     # FINDING 29. npm's own spelling of the variables that change what a script runs.
     unresolved_env = lambda k: read_step({"run": "npm run pure", "env": {k: "x"}}, pkg, read)["unresolved"]
@@ -3053,6 +3543,23 @@ def self_test():
           any_of("the workflow's env sets", audit({"env": {"npm_config_node_options": "x"}, "jobs": {"verify": {"steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]))
     check("finding 29: npm_config_key reads the name as npm does (`_` to `-` except at the start of the key, lower case, no prefix is None)",
           npm_config_key("NPM_CONFIG_Script_Shell") == "script-shell" and npm_config_key("npm_config__x_y") == "_x-y" and npm_config_key("npm_config_") == "" and npm_config_key("X_npm_config_a") is None and npm_config_key("PATH") is None)
+
+    # ROUND 5, GROUP 5 (review of 5b5a89b, A29). A command that writes for the steps AFTER it (`$GITHUB_ENV` of a variable that changes what a command runs, `$GITHUB_PATH`, a `.npmrc`) makes its step unresolved.
+    PINNED_LATER_NAMES = ("NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME", "npm_config_node_options", "NPM_CONFIG_SCRIPT_SHELL")
+    for label, cmd, frag in [("`NODE_OPTIONS=` to `$GITHUB_ENV` (A29 a)", 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("`npm_config_node_options=` to `$GITHUB_ENV` (A29 b)", 'echo "npm_config_node_options=--require /tmp/x.cjs" >> "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("anything to `$GITHUB_PATH` (A29 c)", 'echo "/tmp/shadow" >> "$GITHUB_PATH"', "writes to $GITHUB_PATH"), ("a `.npmrc` file (A29 d)", 'echo "script-shell=/tmp/sh" > .npmrc', "names a .npmrc file"),
+                             ("`${GITHUB_ENV}` in braces", 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "${GITHUB_ENV}"', "to $GITHUB_ENV"), ("`tee -a \"$GITHUB_ENV\"`", 'echo "NODE_OPTIONS=x" | tee -a "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("`$GITHUB_PATH` unquoted, through `printf`", "printf '%s\\n' /tmp/shadow >> $GITHUB_PATH", "writes to $GITHUB_PATH"), ("`~/.npmrc`", "echo x >> ~/.npmrc", "names a .npmrc file")]:
+        check(f"round 5 (A29): a command that writes {label} is unresolved", any_of(frag, unresolved(cmd)), unresolved(cmd))
+    check(f"round 5 (A29): every one of the {len(PINNED_LATER_NAMES)} names dangerous_var knows (DANGEROUS_VARS and npm's own spellings) written to `$GITHUB_ENV` is unresolved, and the nine of DANGEROUS_VARS are exactly the first nine pinned here",
+          set(PINNED_LATER_NAMES[:9]) == set(DANGEROUS_VARS) and all(any_of(f"writes {n} to $GITHUB_ENV", unresolved(f'echo "{n}=x" >> "$GITHUB_ENV"')) for n in PINNED_LATER_NAMES), [n for n in PINNED_LATER_NAMES if not unresolved(f'echo "{n}=x" >> "$GITHUB_ENV"')])
+    PINNED_LATER_CLEAN = ['echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"', 'echo "STAMP=$STAMP" >> "$GITHUB_ENV"', 'echo "ids=$IDS" >> "$GITHUB_OUTPUT"', 'echo "x=y" >> "$GITHUB_STEP_SUMMARY"', 'echo "npm_config_loglevel=warn" >> "$GITHUB_ENV"',
+                          'echo hi # echo "/tmp/shadow" >> "$GITHUB_PATH"', 'echo hi # a .npmrc', 'echo "NODE_OPTIONS=x"']
+    check(f"round 5 (A29): ...while these {len(PINNED_LATER_CLEAN)} are read as before (a `$GITHUB_ENV` write of a name that changes no command, `$GITHUB_OUTPUT`, the step summary, an npm key that changes none, a mention in a comment, a `NODE_OPTIONS=` text that goes nowhere)",
+          all(unresolved(c) == [] for c in PINNED_LATER_CLEAN), [(c, unresolved(c)) for c in PINNED_LATER_CLEAN if unresolved(c)])
+    check("round 5 (A29): ...and a browser-free step in the target job that writes `NODE_OPTIONS` to `$GITHUB_ENV` is refused by the audit, not called browser-free",
+          any_of("cannot be read, so it cannot be called browser-free", mut(lambda s: s.insert(2, {"name": "writes env", "run": 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"'}))))
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
