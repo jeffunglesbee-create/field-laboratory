@@ -139,3 +139,40 @@ Found while running the review's input on `gate-mode.mjs` itself: the scratch di
 - `PASS [gate-mode-standin-only-first-copy-read] the stand-ins are checked against what EVERY copied module reaches, not only the first`
 - `PASS [gate-mode-standin-unknown-import-unnamed] an import of a module that is neither a copy nor a stand-in is named, in any copied module`
 After this commit: `41/41 checks passed` (the number of checks is unchanged: the fixtures are cases of an existing check). All twelve `gate-mode-standin-*` entries `PASS`.
+
+## Summary (the commands were run; the outputs are printed here)
+
+| item | classification | status | commit | what closed it |
+|---|---|---|---|---|
+| A8 | REACHABLE | FIXED | f8ae64b6 | `exitFor` takes `possible`; `!(possible > 0)` is a failure in every mode; `confidence.mjs` refuses and says why (a seventh exit) |
+| A13 | REACHABLE | FIXED | ea065210 | the end-to-end copy runs the REAL `gate-inventory.mjs` over an inventory file the test writes |
+| A15 | REACHABLE | FIXED | adba9415, 59c9cc06 | every module the copies reach is a real copy or a stand-in with a literal export list; every gap is a named sentence; reads every copy |
+| A9 | REACHABLE | FIXED | 5e41f4ea | function-valued `browser` rows and every real weight, as a 3 x 6 + 2 matrix |
+| A10 | nil consequence, reachable edit | FIXED (fixture added: a few lines) | 68d00bc1 | quick and browserless records pinned to `dirty`, `sha`, `id` |
+| A12 | lost time / loud red | FIXED (fixture added: a few lines) | 18d5d7cd | the stand-in `ok` logs; one check pins the probe: full asks once, quick never |
+
+Before/after (commands run in the worktree):
+- `node scripts/gate-mode.mjs --self-test`: 32/32 at 9043fa75; 41/41 now (33, 34, 37, 39, 40, 41 after A8, A13, A15, A9, A10, A12; A15's continuation changes no count).
+- `node scripts/mutation-check.mjs --anchors`: `checked 1665 of 1668 mutation anchors; 0 stale` at 9043fa75; `checked 1697 of 1700 mutation anchors; 0 stale` now (+32 = the 32 new anchors of the new entries; the same 3 are not checked).
+- `gate-mode-*` table entries: 41 at 9043fa75; 73 now (32 new, five of the 41 re-anchored for the `possible` argument). Every one of the 73 prints `PASS [<id>]` under `node scripts/mutation-check.mjs --only <id>` (73 of 73, one run each, on the final tree).
+- Baselines that must not regress, run on this tree: `python3 scripts/check-browser-gate.py --self-test` 715/715; `python3 scripts/check-browser-gate.py` `verdict: gated`; `--plain-commands` 70 commands (output byte-identical to the 9043fa75 copy); `node scripts/no-launch-check.mjs --self-test` 35/36 (the known failure needs `build/`); `node scripts/delete-branches.mjs --self-test` 23/23; `node scripts/mutation-lib.mjs --self-test` 81/81 (run alone); `node scripts/mutation-check.mjs --self-test` 221/221.
+- Mutants shown green at 9043fa75 and red here (a copy of the 9043fa75 tree under /dev/shm, same find/replace): the review's 13e plus three more arguments of the inventory call, 9d and 9f plus three more filters, 10h/10i/10j plus one more, 12f/12g, 15c/15f (unnamed there, named here): 4 + 5 + 5 + 2 + 2 = 18 of 18 were `32/32` (or the unnamed 21/32) there and are red here.
+
+## Residual (contrived: an input written to hide, not an ordinary edit), each run on this tree and `41/41 checks passed`
+
+Each is a change to `scripts/confidence.mjs` applied alone.
+
+- A9, a failing-row filter keyed on the NAME of the one real row: `const failedRows = results.filter(r => r.state === 'FAIL' && r.name !== 'breaking each invariant makes a check fail')` passes. No stand-in row carries that name. Contrived: it hides one row by spelling its name; the shape and weight families (what an ordinary edit reads) are closed by construction. To close it, name a stand-in after that row; filing it is cheaper than a stand-in per real row.
+- A12, `const needsServer = !QUICK && !BROWSERLESS` passes. It is a saving, not a regression, and the check says why it does not pin browserless; listed only because it is an input that passes.
+- Adjacent to A12, not in the finding: `server = spawn('node', ['scripts/serve.mjs'], { stdio: 'ignore' })` (the `detached: true` dropped, so `process.kill(-server.pid)` has no group to kill) passes, because the stand-in `ok` always answers true and the spawn branch and the 20 s wait are never taken. A loud failure on a runner with nothing on :8080, not a green. Not built: it needs a stand-in server on a port, which is a change of kind, not of one clause.
+
+Not residual, recorded so nobody files it: a computed dynamic import in `confidence.mjs` (`await import('./' + 'x.mjs')`) is not named by the reader but is still RED (a crash in every end-to-end run, unnamed), not green. The comparison of the REAL `docs/gate-rows.txt` with the REAL rows stays with `npm run check:gate-rows` (verify.yml:897, guards.yml:143), as the review said; the end-to-end copy now compares the stand-in rows with an inventory it writes.
+
+## Sweep
+
+`outbox/browser-gate-sweep-2026-11-12.mjs` was not edited. No sweep CODE entry has a find anchor in a file this note changed: the sweep's anchors are text of `scripts/check-browser-gate.py`, which this session did not touch (checked by grepping the sweep for `gate-mode` and `confidence`: the four hits, lines 275, 295, 297 and 315, are guard-source text that names `scripts/confidence.mjs` as data). Names of sweep CODE entries whose find text I changed or removed: none.
+
+## Noticed, not changed
+
+- `scripts/confidence.mjs` keeps the block `if (total < BAR)` ("unreachable while the conjunction holds"); with the measured-nothing refusal ahead of it, a `total` below the bar with every row passing is now reachable only by a scoring change, as its own comment says. Left as it was.
+- The Rule 90 mutation count of the area: every clause this note adds or changes has a fixture in `scripts/gate-mode.mjs --self-test` and a `gate-mode-*` entry; the check count went from 32 to 41, the entries from 41 to 73.
