@@ -31,15 +31,15 @@
 // trimmed, a line on KNOWN_NODE_OPTIONS_LINES, per file, and a listed line that is no longer there is reported too. There is no comment cutting and no parsing, so there is no quote, escape or
 // leading-comment spelling to find: every round of review found another spelling in the classifier of the line, and an allowlist has no classifier. A new line is added to the list on purpose, in the commit
 // that writes it (a comment that says it without the word needs no entry). NOT covered by the scan: a name built at run time (`['NODE_' + 'OPTIONS']`) and a value set outside scripts/ (an
-// .npmrc, a package.json script, a workflow's env).
+// .npmrc, a package.json script; a workflow's env is the guard's to refuse, scripts/check-browser-gate.py).
 // A launch made through a PATH to the library entry (`require('/abs/node_modules/playwright-core')`) is trapped as well: the hook stubs any resolution that lands inside the library from outside it.
 //
 //   node scripts/no-launch-check.mjs              (from the repository root; needs Node 22.15 or later, `npm ci`, the build, and python3 with PyYAML)
 //   node scripts/no-launch-check.mjs --self-test
 import { spawn, spawnSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { availableParallelism, tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import * as nodeModule from 'node:module'
 import { createChecks, finish, isMain } from './checks.mjs'
@@ -245,6 +245,14 @@ export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, ex
  *  A function of its own so the self-test asserts the options themselves, not a regex over this file's text (review 2026-11-15, round 4, finding 5). */
 export const mainOptions = file => (file ? { floor: 1, expected: null, scan: false } : { floor: MIN_COMMANDS, expected: EXPECTED_COMMANDS, scan: true })
 
+/** EVERYTHING main() hands to measure(), in one object: the commands, the trap, the width, the directory they work in and the three options of mainOptions (the floor, the pin and the scan of this root's scripts/).
+ *  main() is `measure(planFor(file, ...))` and nothing else decides what is asked, so the self-test reads the options off this object BY KEY and runs the real entry over stand-in guards (round 5, A4 and A5:
+ *  mutations of `expected: o.expected`, `floor: o.floor`, the scan and `mainOptions(file)` in main()'s own call left the self-test green, because nothing ran main() with the options of the guard's list). */
+export function planFor(file, { cmds, trap, dir, width }) {
+  const o = mainOptions(file)
+  return { cmds, trap, dir, width, floor: o.floor, expected: o.expected, scan: o.scan ? scanTrapLoss(join(ROOT, 'scripts')) : null }
+}
+
 async function main() {
   if (!trapSupported()) { console.log(`NOT ESTABLISHED: this Node (${process.version}) has no module.registerHooks (22.15 or later is needed), and there is no weaker trap to fall back to`); process.exit(2) }
   const dir = realpathSync(mkdtempSync(join(tmpdir(), 'no-launch-')))
@@ -254,8 +262,7 @@ async function main() {
   const file = process.argv.includes('--commands') ? process.argv[process.argv.indexOf('--commands') + 1] : null
   const cmds = file ? JSON.parse(readFileSync(file, 'utf8')) : plainCommands()
   const width = Number(process.env.NO_LAUNCH_JOBS ?? Math.min(4, availableParallelism()))
-  const o = mainOptions(file)
-  const r = await measure({ cmds, trap, dir, width, floor: o.floor, expected: o.expected, scan: o.scan ? scanTrapLoss(join(ROOT, 'scripts')) : null })
+  const r = await measure(planFor(file, { cmds, trap, dir, width }))
   process.exit(r.exit)
 }
 
@@ -472,8 +479,40 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('...each command has a log of its own: of three, the one that launches is the one named, and the two that do not are not charged with it',
       mainMixed.status === 1 && problemLines.length === 1 && /m-b\.mjs/.test(problemLines[0]) && okLines.length === 2 && /1 launch\(es\)/.test(problemLines[0]) && /checked 3 of 3 commands: 2 exited 0 with 0 launches/.test(mainMixed.out),
       `exit ${mainMixed.status}; ${mainMixed.out.slice(-400)}`)
-    check('MAIN ASKS OF THE GUARD\'S LIST WHAT IT ASKS, not of `--commands`: a floor of MIN_COMMANDS, the pinned count and the scan of scripts/; `--commands FILE` asks a floor of one command, no pin and no scan',
-      JSON.stringify(mainOptions(null)) === JSON.stringify({ floor: MIN_COMMANDS, expected: EXPECTED_COMMANDS, scan: true }) && JSON.stringify(mainOptions('f.json')) === '{"floor":1,"expected":null,"scan":false}', JSON.stringify([mainOptions(null), mainOptions('f.json')]))
+    const PLAN_ARGS = { cmds: ['c'], trap: 't', dir: 'd', width: 3 }
+    const askedOfGuard = mainOptions(null), askedOfFile = mainOptions('f.json')
+    check('MAIN ASKS OF THE GUARD\'S LIST WHAT IT ASKS, BY KEY (not by the order of the keys, round 5, A5): a floor of MIN_COMMANDS (20), the pinned count (70) and the scan of scripts/; `--commands FILE` asks a floor of one command, no pin and no scan',
+      askedOfGuard.floor === MIN_COMMANDS && askedOfGuard.expected === EXPECTED_COMMANDS && askedOfGuard.scan === true && askedOfFile.floor === 1 && askedOfFile.expected === null && askedOfFile.scan === false && MIN_COMMANDS === 20 && EXPECTED_COMMANDS === 70,
+      JSON.stringify([askedOfGuard, askedOfFile]))
+    // planFor() is the whole of what main() hands to measure(): read BY KEY, for the guard's list and for `--commands`.
+    const planGuard = planFor(null, PLAN_ARGS), planFile = planFor('f.json', PLAN_ARGS)
+    check('planFor, BY KEY, hands measure() the commands, the trap, the width and the directory it was given, and for the guard\'s list the floor 20, the pin 70 and a scan of scripts/ that read real scripts; for `--commands` a floor of 1, no pin and no scan',
+      planGuard.cmds === PLAN_ARGS.cmds && planGuard.trap === 't' && planGuard.dir === 'd' && planGuard.width === 3 && planGuard.floor === 20 && planGuard.expected === 70 && planGuard.scan !== null && planGuard.scan.files >= 50
+        && planFile.cmds === PLAN_ARGS.cmds && planFile.width === 3 && planFile.floor === 1 && planFile.expected === null && planFile.scan === null,
+      JSON.stringify({ planGuard: { ...planGuard, scan: planGuard.scan && { files: planGuard.scan.files } }, planFile }))
+    // THE REAL ENTRY ON THE DEFAULT PATH (round 5, A4 and A5): nothing ran main() with the options of the guard's list, because every fixture above passes `--commands`. This file is COPIED into a fixture root whose
+    // scripts/check-browser-gate.py is a stand-in that prints N commands (each a clean `true`), and started with no arguments, as the CI step starts it: the floor, the pin and the scan of that root's scripts/ are asked of
+    // the list by exit status. The sizes are LITERAL (20 is the floor, 70 the pin), and the check below ties them to the constants.
+    const cliRun = (name, n, extra = {}) => {
+      const root = join(dir, `cli-${name}`)
+      mkdirSync(join(root, 'scripts'), { recursive: true })
+      copyFileSync(fileURLToPath(import.meta.url), join(root, 'scripts', 'no-launch-check.mjs'))
+      copyFileSync(join(ROOT, 'scripts', 'checks.mjs'), join(root, 'scripts', 'checks.mjs'))
+      for (const [f, lines] of Object.entries(KNOWN_NODE_OPTIONS_LINES)) { mkdirSync(dirname(join(root, f)), { recursive: true }); writeFileSync(join(root, f), `${lines.join('\n')}\n`) }   // stand-ins holding the listed lines, so the root's scripts/ is the real one's as far as the list can tell
+      writeFileSync(join(root, 'scripts', 'check-browser-gate.py'), `import json, sys\nassert sys.argv[1:] == ['--plain-commands'], sys.argv\nprint(json.dumps([{'cmd': ['true', 'scripts/clean.mjs'], 'why': 'self-test'}] * ${n}))\n`)
+      for (const [f, src] of Object.entries(extra)) writeFileSync(join(root, 'scripts', f), src)
+      const r = spawnSync(process.execPath, [join(root, 'scripts', 'no-launch-check.mjs')], { cwd: root, encoding: 'utf8', timeout: 120000, maxBuffer: 16 * 1024 * 1024, env: { ...process.env, NO_LAUNCH_JOBS: '2' } })
+      return { status: r.status, out: `${r.stdout}${r.stderr}` }
+    }
+    const cli20 = cliRun('20', 20), cli70 = cliRun('70', 70), cli71 = cliRun('71', 71), cli3 = cliRun('3', 3), cliScan = cliRun('scan', 70, { 'offender.mjs': "go({ NODE_OPTIONS: 'x' })\n" })
+    check('THE REAL ENTRY, GUARD LIST OF 20 (the floor is met, the pin is 70): exits non-zero and says the guard listed 20 and this check pins 70, and is not the floor that refused it',
+      cli20.status === 1 && /the guard listed 20 command\(s\) and this check pins 70/.test(cli20.out) && !/fewer than the 20/.test(cli20.out) && /verdict: NOT ESTABLISHED OR VIOLATED/.test(cli20.out), `exit ${cli20.status}; ${cli20.out.slice(-400)}`)
+    check('...A LIST OF 70 CLEAN COMMANDS exits 0, prints its denominator, the pin it was held to and the scan it made of the fixture root\'s scripts/',
+      cli70.status === 0 && /checked 70 of 70 commands: 70 exited 0 with 0 launches; controls: 3 of 3 saw a launch; the guard's list is the pinned 70; scanned \d+ scripts: (\d+) of \1 lines that name the node options are on the list, 0 listed line\(s\) are gone/.test(cli70.out) && /verdict: no browser-free self-test/.test(cli70.out), `exit ${cli70.status}; ${cli70.out.slice(-400)}`)
+    check('...A LIST OF 71 exits non-zero and names both numbers (71 listed, 70 pinned)', cli71.status === 1 && /the guard listed 71 command\(s\) and this check pins 70/.test(cli71.out), `exit ${cli71.status}; ${cli71.out.slice(-300)}`)
+    check('...A LIST OF 3 is refused by the FLOOR as well as the pin (both messages): the floor MIN_COMMANDS reaches measure() from main() unchanged', cli3.status === 1 && /only 3 command\(s\) were measured, fewer than the 20/.test(cli3.out) && /pins 70/.test(cli3.out), `exit ${cli3.status}; ${cli3.out.slice(-300)}`)
+    check('...AND A SCRIPT IN THE ROOT\'S scripts/ THAT NAMES THE NODE OPTIONS OFF THE LIST fails a list of 70 clean commands, naming the file and line: the scan of scripts/ reaches measure() from main()',
+      cliScan.status === 1 && /scripts\/offender\.mjs:1 names the node options in a line that is not on the list/.test(cliScan.out) && /70 exited 0 with 0 launches/.test(cliScan.out), `exit ${cliScan.status}; ${cliScan.out.slice(-400)}`)
     const mainEmpty = mainOver('empty', [])
     check('...and an empty list exits 1 (a list that measured nothing is not a pass)', mainEmpty.status === 1 && /only 0 command\(s\) were measured/.test(mainEmpty.out), `exit ${mainEmpty.status}; ${mainEmpty.out.slice(-200)}`)
     // The floor of the guard's own list is MIN_COMMANDS, and `main()` applies it to the real list: measure() with that floor, not main()'s `--commands` one.
