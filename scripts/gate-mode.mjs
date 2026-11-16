@@ -144,24 +144,24 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     JSON.stringify(exitCalls))
   // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, rounds 2 and 4). The wiring checks above pin where the exits are and that they go through exitFor, not what is
   // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
-  // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the inventory, the rows, the identity,
-  // the stranded-mutation check) and run for real in each mode. The rows log their own calls (`ran.log`), so what a mode does NOT run is observable; the identity and the inventory answer from the
-  // environment, so the record's identity fields and the inventory's refusal are observable too. The real gate is never run here.
+  // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the rows, the identity, the stranded-mutation
+  // check) and run for real in each mode. The rows log their own calls (`ran.log`), so what a mode does NOT run is observable; the identity answers from the environment, so the record's identity fields are
+  // observable too. THE INVENTORY IS NOT STOOD IN FOR (round 5, finding A13): gate-inventory.mjs reads one file and runs nothing, so a REAL copy compares the stand-in rows with a `docs/gate-rows.txt` this
+  // test writes, and its export list is the real one by construction. A stand-in that ignored its arguments left `diffAgainst(readInventory(), rows)` free to become `diffAgainst(rows, rows)`. The real gate is never run here.
   {
     const fs = await import('node:fs'), { tmpdir } = await import('node:os'), { join } = await import('node:path'), { spawnSync } = await import('node:child_process')
     const scratch = fs.mkdtempSync(join(tmpdir(), 'confidence-e2e-'))
     try {
       fs.mkdirSync(join(scratch, 'scripts')); fs.mkdirSync(join(scratch, 'docs'))
       const here = fileURLToPath(new URL('.', import.meta.url))
-      for (const f of ['confidence.mjs', 'gate-mode.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
-      // The names confidence.mjs imports from the two modules that are stood in for, against the names the stand-ins export (a LITERAL list): a new import in confidence.mjs is then a named failure here,
-      // not a crash in every run below (round 4, finding 15).
-      const STANDIN_EXPORTS = { 'gate-inventory.mjs': ['INVENTORY_PATH', 'readInventory', 'diffAgainst'], 'checks.mjs': ['runIdentity'] }
+      for (const f of ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
+      // The names confidence.mjs imports from the module that is stood in for, against the names the stand-in exports (a LITERAL list): a new import in confidence.mjs is then a named failure here,
+      // not a crash in every run below (round 4, finding 15). gate-inventory.mjs is a real copy now, so it has no list.
+      const STANDIN_EXPORTS = { 'checks.mjs': ['runIdentity'] }
       const imported = mod => (new RegExp(`import \\{([^}]*)\\} from './${mod.replace('.', '\\.')}'`).exec(gateSource)?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean)
       const missing = Object.entries(STANDIN_EXPORTS).flatMap(([mod, have]) => imported(mod).filter(n => !have.includes(n)).map(n => `${n} from ${mod}`))
-      check('THE STAND-INS COVER WHAT confidence.mjs IMPORTS from the modules they replace (gate-inventory.mjs, checks.mjs): a new import is named here, not found as a crash in every run below',
-        missing.length === 0 && imported('gate-inventory.mjs').length === 3 && imported('checks.mjs').length === 1, `no stand-in for: ${missing.join(', ')}`)
-      fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => (process.env.STANDIN_INVENTORY ? ['row good is not in docs/gate-rows.txt'] : [])\n`)
+      check('THE STAND-INS COVER WHAT confidence.mjs IMPORTS from the module they replace (checks.mjs): a new import is named here, not found as a crash in every run below',
+        missing.length === 0 && imported('checks.mjs').length === 1, `no stand-in for: ${missing.join(', ')}`)
       fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`)
       fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
       const ROW = {
@@ -179,11 +179,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         number: "  { name: 'number', weight: 10, run: () => 1 },\n",
         object: "  { name: 'object', weight: 10, run: () => ({}) },\n",
         undef: "  { name: 'undef', weight: 10, run: () => undefined },\n",
+        noweight: "  { name: 'noweight', run: ran('noweight') },\n",
       }
+      // The inventory the real gate-inventory.mjs reads: `<weight> <name>` per row, by default the stand-in table itself (a gate that matches its inventory). A test that wants a mismatch passes the lines.
+      const weightOf = n => Number(/weight: (\d+)/.exec(ROW[n])?.[1])
       const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\n`
         + `const ran = (n, v = true) => () => { appendFileSync('ran.log', n + '\\n'); return v }\nexport const rows = [\n${names.map(n => ROW[n]).join('')}]\n`
-      const go = (names, flags = [], env = {}) => {
-        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names))
+      const go = (names, flags = [], env = {}, inventory = names.map(n => `${weightOf(n)} ${n}`)) => {
+        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names)); fs.writeFileSync(join(scratch, 'docs', 'gate-rows.txt'), `${inventory.join('\n')}\n`)
         fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true })
         const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000, env: { ...process.env, ...env } })
         let rec = null
@@ -238,11 +241,23 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
           && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
           && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
         J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
-      // THE INVENTORY REFUSAL (round 4, finding 13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing recorded or run.
-      const inventory = go(['good', 'build'], [], { STANDIN_INVENTORY: '1' })
-      check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED: exit 2, the mismatch printed, `Refusing to score`, no row run and nothing recorded',
-        inventory.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(inventory.out) && /row good is not in docs\/gate-rows\.txt/.test(inventory.out) && /Refusing to score/.test(inventory.out) && inventory.rec === null && inventory.ran.length === 0,
-        `exit ${inventory.status}; ${inventory.out.slice(-300)}`)
+      // THE INVENTORY REFUSAL, by the REAL comparison (round 4, finding 13; round 5, finding A13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing
+      // recorded or run. The inventory is read from a file this test writes and compared by the real `diffAgainst`, so each way the two can differ is its own run, and the arguments of the call are observable:
+      // `diffAgainst(rows, rows)` finds nothing wrong anywhere, `diffAgainst(readInventory(), [])` refuses every gate, and swapped arguments name MISSING for UNDECLARED.
+      const refusal = {
+        lacks: go(['good', 'build'], [], {}, ['990 good', '5 build', '7 ghost']), extra: go(['good', 'build'], [], {}, ['990 good']), weight: go(['good', 'build'], [], {}, ['990 good', '6 build']),
+        quick: go(['good', 'build'], ['--quick'], {}, ['990 good', '5 build', '7 ghost']), browserless: go(['good', 'build'], ['--browserless'], {}, ['990 good', '5 build', '7 ghost']),
+        weightless: go(['good', 'noweight'], [], {}, ['990 good']),
+      }
+      const refused = (r, what) => r.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(r.out) && what.test(r.out) && /Refusing to score/.test(r.out) && r.rec === null && r.ran.length === 0
+      check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED, by the real comparison: a row the inventory has and the gate lacks (MISSING), a row the gate has and the inventory lacks (UNDECLARED), a weight that differs (WEIGHT changed), in every mode: each exit 2, named, `Refusing to score`, no row run, nothing recorded',
+        refused(refusal.lacks, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.extra, /UNDECLARED row "build" \(5 pts\)/) && refused(refusal.weight, /WEIGHT changed for "build": declared 6, gate has 5/)
+          && refused(refusal.quick, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.browserless, /MISSING row "ghost" \(7 pts\)/),
+        J(Object.fromEntries(Object.entries(refusal).map(([k, r]) => [k, [r.status, r.out.split('\n').filter(l => /ghost|build/.test(l)).map(l => l.trim()), r.rec === null, r.ran]]))))
+      // A row with no weight is the NaN `possible` of finding A8: through the real gate it never reaches scoring, because the inventory cannot declare it (`undefined !== 5`), and the refusal is exit 2.
+      const ordered = go(['good', 'build'], [], {}, ['5 build', '990 good'])
+      check('...a row with no weight (the NaN `possible` of A8) is refused here as UNDECLARED, before anything is scored; and the same rows declared in another order are no mismatch (rows are compared by name)',
+        refused(refusal.weightless, /UNDECLARED row "noweight" \(undefined pts\)/) && ordered.status === 0 && J(ordered.ran) === '["good","build"]', `weightless: ${refusal.weightless.status} ${refusal.weightless.out.slice(-200)}; reordered: ${ordered.status}`)
       const both = go(['good'], ['--quick', '--browserless'])
       check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null && both.ran.length === 0, `exit ${both.status}; ${both.out.slice(-200)}`)
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }

@@ -34,3 +34,23 @@ Red on purpose (self-test counts are failing checks of 33):
 Five existing entries had anchors that this change moves (`gate-mode-exit-ignores-failed-rows`, `gate-mode-exit-browserless-failure-is-green`, `gate-mode-confidence-exit-hardcoded`, `gate-mode-confidence-pass-falls-through`, `gate-mode-confidence-failed-arg-zero`): their find/replace text now carries `possible` and nothing else changed (`--anchors`: 0 stale).
 
 After: `node scripts/gate-mode.mjs --self-test` printed `33/33 checks passed`.
+
+## A13: the stand-in `diffAgainst` ignored its arguments   REACHABLE, FIXED (by construction: the stand-in is gone)
+
+Classification: reachable. `diffAgainst(readInventory(), rows)` is one line of `confidence.mjs`; an edit that swaps, drops or empties an argument is an ordinary slip, and the only net left for it was `npm run check:gate-rows`.
+
+By construction, not by one more fixture: the end-to-end copy of `confidence.mjs` no longer uses a hand-written `gate-inventory.mjs`. `gate-inventory.mjs` is a pure module (its only import is `node:fs`; its own self-test is guarded by `import.meta.url === file://argv[1]`), so the scratch directory gets a REAL copy of it, and `docs/gate-rows.txt` there is written by the test (`<weight> <name>` per stand-in row by default, or the lines a fixture passes). The comparison that runs is the real `diffAgainst`, by name, as in the repository, and its export list is the real one, so there is no list to drift.
+
+Fixtures (replacing the single `STANDIN_INVENTORY` run): the inventory has a row the gate lacks (`MISSING row "ghost" (7 pts)`), the gate has a row the inventory lacks (`UNDECLARED row "build" (5 pts)`), a weight differs (`WEIGHT changed for "build": declared 6, gate has 5`), the first again in `--quick` and in `--browserless` (the refusal is before any mode logic); each exit 2, named, `Refusing to score`, no row run, nothing recorded. Controls: every other end-to-end run goes through the same comparison and must exit as before (so `diffAgainst(readInventory(), [])` and `diffAgainst([], rows)` turn 11 of them red), and the same rows declared in another order are no mismatch. A row with no weight (the NaN `possible` of A8) is refused as `UNDECLARED row "noweight" (undefined pts)`, exit 2: through the real gate a weightless row never reaches scoring.
+
+Before (the review's own mutation, on a copy of the tree at 9043fa75 in /dev/shm, `showred` with the entry's find/replace): `diffAgainst(rows, rows)` `32/32 checks passed`, exit 0; the swapped arguments, `diffAgainst(readInventory(), [])` and `diffAgainst([], rows)`: each `32/32 checks passed`, exit 0.
+After (same four mutants on this tree): `compares-itself` 32/34 (2 failing: the three-way refusal check and the weightless check); `args-swapped` 32/34 (the same two, by the message: MISSING became UNDECLARED); `against-nothing` 23/34 (11 failing); `is-empty` 23/34 (11 failing).
+
+Red on purpose, all `PASS` under `--only`:
+- `PASS [gate-mode-confidence-inventory-compares-itself] the gate is compared with the inventory, not with itself: diffAgainst(readInventory(), rows)`
+- `PASS [gate-mode-confidence-inventory-against-nothing] the inventory is compared with the gate's rows, not with an empty table`
+- `PASS [gate-mode-confidence-inventory-args-swapped] the inventory is the declared side and the rows the live side (a swap names MISSING for UNDECLARED)`
+- `PASS [gate-mode-confidence-inventory-is-empty] the inventory the comparison reads is the file's, not an empty list`
+- the existing `PASS [gate-mode-confidence-inventory-refusal-off]` still goes red (its fixture is now the real comparison).
+
+After: `node scripts/gate-mode.mjs --self-test` printed `34/34 checks passed` (33 before this commit, one check added for the weightless row and the reordered inventory).
