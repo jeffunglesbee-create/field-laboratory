@@ -595,6 +595,16 @@ let private start () =
                     | Absent | EmptyOrFailed -> 0
                 PickView.renderScoutPick mount games seriesEntries
 
+            // Deep Cuts: the same payload, one Scout's choice per window of the day.
+            match document.getElementById "panel-deep-cuts" with
+            | null -> ()
+            | mount ->
+                let seriesEntries =
+                    match payload.Series with
+                    | Present rows -> List.length rows
+                    | Absent | EmptyOrFailed -> 0
+                PickView.renderDeepCuts mount payload.Date games seriesEntries
+
             // Field's Pick comes from a DIFFERENT route — the analytics
             // newspaper bundle, not /context/date — so it is fetched separately
             // and its failure must not take the slate down with it.
@@ -791,7 +801,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-metrics"; "tab-verify" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-deep-cuts"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-metrics"; "tab-verify" ]
 
     let tabs () =
         ids |> List.choose (fun id ->

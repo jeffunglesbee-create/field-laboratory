@@ -52,7 +52,7 @@ const topTabs = () => page.$$(TABS)
 // "six" long after the Briefs tab made it seven, and stayed red without saying
 // WHICH tab was unaccounted for.
 const EXPECTED_TABS = [
-  'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick',
+  'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick', 'tab-deep-cuts',
   'tab-pickem', 'tab-weather', 'tab-stats', 'tab-lineups', 'tab-briefs', 'tab-draw', 'tab-metrics', 'tab-verify',
 ]
 const tabIds = await page.$$eval(TABS, ts => ts.map(t => t.id))
@@ -125,6 +125,20 @@ await page.click('#tab-field-pick')
 const fieldText = await page.textContent('#panel-field-pick')
 await page.click('#tab-scout-pick')
 const scoutText = await page.textContent('#panel-scout-pick')
+
+// Deep Cuts, in a real browser. games-2026-08-09 is a Sunday, so all seven windows,
+// listed whether or not anything kicks off in them (the owner's ruling: an empty
+// window is shown), and no composite number in the text.
+await page.click('#tab-deep-cuts')
+const deepCuts = await page.$eval('#panel-deep-cuts', m => ({
+  windows: [...m.querySelectorAll('.deep-cut')].map(d => d.dataset.window),
+  text: m.textContent,
+}))
+check('Deep Cuts lists all seven windows of a Sunday, in order',
+  deepCuts.windows.join() === 'w0730,w1000,w1200,w1400,w1600,w1930,w2200', deepCuts.windows.join())
+check('Deep Cuts says it is its own list, beside the picks',
+  /Its own list/.test(deepCuts.text) && /Deep Cuts/.test(deepCuts.text), deepCuts.text.slice(0, 160))
+check('Deep Cuts carries no bare composite decimal', !/(?<![\d(.])\b\d\.\d\b(?![\d)])/.test(deepCuts.text), deepCuts.text.slice(0, 200))
 
 check('the Field\'s Pick panel says what it is for',
   /marquee/i.test(fieldText) && /national broadcast/i.test(fieldText),

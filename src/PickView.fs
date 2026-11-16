@@ -194,3 +194,61 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
             child panel (el "p" "pick-empty pick-outlets"
                             (sprintf "Broadcast outlets not in the registry: %s"
                                      (String.concat ", " unmodelled))) |> ignore
+
+// ---------------------------------------------------------------------------
+// Deep Cuts
+// ---------------------------------------------------------------------------
+//
+// One hidden game per window of the day, by Scout's rules (DeepCuts.fs). Every window
+// of the day is listed, empty or not, and every game the board could not place is
+// counted by reason at the foot, so the panel never reads as more complete than it is.
+// No gate names in this text, for the same reason as Scout's leader line.
+
+let renderDeepCuts (mount: HTMLElement) (slateDate: string) (games: Game list) (seriesEntries: int) =
+    mount.innerHTML <- ""
+    let panel = child mount (el "div" "pick-panel" "")
+    child panel (el "h2" "" "Deep Cuts") |> ignore
+    child panel (el "p" "pick-panel__what"
+                    ("One hidden game for each part of the day, chosen by Scout's Pick's rules. "
+                     + "A game belongs to the window it kicks off in (ET). Its own list: Field's Pick, "
+                     + "Scout's Pick and Pick'em are unchanged.")) |> ignore
+    let b = DeepCuts.board slateDate games seriesEntries
+    for r in b.Windows do
+        let section = child panel (el "div" "deep-cut" "")
+        section.setAttribute ("data-window", r.Window.Id)
+        let n = List.length r.Games
+        child section (el "h3" "pick-panel__what"
+                          (sprintf "%s · %d game%s" r.Window.Label n (if n = 1 then "" else "s"))) |> ignore
+        match r.Outcome with
+        | Chosen choice ->
+            let leader = child section (el "div" "pick-leader" "")
+            child leader (el "div" "pick-leader__matchup" (matchupText choice.Choice.Sport choice.Choice.Home choice.Choice.Away)) |> ignore
+            match choice.Level with
+            | [] -> ()
+            | level ->
+                child leader (el "div" "pick-leader__tie"
+                                (sprintf "level with %d other%s on the same signals: %s"
+                                         (List.length level) (if List.length level = 1 then "" else "s")
+                                         (level |> List.map (fun g -> matchupText g.Sport g.Home g.Away) |> String.concat "; "))) |> ignore
+            child leader (el "div" "pick-brief" (verdictSummary (Qualifying choice.Gates))) |> ignore
+            child leader (el "div" "pick-chaser__reasons" (sprintf "Chosen as %s." choice.Basis)) |> ignore
+            if choice.Finished > 0 then
+                child leader (el "div" "pick-chaser__reasons"
+                                (sprintf "%d qualifier%s already finished in this window."
+                                         choice.Finished (if choice.Finished = 1 then "" else "s"))) |> ignore
+        | AllFinished qualified ->
+            child section (el "p" "pick-empty"
+                              (sprintf "Every game that qualified in this window has finished (%d)." qualified)) |> ignore
+        | NoneQualify ->
+            child section (el "p" "pick-empty"
+                              (if n = 0 then "No games kick off in this window."
+                               else sprintf "No deep cut in this window: none of its %d game%s qualifies." n (if n = 1 then "" else "s"))) |> ignore
+    match b.NotPlaced with
+    | [] -> ()
+    | notPlaced ->
+        let counts =
+            notPlaced
+            |> List.countBy (fun (_, why) -> DeepCuts.notPlacedText why)
+            |> List.map (fun (why, k) -> sprintf "%d %s" k why)
+            |> String.concat ", "
+        child panel (el "p" "pick-empty deep-cuts__unplaced" (sprintf "Not placed in a window: %s." counts)) |> ignore

@@ -89,6 +89,7 @@
     <Compile Include="Standings.fs" />
     <Compile Include="CardForecast.fs" />
     <Compile Include="Scout.fs" />
+    <Compile Include="DeepCuts.fs" />
     <Compile Include="Pickem.fs" />
     <Compile Include="Stats.fs" />
     <Compile Include="Flow.fs" />
