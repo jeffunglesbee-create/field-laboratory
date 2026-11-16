@@ -77,3 +77,24 @@ Red on purpose (each applied once, self-test run, restored; counts are of 37):
 - `node scripts/mutation-check.mjs --anchors`: `checked 1683 of 1686 mutation anchors; 0 stale` (the 3 not checked are the same as at 9043fa75).
 
 After: `node scripts/gate-mode.mjs --self-test` printed `37/37 checks passed` (34 before this commit; the one coverage check became four, and the fixture check holds ten cases).
+
+## A9: the failing-row filter could ignore a function-valued `browser` or a weight and stay green   REACHABLE, FIXED
+
+Classification: reachable. A `failedRows` filter that reads a row's flags is exactly the edit the next "skip this kind of row" feature makes, and the one real row with a function for `browser` (the mutation row, weight 20, skipQuick) was in no end-to-end run. The review's own mutants: 9d `&& typeof r.browser !== 'function'` and 9f `&& r.weight !== 30`, both `32/32` at 9043fa75 (re-run here on a copy of that tree: `32/32 checks passed`, exit 0, for 9d, 9f and for the same two filters on `quickFailures`).
+
+What changed: three stand-in rows and two checks.
+- `fb`: weight 30, skipQuick, `browser: () => process.env.STANDIN_FB_BROWSER === '1'` (the real mutation row's shape, with the environment as the function's input); `fq`: the same without skipQuick, so `--quick` runs it; `q20`: a plain failing row of weight 20 that quick runs.
+- `A FAILING ROW IS RED WHATEVER SHAPE OR WEIGHT IT HAS`: a matrix of 3 modes x 6 shapes (`bad` 10, `q20` 20, `sq` 20, `br` 20, `fb` 30, `fq` 30) plus a 4th mode (browserless where the function says a browser is needed), 20 runs of `good` and ONE other row, each cell `[exit, failing, skipped, notApplicable, score >= bar]` compared with a literal table. In every cell where a row fails, the score is at or above the bar (97 to 99), so only the conjunction of failing rows can be what keeps it red. In full each exits 1 and is named; in `--quick` the skipQuick ones are skipped and `bad`, `q20`, `fq` fail; in browserless `sq`, `bad`, `q20`, `fb`, `fq` fail, `br` is not applicable, and with the function answering true `fb` and `fq` are not applicable, not failing.
+- `THE FAILING STAND-INS COVER EVERY WEIGHT the real table has`: the real weights are read from the table and compared with the literal `[10,20,30]`, and the rows quick runs (`bad`, `q20`, `fq`) carry 10, 20, 30, so a weight-dependent filter has no weight it can hide in; a new real weight is a red asking for a stand-in.
+
+Before (copy of 9043fa75): all five mutants below `32/32`, exit 0. After (this tree): each `38/39`, exit 1, the matrix check the one failing.
+
+Red on purpose (all five also `PASS` under `--only`):
+- `PASS [gate-mode-confidence-failed-rows-by-function-browser] a failing row is red whatever shape its `browser` flag has (a function, as the mutation row's is)` (the review's 9d)
+- `PASS [gate-mode-confidence-failed-rows-by-weight] a failing row is red whatever its weight (30 here)` (the review's 9f)
+- `PASS [gate-mode-confidence-quick-failures-by-function-browser] a failing row that --quick ran is red whatever shape its `browser` flag has`
+- `PASS [gate-mode-confidence-quick-failures-by-weight-30] a failing row that --quick ran is red whatever its weight (30 here)`
+- `PASS [gate-mode-confidence-quick-failures-by-weight-20] a failing row that --quick ran is red whatever its weight (20 here)`
+The four older entries on the same filters still pass (`...failed-rows-by-skipquick`, `...failed-rows-by-browser`, `...failed-filter-browserless`, `...quick-failures-empty`).
+
+After: `node scripts/gate-mode.mjs --self-test` printed `39/39 checks passed` (37 before this commit, two checks added).

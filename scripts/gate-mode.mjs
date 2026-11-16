@@ -198,6 +198,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         object: "  { name: 'object', weight: 10, run: () => ({}) },\n",
         undef: "  { name: 'undef', weight: 10, run: () => undefined },\n",
         noweight: "  { name: 'noweight', run: ran('noweight') },\n",
+        // The shape of the one real row whose `browser` is a FUNCTION (the mutation row: weight 20, skipQuick; it needs a browser only when the shards are not read back): `fb` is that shape, `fq` is the same
+        // without skipQuick (so `--quick` runs it), and `q20` is a plain failing row of weight 20 that quick runs. The function reads the environment, so one stand-in answers both ways.
+        fb: "  { name: 'fb', weight: 30, skipQuick: true, browser: () => process.env.STANDIN_FB_BROWSER === '1', run: ran('fb', false) },\n",
+        fq: "  { name: 'fq', weight: 30, browser: () => process.env.STANDIN_FB_BROWSER === '1', run: ran('fq', false) },\n",
+        q20: "  { name: 'q20', weight: 20, run: ran('q20', false) },\n",
       }
       // The inventory the real gate-inventory.mjs reads: `<weight> <name>` per row, by default the stand-in table itself (a gate that matches its inventory). A test that wants a mismatch passes the lines.
       const weightOf = n => Number(/weight: (\d+)/.exec(ROW[n])?.[1])
@@ -276,6 +281,25 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         sq.full.status === 1 && J(sq.full.rec?.failing) === '["sq"]' && sq.browserless.status === 1 && J(sq.browserless.rec?.failing) === '["sq"]' && sq.quick.status === 0 && J(sq.quick.rec?.skipped) === '["sq","browser"]' && J(sq.quick.rec?.failing) === '[]'
           && br.full.status === 1 && J(br.full.rec?.failing) === '["br"]' && br.browserless.status === 0 && J(br.browserless.rec?.notApplicable) === '["br"]' && J(br.browserless.rec?.failing) === '[]' && br.quick.status === 0 && J(br.quick.rec?.skipped) === '["br"]',
         J({ sq: Object.fromEntries(Object.entries(sq).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.skipped]])), br: Object.fromEntries(Object.entries(br).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.notApplicable]])) }))
+      // A FAILING ROW IS RED WHATEVER SHAPE OR WEIGHT IT HAS (round 5, finding A9). The rows above fail with `browser` absent or `true`, and at weights 10 and 20; the one real row with a FUNCTION for `browser` (the
+      // mutation row) and every real row of weight 30 were in no run, so a filter on `typeof r.browser` or on `r.weight` left the gate green over them. Each cell is one run of `good` and ONE failing row, as
+      // [exit, failing, skipped, not applicable, score at or above the bar]: the last is true wherever a row failed, so only the conjunction of failing rows can be what keeps the run red.
+      const cell = (name, flags = [], env = {}) => { const r = go(['good', name], flags, env); return [r.status, r.rec?.failing, r.rec?.skipped, r.rec?.notApplicable, r.rec?.total >= 95] }
+      const SHAPES = ['bad', 'q20', 'sq', 'br', 'fb', 'fq'], FN_BROWSER = { STANDIN_FB_BROWSER: '1' }
+      const matrix = {
+        full: SHAPES.map(n => cell(n)), quick: SHAPES.map(n => cell(n, ['--quick'])), browserless: SHAPES.map(n => cell(n, ['--browserless'])),
+        'browserless, function says a browser is needed': ['fb', 'fq'].map(n => cell(n, ['--browserless'], FN_BROWSER)),
+      }
+      const F = n => [1, [n], [], [], true], K = n => [0, [], [n], [], true], N = n => [0, [], [], [n], true]
+      check('A FAILING ROW IS RED WHATEVER SHAPE OR WEIGHT IT HAS (bad 10, q20 20, sq 20, br 20, fb 30, fq 30; fb and fq have a FUNCTION for `browser`): in full each exits 1 and is named; in --quick the skipQuick ones (sq, br, fb) are skipped and bad, q20 and fq fail; in browserless sq, bad, q20 and the function rows fail, br is not applicable, and a function that says a browser is needed makes fb and fq not applicable, not failing',
+        J(matrix) === J({
+          full: SHAPES.map(F), quick: [F('bad'), F('q20'), K('sq'), K('br'), K('fb'), F('fq')], browserless: [F('bad'), F('q20'), F('sq'), N('br'), F('fb'), F('fq')],
+          'browserless, function says a browser is needed': [N('fb'), N('fq')],
+        }), J(matrix))
+      // The weights the failing stand-ins carry are the weights the real table has (a literal list): a real row of another weight is a red here, asking for a stand-in of that weight.
+      const realWeights = [...new Set(gateRows.map(r => r.weight))].sort((a, b) => a - b)
+      check('THE FAILING STAND-INS COVER EVERY WEIGHT the real table has (10, 20, 30), in the rows every mode runs (bad, q20, fq) as well as in the full table (sq, fb)',
+        J(realWeights) === '[10,20,30]' && J(['bad', 'q20', 'fq'].map(weightOf)) === J(realWeights) && J(['bad', 'q20', 'sq', 'fb'].map(weightOf).sort((a, b) => a - b)) === J([10, 20, 20, 30]), `real weights ${J(realWeights)}`)
       const green = { full: go(['good', 'build', 'browser']), quick: go(['good', 'build', 'browser'], ['--quick']), browserless: go(['good', 'build', 'browser'], ['--browserless']) }
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
         ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
