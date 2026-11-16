@@ -155,7 +155,58 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
 
   // THE WIRING OF confidence.mjs, which no test can run (the gate is the whole suite: the checks of this file read its source, as scripts/mutation-check.mjs's self-test reads its own for the
   // baseline's environment). The end-to-end proof is a run on a runner whose install failed (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 6).
-  const gateSource = (await import('node:fs')).readFileSync(new URL('./confidence.mjs', import.meta.url), 'utf8')
+  // THE TEXT THESE CHECKS READ IS THE CODE, NOT THE COMMENTS (round 6, F-D). confidence.mjs is read as TEXT here, and a comment that quotes a relative module path (`'./docs-helper.mjs'`) was read as a reach
+  // that needed a stand-in, one that writes `process.exit(1)` as an exit, so an edit that changed no behaviour turned the self-test red. `stripComments` removes `//` and block comments, and nothing else: the
+  // scanner knows the three string kinds (a template's `${}` nests), a regex literal after an operator or a keyword, and a division, so a `//` inside a string or a regex is text, not a comment. Newlines
+  // inside a block comment are kept, so what follows stays on its line. The same text in CODE is still a reach and still an exit (the controls below).
+  const stripComments = text => {
+    let i = 0
+    const template = () => {
+      let out = text[i++]
+      while (i < text.length) {
+        const c = text[i]
+        if (c === '\\') { out += text.slice(i, i + 2); i += 2 }
+        else if (c === '`') { out += c; i++; return out }
+        else if (c === '$' && text[i + 1] === '{') { i += 2; out += '${' + code(true) + '}'; i++ }
+        else { out += c; i++ }
+      }
+      return out
+    }
+    const code = nested => {
+      let out = '', depth = 0, prev = ''
+      while (i < text.length) {
+        const c = text[i], d = text[i + 1]
+        if (c === '/' && d === '/') { while (i < text.length && text[i] !== '\n') i++; continue }
+        if (c === '/' && d === '*') { const e = text.indexOf('*/', i + 2), end = e < 0 ? text.length : e + 2; out += text.slice(i, end).replace(/[^\n]/g, ''); i = end; continue }
+        if (c === "'" || c === '"') { const s = i++; while (i < text.length && text[i] !== c && text[i] !== '\n') i += text[i] === '\\' ? 2 : 1; i++; out += text.slice(s, i); prev = c; continue }
+        if (c === '`') { out += template(); prev = c; continue }
+        if (c === '/' && (prev === '' || /[(,=:[!&|?{};+\-*%<>~^]/.test(prev) || /(?:^|[^\w$.])(?:return|typeof|case|in|of|void|delete)$/.test(out.trimEnd()))) {
+          const s = i++
+          for (let inClass = false; i < text.length && text[i] !== '\n' && (inClass || text[i] !== '/'); i++) { if (text[i] === '\\') i++; else if (text[i] === '[') inClass = true; else if (text[i] === ']') inClass = false }
+          i++
+          while (/[a-z]/.test(text[i] ?? '')) i++
+          out += text.slice(s, i); prev = '/'; continue
+        }
+        if (c === '{') depth++
+        if (c === '}') { if (nested && depth === 0) return out; depth-- }
+        out += c; i++
+        if (!/\s/.test(c)) prev = c
+      }
+      return out
+    }
+    return code(false)
+  }
+  /** What a text says wrong, as sentences, for a check's detail (round 6, F-D (d)): each regex the text must match and does not, each it must not match and does, and the end of the text. A message check used to print
+   *  the statuses and records of the runs and not the regex that failed, so a reworded message was a red with the reason left to find. */
+  const say = (what, out, wants, unwanted = []) => {
+    const ends = `the output ends ${JSON.stringify(String(out).trim().split('\n').slice(-2).join(' / ').slice(-160))}`
+    return [...wants.filter(re => !re.test(out)).map(re => `${what}: no match for ${re} (${ends})`), ...unwanted.filter(re => re.test(out)).map(re => `${what}: matches ${re}, which it must not (${ends})`)]
+  }
+  const why = (problems, detail) => (problems.length ? `${problems.join(' | ')} | ${detail}` : detail)
+  /** The two arguments of a message check after its label: it passes only when the condition holds AND the output said nothing wrong, and its detail leads with what was wrong. */
+  const saying = (ok, problems, detail) => [Boolean(ok) && problems.length === 0, why(problems, detail)]
+  const gateText = (await import('node:fs')).readFileSync(new URL('./confidence.mjs', import.meta.url), 'utf8')
+  const gateSource = stripComments(gateText)
   const wired = [
     ['the mode comes from modeOf(process.argv), and a contradiction exits 2', /MODE = modeOf\(process\.argv\)\s*\}\s*catch \(e\) \{[^}]*process\.exit\(2\)/],
     ['every row asks actionFor(MODE, row)', /const action = actionFor\(MODE, row\)/],
@@ -175,9 +226,68 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       && /elif \[ "\$GATE_OUTCOME" = success \]; then\n\s+echo "::error::[^\n]*The gate ran with --browserless/.test(fullYml) && /the browserless gate did not finish \(its outcome: \$\{GATE_OUTCOME:-none\}\)/.test(fullYml), 'no match')
   // EVERY EXIT after the usage checks is exitFor's. A `process.exit(0)` or `process.exit(BROWSERLESS ? 0 : 1)` somewhere in the failing-row path is the regression this guards: the score it
   // leaves can be 97 with a row failing, and the step is then green over it.
-  const exitCalls = [...gateSource.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
-  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...), `possible` passed: seven of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, possible, total, bar: BAR \}\)$/.test(c)).length === 7 && exitCalls.length === 10,
-    JSON.stringify(exitCalls))
+  // An exitFor call is read as its SET OF KEYS, so a call broken over several lines, closed by a trailing comma or written in another key order is the same call (round 6, F-D (c)): `mode: MODE`, `possible`, `total` and
+  // `bar: BAR` as written, and one `failed: <expression>`; five keys and no other. A `failed` expression that holds a comma is split into more than five and reads as another call: a red, never a green.
+  const exitForOk = call => {
+    const m = /^exitFor\(\{ ?([^}]*?),? ?\}\)$/.exec(call.replace(/\s+/g, ' ').trim())
+    const keys = m ? m[1].split(/, ?/) : []
+    return keys.length === 5 && ['mode: MODE', 'possible', 'total', 'bar: BAR'].every(k => keys.includes(k)) && keys.filter(k => /^failed: \S/.test(k)).length === 1
+  }
+  const exitCallsOf = code => [...code.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
+  const exitCalls = exitCallsOf(gateSource)
+  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...), `possible` passed: seven of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(exitForOk).length === 7 && exitCalls.length === 10,
+    `usage exits ${exitCalls.filter(c => c === '2').length} (pinned 3), exitFor calls ${exitCalls.filter(exitForOk).length} (pinned 7), calls ${exitCalls.length} (pinned 10); the calls that are neither: ${JSON.stringify(exitCalls.filter(c => c !== '2' && !exitForOk(c)))}; all: ${JSON.stringify(exitCalls)}`)
+  // THE COMMENT STRIP, as a literal table of [text, what it must become] (round 6, F-D (a), (b)): a comment goes, and only a comment: a `//` or `/*` inside a string of any kind, a template (its `${}` too), or a regex
+  // literal is text; a division is not a regex; a block comment keeps its newlines. Each row is one way the scanner can be wrong.
+  const STRIPPED = [
+    ['a line comment quoting a module', "const a = 1 // './x.mjs'\nconst b = 2\n", 'const a = 1 \nconst b = 2\n'],
+    ['a block comment holding process.exit(1)', 'x /* process.exit(1) */ y', 'x  y'],
+    ['a // inside a string is text, the comment after it is not', "const u = 'https://e.x/a' // tail\n", "const u = 'https://e.x/a' \n"],
+    ['a /* inside a double-quoted string', 'const s = "/* not a comment */"\n', 'const s = "/* not a comment */"\n'],
+    ['a template: text and an interpolation with a comment in it', 'const t = `a // b ${ x /* c */ } d`\n', 'const t = `a // b ${ x  } d`\n'],
+    ['a nested template inside an interpolation', "const n = `x ${ l.map(i => `- ${i}`).join('\\n') } y` // c\n", "const n = `x ${ l.map(i => `- ${i}`).join('\\n') } y` \n"],
+    ['a regex literal holding escaped slashes', 'const r = /\\/\\/x/.test(s) // c\n', 'const r = /\\/\\/x/.test(s) \n'],
+    ['a regex literal holding a quote, then a comment with an apostrophe', "const q = /'/.test(s) // it's\nconst z = 1\n", "const q = /'/.test(s) \nconst z = 1\n"],
+    ['an apostrophe in a comment does not open a string', "// don't\nconst q = 'a'\n", "\nconst q = 'a'\n"],
+    ['a division is not a regex', 'const d = a / b / c // d\nconst h = (a + b) / 2 // half\n', 'const d = a / b / c \nconst h = (a + b) / 2 \n'],
+    ['a regex after return', 'return /x/.test(y) // c\n', 'return /x/.test(y) \n'],
+    ['a block comment keeps its newlines', 'a /* x\ny */ b', 'a \n b'],
+    ['an unterminated block comment runs to the end', 'a /* b', 'a '],
+    ['code with no comment is unchanged', "import { a } from './b.mjs'\nprocess.exit(exitFor({ mode: MODE }))\n", "import { a } from './b.mjs'\nprocess.exit(exitFor({ mode: MODE }))\n"],
+  ]
+  const strippedBad = STRIPPED.map(([what, text, want]) => [what, stripComments(text), want]).filter(([, got, want]) => got !== want).map(([what, got, want]) => `${what}: got ${JSON.stringify(got)}, wanted ${JSON.stringify(want)}`)
+  check('THE COMMENT STRIP removes a comment and only a comment: 14 literal texts (line and block comments, a // or /* inside each kind of string, a template and a nested one, a regex literal, a division, a regex after return, a block comment\'s newlines, an unterminated one, plain code)',
+    STRIPPED.length === 14 && strippedBad.length === 0, strippedBad.join(' | '))
+  check('THE WIRING CHECKS READ THE CODE: confidence.mjs as they read it is shorter than the file, and no line of it is a comment line', gateSource.length < gateText.length && !/^\s*\/\//m.test(gateSource) && !/\/\*/.test(gateSource.replace(/'[^'\n]*'|"[^"\n]*"|`[^`]*`/g, '')),
+    `${gateSource.length} of ${gateText.length} characters kept`)
+  // THE EXIT SCAN OVER LITERAL TEXTS (round 6, F-D (b), (c)): a comment that says process.exit(1) is no exit, the same call in CODE is one that is neither a usage error nor exitFor's, and an exitFor call broken over lines, closed by a
+  // trailing comma or written in another key order is the same call, while one that lost `possible`, took `possible: 0`, or took another mode is not.
+  const shapeOf = text => { const calls = exitCallsOf(stripComments(text)); return `${calls.filter(c => c === '2').length}/${calls.filter(exitForOk).length}/${JSON.stringify(calls.filter(c => c !== '2' && !exitForOk(c)))}` }
+  const EF = '{ mode: MODE, failed: n, possible, total, bar: BAR }'
+  const EXITS = [
+    ['usage and exitFor, as written today', `process.exit(2)\nprocess.exit(exitFor(${EF}))\n`, '1/1/[]'],
+    ['a comment that writes process.exit(1) and a block comment that writes process.exit(0)', `// never process.exit(1) here\n/* process.exit(0) */\nprocess.exit(exitFor(${EF}))\n`, '0/1/[]'],
+    ['control: process.exit(1) in CODE is neither', `process.exit(1)\nprocess.exit(exitFor(${EF}))\n`, '0/1/["1"]'],
+    ['control: process.exit(BROWSERLESS ? 0 : 1) in CODE', 'process.exit(BROWSERLESS ? 0 : 1)\n', '0/0/["BROWSERLESS ? 0 : 1"]'],
+    ['an exitFor call over several lines', 'process.exit(exitFor({ mode: MODE, failed: n,\n    possible, total, bar: BAR }))\n', '0/1/[]'],
+    ['an exitFor call closed by a trailing comma', 'process.exit(exitFor({\n  mode: MODE,\n  failed: n,\n  possible,\n  total,\n  bar: BAR,\n}))\n', '0/1/[]'],
+    ['an exitFor call with its keys in another order', 'process.exit(exitFor({ failed: n, bar: BAR, total, mode: MODE, possible }))\n', '0/1/[]'],
+    ['an exitFor call that lost `possible`', 'process.exit(exitFor({ mode: MODE, failed: n, total, bar: BAR }))\n', '0/0/["exitFor({ mode: MODE, failed: n, total, bar: BAR })"]'],
+    ['an exitFor call with `possible: 0`', 'process.exit(exitFor({ mode: MODE, failed: n, possible: 0, total, bar: BAR }))\n', '0/0/["exitFor({ mode: MODE, failed: n, possible: 0, total, bar: BAR })"]'],
+    ['an exitFor call for another mode', "process.exit(exitFor({ mode: 'full', failed: n, possible, total, bar: BAR }))\n", `0/0/["exitFor({ mode: 'full', failed: n, possible, total, bar: BAR })"]`],
+    ['an exitFor call with an extra key', 'process.exit(exitFor({ mode: MODE, failed: n, possible, total, bar: BAR, extra: 1 }))\n', '0/0/["exitFor({ mode: MODE, failed: n, possible, total, bar: BAR, extra: 1 })"]'],
+    ['an exitFor call with two failed keys', 'process.exit(exitFor({ mode: MODE, failed: n, failed: 0, total, bar: BAR }))\n', '0/0/["exitFor({ mode: MODE, failed: n, failed: 0, total, bar: BAR })"]'],
+  ]
+  const exitsBad = EXITS.map(([what, text, want]) => [what, shapeOf(text), want]).filter(([, got, want]) => got !== want).map(([what, got, want]) => `${what}: got ${got}, wanted ${want}`)
+  check('THE EXIT SCAN: a comment that writes process.exit is no exit and the same call in code is one; an exitFor call over lines, with a trailing comma or in another key order is the same call, and one without `possible`, with `possible: 0`, for another mode, with an extra key or two `failed` keys is not (12 literal texts; each cell is usage exits / exitFor calls / the others)',
+    EXITS.length === 12 && exitsBad.length === 0, exitsBad.join(' | '))
+  // THE MESSAGE CHECKS SAY WHICH REGEX FAILED (round 6, F-D (d)): `say` names each regex the output does not match (and each it matches and must not) with the end of the output, and `saying` is what every message check below
+  // is handed, so the check passes only when nothing was wrong and its detail leads with what was.
+  const sayOut = say('run', 'line one\nGate passed\nlast', [/Gate passed/, /Nothing was measured/], [/last/, /absent/])
+  const sayingBad = saying(true, ['x: no match for /r/'], 'detail'), sayingOk = saying(true, [], 'detail'), sayingCond = saying(false, [], 'detail')
+  check('THE MESSAGE HELPERS NAME THE REGEX: `say` gives one sentence per regex that did not match (with the end of the output) and per forbidden regex that did, none for a text that is right; `saying` is red when a sentence is there, red when its condition is, and leads its detail with the sentences',
+    sayOut.length === 2 && /^run: no match for \/Nothing was measured\/ \(the output ends "Gate passed \/ last"\)$/.test(sayOut[0]) && /^run: matches \/last\/, which it must not \(the output ends/.test(sayOut[1]) && say('r', 'abc', [/b/], [/z/]).length === 0
+      && sayingBad[0] === false && sayingBad[1] === 'x: no match for /r/ | detail' && sayingOk[0] === true && sayingOk[1] === 'detail' && sayingCond[0] === false, JSON.stringify({ sayOut, sayingBad, sayingOk, sayingCond }))
   // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, rounds 2 and 4). The wiring checks above pin where the exits are and that they go through exitFor, not what is
   // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
   // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the rows, the identity, the stranded-mutation
@@ -262,7 +372,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       check('THE IMPORT READER FINDS what confidence.mjs imports from the stand-ins today (a literal list), so an empty result cannot read as full coverage',
         Object.entries(READS).every(([m, names]) => names.every(n => found[m].includes(n))), `not found: ${Object.entries(READS).flatMap(([m, names]) => names.filter(n => !found[m].includes(n)).map(n => `${n} from ${m}`)).join(', ')}`)
       // What the scratch directory must cover is what every REAL COPY reaches, not only confidence.mjs: gate-mode.mjs imports `rows`, `ok` and `failures` from gate-checks.mjs too, and runs, as a copy, against the stand-in.
-      const reach = (sources, copied, standIns) => Object.entries(sources).flatMap(([f, src]) => uncovered(src, copied, standIns, { strings: f === 'confidence.mjs' }).map(m => `${f}: ${m}`))
+      const reach = (sources, copied, standIns) => Object.entries(sources).flatMap(([f, src]) => uncovered(stripComments(src), copied, standIns, { strings: f === 'confidence.mjs' }).map(m => `${f}: ${m}`))
       const copiedSources = Object.fromEntries(COPIED.map(f => [f, fs.readFileSync(join(here, f), 'utf8')]))
       check('THE STAND-INS COVER WHAT THE COPIED MODULES REACH (confidence.mjs, gate-mode.mjs, gate-inventory.mjs): every name any of them imports from checks.mjs, gate-checks.mjs and mutation-check.mjs is exported by that stand-in, and every module any names is a stand-in or a real copy; a new import is named here, not found as a crash in every run below',
         J(Object.keys(copiedSources)) === '["confidence.mjs","gate-mode.mjs","gate-inventory.mjs"]' && reach(copiedSources, COPIED, STANDIN_EXPORTS).length === 0, reach(copiedSources, COPIED, STANDIN_EXPORTS).join('; '))
@@ -284,6 +394,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         ['a copied module other than confidence.mjs that imports a name the stand-in lacks', { 'confidence.mjs': SRC, 'gate-mode.mjs': "import { shardedSuite } from './gate-checks.mjs'\n" }, ['gate-mode.mjs: no stand-in for: shardedSuite from gate-checks.mjs']],
         ['a copied module other than confidence.mjs that imports a module that is neither a copy nor a stand-in', { 'confidence.mjs': SRC, 'gate-mode.mjs': "import { y } from './unknown.mjs'\n" }, ['gate-mode.mjs: no stand-in or copy for module unknown.mjs']],
         ['a copied module whose self-test names a module as TEXT (not an import) is not a reach', { 'confidence.mjs': SRC, 'gate-mode.mjs': "const SRC = \"import { x } from './in-a-string.mjs'\"\n" }, []],
+        // A COMMENT IS NOT A REACH (round 6, F-D (a): a comment quoting `'./docs-helper.mjs'` was green at 9043fa75 and red after round 5), and the same text in CODE still is one.
+        ['a line comment and a block comment that quote a relative module, one with an import line inside it, are not a reach', `${SRC}// see './docs-helper.mjs'\n/* and './other.mjs',\nimport { z } from './in-a-comment.mjs'\n*/\n`, []],
+        ['a copied module whose block comment holds an import line is not a reach', { 'confidence.mjs': SRC, 'gate-mode.mjs': "/*\nimport { x } from './in-a-comment.mjs'\n*/\n" }, []],
+        ['control: the same module named in CODE after a string that holds `//` and a comment is still a reach', `${SRC}const u = 'https://example.com/a' // see './docs-helper.mjs'\nconst m = new URL('./other.mjs', import.meta.url)\n`, ['confidence.mjs: no stand-in or copy for module other.mjs']],
       ]
       const LITERAL = { copied: ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs'], standIns: { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] } }
       const results = cases.map(([what, src, want]) => [what, reach(typeof src === 'string' ? { 'confidence.mjs': src } : src, LITERAL.copied, LITERAL.standIns), want])
@@ -304,25 +418,28 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       const FOUR = ['good', 'bad', 'build', 'browser']
       // A failing row whose weight leaves the score above the bar (a weight-10 row of 1010 points: 99): only the conjunction of failing rows can keep it red.
       const red = { full: go(FOUR), quick: go(FOUR, ['--quick']), browserless: go(FOUR, ['--browserless']) }
+      const redSays = ['full', 'quick', 'browserless'].flatMap(m => say(`${m} run`, red[m].out, [/bad/]))
       check('THE REAL confidence.mjs OVER STAND-IN ROWS, with a failing row that leaves the score at 99 (above the bar): it exits 1 in every mode, names the row, and records it as failing, with the score of that mode (earned, possible, total)',
-        ['full', 'quick', 'browserless'].every(m => red[m].status === 1 && /bad/.test(red[m].out) && J(red[m].rec?.failing) === '["bad"]')
-          && J(['full', 'quick', 'browserless'].map(m => [red[m].rec?.earned, red[m].rec?.possible, red[m].rec?.total])) === '[[1000,1010,99],[990,1000,99],[995,1005,99]]',
-        J(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.earned, r.rec?.possible, r.rec?.total]]))))
+        ...saying(['full', 'quick', 'browserless'].every(m => red[m].status === 1 && J(red[m].rec?.failing) === '["bad"]')
+          && J(['full', 'quick', 'browserless'].map(m => [red[m].rec?.earned, red[m].rec?.possible, red[m].rec?.total])) === '[[1000,1010,99],[990,1000,99],[995,1005,99]]', redSays,
+        J(Object.fromEntries(Object.entries(red).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.earned, r.rec?.possible, r.rec?.total]])))))
       const thrown = go(['good', 'boom'])
       check('...a row that THROWS is a failing row, recorded and exited on like any other (the gate does not crash on it)', thrown.status === 1 && J(thrown.rec?.failing) === '["boom"]', `exit ${thrown.status}; ${thrown.out.slice(-300)}`)
       const na = go(['good', 'na'])
       check('...a row with no subject on this run (NOT_APPLICABLE) is out of the score, named in the record, and is no failure: 990 possible, exit 0', na.status === 0 && na.rec?.possible === 990 && J(na.rec?.notApplicable) === '["na"]' && J(na.rec?.failing) === '[]', `exit ${na.status}; ${J([na.rec?.possible, na.rec?.notApplicable])} ${na.out.slice(-300)}`)
       // A ROW PASSES ONLY BY RETURNING true (round 4, finding 11): an async row, a string, a number and an object are truthy and were scored as passes; undefined is falsy and always failed.
       const nonBool = Object.fromEntries(['async', 'string', 'number', 'object', 'undef'].map(n => [n, go(['good', n])]))
+      const truthySays = [['async', 'object'], ['string', 'string'], ['number', 'number']].flatMap(([n, type]) => say(`row ${n}`, nonBool[n].out, [new RegExp(`\\(returned ${type}, which is not true`)]))
       check('A ROW THAT RETURNS A TRUTHY VALUE THAT IS NOT true IS A FAILING ROW: an async function (a Promise), a string, a number and an object each exit 1 and are recorded as failing, and the line says what was returned',
-        Object.entries(nonBool).every(([n, r]) => r.status === 1 && J(r.rec?.failing) === J([n])) && /\(returned object, which is not true/.test(nonBool.async.out) && /\(returned string, which is not true/.test(nonBool.string.out) && /\(returned number, which is not true/.test(nonBool.number.out),
-        J(Object.fromEntries(Object.entries(nonBool).map(([n, r]) => [n, [r.status, r.rec?.failing]]))))
+        ...saying(Object.entries(nonBool).every(([n, r]) => r.status === 1 && J(r.rec?.failing) === J([n])), truthySays,
+        J(Object.fromEntries(Object.entries(nonBool).map(([n, r]) => [n, [r.status, r.rec?.failing]])))))
       // A RUN THAT MEASURED NOTHING (0 points possible) is a failure in EVERY mode, says 0 and not NaN, and says why (round 4, finding 8; round 5, finding A8): the guard in confidence.mjs, the exit in exitFor and
       // the refusal's own line are each pinned. `--quick` is the mode that exited 0 over it: it skipped rows, so the bar is not asked of it, and every row here is skipped (`build`, `browser`) or not applicable (`na`).
       const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']), blBrowser: go(['browser'], ['--browserless']), quickSkipped: go(['build', 'browser'], ['--quick']), quickNa: go(['na', 'na2'], ['--quick']) }
+      const nothingSays = r => ['full', 'browserless', 'blBrowser', 'quickSkipped', 'quickNa'].flatMap(m => say(m, r[m].out, [/0\/0 points = 0\/100/, /Nothing was measured: 0 points possible/], [/Gate passed/, /No failures among/]))
       check('A RUN THAT MEASURED NOTHING (every row skipped or not applicable, 0 points possible) EXITS 1 in full, in browserless and in --quick, records a total of 0 (not NaN), prints `0/0 points = 0/100` and `Nothing was measured`, and never says the gate passed or that no row failed',
-        Object.values(nothing).every(r => r.status === 1 && r.rec?.possible === 0 && r.rec?.total === 0 && /0\/0 points = 0\/100/.test(r.out) && /Nothing was measured: 0 points possible/.test(r.out) && !/Gate passed/.test(r.out) && !/No failures among/.test(r.out)),
-        J(Object.fromEntries(Object.entries(nothing).map(([m, r]) => [m, [r.status, r.rec?.possible, r.rec?.total]]))))
+        ...saying(Object.values(nothing).every(r => r.status === 1 && r.rec?.possible === 0 && r.rec?.total === 0), nothingSays(nothing),
+        J(Object.fromEntries(Object.entries(nothing).map(([m, r]) => [m, [r.status, r.rec?.possible, r.rec?.total]])))))
       // A FAILING ROW IS RED WHATEVER FLAGS IT CARRIES (round 4, finding 9): `sq` is skipQuick without browser (the F# build and compiler-verified doc rows are such), `br` is skipQuick and browser.
       const sq = { full: go(['good', 'sq', 'browser']), browserless: go(['good', 'sq', 'browser'], ['--browserless']), quick: go(['good', 'sq', 'browser'], ['--quick']) }
       const br = { full: go(['good', 'br']), browserless: go(['good', 'br'], ['--browserless']), quick: go(['good', 'br'], ['--quick']) }
@@ -351,21 +468,23 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         J(realWeights) === '[10,20,30]' && J(['bad', 'q20', 'fq'].map(weightOf)) === J(realWeights) && J(['bad', 'q20', 'sq', 'fb'].map(weightOf).sort((a, b) => a - b)) === J([10, 20, 20, 30]),
         `real weights ${J(realWeights)} (pinned [10,20,30]); the stand-ins bad, q20 and fq weigh ${J(['bad', 'q20', 'fq'].map(weightOf))}. A row of a weight that is not on the list needs a failing stand-in of that weight in the ROW table of this self-test, and the list here changed with it`)
       const green = { full: go(['good', 'build', 'browser']), quick: go(['good', 'build', 'browser'], ['--quick']), browserless: go(['good', 'build', 'browser'], ['--browserless']) }
+      const greenSays = [...say('full run', green.full.out, [/Gate passed/]), ...say('quick run', green.quick.out, [/NOT a pass/]), ...say('browserless run', green.browserless.out, [/NOT a pass/])]
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
-        ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
-          && J(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full' && green.quick.rec?.mode === 'quick',
-        J(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]]))))
+        ...saying(['full', 'quick', 'browserless'].every(m => green[m].status === 0)
+          && J(green.browserless.rec?.notApplicable) === '["browser"]' && green.browserless.rec?.mode === 'browserless' && /-browserless$/.test(green.browserless.rec?.id ?? '') && green.full.rec?.mode === 'full' && green.quick.rec?.mode === 'quick', greenSays,
+        J(Object.fromEntries(Object.entries(green).map(([m, r]) => [m, [r.status, r.rec?.mode, r.rec?.notApplicable]])))))
       // WHAT EACH MODE RUNS is observable, not only what it records (round 4, finding 12): a row that must not run is not called.
       check('WHAT A MODE RUNS: full calls all three rows, quick calls only the one that is neither browser nor build, browserless calls everything but the browser row (the build row included)',
         J(green.full.ran) === '["good","build","browser"]' && J(green.quick.ran) === '["good"]' && J(green.browserless.ran) === '["good","build"]', J({ full: green.full.ran, quick: green.quick.ran, browserless: green.browserless.ran }))
       // THE RECORD'S SCORE AND IDENTITY (round 4, finding 10): earned, possible, total and the identity the stand-in reports, dirty and clean.
       const dirty = go(['good', 'build', 'browser'], [], { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' })
       const dirtyBl = go(['good', 'build', 'browser'], ['--browserless'], { STANDIN_ID: 'run-xyz' })
+      const dirtySays = [...say('dirty run', dirty.out, [/\(tree dirty\)/]), ...say('clean run', green.full.out, [], [/\(tree dirty\)/])]
       check('THE RECORD CARRIES WHAT WAS MEASURED: score (earned, possible, total), the sha and id the run had, whether the tree was dirty (and the line says so), seconds and a per-row duration for every row that ran and none for a skipped one; a browserless run\'s id has its suffix',
-        J([green.full.rec?.earned, green.full.rec?.possible, green.full.rec?.total]) === '[1000,1000,100]' && green.full.rec?.dirty === false && green.full.rec?.sha === 'a'.repeat(40) && green.full.rec?.id === 'standin'
-          && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
-          && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
-        J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
+        ...saying(J([green.full.rec?.earned, green.full.rec?.possible, green.full.rec?.total]) === '[1000,1000,100]' && green.full.rec?.dirty === false && green.full.rec?.sha === 'a'.repeat(40) && green.full.rec?.id === 'standin'
+          && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && dirtyBl.rec?.id === 'run-xyz-browserless'
+          && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]', dirtySays,
+        J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id })))
       // THE RENDER SERVER (round 5, finding A12). `ok` is stood in for by a function that logs the command and answers true, so the only call it gets is the gate's own probe of :8080 (`needsServer`): a full
       // run asks whether anything listens (and, here, hears yes, so nothing is spawned), a `--quick` run, which skips every browser row, does not ask. `needsServer = true` costs `--quick` a probe and, where
       // nothing listens, a spawned server and up to 20 s; `needsServer = false` leaves the render rows to fail for want of a server. A browserless run is left unpinned: it runs no browser row, and whether it
@@ -377,10 +496,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       // Nothing reads them today (scripts/confidence-record-check.mjs refuses any citation of a run whose mode is not `full`), so this pins what a record SAYS, not what a verdict does.
       const IDENT = { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' }
       const ident = { quick: go(['good', 'build', 'browser'], ['--quick'], IDENT), browserless: go(['good', 'build', 'browser'], ['--browserless'], IDENT) }
+      const identSays = ['quick', 'browserless'].flatMap(m => [...say(`${m} on a dirty tree`, ident[m].out, [/\(tree dirty\)/]), ...say(`${m} on a clean tree`, green[m].out, [], [/\(tree dirty\)/])])
       check('THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE: on a dirty tree --quick and --browserless record `dirty: true`, the sha and the id the run had (browserless under its suffix) and say `(tree dirty)`; on a clean tree they record `dirty: false` and that sha',
-        ['quick', 'browserless'].every(m => ident[m].rec?.dirty === true && ident[m].rec?.sha === 'b'.repeat(40) && /\(tree dirty\)/.test(ident[m].out) && green[m].rec?.dirty === false && green[m].rec?.sha === 'a'.repeat(40) && !/\(tree dirty\)/.test(green[m].out))
-          && ident.quick.rec?.id === 'run-xyz' && ident.browserless.rec?.id === 'run-xyz-browserless',
-        J(Object.fromEntries(['quick', 'browserless'].map(m => [m, [ident[m].rec?.dirty, ident[m].rec?.sha, ident[m].rec?.id, green[m].rec?.dirty, green[m].rec?.sha]]))))
+        ...saying(['quick', 'browserless'].every(m => ident[m].rec?.dirty === true && ident[m].rec?.sha === 'b'.repeat(40) && green[m].rec?.dirty === false && green[m].rec?.sha === 'a'.repeat(40))
+          && ident.quick.rec?.id === 'run-xyz' && ident.browserless.rec?.id === 'run-xyz-browserless', identSays,
+        J(Object.fromEntries(['quick', 'browserless'].map(m => [m, [ident[m].rec?.dirty, ident[m].rec?.sha, ident[m].rec?.id, green[m].rec?.dirty, green[m].rec?.sha]])))))
       // THE INVENTORY REFUSAL, by the REAL comparison (round 4, finding 13; round 5, finding A13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing
       // recorded or run. The inventory is read from a file this test writes and compared by the real `diffAgainst`, so each way the two can differ is its own run, and the arguments of the call are observable:
       // `diffAgainst(rows, rows)` finds nothing wrong anywhere, `diffAgainst(readInventory(), [])` refuses every gate, and swapped arguments name MISSING for UNDECLARED.
@@ -389,17 +509,40 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         quick: go(['good', 'build'], ['--quick'], {}, ['990 good', '5 build', '7 ghost']), browserless: go(['good', 'build'], ['--browserless'], {}, ['990 good', '5 build', '7 ghost']),
         weightless: go(['good', 'noweight'], [], {}, ['990 good']),
       }
-      const refused = (r, what) => r.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(r.out) && what.test(r.out) && /Refusing to score/.test(r.out) && r.rec === null && r.ran.length === 0
+      const refusedSays = (label, r, what) => [...(r.status === 2 ? [] : [`${label}: exit ${r.status}, wanted 2`]), ...say(label, r.out, [/The gate does not match docs\/gate-rows\.txt/, what, /Refusing to score/]),
+        ...(r.rec === null ? [] : [`${label}: a record was written`]), ...(r.ran.length === 0 ? [] : [`${label}: rows ran ${J(r.ran)}`])]
+      const inventorySays = r => [...refusedSays('lacks', r.lacks, /MISSING row "ghost" \(7 pts\)/), ...refusedSays('extra', r.extra, /UNDECLARED row "build" \(5 pts\)/), ...refusedSays('weight', r.weight, /WEIGHT changed for "build": declared 6, gate has 5/),
+        ...refusedSays('quick', r.quick, /MISSING row "ghost" \(7 pts\)/), ...refusedSays('browserless', r.browserless, /MISSING row "ghost" \(7 pts\)/)]
       check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED, by the real comparison: a row the inventory has and the gate lacks (MISSING), a row the gate has and the inventory lacks (UNDECLARED), a weight that differs (WEIGHT changed), in every mode: each exit 2, named, `Refusing to score`, no row run, nothing recorded',
-        refused(refusal.lacks, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.extra, /UNDECLARED row "build" \(5 pts\)/) && refused(refusal.weight, /WEIGHT changed for "build": declared 6, gate has 5/)
-          && refused(refusal.quick, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.browserless, /MISSING row "ghost" \(7 pts\)/),
-        J(Object.fromEntries(Object.entries(refusal).map(([k, r]) => [k, [r.status, r.out.split('\n').filter(l => /ghost|build/.test(l)).map(l => l.trim()), r.rec === null, r.ran]]))))
+        ...saying(true, inventorySays(refusal),
+        J(Object.fromEntries(Object.entries(refusal).map(([k, r]) => [k, [r.status, r.out.split('\n').filter(l => /ghost|build/.test(l)).map(l => l.trim()), r.rec === null, r.ran]])))))
       // A row with no weight is the NaN `possible` of finding A8: through the real gate it never reaches scoring, because the inventory cannot declare it (`undefined !== 5`), and the refusal is exit 2.
       const ordered = go(['good', 'build'], [], {}, ['5 build', '990 good'])
       check('...a row with no weight (the NaN `possible` of A8) is refused here as UNDECLARED, before anything is scored; and the same rows declared in another order are no mismatch (rows are compared by name)',
-        refused(refusal.weightless, /UNDECLARED row "noweight" \(undefined pts\)/) && ordered.status === 0 && J(ordered.ran) === '["good","build"]', `weightless: ${refusal.weightless.status} ${refusal.weightless.out.slice(-200)}; reordered: ${ordered.status}`)
+        ...saying(ordered.status === 0 && J(ordered.ran) === '["good","build"]', refusedSays('weightless', refusal.weightless, /UNDECLARED row "noweight" \(undefined pts\)/), `weightless: ${refusal.weightless.status} ${refusal.weightless.out.slice(-200)}; reordered: ${ordered.status}`))
       const both = go(['good'], ['--quick', '--browserless'])
       check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null && both.ran.length === 0, `exit ${both.status}; ${both.out.slice(-200)}`)
+      // A REWORDED MESSAGE IS A RED THAT NAMES THE REGEX, RUN FOR REAL (round 6, F-D (d): a reworded `Nothing was measured:` or inventory heading printed statuses and records and not the regex that failed). The scratch copy of
+      // confidence.mjs is edited in two messages (each must occur once in the file, or this says so), the scenarios of the two message checks are run over it, and the SAME `nothingSays` and `inventorySays` the checks
+      // above use are read: each scenario names its regex. The real copy is put back.
+      const realConfidence = fs.readFileSync(join(scratch, 'scripts', 'confidence.mjs'), 'utf8')
+      const REWORD = [['Nothing was measured:', 'Measured nothing:'], ['The gate does not match ${INVENTORY_PATH}', 'This gate is not ${INVENTORY_PATH}']]
+      const onceEach = REWORD.map(([from]) => realConfidence.split(from).length - 1)
+      let reworded = null
+      if (onceEach.every(n => n === 1)) {
+        fs.writeFileSync(join(scratch, 'scripts', 'confidence.mjs'), REWORD.reduce((t, [from, to]) => t.replace(from, () => to), realConfidence))
+        try {
+          const inv = ['990 good', '5 build', '7 ghost']
+          reworded = {
+            nothing: nothingSays({ full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']), blBrowser: go(['browser'], ['--browserless']), quickSkipped: go(['build', 'browser'], ['--quick']), quickNa: go(['na', 'na2'], ['--quick']) }),
+            refusal: inventorySays({ lacks: go(['good', 'build'], [], {}, inv), extra: go(['good', 'build'], [], {}, ['990 good']), weight: go(['good', 'build'], [], {}, ['990 good', '6 build']), quick: go(['good', 'build'], ['--quick'], {}, inv), browserless: go(['good', 'build'], ['--browserless'], {}, inv) }),
+          }
+        } finally { fs.writeFileSync(join(scratch, 'scripts', 'confidence.mjs'), realConfidence) }
+      }
+      check('A REWORDED MESSAGE NAMES THE REGEX THAT DID NOT MATCH, run through the real confidence.mjs: with `Nothing was measured:` reworded each of the five scenarios of the nothing-measured check says `no match for /Nothing was measured: 0 points possible/`, and with the inventory heading reworded each of the five refusals says `no match for /The gate does not match docs\\/gate-rows\\.txt/`',
+        reworded !== null && reworded.nothing.filter(x => x.includes('no match for /Nothing was measured: 0 points possible/')).length === 5 && reworded.refusal.filter(x => x.includes('no match for /The gate does not match docs\\/gate-rows\\.txt/')).length === 5
+          && saying(true, reworded.nothing, '')[0] === false && saying(true, reworded.refusal, '')[0] === false,
+        reworded === null ? `each message must occur once in confidence.mjs (REWORD, in this self-test, holds the two it rewords: change it with the message and with the regexes of the check that reads it): ${JSON.stringify(REWORD.map(([from], i) => [from, onceEach[i]]))}` : JSON.stringify({ nothing: reworded.nothing.length, refusal: reworded.refusal.length, first: [reworded.nothing[0], reworded.refusal[0]] }))
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
   }
   finish(summarize())
