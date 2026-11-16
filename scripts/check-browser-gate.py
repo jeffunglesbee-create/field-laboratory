@@ -263,11 +263,12 @@ COMMAND_REDIRECTS = (">>", "<<<", ">&", "<&", ">", "<")
 _SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)", "&": r"(?<![<>])&(?!>)"}                      # a `&` is a separator, not the `&` of `2>&1`, `>&2`, `<&0` or `&>file`
 _CHAR = r"""(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')"""                                                       # one character of a shell word: a bare one, or a whole quoted string
 _ARM_WORD = r"""[^\s;|&()<>`]+"""
+_ASSIGN_VALUE = r"""(?:""" + _CHAR + r"""|\$\([^()]*\)|`[^`]*`)*"""                                          # the value of a `VAR=value` prefix: a word, or a `$( )` or a backtick pair that holds no parenthesis of its own (review of 945daddf, P1: `STAMP=$(date +%s) npm run x`)
 _CASE_ARM = r"(?:^|" + "|".join(rf"\b{w}\b" if w.isalpha() else re.escape(w) for w in COMMAND_CASE_STARTS) + r")\s*\(?" + _ARM_WORD + r"(?:\|" + _ARM_WORD + r")*\)"
 _REDIRECT = r"\d*(?:" + "|".join(re.escape(r) for r in COMMAND_REDIRECTS) + r")\s*" + _CHAR + r"+\s+"
 COMMAND_HEAD = re.compile(
     r"""(?:""" + _CASE_ARM + "|^|" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
-    r"""(?:[A-Za-z_]\w*=""" + _CHAR + r"""*\s+|""" + _REDIRECT + r""")*["']*"""                              # VAR=value words (quoted values too), leading redirections, and a quote before the head
+    r"""(?:[A-Za-z_]\w*=""" + _ASSIGN_VALUE + r"""\s+|""" + _REDIRECT + r""")*["']*"""                              # VAR=value words (quoted values too), leading redirections, and a quote before the head
     r"""(?!(?:""" + "|".join(COMMAND_SEP_WORDS) + r""")\b|[{!](?:\s|$))([^\s;|&()<>`"']+)""")
 # An arithmetic expansion, `$((attempt * 3))`: only names, numbers, `$name` and the operators, so it runs nothing and cannot hold a substitution. It is replaced by `0` before a line is split or searched for heads.
 ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
@@ -3322,6 +3323,17 @@ def self_test():
                                     ('echo "$(date)" > /dev/null; >/dev/null timeout 5 ./x.sh', ">/dev/null timeout 5 ./x.sh", "cannot be read")]:
         check(f"A21/A22: `{unreadable}` (a launcher after a case pattern or a leading redirect, on a line the splitter cannot read) is refused, as its plain form `{plain}` is (the review's four inputs, each with its control)",
               refused(unreadable) and any_of(said, unread(plain)[0]) and unread(plain)[1]["opaque"] == 0, (unread(unreadable), unread(plain)))
+    # ROUND 6 (review of 945daddf, P1). A `VAR=value` prefix whose value is a `$( )` or a backtick pair is a prefix like any other: the command after it is a head. `_CHAR` has no `(`, so `STAMP=$(date +%s) npm run x`
+    # read as the word `STAMP=$` and the launcher after it was never a head (a false green on a line that is already unreadable because of a quoted substitution).
+    PINNED_ASSIGN_SUBST = [('echo "at $(date)"; STAMP=$(date +%s) npm run shot', "npm"), ('echo "$(date)"; FOO=$(date) timeout 5 ./x.sh', "timeout"), ('echo "$(date)"; X=`date` npm run shot', "npm"),
+                           ('STAMP=$(date +%s) npm run shot -- --out "outbox/$(date +%s).json"', "npm"), ('echo "$(date)"; A=1 B=$(date +%s) C=`id` xvfb-run -a ./x.sh', "xvfb-run"),
+                           ('echo "$(date)" | STAMP=$(date +%s) timeout 5 ./x.sh', "timeout")]
+    for text, head in PINNED_ASSIGN_SUBST:
+        check(f"round 6 (P1): the command after a `VAR=$( )` or `VAR=`...`` prefix is a head (`{text}`), and the line is refused, not kept as opaque",
+              any(h == head for h, _ in command_heads(text)) and hides_a_launcher([], text) is True and refused(text), (command_heads(text), refused(text)))
+    check("round 6 (P1): ...while a substitution in the value of a prefix whose command is a text tool stays kept as opaque (`echo \"$(date)\"; X=$(date) cat f`), and the plain forms read as before",
+          kept('echo "$(date)"; X=$(date) cat f') and [h for h, _ in command_heads("X=1 npm run x")] == ["npm"] and [h for h, _ in command_heads("echo x")] == ["echo"],
+          (kept('echo "$(date)"; X=$(date) cat f'), command_heads("X=1 npm run x")))
     check("A21/A22: a redirect AFTER the command is no start (`echo x >/dev/null` has the one head `echo` and is read clean), and a word after a `$( )` is no case pattern's command (`echo $(date) now` has no head `now`)",
           [h for h, _ in command_heads("echo x >/dev/null")] == ["echo"] and [h for h, _ in command_heads("echo $(date) now")] == ["echo", "date"] and unread("echo x >/dev/null")[0] == [], unread("echo x >/dev/null")[0])
     for cmd in ('echo "$(date)" > /dev/null', 'echo "$(date)"; > file', 'case "$(date)" in *) echo x ;; esac', 'case "$(date)" in a|b) echo "$(date)" ;; *) echo y ;; esac',

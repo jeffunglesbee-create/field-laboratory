@@ -9403,6 +9403,14 @@ const MUTATIONS = [
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
+    id: "browser-gate-assign-prefix-substitution",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `VAR=$( )` or `VAR=`...`` prefix hides the command after it again: `STAMP=$(date +%s) npm run shot` on an unreadable always() line is kept as opaque (the value of an assignment prefix is read as a word without a substitution)",
+    find: "_ASSIGN_VALUE = r\"\"\"(?:\"\"\" + _CHAR + r\"\"\"|\\$\\([^()]*\\)|`[^`]*`)*\"\"\"",
+    replace: "_ASSIGN_VALUE = r\"\"\"(?:\"\"\" + _CHAR + r\"\"\")*\"\"\"",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
     id: "browser-gate-importer-use-dot-whitespace",
     file: "scripts/check-browser-gate.py",
     claim: "an importer of rows whose method call has the dot on the next line (`rows\\n  .push(x)`) or spaces around it reads as clean (the pattern needs the dot glued to the name)",
