@@ -399,11 +399,15 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const orderDir = join(dir, 'order')
     mkdirSync(join(orderDir, 'scripts'), { recursive: true })
     const stamp = n => `import { appendFileSync } from 'node:fs'\nconst t0 = Date.now()\nawait new Promise(r => setTimeout(r, 300))\nappendFileSync(${JSON.stringify(join(orderDir, 'order.log'))}, ${JSON.stringify(n)} + ' ' + t0 + ' ' + Date.now() + '\\n')\n`
-    for (const n of ['mutation-check', 'l0', 'l1', 'l2', 'l3']) writeFileSync(join(orderDir, 'scripts', `${n}.mjs`), stamp(n))
-    await measure({ cmds: ['l0', 'l1', 'mutation-check', 'l2', 'l3'].map(n => ({ cmd: [process.execPath, `scripts/${n}.mjs`], why: 'self-test' })), trap: trap2, dir: join(dir, 'order-run'), width: 4, floor: 1, cwd: orderDir, say: () => {} })
+    // The two HEAVY commands are the harness's and the compile watcher's (round 5, A6: `Promise.all` over them left the self-test green, and the probe printed overlap=true): both are listed, apart, among four others.
+    for (const n of ['mutation-check', 'mutation-lib', 'l0', 'l1', 'l2', 'l3']) writeFileSync(join(orderDir, 'scripts', `${n}.mjs`), stamp(n))
+    await measure({ cmds: ['l0', 'mutation-check', 'l1', 'mutation-lib', 'l2', 'l3'].map(n => ({ cmd: [process.execPath, `scripts/${n}.mjs`], why: 'self-test' })), trap: trap2, dir: join(dir, 'order-run'), width: 4, floor: 1, cwd: orderDir, say: () => {} })
     const stamps = Object.fromEntries(readFileSync(join(orderDir, 'order.log'), 'utf8').split('\n').filter(Boolean).map(l => { const [n, a, b] = l.split(' '); return [n, [Number(a), Number(b)]] }))
-    check('THE HARNESS\'S COMMAND IS MEASURED FIRST AND ALONE: of five commands it started first, ended, and only then did the others start',
-      Object.keys(stamps).length === 5 && ['l0', 'l1', 'l2', 'l3'].every(n => stamps[n][0] >= stamps['mutation-check'][1]), JSON.stringify(stamps))
+    const heavyEnd = Math.max(stamps['mutation-check'][1], stamps['mutation-lib'][1])
+    check('THE HARNESS\'S COMMAND IS MEASURED FIRST AND ALONE: of six commands the two heavy ones started first, ended, and only then did the other four start',
+      Object.keys(stamps).length === 6 && ['l0', 'l1', 'l2', 'l3'].every(n => stamps[n][0] >= heavyEnd), JSON.stringify(stamps))
+    check('THE TWO HEAVY COMMANDS ARE NOT MEASURED AT THE SAME TIME EITHER: one ended before the other started (300 ms each, so an overlap is 300 ms long)',
+      stamps['mutation-check'][1] <= stamps['mutation-lib'][0] || stamps['mutation-lib'][1] <= stamps['mutation-check'][0], JSON.stringify(stamps))
     // THE LABEL OF EACH COMMAND IS THE VERDICT'S (round 5, A2): a SIGKILLed command printed `ok` under a label of its own that read `!r.exit`. Three commands, one each way of ending, through measure()'s own output.
     const printed = []
     const labelled = await measure({ cmds: [

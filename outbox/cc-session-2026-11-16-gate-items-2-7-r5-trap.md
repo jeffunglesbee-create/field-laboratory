@@ -21,3 +21,15 @@ Red on purpose (self-test run of the mutation on a scratch copy, then the harnes
 - `no-launch-check-incomplete-ignored` and `no-launch-check-signal-exit-read-as-clean`, existing entries re-anchored on `isClean` (their old anchors, `else if (r.exit !== 0)`, no longer exist): 32/38 and 33/38, red by `MUTATION: a command that did not complete...` and `isClean: ...`. `PASS  [no-launch-check-incomplete-ignored] ...`, `PASS  [no-launch-check-signal-exit-read-as-clean] ...`
 
 Self-test after: 37/38 (the build/ check is the one failure; 36 checks before this commit, plus the isClean table and the label fixture). `node scripts/mutation-check.mjs --anchors`: `checked 1668 of 1671 mutation anchors; 0 stale`.
+
+## Commit 2, A6: the two heavy commands are not measured at the same time either
+
+Class: REACHABLE as a careless edit, red-not-green (a timing flake, as the reviewer rated it): `for (const c of heavy) {...}` replaced by `await Promise.all(heavy.map(...))` left the self-test at 35/36 and the reviewer's probe printed `overlap=true`. The order fixture listed one heavy name only.
+
+Change: none in the code (the loop is serial by construction; the fixture is what was missing). The order fixture now holds BOTH heavy commands (`scripts/mutation-check.mjs` and `scripts/mutation-lib.mjs` stand-ins, 300 ms each, each appending its own start and end to one shared log), listed apart among four others. Checks: the four others started only after BOTH heavy ones ended (was: after one), and one heavy interval ended before the other began.
+
+Red on purpose:
+- `no-launch-check-heavy-overlap` (new; the `for` replaced by `Promise.all`, the reviewer's 6e): 37/39, red by `THE TWO HEAVY COMMANDS ARE NOT MEASURED AT THE SAME TIME EITHER` and by nothing else (the old first-and-alone check stays green under it, as the reviewer saw). `PASS  [no-launch-check-heavy-overlap] the heavy commands are measured one at a time, not at the same time as each other`
+- the two existing entries still red, now by checks that read both heavy commands: `no-launch-check-heavy-in-the-pool` 36/39 (`THE HARNESS'S COMMAND IS MEASURED FIRST AND ALONE`, and the new check), `no-launch-check-heavy-misses-lib` 36/39. `PASS  [no-launch-check-heavy-in-the-pool] ...`, `PASS  [no-launch-check-heavy-misses-lib] ...`
+
+Self-test after: 38/39 (build/ check the one failure). Anchors: `checked 1669 of 1672 mutation anchors; 0 stale`.

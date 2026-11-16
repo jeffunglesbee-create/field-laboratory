@@ -14124,6 +14124,14 @@ const MUTATIONS = [
     expect: "node scripts/no-launch-check.mjs --self-test",
   },
   {
+    id: "no-launch-check-heavy-overlap",
+    file: "scripts/no-launch-check.mjs",
+    claim: "the heavy commands are measured one at a time, not at the same time as each other",
+    find: "  for (const c of heavy) { const r = await runTrapped(c.cmd, trap, results.length, cwd); results.push(r); show(c, r) }",
+    replace: "  await Promise.all(heavy.map(async (c, i) => { const r = await runTrapped(c.cmd, trap, i, cwd); results.push(r); show(c, r) }))",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
     id: "gate-mode-confidence-row-throw-uncaught",
     file: "scripts/confidence.mjs",
     claim: "a row that throws is a failing row, not a crash of the gate",
