@@ -148,19 +148,23 @@ export function nodeOptionsReplacers(dir, skip = ['no-launch-check.mjs']) {
   return { files: files.length, offenders }
 }
 
-/** The verdict from the measurements: ok only when every command exited 0 with no launch, every control saw one, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned) no script replaces NODE_OPTIONS. */
+/** THE ONE DEFINITION of a clean command: it exited 0 (a command killed by a signal has no exit status at all, `null`, and the timeout path is exactly that) and attempted no launch. The per-command label,
+ *  the problems of the verdict and the count in its closing line are all read through this, so they cannot disagree (round 5, A2: the label had an expression of its own, and a killed command printed `ok`). */
+export const isClean = r => r.exit === 0 && r.launches.length === 0
+
+/** The verdict from the measurements: ok only when every command is clean (isClean), every control saw a launch, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned) no script replaces NODE_OPTIONS. */
 export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = null, expected = null) {
   const problems = []
   if (results.length < minCommands) problems.push(`only ${results.length} command(s) were measured, fewer than the ${minCommands} this check expects: the list is not trustworthy`)
   if (expected !== null && results.length !== expected) problems.push(`the guard listed ${results.length} command(s) and this check pins ${expected} (EXPECTED_COMMANDS): a command that drops out of the list is no longer measured, one that joins it is not yet pinned; change the pin with the step that changed the list`)
   const blind = controls.filter(c => c.launches.length === 0)
   if (blind.length) problems.push(`the instrument cannot see a launch: ${blind.map(c => c.name).join(', ')} left no line in the log (NOT ESTABLISHED)`)
-  for (const r of results) {
+  for (const r of results.filter(x => !isClean(x))) {
     if (r.launches.length) problems.push(`\`${r.cmd.join(' ')}\` attempted a browser launch (${[...new Set(r.launches)].join(', ')})`)
-    else if (r.exit !== 0) problems.push(`\`${r.cmd.join(' ')}\` did not complete (exit ${r.exit}${r.signal ? `, ${r.signal}` : ''}: ${r.last.slice(0, 120)}), so it is not established that it launches nothing`)
+    else problems.push(`\`${r.cmd.join(' ')}\` did not complete (exit ${r.exit}${r.signal ? `, ${r.signal}` : ''}: ${r.last.slice(0, 120)}), so it is not established that it launches nothing`)
   }
   for (const o of scan?.offenders ?? []) problems.push(`${o} starts a child with a NODE_OPTIONS that replaces the inherited one, so the trap does not reach it (append: \`\${process.env.NODE_OPTIONS ?? ''} --require ...\`)`)
-  const clean = results.filter(r => r.exit === 0 && r.launches.length === 0).length
+  const clean = results.filter(isClean).length
   const line = `checked ${results.length} of ${results.length} commands: ${clean} exited 0 with 0 launches; controls: ${controls.length - blind.length} of ${controls.length} saw a launch`
     + (expected !== null ? `; the guard's list is the pinned ${expected}` : '')
     + (scan ? `; scanned ${scan.files} scripts for a NODE_OPTIONS that replaces the trap's: ${scan.offenders.length} found (.mjs/.cjs/.js under scripts/, this file and .py/.sh excepted)` : '')
@@ -196,7 +200,7 @@ export async function measure({ cmds, trap, dir, width, floor = MIN_COMMANDS, ex
   // The commands that start many processes of their own and wait on timings run first and alone; the rest run a few at a time.
   const heavy = cmds.filter(c => HEAVY.has(c.cmd[1])), light = cmds.filter(c => !HEAVY.has(c.cmd[1]))
   const results = []
-  const show = (c, r) => say(`  ${r.exit === 0 && !r.launches.length ? 'ok      ' : 'PROBLEM '}[${c.why}] ${c.cmd.join(' ')}  (exit ${r.exit}; ${r.launches.length} launch(es); ${r.seconds.toFixed(1)} s)`)
+  const show = (c, r) => say(`  ${isClean(r) ? 'ok      ' : 'PROBLEM '}[${c.why}] ${c.cmd.join(' ')}  (exit ${r.exit}; ${r.launches.length} launch(es); ${r.seconds.toFixed(1)} s)`)
   for (const c of heavy) { const r = await runTrapped(c.cmd, trap, results.length, cwd); results.push(r); show(c, r) }
   const rest = await pool(light, width, async (c, i) => { const r = await runTrapped(c.cmd, trap, heavy.length + i, cwd); show(c, r); return r })
   results.push(...rest)
@@ -299,6 +303,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('a scanned scripts directory is part of the verdict: an offender makes it not ok, and the line says how many scripts were scanned',
       !verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).ok && /NODE_OPTIONS that replaces/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: ['scripts/x.mjs:3'] }).problems[0])
         && verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).ok && /scanned 5 scripts for a NODE_OPTIONS that replaces the trap's: 0 found/.test(verdictOf(mk(30), okControls, 20, { files: 5, offenders: [] }).line))
+    // THE ONE DEFINITION OF A CLEAN COMMAND (round 5, A2): the label, the problems and the closing count are read through isClean. A LITERAL table, one row per way a command can end.
+    const CLEAN_CASES = [[{ exit: 0, signal: null, launches: [] }, true], [{ exit: null, signal: 'SIGKILL', launches: [] }, false], [{ exit: 1, signal: null, launches: [] }, false], [{ exit: 0, signal: null, launches: ['chromium.launch'] }, false], [{ exit: 3, signal: null, launches: ['chromium.launch'] }, false], [{ exit: null, signal: 'SIGTERM', launches: ['firefox.launch'] }, false]]
+    check('isClean: exit 0 with no launch is clean, and a signal (exit null), a non-zero exit and a launch are each not (6 rows)', CLEAN_CASES.map(([r]) => isClean(r)).join() === 'true,false,false,false,false,false' && CLEAN_CASES.length === 6, CLEAN_CASES.map(([r]) => isClean(r)).join())
     // A COMMAND KILLED BY A SIGNAL has no exit status at all (`null`), and the timeout path is exactly that: it is not a clean command, whatever a comparison with 0 makes of null (round 4, finding 2: `r.exit > 0`
     // and `exit ?? 0` left the self-test green with a killed command read as ok).
     const killed = await run(put('killed.mjs', `process.kill(process.pid, 'SIGKILL')\n`))
@@ -397,6 +404,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const stamps = Object.fromEntries(readFileSync(join(orderDir, 'order.log'), 'utf8').split('\n').filter(Boolean).map(l => { const [n, a, b] = l.split(' '); return [n, [Number(a), Number(b)]] }))
     check('THE HARNESS\'S COMMAND IS MEASURED FIRST AND ALONE: of five commands it started first, ended, and only then did the others start',
       Object.keys(stamps).length === 5 && ['l0', 'l1', 'l2', 'l3'].every(n => stamps[n][0] >= stamps['mutation-check'][1]), JSON.stringify(stamps))
+    // THE LABEL OF EACH COMMAND IS THE VERDICT'S (round 5, A2): a SIGKILLed command printed `ok` under a label of its own that read `!r.exit`. Three commands, one each way of ending, through measure()'s own output.
+    const printed = []
+    const labelled = await measure({ cmds: [
+      { cmd: [process.execPath, put('lbl-kill.mjs', `process.kill(process.pid, 'SIGKILL')\n`)], why: 'self-test' },
+      { cmd: [process.execPath, put('lbl-ok.mjs', `console.log('fine')\n`)], why: 'self-test' },
+      { cmd: [process.execPath, put('lbl-launch.mjs', `import { chromium } from 'playwright'\ntry { await chromium.launch() } catch {}\n`)], why: 'self-test' }], trap: trap2, dir: join(dir, 'labels'), width: 1, floor: 1, say: l => printed.push(l) })
+    const labelOf = name => (printed.find(l => l.includes(name)) ?? '').trim().split(' ')[0]
+    check('THE LABEL OF A COMMAND IS THE VERDICT\'S: a SIGKILLed command is `PROBLEM` (exit null), one that launches is `PROBLEM`, a clean one is `ok`, and each label is isClean of its own result',
+      labelOf('lbl-kill.mjs') === 'PROBLEM' && /exit null/.test(printed.find(l => l.includes('lbl-kill.mjs')) ?? '') && labelOf('lbl-launch.mjs') === 'PROBLEM' && labelOf('lbl-ok.mjs') === 'ok'
+        && labelled.results.every(r => labelOf(r.cmd[1].split('/').pop()) === (isClean(r) ? 'ok' : 'PROBLEM')) && labelled.results.length === 3 && labelled.exit === 1, JSON.stringify(printed))
     check('THE FLOOR OF THE GUARD\'S LIST (MIN_COMMANDS, 20) is what measure() asks by default: one clean command is not enough, whatever it measured', floored.exit === 1 && /fewer than the 20/.test(floored.v.problems[0]) && MIN_COMMANDS === 20, JSON.stringify(floored.v.problems))
 
     // THE ARTIFACT THE CC-CMD NAMES: scripts/axis-check.mjs with its `--self-test` edited to launch is caught, and the real one is not
