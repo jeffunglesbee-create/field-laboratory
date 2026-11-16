@@ -270,6 +270,10 @@ COMMAND_HEAD = re.compile(
     r"""(?:""" + _CASE_ARM + "|^|" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
     r"""(?:[A-Za-z_]\w*=""" + _ASSIGN_VALUE + r"""\s+|""" + _REDIRECT + r""")*["']*"""                              # VAR=value words (quoted values too), leading redirections, and a quote before the head
     r"""(?!(?:""" + "|".join(COMMAND_SEP_WORDS) + r""")\b|[{!](?:\s|$))([^\s;|&()<>`"']+)""")
+# The same pattern with the value of an assignment prefix read as a plain word (what it was before round 6): the commands INSIDE a `$( )` or a backtick pair in that value are heads here, and COMMAND_HEAD swallows them
+# into the prefix. command_heads takes the heads of both (review of 8e39e08a, finding 1: `A=$(npm run check:peak) cat f` lost the `npm` the old pattern found).
+COMMAND_HEAD_PLAIN = re.compile(COMMAND_HEAD.pattern.replace(_ASSIGN_VALUE, _CHAR + r"*"))
+assert COMMAND_HEAD_PLAIN.pattern != COMMAND_HEAD.pattern
 # An arithmetic expansion, `$((attempt * 3))`: only names, numbers, `$name` and the operators, so it runs nothing and cannot hold a substitution. It is replaced by `0` before a line is split or searched for heads.
 ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
 # What a REQUIRED no-browser step (TARGETS[...]["flagged"]) has to do as real work. The rule that a target RUNS its no-browser spawner was met by any step with the right `if` that names the spawner and
@@ -559,7 +563,10 @@ MAX_DEPTH = 16
 def blank_single_quoted(line):
     """The line with the CONTENT of every single-quoted string replaced, character for character, by `_`, so that a `$(` or a backtick inside one (text, never a substitution) is no longer there. Double-quoted text is
     left alone (a substitution inside it runs), a backslash outside single quotes escapes the next character, and a quote that never closes leaves the rest as it is. The words of the line keep their boundaries,
-    because a single-quoted string is one word whatever it holds. Review of 945daddf, P4."""
+    because a single-quoted string is one word whatever it holds. A line with `$'` in it is left as it is: in `$'...'` a backslash escapes the quote, shlex does not read it so, and the two disagree about where the
+    string ends (review of 8e39e08a, finding 2: `echo $'a\\'' $(npm run check:peak) \\'` ran the command bash and was blanked here). Review of 945daddf, P4."""
+    if "$'" in line:
+        return line
     out, i, n, dq = list(line), 0, len(line), False
     while i < n:
         c = line[i]
@@ -594,7 +601,7 @@ def split_commands(line):
     except ValueError as e:
         raise Unreadable(f"unbalanced quoting ({e})")
     if len(toks_b) != len(toks):
-        toks_b = toks                                  # the two readings should have the same words; if they do not, read the real ones
+        raise Unreadable("two readings of one line disagree about its words")     # they cannot, because blanking keeps every word's boundaries; if one ever does, the line is not read
     flat = []
     for t, tb in zip(toks, toks_b):
         if "`" in tb or "$(" in tb:                    # tb is the word with its single-quoted text blanked: a substitution inside single quotes is text
@@ -958,7 +965,11 @@ def command_heads(line):
     """[(head, rest of the line)] for every command on a raw line, wherever it starts (COMMAND_HEAD). What bash does not run as a command is not looked at: a trailing comment is cut where bash cuts it
     (strip_comment) and the content of every quoted string is blanked (blank_quoted); arithmetic is masked first, as the splitter does."""
     line = blank_quoted(strip_comment(ARITH_EXPANSION.sub("0", line)))
-    return [(m.group(1), line[m.end():]) for m in COMMAND_HEAD.finditer(line)]
+    found = {}
+    for rx in (COMMAND_HEAD, COMMAND_HEAD_PLAIN):                    # the heads of both readings, by where each starts: the commands inside an assignment's `$( )` and the command after it
+        for m in rx.finditer(line):
+            found.setdefault(m.start(1), (m.group(1), line[m.end():]))
+    return [found[k] for k in sorted(found)]
 
 
 def _runs_inline_code(head, words):
@@ -3369,16 +3380,42 @@ def self_test():
     check("round 6 (P2): ...and a launcher beside one of them is still a browser step (`tee x; node scripts/shot.mjs`, `rm x && npm run shot`)",
           all(needs_browser({"run": run}, pkg, read) is True for run in ("tee x; node scripts/shot.mjs", "rm x && node scripts/shot.mjs", "cp a b; node scripts/shot.mjs")), "")
     # ROUND 6 (review of 945daddf, P4). A `$(` or a backtick inside SINGLE quotes is text: `echo 'run `npm run gate` locally'` is a message, not a substitution. Inside double quotes, or glued to the end of a word, it runs.
-    PINNED_SQ_TEXT = ["echo 'run `npm run gate` locally'", "echo 'a $(b) c'", "echo 'x' 'a `b`'", "printf '%s\\n' 'at $(date)'", "echo 'a; b $(c) | d'"]
+    PINNED_SQ_TEXT = ["echo 'run `npm run gate` locally'", "echo 'a $(b) c'", "echo 'x' 'a `b`'", "printf '%s\\n' 'at $(date)'", "echo 'a; b $(c) | d'", "echo x#y 'a $(b)'"]
     PINNED_SUBST_RUNS = ['echo "a $(b)"', 'echo "a `b`"', "echo 'x'$(date)", 'echo `date`', "echo 'a' \"$(npm run shot)\"", "echo 'a'`date`", 'echo "it\'s $(date)"', "echo \\'$(date)"]
     check(f"round 6 (P4): a `$(` or a backtick inside single quotes is text and reads as a plain echo (one of these {len(PINNED_SQ_TEXT)}: nothing unresolved)",
           all(unresolved(c) == [] for c in PINNED_SQ_TEXT), [(c, unresolved(c)) for c in PINNED_SQ_TEXT if unresolved(c)])
     check(f"round 6 (P4): ...while a substitution that runs (inside double quotes, glued to a closing single quote, after an escaped quote; one of these {len(PINNED_SUBST_RUNS)}) is still unresolved: a quoted one as `a command substitution inside a word`, an unquoted one through the command inside it",
           all(unresolved(c) for c in PINNED_SUBST_RUNS) and all(any_of("a command substitution inside a word", unresolved(c)) for c in PINNED_SUBST_RUNS if '"' in c or "`" in c),
           [(c, unresolved(c)) for c in PINNED_SUBST_RUNS if not unresolved(c)])
+    # ROUND 6 (review of 8e39e08a, finding 2). In `$'...'` a backslash escapes the quote and shlex does not read it so, which made `echo $'a\\'' $(npm run check:peak) \\'` (bash runs the command) look like single-quoted text. A line with `$'` is not blanked.
+    PINNED_ANSI_C = ["echo $'a\\'' $(npm run check:peak) \\'", "echo $'don\\'t' `npm run check:peak` \\'"]
+    check(f"round 6 (review of 8e39e08a, finding 2): a substitution after an ANSI-C string that holds an escaped quote is still refused as `a command substitution inside a word` (these {len(PINNED_ANSI_C)}, bash runs the command in each)",
+          all(any_of("a command substitution inside a word", unresolved(c)) for c in PINNED_ANSI_C) and blank_single_quoted(PINNED_ANSI_C[0]) == PINNED_ANSI_C[0], [(c, unresolved(c)) for c in PINNED_ANSI_C])
+    _real_blank = globals()["blank_single_quoted"]
+    globals()["blank_single_quoted"] = lambda s: s + " extra"
+    try:
+        try:
+            split_commands("echo hi")
+            disagree = None
+        except Unreadable as e:
+            disagree = str(e)
+    finally:
+        globals()["blank_single_quoted"] = _real_blank
+    check("round 6 (review of 8e39e08a): if the two readings of a line ever disagree about its words the line is not read (fail closed, named), not truncated by a zip", disagree is not None and "disagree about its words" in disagree, disagree)
     check("round 6 (P4): blank_single_quoted keeps the words (same text length, same quotes) and blanks only single-quoted content",
           blank_single_quoted("echo 'a $(b)' \"c 'd'\" 'e'") == "echo '______' \"c 'd'\" '_'" and blank_single_quoted("x 'unterminated $(y)") == "x 'unterminated $(y)" and blank_single_quoted("a\\'b '$(c)'") == "a\\'b '____'",
           [blank_single_quoted("echo 'a $(b)' \"c 'd'\" 'e'"), blank_single_quoted("x 'unterminated $(y)"), blank_single_quoted("a\\'b '$(c)'")])
+    # ROUND 6 (review of 8e39e08a, finding 1). The commands INSIDE the `$( )` or backtick value of an assignment prefix are heads too: `A=$(npm run check:peak) cat f` ran `npm` in bash and the first version of
+    # `_ASSIGN_VALUE` swallowed it into the prefix (a false green that `945daddf` did not have). The grid: six launchers, three outer commands, five spellings of the prefix, each after a line that makes the logical line unreadable.
+    ASSIGN_INNERS = ["npm run check:peak", "xvfb-run -a ./x.sh", "timeout 5 ./x.sh", "make shot", "npx playwright test", "bash -c x"]
+    ASSIGN_OUTERS = ["cat f", "echo ok", "tee log"]
+    ASSIGN_FORMS = ["A=$({i})", "A=`{i}`", "A=$({i}) B=1", "B=1 A=$({i})", "A=x$({i})y"]
+    assign_grid = [f'echo "at $(date)"; {form.format(i=inner)} {outer}' for inner in ASSIGN_INNERS for outer in ASSIGN_OUTERS for form in ASSIGN_FORMS]
+    assign_missed = [line for line in assign_grid if not (hides_a_launcher([], line) is True and refused(line))]
+    check(f"round 6 (review of 8e39e08a, finding 1): a launcher inside the `$( )` or backtick value of an assignment prefix is a head and the line is refused: all {len(assign_grid)} of {len(ASSIGN_INNERS)} launchers x {len(ASSIGN_OUTERS)} outer commands x {len(ASSIGN_FORMS)} spellings",
+          len(assign_grid) == 90 and not assign_missed, assign_missed[:3])
+    check("round 6 (review of 8e39e08a): ...and an empty value (`A= npm run shot`) or an empty substitution (`A=$() npm run shot`) in the prefix still leaves `npm` a head",
+          all(refused(f'echo "$(date)"; {c}') and any(h == "npm" for h, _ in command_heads(c)) for c in ("A= npm run shot", "A=$() npm run shot")), [(c, command_heads(c)) for c in ("A= npm run shot", "A=$() npm run shot")])
     check("round 6 (P1): ...while a substitution in the value of a prefix whose command is a text tool stays kept as opaque (`echo \"$(date)\"; X=$(date) cat f`), and the plain forms read as before",
           kept('echo "$(date)"; X=$(date) cat f') and [h for h, _ in command_heads("X=1 npm run x")] == ["npm"] and [h for h, _ in command_heads("echo x")] == ["echo"],
           (kept('echo "$(date)"; X=$(date) cat f'), command_heads("X=1 npm run x")))
@@ -3734,9 +3771,12 @@ def self_test():
     check(f"round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on another line, in a group, in `NAME<<DELIM` or in a variable (one of these {len(PINNED_LATER_STEP)})",
           all(any_of("to $GITHUB_ENV", unresolved(c)) for _, c in PINNED_LATER_STEP), [(l, unresolved(c)) for l, c in PINNED_LATER_STEP if not any_of("to $GITHUB_ENV", unresolved(c))])
     SHOWN = [('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\ncat .npmrc', "`cat .npmrc`:"), ('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\necho "PATH=$PATH"', '`echo "PATH=$PATH"`:'),
-             ('echo hi\necho "/tmp/shadow" >> "$GITHUB_PATH"\ncat .npmrc', '`echo "/tmp/shadow" >> "$GITHUB_PATH"`:'), ('echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"\ncat .npmrc', '`echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"`: it writes')]
+             ('echo hi\necho "/tmp/shadow" >> "$GITHUB_PATH"\ncat .npmrc', '`echo "/tmp/shadow" >> "$GITHUB_PATH"`:'),
+             ('echo hi\necho "PATH<<EOF" >> "$GITHUB_ENV"', '`echo "PATH<<EOF" >> "$GITHUB_ENV"`:'), ('echo "MY_PATH=1" >> "$GITHUB_ENV"\necho "PATH=/x" >> "$GITHUB_ENV"', '`echo "PATH=/x" >> "$GITHUB_ENV"`:'), ('echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"\ncat .npmrc', '`echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"`: it writes')]
     check(f"round 6 (review of 945daddf, F1, F4): each reason quotes the line it is about, not the first line that matches any of the three references (one of these {len(SHOWN)} steps)",
           all(any(r.startswith(frag) for r in unresolved(c)) for c, frag in SHOWN), [(c, unresolved(c)) for c, frag in SHOWN if not any(r.startswith(frag) for r in unresolved(c))])
+    check("round 6 (review of 8e39e08a): with two dangerous names written the refusal's hint names the first in order (`NODE_OPTIONS=`), as the reason does",
+          any_of("names `NODE_OPTIONS=` in a step that writes to $GITHUB_ENV", unresolved('echo "NODE_OPTIONS=x" >> "$GITHUB_ENV"\necho "PATH=y" >> "$GITHUB_ENV"')), unresolved('echo "NODE_OPTIONS=x" >> "$GITHUB_ENV"\necho "PATH=y" >> "$GITHUB_ENV"'))
     check("round 6 (review of 945daddf, F1): the refusal of a harmless `$GITHUB_ENV` write beside a message that names `PATH=` says what to do (a step of its own for the message)",
           any_of("put a message that only mentions the name in a step of its own", unresolved('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\necho "PATH=$PATH"')))
     check(f"round 6 (hunt-guard-1): ...while a group of harmless writes, a harmless `NAME<<`, a mention of the name with no write and a write elsewhere (one of these {len(PINNED_LATER_STEP_CLEAN)}) say nothing about `$GITHUB_ENV`",
