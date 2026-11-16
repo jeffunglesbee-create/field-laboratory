@@ -98,3 +98,15 @@ Red on purpose (all five also `PASS` under `--only`):
 The four older entries on the same filters still pass (`...failed-rows-by-skipquick`, `...failed-rows-by-browser`, `...failed-filter-browserless`, `...quick-failures-empty`).
 
 After: `node scripts/gate-mode.mjs --self-test` printed `39/39 checks passed` (37 before this commit, two checks added).
+
+## A10: `dirty` and `sha` pinned only in the full-mode record   REACHABLE as an edit, NIL as a verdict; FIXED (a few lines, so added)
+
+Classification: the edit is ordinary (`dirty: BROWSERLESS ? false : treeDirty` is the kind of tidy-up a reader might make), the consequence is nil today: `scripts/confidence-record-check.mjs` refuses any citation whose `run.mode !== 'full'` (line 193, `only a full run can back a score`) whatever `dirty` says, so a quick or browserless record that lied about the tree backs nothing. The review said so; the fixture is a few lines, so it is added anyway (it pins what a record says, not what a verdict does).
+
+What changed: one check, `THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE`: `--quick` and `--browserless` runs with `STANDIN_DIRTY=1`, a sha and an id record `dirty: true`, that sha, that id (browserless under its `-browserless` suffix) and the line says `(tree dirty)`; the green runs of both modes record `dirty: false`, the clean sha, and no `(tree dirty)`.
+
+Before (copy of 9043fa75, review's mutants 10h `dirty: BROWSERLESS ? false : treeDirty`, 10i `dirty: MODE === 'full' ? treeDirty : false`, 10j `sha: QUICK ? 'x' : runSha`, and the browserless sha one): each `32/32 checks passed`, exit 0. After: each `39/40`, exit 1, the one check failing.
+
+Red on purpose, all `PASS` under `--only`: `gate-mode-confidence-record-dirty-quick-false`, `gate-mode-confidence-record-dirty-browserless-false`, `gate-mode-confidence-record-sha-quick-dropped`, `gate-mode-confidence-record-sha-browserless-dropped` (the review's 10i, `MODE === 'full' ? treeDirty : false`, is the union of the first two and is red too: 39/40). The older `...record-dirty-false` and `...record-sha-dropped` still pass.
+
+After: `node scripts/gate-mode.mjs --self-test` printed `40/40 checks passed` (39 before this commit).

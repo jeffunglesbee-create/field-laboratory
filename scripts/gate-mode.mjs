@@ -316,6 +316,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
           && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
           && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
         J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
+      // THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE (round 5, finding A10): the full-mode run above pins `dirty` and `sha`; a clause that dropped them in `--quick` or `--browserless` left the self-test green.
+      // Nothing reads them today (scripts/confidence-record-check.mjs refuses any citation of a run whose mode is not `full`), so this pins what a record SAYS, not what a verdict does.
+      const IDENT = { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' }
+      const ident = { quick: go(['good', 'build', 'browser'], ['--quick'], IDENT), browserless: go(['good', 'build', 'browser'], ['--browserless'], IDENT) }
+      check('THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE: on a dirty tree --quick and --browserless record `dirty: true`, the sha and the id the run had (browserless under its suffix) and say `(tree dirty)`; on a clean tree they record `dirty: false` and that sha',
+        ['quick', 'browserless'].every(m => ident[m].rec?.dirty === true && ident[m].rec?.sha === 'b'.repeat(40) && /\(tree dirty\)/.test(ident[m].out) && green[m].rec?.dirty === false && green[m].rec?.sha === 'a'.repeat(40) && !/\(tree dirty\)/.test(green[m].out))
+          && ident.quick.rec?.id === 'run-xyz' && ident.browserless.rec?.id === 'run-xyz-browserless',
+        J(Object.fromEntries(['quick', 'browserless'].map(m => [m, [ident[m].rec?.dirty, ident[m].rec?.sha, ident[m].rec?.id, green[m].rec?.dirty, green[m].rec?.sha]]))))
       // THE INVENTORY REFUSAL, by the REAL comparison (round 4, finding 13; round 5, finding A13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing
       // recorded or run. The inventory is read from a file this test writes and compared by the real `diffAgainst`, so each way the two can differ is its own run, and the arguments of the call are observable:
       // `diffAgainst(rows, rows)` finds nothing wrong anywhere, `diffAgainst(readInventory(), [])` refuses every gate, and swapped arguments name MISSING for UNDECLARED.
