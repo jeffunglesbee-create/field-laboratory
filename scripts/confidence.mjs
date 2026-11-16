@@ -234,6 +234,13 @@ appendFileSync(RECORD_PATH, JSON.stringify({
 }) + '\n')
 console.log(`  recorded in ${RECORD_PATH} as run ${recordId(MODE, runId)}${treeDirty ? " (tree dirty)" : ""}`)
 
+// A RUN THAT MEASURED NOTHING IS A FAILURE IN EVERY MODE, and says so (round 5, finding A8). Every row skipped (`--quick`) or not applicable leaves 0 points possible, and what follows would print
+// `No failures among the rows that ran.` (quick) or `Gate passed` (a `possible` that is NaN) over a run that measured nothing. exitFor refuses it in every mode; this says why, before any of those lines.
+if (!(possible > 0)) {
+  console.log(`\n  Nothing was measured: ${possible} points possible (every row was skipped or not applicable, or a row has no weight). That is a failure in every mode, and no pass.\n`)
+  process.exit(exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR }))
+}
+
 if (QUICK) {
   // Quick mode cannot report a PASS — it skipped rows. It can and must report a
   // FAILURE, because a row that actually ran and failed is a real failure
@@ -245,10 +252,10 @@ if (QUICK) {
     console.log(`\n  ${quickFailures.length} row(s) ran and FAILED:\n`)
     for (const r of quickFailures) console.log(`    - ${r.name}`)
     console.log('')
-    process.exit(exitFor({ mode: MODE, failed: quickFailures.length, total, bar: BAR }))
+    process.exit(exitFor({ mode: MODE, failed: quickFailures.length, possible, total, bar: BAR }))
   }
   console.log('  No failures among the rows that ran.\n')
-  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
+  process.exit(exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR }))
 }
 
 const failedRows = results.filter(r => r.state === 'FAIL')
@@ -272,7 +279,7 @@ if (failedRows.length > 0) {
   }
   console.log(`\n  The score above is ${total}/100 and is NOT the pass condition —`)
   console.log(`  every row must pass. Report the failing rows verbatim.\n`)
-  process.exit(exitFor({ mode: MODE, failed: failedRows.length, total, bar: BAR }))
+  process.exit(exitFor({ mode: MODE, failed: failedRows.length, possible, total, bar: BAR }))
 }
 
 // Unreachable while the conjunction holds, since every row passing scores 100.
@@ -281,15 +288,15 @@ if (failedRows.length > 0) {
 if (total < BAR) {
   console.log(`\n  Every row passed but the score is ${total}, below ${BAR}.`)
   console.log(`  The scoring has changed shape — fix that before trusting this run.\n`)
-  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
+  process.exit(exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR }))
 }
 
 if (BROWSERLESS) {
   // Reached only with no failing row. It is still not a pass: the rows that need a browser were not run, they are named above and in the record, and a record of this mode
   // cannot back a score (confidence-record-check.mjs).
   console.log(`\n  ${browserlessLine(results)}\n`)
-  process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
+  process.exit(exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR }))
 }
 
 console.log('\n  Gate passed — every row, not a passing average.\n')
-process.exit(exitFor({ mode: MODE, failed: 0, total, bar: BAR }))
+process.exit(exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR }))

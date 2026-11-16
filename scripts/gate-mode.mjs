@@ -35,9 +35,14 @@ export const actionFor = (mode, row) =>
 
 /** How a finished gate run exits. Every exit of scripts/confidence.mjs after the record is written goes through this one function (the self-test reads its source for that), so a failing row exits 1 in
  *  every mode whatever the score: the browserless mode must not turn a failed row into a green step (review 2026-11-15, finding 8: three one-line regressions of the wiring, each exiting 0 with a failing row,
- *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score. A score that is not a number (`NaN`: a run that
- *  measured nothing) is a failure in every mode, since `NaN < bar` is false and a comparison alone read it as a pass (round 4, finding 8). */
-export const exitFor = ({ mode, failed, total, bar }) => (failed > 0 || !Number.isFinite(total) || (mode !== 'quick' && total < bar) ? 1 : 0)
+ *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score.
+ *
+ *  A RUN THAT MEASURED NOTHING IS A FAILURE IN EVERY MODE, quick included (round 5, finding A8). Every row skipped or not applicable leaves `possible` at 0, and `--quick` asked neither `total < bar` (it skipped
+ *  rows) nor anything else, so it exited 0 over "0/0 points". The question is asked of `possible` as `!(possible > 0)`, so both degenerate values are one clause: 0 (nothing ran) and `NaN` (a row with no
+ *  weight; `NaN > 0` is false). A call that forgets `possible` passes `undefined`, which reads as nothing measured too, so the mistake is a loud red (a passing run exits 1) and never a green. A `total` that is
+ *  not a number stays a clause of its own (round 4, finding 8: `NaN < bar` is false, so the comparison alone read it as a pass): this function is pure, and a `total` is not always derived from its `possible`. */
+export const exitFor = ({ mode, failed, possible, total, bar }) =>
+  (failed > 0 || !(possible > 0) || !Number.isFinite(total) || (mode !== 'quick' && total < bar) ? 1 : 0)
 
 /** The closing line of a browserless run. It counts the rows that were not run FOR WANT OF A BROWSER (`why: 'browser'`), not every not-applicable row: on the weekly schedule the outbox row has no subject and is
  *  not applicable too, and is no row that needs a browser (review 2026-11-15, finding 9: it said 7 rows / 190 points where 6 / 180 were not run). */
@@ -89,9 +94,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     recordId('browserless', 'aaaaaaaaaaaa-bbbbbbbbbbbb') === 'aaaaaaaaaaaa-bbbbbbbbbbbb-browserless' && recordId('full', 'x') === 'x' && recordId('quick', 'x') === 'x', 'the CI step that lands a ledger line skips an id already in the ledger')
   check('the declared modes are the three the gate knows', MODES.join() === 'full,quick,browserless', MODES.join())
   // THE EXIT, as a truth table: a failing row exits 1 in every mode, at any score (a weight-10 row fails and leaves 97), and a run with no failing row exits 0 unless a whole-table score is below the bar.
-  const exits = Object.fromEntries(MODES.map(m => [m, [exitFor({ mode: m, failed: 0, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, total: 40, bar: 95 }), exitFor({ mode: m, failed: 0, total: 94, bar: 95 }), exitFor({ mode: m, failed: 0, total: NaN, bar: 95 })]]))
-  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, a score under the bar exits 1 except in quick (which skipped rows), and a score that is not a number exits 1 in every mode',
-    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1, 1], quick: [0, 1, 1, 0, 1], browserless: [0, 1, 1, 1, 1] }), JSON.stringify(exits))
+  // The last three columns are a run that measured nothing (round 5, finding A8): 0 points possible, a `possible` that is NaN (a row with no weight) beside a score that is finite, and both NaN. Each is 1 in
+  // EVERY mode, quick too (a quick run is not held to the bar, so only `possible` can refuse it). The NaN column of round 4 (finding 8, a `total` that is not a number beside a possible that is) stays.
+  const P = 530
+  const exits = Object.fromEntries(MODES.map(m => [m, [
+    exitFor({ mode: m, failed: 0, possible: P, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, possible: P, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, possible: P, total: 40, bar: 95 }),
+    exitFor({ mode: m, failed: 0, possible: P, total: 94, bar: 95 }), exitFor({ mode: m, failed: 0, possible: P, total: NaN, bar: 95 }),
+    exitFor({ mode: m, failed: 0, possible: 0, total: 0, bar: 95 }), exitFor({ mode: m, failed: 0, possible: NaN, total: 100, bar: 95 }), exitFor({ mode: m, failed: 0, possible: NaN, total: NaN, bar: 95 }),
+  ]]))
+  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, a score under the bar exits 1 except in quick (which skipped rows), and a run that measured nothing (0 points possible, a `possible` that is NaN, a `total` that is NaN) exits 1 in every mode, quick included',
+    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1, 1, 1, 1, 1], quick: [0, 1, 1, 0, 1, 1, 1, 1], browserless: [0, 1, 1, 1, 1, 1, 1, 1] }), JSON.stringify(exits))
+  // A call that leaves `possible` out is read as nothing measured: a green run is then a red one, never the other way round.
+  check('...and a call that does not pass `possible` exits 1 (an omission is a loud red, not a green)', MODES.every(m => exitFor({ mode: m, failed: 0, total: 100, bar: 95 }) === 1), 'a run whose caller forgot `possible` would exit 0')
   const sched = [{ state: 'PASS', weight: 20 }, { state: 'PASS', weight: 30 }, ...Array.from({ length: 6 }, () => ({ state: 'N/A', weight: 30, why: 'browser' })), { state: 'N/A', weight: 10, why: 'no-subject' }]
   check('THE CLOSING LINE of a browserless run counts the rows not run for want of a browser, and the rows that RAN: on a scheduled run the outbox row ran and found no subject, so it is one of the 3 that ran and is not one of the 6 (180 points) that were not run; without it, 2 ran',
     /among the 3 rows that ran\. 6 row\(s\) that need a browser were NOT run \(180 points\)\. This is NOT a pass\./.test(browserlessLine(sched)) && /among the 2 rows that ran\. 6 row\(s\)/.test(browserlessLine(sched.slice(0, 8))), browserlessLine(sched))
@@ -126,7 +140,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   // EVERY EXIT after the usage checks is exitFor's. A `process.exit(0)` or `process.exit(BROWSERLESS ? 0 : 1)` somewhere in the failing-row path is the regression this guards: the score it
   // leaves can be 97 with a row failing, and the step is then green over it.
   const exitCalls = [...gateSource.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
-  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...): six of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, total, bar: BAR \}\)$/.test(c)).length === 6 && exitCalls.length === 9,
+  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...), `possible` passed: seven of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, possible, total, bar: BAR \}\)$/.test(c)).length === 7 && exitCalls.length === 10,
     JSON.stringify(exitCalls))
   // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, rounds 2 and 4). The wiring checks above pin where the exits are and that they go through exitFor, not what is
   // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
@@ -195,10 +209,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       check('A ROW THAT RETURNS A TRUTHY VALUE THAT IS NOT true IS A FAILING ROW: an async function (a Promise), a string, a number and an object each exit 1 and are recorded as failing, and the line says what was returned',
         Object.entries(nonBool).every(([n, r]) => r.status === 1 && J(r.rec?.failing) === J([n])) && /\(returned object, which is not true/.test(nonBool.async.out) && /\(returned string, which is not true/.test(nonBool.string.out) && /\(returned number, which is not true/.test(nonBool.number.out),
         J(Object.fromEntries(Object.entries(nonBool).map(([n, r]) => [n, [r.status, r.rec?.failing]]))))
-      // A RUN THAT MEASURED NOTHING (every row NOT_APPLICABLE: possible 0) is a failure, and says 0, not NaN (round 4, finding 8): the guard in confidence.mjs and the exit in exitFor are both pinned.
-      const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']) }
-      check('A RUN THAT MEASURED NOTHING (every row not applicable, 0 points possible) EXITS 1 in full and browserless, records a total of 0 (not NaN), prints `0/0 points = 0/100` and never says the gate passed',
-        ['full', 'browserless'].every(m => nothing[m].status === 1 && nothing[m].rec?.possible === 0 && nothing[m].rec?.total === 0 && /0\/0 points = 0\/100/.test(nothing[m].out) && !/Gate passed/.test(nothing[m].out)),
+      // A RUN THAT MEASURED NOTHING (0 points possible) is a failure in EVERY mode, says 0 and not NaN, and says why (round 4, finding 8; round 5, finding A8): the guard in confidence.mjs, the exit in exitFor and
+      // the refusal's own line are each pinned. `--quick` is the mode that exited 0 over it: it skipped rows, so the bar is not asked of it, and every row here is skipped (`build`, `browser`) or not applicable (`na`).
+      const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']), blBrowser: go(['browser'], ['--browserless']), quickSkipped: go(['build', 'browser'], ['--quick']), quickNa: go(['na', 'na2'], ['--quick']) }
+      check('A RUN THAT MEASURED NOTHING (every row skipped or not applicable, 0 points possible) EXITS 1 in full, in browserless and in --quick, records a total of 0 (not NaN), prints `0/0 points = 0/100` and `Nothing was measured`, and never says the gate passed or that no row failed',
+        Object.values(nothing).every(r => r.status === 1 && r.rec?.possible === 0 && r.rec?.total === 0 && /0\/0 points = 0\/100/.test(r.out) && /Nothing was measured: 0 points possible/.test(r.out) && !/Gate passed/.test(r.out) && !/No failures among/.test(r.out)),
         J(Object.fromEntries(Object.entries(nothing).map(([m, r]) => [m, [r.status, r.rec?.possible, r.rec?.total]]))))
       // A FAILING ROW IS RED WHATEVER FLAGS IT CARRIES (round 4, finding 9): `sq` is skipQuick without browser (the F# build and compiler-verified doc rows are such), `br` is skipQuick and browser.
       const sq = { full: go(['good', 'sq', 'browser']), browserless: go(['good', 'sq', 'browser'], ['--browserless']), quick: go(['good', 'sq', 'browser'], ['--quick']) }
