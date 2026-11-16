@@ -238,16 +238,28 @@ GIT_READONLY = frozenset({"merge-base", "rev-list", "symbolic-ref", "describe", 
 GIT_REASON = re.compile(r"^`[^`]*`: git (\S+) is not a subcommand this guard reads")
 # A command word on a RAW line (one the splitter could not split) is allowed when it is one of these: the benign tools, the safe heads, and the words that open or close a shell construct and run nothing.
 RAW_WORDS = frozenset({"for", "select", "case", "esac", "fi", "done", "in", "}", ":"})
-# Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), and the keywords that precede one.
+# Where a command starts on a raw line: after the start, `;`, a pipe, `&` (so `&&`), `(` (so `$(`), a backtick, a standalone `{` or `!` (a word of its own: not the `{` of `${x}` or the `!` of `a!b`), the keywords that precede one,
+# the `)` that closes a case pattern, and the leading redirections of a command.
 # Review of 48f504e, finding 22: the head used to be `(\S+)`, which swallowed a `;` or `(` written without a space, so a wrapper after `echo "at $(date)";` was never a head.
+# Review of 9043fa75, A21 and A22: a command after a case pattern (`case "$(date)" in *) npm run check:peak ;; esac`) or after a leading redirection (`>/dev/null timeout 5 ./x.sh`) was no head either, so an
+# unreadable always() line with a launcher there was kept as opaque.
+#   - a case pattern is `word)`, `a|b)` or `(word)`, at the start of the line or after `in`, `;;` or `;&` (COMMAND_CASE_STARTS; `;;&` is a `;` and a `;&`): the command after its `)` starts there. It is not a pattern after `$(`:
+#     `echo $(date) now` has no head `now`.
+#   - a leading redirection is `[N]OP TARGET` before the command word, the operator glued to its target or spaced from it (COMMAND_REDIRECTS): `>/dev/null npm run x`, `2>&1 timeout 5 x`, `< file cmd`.
 # What is QUOTED, or a trailing comment, is not looked at for a head: command_heads cuts the comment (strip_comment) and blanks the content of every quoted string (blank_quoted) before this runs, so a `;`, `|`,
 # `&` or `(` inside an echo message starts nothing. Review of 9043fa75, B0 and B8.
 COMMAND_SEP_SYMBOLS = (";", "|", "&", "(", "{", "`", "!")
 COMMAND_SEP_WORDS = ("then", "do", "else", "if", "elif", "while", "until")
-_SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)"}
+COMMAND_CASE_STARTS = (";;", ";&", "in")
+COMMAND_REDIRECTS = (">>", "<<<", ">&", "<&", ">", "<")
+_SEP_SPELLING = {"{": r"\{(?=\s)", "!": r"(?<![\w$!])!(?=\s)", "&": r"(?<![<>])&(?!>)"}                      # a `&` is a separator, not the `&` of `2>&1`, `>&2`, `<&0` or `&>file`
+_CHAR = r"""(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')"""                                                       # one character of a shell word: a bare one, or a whole quoted string
+_ARM_WORD = r"""[^\s;|&()<>`]+"""
+_CASE_ARM = r"(?:^|" + "|".join(rf"\b{w}\b" if w.isalpha() else re.escape(w) for w in COMMAND_CASE_STARTS) + r")\s*\(?" + _ARM_WORD + r"(?:\|" + _ARM_WORD + r")*\)"
+_REDIRECT = r"\d*(?:" + "|".join(re.escape(r) for r in COMMAND_REDIRECTS) + r")\s*" + _CHAR + r"+\s+"
 COMMAND_HEAD = re.compile(
-    r"""(?:^|""" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
-    r"""(?:[A-Za-z_]\w*=(?:[^\s;|&()<>`"']|"[^"]*"|'[^']*')*\s+)*["']*"""                          # VAR=value words (quoted values too) and a quote before the head
+    r"""(?:""" + _CASE_ARM + "|^|" + "|".join([_SEP_SPELLING.get(s, re.escape(s)) for s in COMMAND_SEP_SYMBOLS] + [rf"\b{w}\b" for w in COMMAND_SEP_WORDS]) + r""")\s*"""
+    r"""(?:[A-Za-z_]\w*=""" + _CHAR + r"""*\s+|""" + _REDIRECT + r""")*["']*"""                              # VAR=value words (quoted values too), leading redirections, and a quote before the head
     r"""(?!(?:""" + "|".join(COMMAND_SEP_WORDS) + r""")\b|[{!](?:\s|$))([^\s;|&()<>`"']+)""")
 # An arithmetic expansion, `$((attempt * 3))`: only names, numbers, `$name` and the operators, so it runs nothing and cannot hold a substitution. It is replaced by `0` before a line is split or searched for heads.
 ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
@@ -3216,6 +3228,37 @@ def self_test():
     for cmd in ('echo "note; $(date)" && npm run pure', 'echo "$(date)"; timeout 5 x', 'echo "at $(timeout 5 x)"', 'echo "at `timeout 5 x`"', 'echo "$(date)"; npm run pure # a note', 'echo "a # b $(date)"; npm run pure',
                 'echo \\"; npm run pure; \\" "$(date)"', 'echo "x; npm run pure', 'echo "$(date)"; "timeout" 5 x', "echo \"$(date)\"; 'timeout' 5 x", 'echo "$(date)"; "$RUNNER" x', '"timeout" 5 node scripts/pure.mjs'):
         check(f"B0/B8: `{cmd}` still hides a command that runs (outside the quotes, inside a `$( )` or backtick body, before a comment, after an escaped quote, a quote that never closes, a quoted command word): refused, not kept", refused(cmd), cmd)
+
+    # GROUP 2, A21 and A22: WHERE A COMMAND STARTS. After the `)` of a case pattern and after leading redirections (COMMAND_CASE_STARTS, COMMAND_REDIRECTS); the `&` of `2>&1`, `>&2`, `<&0` and `&>file` is no separator.
+    # The arm pattern in these fixtures is `true)` (an allowed head) so that only the arm rule, not the old `;` rule, exposes the wrapper after it.
+    PINNED_CASE_STARTS = {"in": 'case "$(date)" in true) timeout 5 x ;; esac', ";;": 'case "$(date)" in a) true ;; true) timeout 5 x ;; esac', ";&": 'case "$(date)" in a) true ;& true) timeout 5 x ;; esac',
+                          "^": 'true) timeout 5 "$(date)" ;;'}
+    check("COMMAND_CASE_STARTS: the members the guard knows are exactly the three pinned, and the start of the line (literal table)", set(PINNED_CASE_STARTS) - {"^"} == set(COMMAND_CASE_STARTS), COMMAND_CASE_STARTS)
+    for start, text in PINNED_CASE_STARTS.items():
+        check(f"A21: the command after a case pattern that follows `{start}` is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for text in ('case "$(date)" in (true) timeout 5 x ;; esac', 'case "$(date)" in a|true) timeout 5 x ;; esac', 'case "$(date)" in *.sh|true) timeout 5 x ;; esac', 'case "$(date)" in a) true ;;& true) timeout 5 x ;; esac'):
+        check(f"A21: a pattern in parentheses, one of several joined by `|`, or one after `;;&` (a `;` and a `;&`) ends at its `)`: the wrapper after it is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    PINNED_REDIRECTS = {">>": ">>/dev/null timeout 5 x", "<<<": "<<<x timeout 5 x", ">&": ">&2 timeout 5 x", "<&": "<&0 timeout 5 x", ">": ">/dev/null timeout 5 x", "<": "< /dev/null timeout 5 x"}
+    check("COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)", set(PINNED_REDIRECTS) == set(COMMAND_REDIRECTS), COMMAND_REDIRECTS)
+    for op, text in PINNED_REDIRECTS.items():
+        check(f"A22: a wrapper after a leading `{op}` redirection is found (`{text}`)", hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for text in ("> /dev/null timeout 5 x", "2>&1 timeout 5 x", "2>/dev/null timeout 5 x", '> "$LOG" timeout 5 x', "A=1 >/dev/null timeout 5 x", ">/dev/null A=1 timeout 5 x", ">/dev/null 2>&1 timeout 5 x", "if true; then >/dev/null timeout 5 x; fi",
+                 'echo "$(date)"; >/dev/null timeout 5 x'):
+        check(f"A22: a wrapper after a redirection that is spaced from its target, has a file descriptor, a quoted target, an assignment or a keyword in front, or follows another is found (`{text}`)",
+              hides_a_launcher([], text) is True and any(h == "timeout" for h, _ in command_heads(text)), command_heads(text))
+    for unreadable, plain, said in [('case "$(date)" in *) npm run shot ;; esac', 'case "$X" in *) npm run shot ;; esac', "needs a browser"),
+                                    ('echo "$(date)"; >/dev/null npm run shot', ">/dev/null npm run shot", "needs a browser"),
+                                    ('case "$(date)" in *) xvfb-run -a ./run-checks.sh ;; esac', 'case "$X" in *) xvfb-run -a ./run-checks.sh ;; esac', "cannot be read"),
+                                    ('echo "$(date)" > /dev/null; >/dev/null timeout 5 ./x.sh', ">/dev/null timeout 5 ./x.sh", "cannot be read")]:
+        check(f"A21/A22: `{unreadable}` (a launcher after a case pattern or a leading redirect, on a line the splitter cannot read) is refused, as its plain form `{plain}` is (the review's four inputs, each with its control)",
+              refused(unreadable) and any_of(said, unread(plain)[0]) and unread(plain)[1]["opaque"] == 0, (unread(unreadable), unread(plain)))
+    check("A21/A22: a redirect AFTER the command is no start (`echo x >/dev/null` has the one head `echo` and is read clean), and a word after a `$( )` is no case pattern's command (`echo $(date) now` has no head `now`)",
+          [h for h, _ in command_heads("echo x >/dev/null")] == ["echo"] and [h for h, _ in command_heads("echo $(date) now")] == ["echo", "date"] and unread("echo x >/dev/null")[0] == [], unread("echo x >/dev/null")[0])
+    for cmd in ('echo "$(date)" > /dev/null', 'echo "$(date)"; > file', 'case "$(date)" in *) echo x ;; esac', 'case "$(date)" in a|b) echo "$(date)" ;; *) echo y ;; esac',
+                'echo "at $(date)" 2>&1', 'echo "$(date)" >&2', 'echo "x $(date)" &>/dev/null', 'echo "$(date)" >> log 2>&1', 'for f in a b; do echo "$(date)" >/dev/null; done'):
+        check(f"A21/A22: `{cmd}` (a redirect or a case pattern in a step that runs nothing but text tools) is still kept as opaque", kept(cmd), cmd)
+    for cmd in ('echo "$(date)" 2>&1 & timeout 5 x', 'echo "$(date)" >&2 && npm run pure', 'echo "$(date)" &>/dev/null; npm run pure'):
+        check(f"A22: a real `&` or `&&` still starts a command after a redirect's own `&` (`{cmd}`)", refused(cmd), cmd)
 
     # FINDING 24. The closed form of the required no-browser step: a trailing comment is cut where bash cuts it, and a branch's work is the spawner.
     both_line = 'node scripts/mutation-check.mjs --ids "$IDS" --shard 1/8 --no-browser --out x.json'

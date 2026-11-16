@@ -96,3 +96,51 @@ Red on purpose, each `PASS [<id>]` from `node scripts/mutation-check.mjs --only 
 A twelfth mutant I tried, "mask arithmetic AFTER blanking", is equivalent (the mask only matches text that blanking leaves alone) and is not in the table: an equivalent mutant is no check.
 Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): no CODE entry's find text changed (`node /dev/shm/r5b-scratch/sweep_anchors.mjs`: 13 of 428 entries are not exactly once before
 and after this commit, the same 13, all from earlier rounds).
+
+## Commit 3: where a command starts: after a case pattern's `)` and after leading redirections (A21, A22)
+
+`COMMAND_HEAD` knew the start of the line, `; | & ( { `` ` `` !` and the words `then do else if elif while until`. It now knows two more, each a table with a pinned literal list:
+
+- `COMMAND_CASE_STARTS = (";;", ";&", "in")` and the start of the line: a case pattern is `word)`, `(word)` or `a|b)` at one of those; the command after its `)` starts there. After `$(` it is no
+  pattern (`echo $(date) now` has no head `now`). `;;&` is a `;` followed by a `;&`, so it needs no member of its own (I had written it and its mutant stayed green: an equivalent member
+  removed rather than pinned).
+- `COMMAND_REDIRECTS = (">>", "<<<", ">&", "<&", ">", "<")`: a leading `[N]OP TARGET` before the command word, glued or spaced, in front of or after assignments (`>/dev/null npm run x`, `2>&1 timeout 5 x`, `< file cmd`).
+
+One more clause, found while writing the redirect one and not in the review: the `&` of `2>&1`, `>&2`, `<&0` and `&>file` is no separator. Before, `echo "at $(date)" 2>&1` and `echo "$(date)" >&2`
+had the pseudo-heads `1` and `2` and were refused (a false red of the same class as B8, at 674c5f99 and at 48f504e; `>&2` ends most error lines). It is one spelling in `_SEP_SPELLING` and has its own
+fixture and mutant (`browser-gate-heads-redirect-ampersand`); it is what makes `2>&1` (the task's own example) a redirect and not a command on both sides of the command word.
+
+| input (the review's four, each on a line the splitter cannot read) | 674c5f99+B0/B8 | now | its plain control (no substitution) |
+|---|---|---|---|
+| `case "$(date)" in *) npm run shot ;; esac` (A21 a; `shot` is a package script that launches a browser) | kept | refused | refused: `needs a browser and must carry steps.chromium.outcome == 'success'` |
+| `echo "$(date)"; >/dev/null npm run shot` (A21 b) | kept | refused | refused, same |
+| `case "$(date)" in *) xvfb-run -a ./run-checks.sh ;; esac` (A22 a) | kept | refused | refused: `xvfb-run is not a command this guard can read` |
+| `echo "$(date)" > /dev/null; >/dev/null timeout 5 ./x.sh` (A22 b) | kept | refused | refused: `timeout is not a command ...` |
+| `echo "at $(date)" 2>&1`, `echo "$(date)" >&2` | refused (head `1`, `2`) | kept | |
+| `echo x >/dev/null`, `echo "$(date)" > /dev/null`, `echo "$(date)"; > file`, `case "$(date)" in *) echo x ;; esac`, `echo "$(date)" >> log 2>&1` | kept | kept | |
+
+Self-test: 839 to 881 (42 new checks: 2 pinned tables, 5+4 case-start inputs, 6+9 redirect inputs, the review's four with their controls, 10 kept controls, 3 real `&`/`&&` after a redirect).
+Real tree: `python3 scripts/check-browser-gate.py` byte-identical to the output before this commit (`diff` empty), `verdict: gated`, `--plain-commands` 70. Population: unchanged from the previous commit
+(34 steps against 48f504e: 1 kept to refused, `font-dependence-probe.yml` `Commit`, for `git rebase --abort`). Sweep: no CODE entry's find text changed (the same 13 of 428 entries that are
+not exactly once, all from earlier rounds).
+
+Red on purpose (`PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>`; failing checks of the mutated copy):
+
+| id | the break | failing checks |
+|---|---|---|
+| `browser-gate-heads-case-start-in` | `in` is not a start | 8 |
+| `browser-gate-heads-case-start-double-semicolon` | `;;` is not a start | 3 |
+| `browser-gate-heads-case-start-semicolon-ampersand` | `;&` is not a start | 2 |
+| `browser-gate-heads-case-start-line` | the start of a line is not a start | 1 |
+| `browser-gate-heads-case-paren` | `(word)` is no pattern | 1 |
+| `browser-gate-heads-case-alternatives` | `a|b)` is no pattern | 3 |
+| `browser-gate-heads-redirect-append` | `>>` is not a redirection | 2 |
+| `browser-gate-heads-redirect-here-string` | `<<<` is not a redirection | 2 |
+| `browser-gate-heads-redirect-dup-out` | `>&` is not a redirection | 4 |
+| `browser-gate-heads-redirect-dup-in` | `<&` is not a redirection | 2 |
+| `browser-gate-heads-redirect-out` | `>` is not a redirection | 12 |
+| `browser-gate-heads-redirect-in` | `<` is not a redirection | 2 |
+| `browser-gate-heads-redirect-fd` | a file descriptor is no part of one | 3 |
+| `browser-gate-heads-redirect-spaced` | the target must be glued to the operator | 3 |
+| `browser-gate-heads-redirect-in-prefix` | redirections are not read before the command word | 17 |
+| `browser-gate-heads-redirect-ampersand` | the `&` of `2>&1` is a separator | 3 |
