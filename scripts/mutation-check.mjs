@@ -8952,6 +8952,63 @@ const MUTATIONS = [
     replace: "endswith((\"zz \",))",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
+  // --- scripts/check-browser-gate.py, round 5 part A, group 5 (review of 9043fa75) ---
+  {
+    id: "browser-gate-later-steps-github-path",
+    file: "scripts/check-browser-gate.py",
+    claim: "a step that writes to `$GITHUB_PATH` changes the PATH of every later step and is unresolved",
+    find: "    if GITHUB_PATH_REF.search(text):",
+    replace: "    if False:",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-github-env",
+    file: "scripts/check-browser-gate.py",
+    claim: "a step that writes a dangerous variable to `$GITHUB_ENV` changes what every later step runs and is unresolved",
+    find: "    if GITHUB_ENV_REF.search(text):",
+    replace: "    if False:",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-dangerous-names",
+    file: "scripts/check-browser-gate.py",
+    claim: "every name dangerous_var knows (not only NODE_OPTIONS) written to `$GITHUB_ENV` is refused",
+    find: "if dangerous_var(n)})",
+    replace: "if n == \"NODE_OPTIONS\"})",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-npmrc",
+    file: "scripts/check-browser-gate.py",
+    claim: "a step that names a `.npmrc` file sets npm's config for every later `npm run` and is unresolved",
+    find: "    if NPMRC_REF.search(text):",
+    replace: "    if False:",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-comment-cut",
+    file: "scripts/check-browser-gate.py",
+    claim: "a mention in a trailing comment is no write",
+    find: "for why in later_step_effects(strip_comment(line))]",
+    replace: "for why in later_step_effects(line)]",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-braces",
+    file: "scripts/check-browser-gate.py",
+    claim: "`${GITHUB_ENV}` in braces is the same file as `$GITHUB_ENV`",
+    find: "GITHUB_ENV_REF = re.compile(r\"\\$\\{?GITHUB_ENV\\b\")",
+    replace: "GITHUB_ENV_REF = re.compile(r\"\\$GITHUB_ENV\\b\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-steps-wired",
+    file: "scripts/check-browser-gate.py",
+    claim: "read_commands asks every command line what it writes for the steps after it",
+    find: "        out[\"unresolved\"] += [f\"`{line[:80]}`: {why}\" for why in later_step_effects(strip_comment(line))]\n",
+    replace: "        pass\n",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
   // --- venue sourcing, docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md: scripts/venue-source.mjs ---
   {
     // Nominatim and Photon read the same data; agreeing with itself is one witness.

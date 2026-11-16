@@ -195,3 +195,150 @@ Measured on this machine, whose disk is scarce: `row_pr` (the helper of the gate
 `python3 scripts/check-browser-gate.py --self-test` left 202 directories in `/tmp` (`before=35413 after=35615` around a single run); the 35,601 left by this session's runs were 521 MB of
 `/tmp` and are removed now (identified by their content: `scripts/gate-checks.mjs` starting `// rows`; `/tmp` is 83 MB). `row_pr` and the two helpers this change added use a
 `TemporaryDirectory` now; the same run leaves 0 (`leaked_per_run=0`), the self-test is 801/801 before and after. A separate commit, because it is a separate concern.
+
+## Group 5: what a command writes for the steps after it (A29)
+
+The reader dropped each redirect's target, so `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` read as `echo` and the step was called browser-free although it had changed what every
+LATER step runs (the same names an `env:` key is refused for). `later_step_effects(text)` is asked of every command line (comment cut) in `read_commands` and makes the step unresolved, the same
+way a dangerous `env:` key does, for: any use of `$GITHUB_PATH` or `${GITHUB_PATH}`; `$GITHUB_ENV` or `${GITHUB_ENV}` on a line that also has `NAME=` for a name `dangerous_var` knows
+(`NODE_OPTIONS`, `PATH`, ..., `npm_config_node_options`, `NPM_CONFIG_SCRIPT_SHELL`); and any `.npmrc`. It fits in 22 lines of code (4 patterns, one function, one call). Not refused: the two
+real `$GITHUB_ENV` writes of the exempt probes (`RELAY_SHA=$sha`, `STAMP=$STAMP`), `$GITHUB_OUTPUT`, the step summary, an npm key that changes no command.
+
+| input | before | now |
+|---|---|---|
+| `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` (A29 a) | readable | unresolved: `it writes NODE_OPTIONS to $GITHUB_ENV, which changes what the commands of every later step run` |
+| `echo "npm_config_node_options=..." >> "$GITHUB_ENV"` (A29 b) | readable | unresolved (same) |
+| `echo "/tmp/shadow" >> "$GITHUB_PATH"` (A29 c) | readable | unresolved: `it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step` |
+| `echo "script-shell=/tmp/sh" > .npmrc` (A29 d) | readable | unresolved: `it names a .npmrc file, which sets npm's own config ...` |
+| `echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"` | readable | readable |
+
+Self-test: 801 to 812 (11 new checks: 8 inputs, the 11 dangerous names, the 8 clean lines, the audit). Red on purpose (`PASS [<id>]`; failing checks of the mutated copy):
+`browser-gate-later-steps-github-path` 2, `-github-env` 6, `-dangerous-names` 2, `-npmrc` 2, `-comment-cut` 1, `-braces` 1, `-wired` 10.
+
+## Results (the commands were run; denominators stated)
+
+- `python3 scripts/check-browser-gate.py --self-test`: `715/715 checks passed` at 9043fa75; `812/812 checks passed` now (+12 group 1, +17 group 2, +4 group 3, +53 group 4, +11 group 5).
+- `python3 scripts/check-browser-gate.py`: `verdict: gated`; `exits non-zero with ::error:: for 4 of 4` on each of the 4 target jobs (verify, live, the shard action, verify-full); `GATE ROWS: 23 read ... 7 flagged`.
+- `python3 scripts/check-browser-gate.py --plain-commands`: 70 commands (unchanged: no fix changed what is plain).
+- `node scripts/mutation-check.mjs --anchors`: `checked 1727 of 1730 mutation anchors; 0 stale` (1665 of 1668 at 9043fa75: +62 entries, all of this change).
+- Red on purpose: 62 table entries added (10 + 17 + 5 + 23 + 7). 62 of 62 print `PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>` (PASS = the mutated tree's self-test failed), and 62 of 62
+  mutated COPIES of the guard failed with FAIL lines of the self-test (none crashed with a traceback, so none is a catch by accident). Denominator: the clauses this change added or changed, not the whole guard.
+- Baselines not regressed: `node scripts/no-launch-check.mjs --self-test` 35/36 (the one failure is `the axis-check mutation needs build/ (run npm run build first)`, as at baseline);
+  `node scripts/gate-mode.mjs --self-test` 32/32; `node scripts/delete-branches.mjs --self-test` 23/23; `node scripts/mutation-lib.mjs --self-test` 81/81 (run alone); the harness's own
+  `node scripts/mutation-check.mjs --self-test` 221/221 (run by `npm run check:mutation-anchors`).
+- `.githooks/pre-commit`, run by hand (`core.hooksPath` is unset in this checkout, so git does not run it; the guard that does run, `hook-staged-outbox.sh`, passes with this note staged): every check
+  passes (clean-source, workflows, staged-outbox, staged-verifier, boundary, import-purity, mutation-anchors, short-circuit, setup-script) EXCEPT `check:citations`, which prints, verbatim,
+  `FAIL  bare citations do not grow (budget 0)` / `-> 5 bare against a budget of 0. A ratchet: new citations must quote what they cite.` It prints the same 5 at 9043fa75 with this note moved
+  aside, so it is not caused by this change: with `outbox/review-round-5-findings-2026-11-16.md` moved aside the same check prints `bare 0` and passes (its `File: ...:367`-style lines are the bare citations), and this note adds none. Not touched.
+
+The 62 lines, verbatim:
+
+```
+PASS  [browser-gate-comment-brace-frame] a `#` inside `${ ... }` (`${y:- #}`) is not a comment, so what follows it is read
+PASS  [browser-gate-comment-ansi-c-frame] a `#` after an escaped quote inside `$'...'` is not a comment
+PASS  [browser-gate-comment-paren-count] parentheses inside `$( ... )` are counted, so the substitution ends at its own `)`
+PASS  [browser-gate-comment-backtick-frame] a `#` inside a backtick pair is not a comment
+PASS  [browser-gate-comment-escape] an escaped character (`a\ #b`, `\"` in a string) belongs to the word, so it neither starts a comment nor ends a quote
+PASS  [browser-gate-comment-word-boundary] a `#` starts a comment only where a word begins (`a#b`, `x=#a` are no comment)
+PASS  [browser-gate-comment-boundary-after-substitution] a `#` right after the `)` that closes `$( ... )` is part of the word, not a comment
+PASS  [browser-gate-logical-lines-comment-ends-continuation] a backslash at the end of a comment does not join the next line (a comment ends at the newline)
+PASS  [browser-gate-logical-lines-odd-backslashes] a backslash joins the next line only when the run of backslashes at the end is odd (`\\` is an escaped backslash)
+PASS  [browser-gate-logical-lines-comment-line-after-continuation] a comment line that follows a continuation belongs to the joined line and ends it (only a comment line with nothing before it is dropped)
+PASS  [browser-gate-final-name-in-env] a test in the final step may read only a variable of the step's own `env:`
+PASS  [browser-gate-final-exit-range] `exit N` takes an integer from 1 to 255 (256 is refused)
+PASS  [browser-gate-final-exit-nonzero] `exit N` takes a NON-ZERO literal (`exit 0` is refused)
+PASS  [browser-gate-final-echo-env-names] an echo in the final step may print only a variable of the step's own `env:`
+PASS  [browser-gate-final-echo-dollar] a `$` in a double-quoted echo string is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`
+PASS  [browser-gate-final-echo-whole-line] an echo line is an echo and nothing after it (no `; exit 0`, no comment)
+PASS  [browser-gate-final-if-whole-line] a test line is `if [ ... ]; then` and nothing after it
+PASS  [browser-gate-final-default-no-apostrophe] a `'` in the DEFAULT of `${NAME:-DEFAULT}` is refused (bash 5.2 reads it as the start of a quoted string)
+PASS  [browser-gate-final-dq-no-backslash] a double-quoted echo string holds no backslash
+PASS  [browser-gate-final-dq-no-backtick] a double-quoted echo string holds no backtick
+PASS  [browser-gate-final-word-bare-charset] the bare WORD of a test is letters, digits and `_.:-` (no glob)
+PASS  [browser-gate-final-word-quoted-charset] a quoted WORD of a test is the same characters (no space, no glob)
+PASS  [browser-gate-final-echo-bare-charset] a bare echo word is letters, digits and `_.:,=/@%+-` (no glob)
+PASS  [browser-gate-final-test-operators] a test's operator is `=`, `!=` or `==` (`>` is a redirect)
+PASS  [browser-gate-final-else-fi-whole] `else` and `fi` stand alone on their lines
+PASS  [browser-gate-final-closed-form-decides] a final step with a line outside the closed form is refused before it is run
+PASS  [browser-gate-final-env-strings-only] a final step's env holds YAML strings only (`STRICT: true` is a boolean)
+PASS  [browser-gate-npm-body-one-line] the npm script a required no-browser step runs is ONE command line
+PASS  [browser-gate-npm-body-forbidden] the npm script a required no-browser step runs has no `||`, `&&`, `;`, pipe, `&`, redirect, backtick or `$(`
+PASS  [browser-gate-npm-body-comment-cut] a trailing comment of the npm script is cut where bash cuts it before the forbidden characters are looked for
+PASS  [browser-gate-npm-body-nested] the npm scripts a package script runs (`npm run inner`) are read with the same form
+PASS  [browser-gate-npm-body-hooks] the pre and post hooks of the script the step runs are read with the same form
+PASS  [browser-gate-rows-end-own-bracket] the rows array ends at its own `]`, so a `;` or a statement after it is no part of the last row
+PASS  [browser-gate-rows-end-continuation] something that continues the expression after the array's `]` (`].concat(more)`) is refused
+PASS  [browser-gate-rows-end-semicolon] a `;` may follow the rows array's `]`
+PASS  [browser-gate-rows-end-statement-start] a statement after the rows array starts with a name on a later line: `(`, `[` and `.` there continue the expression
+PASS  [browser-gate-rows-end-in-instanceof] `in` and `instanceof` on the line after the rows array's `]` continue the expression
+PASS  [browser-gate-script-file-name] a string that is a script's file name, wherever it sits in a row, is a script the row runs
+PASS  [browser-gate-script-file-read-exempt] a script path that a call which only READS takes is a file, not a run
+PASS  [browser-gate-script-file-root] a script file name is looked for at the repository root as well as under scripts/
+PASS  [browser-gate-script-file-python] a `.py` file name is run by python3, not node
+PASS  [browser-gate-regex-word-typeof] a `/` after `typeof` starts a regular expression
+PASS  [browser-gate-regex-word-in] a `/` after `in` starts a regular expression
+PASS  [browser-gate-regex-word-do] a `/` after `do` starts a regular expression
+PASS  [browser-gate-regex-word-property] a word after a `.` is a property name, so a `/` after it is a division
+PASS  [browser-gate-regex-word-remembered] the scanner remembers a keyword as the last significant token
+PASS  [browser-gate-importer-called] the rows reader also reads the files that import `rows` from gate-checks.mjs
+PASS  [browser-gate-importer-push] `rows.push(...)` in a file that imports rows is refused
+PASS  [browser-gate-importer-copywithin] `rows.copyWithin(...)` in a file that imports rows is refused
+PASS  [browser-gate-importer-alias] `{ rows as gateRows }` and `{ rows: r }` bind the array under another name
+PASS  [browser-gate-importer-index-assign] `rows[0] = ...` in a file that imports rows is refused
+PASS  [browser-gate-importer-length-assign] `rows.length = 0` in a file that imports rows is refused
+PASS  [browser-gate-importer-reassign] `rows = []` in a file that imports rows is refused
+PASS  [browser-gate-importer-non-braced] an import of gate-checks.mjs that is not `{ names }` cannot be attributed and is refused
+PASS  [browser-gate-importer-shadow] a `const`/`let`/`var rows` in a function is a new variable, not a change to the import
+PASS  [browser-gate-later-steps-github-path] a step that writes to `$GITHUB_PATH` changes the PATH of every later step and is unresolved
+PASS  [browser-gate-later-steps-github-env] a step that writes a dangerous variable to `$GITHUB_ENV` changes what every later step runs and is unresolved
+PASS  [browser-gate-later-steps-dangerous-names] every name dangerous_var knows (not only NODE_OPTIONS) written to `$GITHUB_ENV` is refused
+PASS  [browser-gate-later-steps-npmrc] a step that names a `.npmrc` file sets npm's config for every later `npm run` and is unresolved
+PASS  [browser-gate-later-steps-comment-cut] a mention in a trailing comment is no write
+PASS  [browser-gate-later-steps-braces] `${GITHUB_ENV}` in braces is the same file as `$GITHUB_ENV`
+PASS  [browser-gate-later-steps-wired] read_commands asks every command line what it writes for the steps after it
+```
+
+## Sweep entries touched (outbox/browser-gate-sweep-2026-11-12.mjs, NOT edited)
+
+The CODE array has 428 entries. Each entry's `find` text was counted in the guard at 9043fa75 (1 time each) and in the final file: 13 entries no longer find it (count 0), none occurs more than once.
+Index in the CODE array and name:
+
+| index | name | the text that is gone | where it went |
+|---|---|---|---|
+| 13 | `a \`#\` inside a word starts a comment` | `elif c == "#" and (not out or out[-1].isspace() or out[-1] in ";&\|()"):` | `comment_start` (`elif c == "#" and was_top and boundary:`) |
+| 22 | `a backslash-continued command is read line by line` | `if line.endswith("\\"):` | `logical_lines` (odd run of backslashes and `comment_start(text) is None`) |
+| 47 | `the final step grammar is not applied` | `if grammar:` + `bad.append(f"the final step {name} must use only echo` | `final_step_problems` (`must be made only of these lines`) |
+| 48 | `the final step may use any command` | `if head not in FINAL_HEADS:` | `final_line_problem` (generic reason, `exit`, `echo`, tests) |
+| 49 | `the final step may use more commands (cat, false, true)` | `FINAL_HEADS = frozenset(...)` | removed with the head test |
+| 50 | `exit may take any argument` | `elif head == "exit" and not (len(w) == 2 and re.fullmatch(r"[1-9][0-9]*", w[1])):` | `FINAL_EXIT` and the range test in `final_line_problem` |
+| 51 | `a test may use file operators` | `elif head in ("[", "test") and any(x.startswith("-") for x in w[1:]):` | `FINAL_IF` (nothing but `"$NAME" OP WORD`) |
+| 52 | `the final step may pipe and redirect` | `if stray:` + `bad.append(f"\`{line[:60]}\`: {stray[0]!r}` | `FINAL_ECHO` / `FINAL_ARG` (a redirect or pipe is no word of an echo) |
+| 296 | `comments in the rows array are read as code` | `body = _blank_comments(text[at:end])` | `blanked = _blank_comments(text[at:])`, `body = blanked[:end]` |
+| 297 | `the words inside a string are read as code` | `shape = _blank_strings(body)` | `shape_all = _blank_strings(blanked)`, `shape = shape_all[:end]` |
+| 383 | `a \`/\` after a name or a \`)\` can start a regular expression` | `(prev == "" or prev in REGEX_AFTER or prev in ("=>", "return"))` | `js_tokens` (`prev == "=>" or prev in REGEX_AFTER_WORDS`) |
+| 384 | `a \`/\` after \`=>\` does not start a regular expression` | `prev in REGEX_AFTER or prev in ("=>", "return")` | same |
+| 385 | `a \`/\` after \`return\` does not start a regular expression` | `prev in REGEX_AFTER or prev in ("=>", "return")` | same |
+
+(Entries 47 to 52 mutate the old tokeniser's clauses; the new clauses are mutated by the 17 `browser-gate-final-*` table entries instead.)
+
+## Residual (CONTRIVED: only an input written to evade passes; each is filed as a candidate for the next CC-CMD, Rule 87.4)
+
+Each input below was run on the final guard and PASSES (read clean), at this commit.
+
+1. **A26, a regular expression after `)`**: row `() => { if (s) /it's/.test(s); return ok('node scripts/render-check.mjs') }`. `/` after `)` is a division or a regular expression depending on what the
+   `)` closes; only a parser can tell (`(a) / 2` against `if (a) /re/`). Contrived: ordinary code puts a regular expression after `=`, `(`, `&&` or `return`; a bare regex statement after a control
+   head with an apostrophe in it is written to hide a call. `await /it's/.test(s) && ok(...)` (and `yield`) passes for the same kind of reason: not in the task's list of keywords.
+2. **A29, a name built at run time**: `V="NODE_OPTIONS=--require /tmp/x.cjs"` on one line and `echo "$V" >> "$GITHUB_ENV"` on the next (the `$GITHUB_ENV` line carries no `NAME=`); `N=NODE_OPTIONS`
+   then `echo "$N=--require /tmp/x.cjs" >> "$GITHUB_ENV"`. Contrived: needs an indirection to write a name the guard looks for.
+3. **A27, an alias or an element mutation in an importer**: `import { rows } from './gate-checks.mjs'` then `const r = rows` then `r.push({...})`; `rows.forEach(r => { r.browser = false })`. An importer outside
+   `scripts/` is not scanned either. Contrived: an alias exists only to hide the push from a reader that looks for `rows.push`.
+4. **A25, a script name built from pieces**: `() => cp.spawnSync(process.execPath, ['shot' + '.mjs'], { cwd: 'scripts' })` (the string is no whole file name), or a name that is no file when the guard runs.
+   Contrived: a file name written in two literals.
+
+## Noticed, not fixed (Rule 69)
+
+- `scripts/check-doc-citations.mjs` fails at 9043fa75 (5 bare citations against a budget of 0), see above; measured: the 5 are in `outbox/review-round-5-findings-2026-11-16.md`, a file of another session (moved aside: `bare 0`).
+- `strip_comment` (used by the command splitter, the later-step check, the required step's closed form and its npm-body check) treats a `#` inside `$( )` as text where bash calls it a comment: the reader sees more than bash runs, the safe direction, and a fixture pins one such input (`echo $( (a) # b ) ; exit 0`).
+- `logical_lines` still `rstrip()`s each physical line before looking for the trailing backslash, so `echo a \ ` (a backslash and a space) is joined with the next line although bash reads an escaped
+  space there. The joined text hides the next line's head as an argument. Measured on the final guard: the final step `echo "::error::x" \ ` then `exit 0` is read as one echo line and refused only because the
+  run under bash exits 0 (`exit 0, so the job would be GREEN`); the required no-browser step refuses any line that does not start with `echo `, `node ` or `npm `. Not in the review; not touched.

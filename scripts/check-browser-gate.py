@@ -495,6 +495,30 @@ def dangerous_var(name):
     return str(name) in DANGEROUS_VARS or npm_config_key(name) in NPM_CONFIG_DANGEROUS
 
 
+# WHAT A COMMAND WRITES FOR THE STEPS AFTER IT. The reader drops a redirect's target, so `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` read as `echo`: a step that was then called browser-free had
+# changed what every LATER step runs (a preload into each node, a directory first on the PATH, npm's own config), which is what an `env:` key of the same names is refused for. A write to `$GITHUB_PATH` of anything, to
+# `$GITHUB_ENV` of a name dangerous_var knows (`NAME=` on the same line), or a file named `.npmrc`, makes the step unresolved. Other `$GITHUB_ENV` writes (`RELAY_SHA=$sha`) and `$GITHUB_OUTPUT` are not refused. A name
+# built at run time (`echo "$V" >> "$GITHUB_ENV"` after `V="NODE_OPTIONS=..."` on another line) is not seen: a residual, filed. Review of 5b5a89b, A29.
+GITHUB_PATH_REF = re.compile(r"\$\{?GITHUB_PATH\b")
+GITHUB_ENV_REF = re.compile(r"\$\{?GITHUB_ENV\b")
+ASSIGNED_NAME = re.compile(r"(?<![\w$])([A-Za-z_]\w*)=")
+NPMRC_REF = re.compile(r"\.npmrc\b")
+
+
+def later_step_effects(text):
+    """[why] the command text (its comment already cut) changes what the steps after it run, in a way this reader cannot follow."""
+    out = []
+    if GITHUB_PATH_REF.search(text):
+        out.append("it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step")
+    if GITHUB_ENV_REF.search(text):
+        names = sorted({n for n in ASSIGNED_NAME.findall(text) if dangerous_var(n)})
+        if names:
+            out.append(f"it writes {', '.join(names)} to $GITHUB_ENV, which changes what the commands of every later step run")
+    if NPMRC_REF.search(text):
+        out.append("it names a .npmrc file, which sets npm's own config (script-shell, node-options...) for every later `npm run`")
+    return out
+
+
 INSTALL_LINE = re.compile(r"^(?:timeout(?: --kill-after=\d+)? \d+ )?npx playwright install(?: [\w-]+)*$")
 PY_FLAGS = {"-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"}
 NPM_FLAGS = {"-s", "--silent", "-q", "--quiet", "--no-audit", "--no-fund", "--no-update-notifier", "--if-present"}
@@ -696,6 +720,7 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     if out is None:
         out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
     for line in logical_lines(script):
+        out["unresolved"] += [f"`{line[:80]}`: {why}" for why in later_step_effects(strip_comment(line))]
         try:
             groups = split_commands(line)
         except Unreadable as e:
@@ -3346,6 +3371,23 @@ def self_test():
           any_of("the workflow's env sets", audit({"env": {"npm_config_node_options": "x"}, "jobs": {"verify": {"steps": good["jobs"]["verify"]["steps"]}}}, pkg, read, final_timeout=5)[0]))
     check("finding 29: npm_config_key reads the name as npm does (`_` to `-` except at the start of the key, lower case, no prefix is None)",
           npm_config_key("NPM_CONFIG_Script_Shell") == "script-shell" and npm_config_key("npm_config__x_y") == "_x-y" and npm_config_key("npm_config_") == "" and npm_config_key("X_npm_config_a") is None and npm_config_key("PATH") is None)
+
+    # ROUND 5, GROUP 5 (review of 5b5a89b, A29). A command that writes for the steps AFTER it (`$GITHUB_ENV` of a variable that changes what a command runs, `$GITHUB_PATH`, a `.npmrc`) makes its step unresolved.
+    PINNED_LATER_NAMES = ("NODE_OPTIONS", "NODE_PATH", "PATH", "BASH_ENV", "ENV", "LD_PRELOAD", "PYTHONSTARTUP", "PYTHONPATH", "PYTHONHOME", "npm_config_node_options", "NPM_CONFIG_SCRIPT_SHELL")
+    for label, cmd, frag in [("`NODE_OPTIONS=` to `$GITHUB_ENV` (A29 a)", 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("`npm_config_node_options=` to `$GITHUB_ENV` (A29 b)", 'echo "npm_config_node_options=--require /tmp/x.cjs" >> "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("anything to `$GITHUB_PATH` (A29 c)", 'echo "/tmp/shadow" >> "$GITHUB_PATH"', "writes to $GITHUB_PATH"), ("a `.npmrc` file (A29 d)", 'echo "script-shell=/tmp/sh" > .npmrc', "names a .npmrc file"),
+                             ("`${GITHUB_ENV}` in braces", 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "${GITHUB_ENV}"', "to $GITHUB_ENV"), ("`tee -a \"$GITHUB_ENV\"`", 'echo "NODE_OPTIONS=x" | tee -a "$GITHUB_ENV"', "to $GITHUB_ENV"),
+                             ("`$GITHUB_PATH` unquoted, through `printf`", "printf '%s\\n' /tmp/shadow >> $GITHUB_PATH", "writes to $GITHUB_PATH"), ("`~/.npmrc`", "echo x >> ~/.npmrc", "names a .npmrc file")]:
+        check(f"round 5 (A29): a command that writes {label} is unresolved", any_of(frag, unresolved(cmd)), unresolved(cmd))
+    check(f"round 5 (A29): every one of the {len(PINNED_LATER_NAMES)} names dangerous_var knows (DANGEROUS_VARS and npm's own spellings) written to `$GITHUB_ENV` is unresolved, and the nine of DANGEROUS_VARS are exactly the first nine pinned here",
+          set(PINNED_LATER_NAMES[:9]) == set(DANGEROUS_VARS) and all(any_of(f"writes {n} to $GITHUB_ENV", unresolved(f'echo "{n}=x" >> "$GITHUB_ENV"')) for n in PINNED_LATER_NAMES), [n for n in PINNED_LATER_NAMES if not unresolved(f'echo "{n}=x" >> "$GITHUB_ENV"')])
+    PINNED_LATER_CLEAN = ['echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"', 'echo "STAMP=$STAMP" >> "$GITHUB_ENV"', 'echo "ids=$IDS" >> "$GITHUB_OUTPUT"', 'echo "x=y" >> "$GITHUB_STEP_SUMMARY"', 'echo "npm_config_loglevel=warn" >> "$GITHUB_ENV"',
+                          'echo hi # echo "/tmp/shadow" >> "$GITHUB_PATH"', 'echo hi # a .npmrc', 'echo "NODE_OPTIONS=x"']
+    check(f"round 5 (A29): ...while these {len(PINNED_LATER_CLEAN)} are read as before (a `$GITHUB_ENV` write of a name that changes no command, `$GITHUB_OUTPUT`, the step summary, an npm key that changes none, a mention in a comment, a `NODE_OPTIONS=` text that goes nowhere)",
+          all(unresolved(c) == [] for c in PINNED_LATER_CLEAN), [(c, unresolved(c)) for c in PINNED_LATER_CLEAN if unresolved(c)])
+    check("round 5 (A29): ...and a browser-free step in the target job that writes `NODE_OPTIONS` to `$GITHUB_ENV` is refused by the audit, not called browser-free",
+          any_of("cannot be read, so it cannot be called browser-free", mut(lambda s: s.insert(2, {"name": "writes env", "run": 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"'}))))
 
     total = ok + fail
     print(f"\n{ok}/{total} checks passed")
