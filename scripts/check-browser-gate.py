@@ -3111,6 +3111,12 @@ def self_test():
     # A `uses:` step is never the ledger kind. Its reason is built from the action's own name, so a name that ends in the words of a benign reason would be kept as opaque by the reason test alone.
     res = audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "uses": "./local/action: git x is not a subcommand this guard reads"}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
     check("an unreadable `uses:` step under always() is refused, not kept as opaque, even when the action's name ends in the words of a benign reason", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
+    # The reason of a `uses:` step is now "uses `<name>`: an action whose steps this guard cannot read", so a name ending in the words of a GIT reason no longer matches GIT_REASON and the fixture above stopped
+    # reaching the clause it is for (the sweep, 2026-11-16: `an unreadable always() uses: step is opaque` was NOT CAUGHT, and was NOT CAUGHT at 4b5395e6 as well). OPAQUE_REASON_OK is matched with `search`, so a name that CONTAINS one of
+    # its phrases does match: this is the name that does.
+    for phrase in ("unbalanced quoting", "a command substitution inside a word", "a process substitution", "a heredoc"):
+        res = audit(wf([{"name": "build", "run": "npm run pure"}, inst, {"name": "w", "if": "always()", "uses": f"./local/action: {phrase}"}, {"name": "pure", "run": "npm run pure"}, final]), pkg, read, final_timeout=5)
+        check(f"an unreadable `uses:` step under always() whose name holds the words of a benign opaque reason (`{phrase}`) is refused, not kept as opaque", any_of("cannot be read", res[0]) and res[1]["opaque"] == 0, res)
     res = unread('D=$(mktemp -d); grep -c x "$D/f" | cut -d, -f1; read -r A B < <(date); sleep $((attempt * 3)); node -e "console.log(1)"')
     check("...while a step made of text and file tools, substitutions, arithmetic and inline node (the ledger kind) stays opaque", res[0] == [] and res[1]["opaque"] == 1, res)
     PINNED_WRAPPERS = ("timeout", "env", "xvfb-run", "bash", "sh", "exec", "xargs", "time", "nice", "nohup", "setsid", "stdbuf", "sudo", "command", "builtin", "watch", "parallel", "ionice", "doas", "chroot")
