@@ -458,8 +458,10 @@ OPERATORS = re.compile(r"&&|\|\||\|&|;;|;|\||&|\(|\)|>>|>&|<<<|<<|<|>")
 PREFIX_WORDS = {"if", "then", "else", "elif", "do", "while", "until", "!", "{", "}", "fi", "done", "esac"}
 # Commands that cannot start a program of this repo's. `cd` is not here on purpose: it would make every later relative path
 # mean something else. `curl` fetches; piping it to a shell makes the shell a command of its own, which is unresolved.
+# `tee`, `cp`, `mv`, `rm` and `uniq` only write, copy, move, delete or dedupe files and run nothing; they are here for the reason they are in BENIGN_HEADS (review of 945daddf, P2: a plain step of an audited job
+# that ends in `| tee outbox/x.txt` was refused as `tee is not a command this guard can read`, and `echo x > scripts/y` in the same step was read clean).
 SAFE_HEADS = frozenset({"echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[",
-                        "export", "unset", "set", "cat", "mkdir", "tr"})
+                        "export", "unset", "set", "cat", "mkdir", "tr", "tee", "cp", "mv", "rm", "uniq"})
 GIT_SUBS = frozenset({"config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch",
                       "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"})
 DOTNET_SUBS = frozenset({"fable", "build", "restore"})
@@ -3151,7 +3153,7 @@ def self_test():
         check(f"{family}: every member does its job on an input where its absence changes the verdict", not broken, broken)
     PINNED_BENIGN = ("mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait", "tee", "cp", "mv", "rm", "uniq")
     vocab("BENIGN_HEADS", BENIGN_HEADS, PINNED_BENIGN, lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
-    vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr"), lambda h: unresolved(f"{h} x") == [])
+    vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr", "tee", "cp", "mv", "rm", "uniq"), lambda h: unresolved(f"{h} x") == [])
     vocab("GIT_SUBS", GIT_SUBS, ("config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch", "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"),
           lambda s: unresolved(f"git {s} x") == [])
     vocab("DOTNET_SUBS", DOTNET_SUBS, ("fable", "build", "restore"), lambda s: unresolved(f"dotnet {s} x") == [])
@@ -3332,6 +3334,11 @@ def self_test():
     for text, head in PINNED_ASSIGN_SUBST:
         check(f"round 6 (P1): the command after a `VAR=$( )` or `VAR=`...`` prefix is a head (`{text}`), and the line is refused, not kept as opaque",
               any(h == head for h, _ in command_heads(text)) and hides_a_launcher([], text) is True and refused(text), (command_heads(text), refused(text)))
+    # ROUND 6 (review of 945daddf, P2). In a plain step the five tools that only write files are read as running nothing, as they are on an unreadable line.
+    for cmd in ("node scripts/check-script-orphans.mjs | tee outbox/x.txt", "tee -a outbox/x.txt < /dev/null", "cp outbox/a.txt outbox/b.txt", "rm -f outbox/x.txt", "mv outbox/a outbox/b || true", "cat outbox/x.txt | uniq"):
+        check(f"round 6 (P2): `{cmd}` in a plain step is read: nothing unresolved", unresolved(cmd) == [], unresolved(cmd))
+    check("round 6 (P2): ...and a launcher beside one of them is still a browser step (`tee x; node scripts/shot.mjs`, `rm x && npm run shot`)",
+          all(needs_browser({"run": run}, pkg, read) is True for run in ("tee x; node scripts/shot.mjs", "rm x && node scripts/shot.mjs", "cp a b; node scripts/shot.mjs")), "")
     check("round 6 (P1): ...while a substitution in the value of a prefix whose command is a text tool stays kept as opaque (`echo \"$(date)\"; X=$(date) cat f`), and the plain forms read as before",
           kept('echo "$(date)"; X=$(date) cat f') and [h for h, _ in command_heads("X=1 npm run x")] == ["npm"] and [h for h, _ in command_heads("echo x")] == ["echo"],
           (kept('echo "$(date)"; X=$(date) cat f'), command_heads("X=1 npm run x")))
@@ -3356,7 +3363,8 @@ def self_test():
     PINNED_WRITERS = ("tee", "cp", "mv", "rm", "uniq")
     check("G-pop-1: the five tools that only write a file are benign again (a literal list: each is in BENIGN_HEADS)", set(PINNED_WRITERS) <= BENIGN_HEADS, sorted(set(PINNED_WRITERS) - BENIGN_HEADS))
     for h in PINNED_WRITERS:
-        check(f"G-pop-1: `{h}` is read as a tool that runs nothing: plain, after a pipe and on an unreadable line it is kept as opaque, never refused", kept(f"{h} x y") and kept(f"echo x | {h} x y") and kept(f'echo "$(date)"; {h} x y'), h)
+        check(f"G-pop-1: `{h}` is read as a tool that runs nothing: plain and after a pipe it is read (a safe head: P2), on an unreadable line it is kept as opaque, never refused",
+              not refused(f"{h} x y") and not refused(f"echo x | {h} x y") and kept(f'echo "$(date)"; {h} x y'), (h, unread(f"{h} x y"), unread(f"echo x | {h} x y"), unread(f'echo "$(date)"; {h} x y')))
     for cmd in ("node scripts/pure.mjs | tee outbox/x.txt", "tee -a outbox/x.txt < /dev/null", "cp outbox/a.txt outbox/b.txt", "rm -f outbox/x.txt", "sort_out=1 uniq a b"):
         check(f"G-pop-1: `{cmd}`, an ordinary pipeline sink or cleanup in an always() step, is not refused", not refused(cmd), unread(cmd))
     check("G-pop-1: ...and a tool of the five does not hide a launcher on its line: `tee x; npm run shot` is still read as a browser step", unread("tee x; npm run shot")[0] != [] and not kept("tee x; npm run shot"), unread("tee x; npm run shot"))
