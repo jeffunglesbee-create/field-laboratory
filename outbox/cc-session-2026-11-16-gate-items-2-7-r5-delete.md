@@ -2,7 +2,7 @@
 
 Date: 2026-11-16. Branch `proof-r5-delete` (worktree of `gate-items-2-7` at 9043fa75). Files: `scripts/delete-branches.mjs`, `.github/workflows/delete-branches.yml` (a header comment only; every non-comment line is unchanged), the `delete-branches-*` entries of `scripts/mutation-check.mjs`. Findings: `outbox/review-round-5-findings-2026-11-16.md`.
 
-Session doc for Rule 67. HEAD progression: 9043fa75 -> commit 1 (the pin) -> commit 2 (A16/A20) -> commit 3 (A18). Each commit message carries its sha below once pushed.
+Session doc for Rule 67. HEAD progression: 9043fa75 -> 1e0b07a6 (the pin: B13, B12, B14, A19) -> 04d0c735 (A16, A20 near variant) -> 9076fa44 (A18 observation) -> commit 4 (the pin's whitespace is a closed list; sha in the final report). Pushed to `origin/proof-r5-delete` after each.
 
 ## Threat model and classification (Rule 77)
 
@@ -128,3 +128,43 @@ PASS  [delete-branches-list-after-dashdash-is-a-flag]         FAIL x2: THE ARGV,
 ```
 
 Self-test: 30 -> 32 checks (`node scripts/delete-branches.mjs --self-test`). `node scripts/mutation-check.mjs --anchors`: `checked 1683 of 1686 mutation anchors; 0 stale`.
+
+## Commit 4: the pin strips only space, tab and CR (the pin cluster, found while writing the note)
+
+Found by asking what else passes the pin, not by the review: `significant()` stripped trailing whitespace and recognised comment lines with `\s`, and JavaScript's `\s` includes characters YAML keeps as content. A no-break space (U+00A0, what a paste from a rich-text page brings), a form feed, a vertical tab, a BOM or U+2028 at the end of the Delete run line, or alone on a line, read as nothing: 10 of 10 such edits were `[]` (measured on commit 1's function with a literal list), though YAML keeps them (a trailing U+00A0 on the run line becomes part of the last argument).
+
+Class: REACHABLE (a stray no-break space from a pasted line is an ordinary edit), and closed by construction, not by one more regex for the variant: the whitespace is a closed list, `[ \t\r]` for the trailing strip and `^[ \t]*#` for a comment line. Anything else is a different line, so it is red.
+
+- Fixture: `ONLY SPACE, TAB AND CR ARE FREE`, a LITERAL list of five characters, each at the end of the Delete run line and alone on a line (10 edits, each exactly one problem).
+- Red on purpose: `delete-branches-workflow-strips-non-yaml-space` (`[ \t\r]` back to `\s`): `PASS [delete-branches-workflow-strips-non-yaml-space]` 2/2; the same mutation in a scratch copy gives `FAIL  ONLY SPACE, TAB AND CR ARE FREE ... -> 10 of 10 not read as a problem`.
+- The table finds of the four commit-1 entries that anchor on those two regexes were updated to the new text (`comment-strip-hides-a-line`, `hash-line-dropped`, `comment-lines-counted`, `trailing-space-counted`); all four re-run `PASS`.
+
+## Final state
+
+| | at 9043fa75 | at the last commit |
+|---|---|---|
+| `node scripts/delete-branches.mjs --self-test` | 23/23 | 33/33 |
+| `delete-branches-*` entries of `scripts/mutation-check.mjs` | 32 | 51 (19 new, 5 of the 32 narrowed to the real file against the pin) |
+| each of the 51 run alone, `node scripts/mutation-check.mjs --only <id>` | | 51 of 51 `PASS` (2/2 checks) |
+| `node scripts/mutation-check.mjs --anchors` | | `checked 1684 of 1687 mutation anchors; 0 stale` |
+| `npm run check:mutation-anchors` (the hook's chain: `--stranded`, `--anchors`, harness `--self-test`) | | 221/221 |
+| `check:clean-source`, `check:workflows` 71/71, `check:short-circuit` 9/9, `check:import-purity` 3/3, `check:staged-outbox`, `check:boundary`, `check:staged-verifier`, `check:setup-script` | | green |
+
+### What was not run, and why
+
+- `scripts/confidence.mjs`, `npm run gate`, dispatches: forbidden by the task. The other areas' baselines (`check-browser-gate.py`, `no-launch-check.mjs`, `gate-mode.mjs`, `mutation-lib.mjs --self-test`) were not touched and not run: this branch edits none of those files.
+- The pre-commit hook is not installed in this worktree (`git config core.hooksPath` is unset in the shared config; `scripts/install_pkgs.sh` sets it per cloud session), so `git commit` ran no hook. Its checks were run by hand (the list above). One of them, `npm run check:citations`, FAILS at 9043fa75 and still: `bare citations do not grow (budget 0) -> 6 bare against a budget of 0`. The six are in `outbox/review-round-5-findings-2026-11-16.md` (`scripts/check-browser-gate.py:773, :949, :820`, `scripts/no-launch-check.mjs:145`, `scripts/mutation-check.mjs:13967`, `scripts/delete-branches.mjs:135`), a file this branch does not touch; with and without this note the count is 6 (this note adds no `path:line` citation). It will refuse the first commit made with the hook installed unless those six are quoted or the review record is changed; it is the orchestrator's to fix.
+
+### Sweep entries touched
+
+None. `outbox/browser-gate-sweep-2026-11-12.mjs` has 0 mentions of delete-branches, workflowProblems or WORKFLOW_PIN (checked against all 680 lines), its CODE entries anchor on `scripts/check-browser-gate.py`, and `git diff --stat 9043fa75` lists 4 files: `.github/workflows/delete-branches.yml` (a header comment), `scripts/delete-branches.mjs`, `scripts/mutation-check.mjs`, this note.
+
+### Residual (CONTRIVED; none is a passing edit of the files in this area)
+
+1. A second workflow file that deletes branches. Input: a new `.github/workflows/zz-probe.yml` with `jobs.j.steps: - run: node scripts/delete-branches.mjs --apply -- proof-a`. Measured: `node scripts/workflow-check.mjs` 71/71 and `node scripts/delete-branches.mjs --self-test` 33/33 with that file present (the pin reads one file; nothing reads the others). Contrived because it is a new file written to delete, not an edit of the one that is pinned; the dispatch-only, name-pattern and default-branch rules live in the script, and a workflow that calls it with `--apply` inherits them. To close it is a rule about which workflows may run the script, a separate CC-CMD (Rule 87.4).
+2. An intended edit of the workflow made together with the pin passes by design: the pin is the review point, not a lock. Not a hole, listed so it is not rediscovered.
+
+### Observations (not changed, Rule 69)
+
+- Two entries, `delete-branches-stops-at-the-first-failure` and `delete-branches-final-question-throws`, still end with a Node stack trace and no FAIL line: their mutations make `apply()` itself throw, so the self-test dies at that fixture. The harness counts a throw as caught (and it is), but the diagnostic is a trace, not a named check. Closing it is a per-fixture wrapper; the finding (B13) is about the mutant builder, which is fixed.
+- Reproduction scratch (`/dev/shm/r5-scratch`, `/dev/shm/r5-delete`) is deleted at the end of the session.

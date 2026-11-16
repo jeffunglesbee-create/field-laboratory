@@ -154,9 +154,10 @@ jobs:
           BRANCHES: \${{ inputs.branches }}
         run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"`
 
-/** The lines of a workflow text that count: trailing whitespace dropped (a CRLF file included), then blank lines and whole-line comments (first non-blank character `#`) dropped. Nothing else is
- *  dropped: a `#` after other text is part of its line, so a changed `run:` line cannot hide behind one. */
-const significant = text => String(text).split('\n').map(l => l.replace(/\s+$/, '')).filter(l => l !== '' && !/^\s*#/.test(l))
+/** The lines of a workflow text that count: trailing space, tab and CR dropped (a CRLF file included), then blank lines and whole-line comments (first character after space and tab is `#`) dropped. Nothing else
+ *  is dropped. A `#` after other text is part of its line, so a changed `run:` line cannot hide behind one. Only space, tab and CR are whitespace here (a closed list, not `\s`): YAML keeps a no-break space
+ *  (U+00A0, what a paste from a rich-text page brings), a form feed or a BOM as content, so a line that ends in or consists of one is a different line, not a blank one. */
+const significant = text => String(text).split('\n').map(l => l.replace(/[ \t\r]+$/, '')).filter(l => l !== '' && !/^[ \t]*#/.test(l))
 
 /** What is wrong with `.github/workflows/delete-branches.yml` (or any text given): a list, empty when it is the pin, else ONE problem naming the first line that differs (expected, found). */
 export const workflowProblems = text => {
@@ -391,6 +392,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       ].map(([what, from, to]) => ({ what, text: from === null ? WORKFLOW_PIN.replace(/\n/g, '\r\n') : wfMake(from, to) }))
       const wfBenignBad = wfBenign.filter(m => m.text === null || workflowProblems(m.text).length > 0).map(m => m.what)
       check('COMMENT LINES, BLANK LINES, TRAILING SPACE AND CRLF ARE NOT COUNTED (five edits, none a problem), so the pin is not stricter than the file needs', wfBenign.length === 5 && wfBenignBad.length === 0, `read as a problem: ${wfBenignBad.join(', ')}`)
+      // Only space, tab and CR are free: a LITERAL list of the characters that YAML keeps as content and `\s` would have stripped, each at the end of the Delete run line and alone on a line.
+      const wfOdd = ['\u00a0', '\f', '\v', '\ufeff', '\u2028'].flatMap(c => [wfMake(DEL, `${DEL}${c}`), wfMake('jobs:\n', `${c}\njobs:\n`)])
+      check('ONLY SPACE, TAB AND CR ARE FREE: a no-break space, form feed, vertical tab, BOM or line separator at the end of a line, or alone on one, is a problem (10 edits, none read as blank)',
+        wfOdd.length === 10 && wfOdd.every(t => t !== null && workflowProblems(t).length === 1), `${wfOdd.filter(t => t === null || workflowProblems(t).length !== 1).length} of ${wfOdd.length} not read as a problem`)
       check('A MUTANT WHOSE ANCHOR IS NOT IN THE PIN IS A FAIL LINE, NOT A STACK TRACE: the builder answers null for an anchor that is absent and for one that occurs twice',
         (() => { try { return wfMake('text that the pin does not have', 'x') === null && wfMake('node-version', 'x') !== null && wfMake('BRANCHES', 'x') === null } catch { return false } })())
     } finally { rmSync(dir, { recursive: true, force: true }) }
