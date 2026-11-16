@@ -69,8 +69,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   // THE PINNED DENOMINATORS (Rule 91: a visible denominator is the point, so they stay literal, here and nowhere else; the labels below are written from them). A row added to the gate or removed from it moves every one of
   // them, and a check that failed with only the names of the unchanged rows left a person to find which number moved and which file held it (round 6, O-new-2: a new 30-point row that needs no browser turned two checks red, and
   // nothing named this file as the third to edit beside docs/gate-rows.txt and scripts/gate-checks.mjs). The failing checks print what they READ beside what is PINNED, and say which three files change together.
-  // browserlessNaPoints and the names in BROWSER_ROWS describe the rows that need a browser; the other five are what a row of any kind adds to or takes from.
-  const PINNED = { rows: 23, quickSkip: 10, quickRun: 13, browserlessNaPoints: 180, browserlessRun: 17, browserlessRunPoints: 350 }
+  // browserlessNaPoints, browserlessNaInProcess and the names in BROWSER_ROWS describe the rows that need a browser; the other five are what a row of any kind adds to or takes from (review of 411729ee, F-B-1: the in-process count was a bare 7 with no name beside it).
+  const PINNED = { rows: 23, quickSkip: 10, quickRun: 13, browserlessNaPoints: 180, browserlessRun: 17, browserlessRunPoints: 350, browserlessNaInProcess: 7 }
   const TO_CHANGE = 'A row added to the gate or removed from it moves these counts: change PINNED (the first lines of this self-test in scripts/gate-mode.mjs) in the same commit as docs/gate-rows.txt and scripts/gate-checks.mjs'
   const vs = (what, read, pinned) => `${what} ${read} (pinned ${pinned}${read === pinned ? '' : ', DIFFERS'})`
   const points = rs => rs.reduce((a, r) => a + r.weight, 0)
@@ -96,9 +96,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     const pins = pinsOf(gateRows)
     check(`BROWSERLESS WITH THE SHARDS READ BACK: exactly the six rows that drive a browser are not applicable (${PINNED.browserlessNaPoints} points), and the other ${PINNED.browserlessRun} run (${PINNED.browserlessRunPoints})`, ...pins.shards)
     delete process.env.GATE_MUTATION_SHARDS
-    const inProcess = named('browserless', 'na').map(r => r.name)
-    check('...and when the mutation row runs the whole suite in this process (no shards), it drives every browser script and is not applicable too',
-      inProcess.length === 7 && inProcess.includes(MUTATION_ROW), inProcess.join(' | '))
+    /** The in-process read: with no shards the mutation row runs the whole suite in this process, drives every browser script and is not applicable too. `[passed, detail]`, over `rows`. */
+    const inProcessOf = rows => {
+      const na = named('browserless', 'na', rows).map(r => r.name)
+      return [na.length === PINNED.browserlessNaInProcess && na.includes(MUTATION_ROW),
+        `${vs('not applicable with no shards', na.length, PINNED.browserlessNaInProcess)}: ${na.join(' | ')}. A row that drives a browser also changes BROWSER_ROWS (the six names above PINNED) and this count. ${TO_CHANGE}`]
+    }
+    const inProc = inProcessOf(gateRows)
+    check('...and when the mutation row runs the whole suite in this process (no shards), it drives every browser script and is not applicable too', ...inProc)
+    const grownBrowser = inProcessOf([...gateRows, { name: 'zz new browser row', weight: 30, skipQuick: true, browser: true, run: () => true }])
+    check('A NEW BROWSER ROW MOVES THE IN-PROCESS COUNT: the check is red, prints what it read beside what is pinned (8, pinned 7, DIFFERS), and names BROWSER_ROWS and the three files that change together',
+      inProc[0] === true && grownBrowser[0] === false && grownBrowser[1].includes(`not applicable with no shards ${PINNED.browserlessNaInProcess + 1} (pinned ${PINNED.browserlessNaInProcess}, DIFFERS)`) && /BROWSER_ROWS/.test(grownBrowser[1])
+        && /docs\/gate-rows\.txt/.test(grownBrowser[1]) && /scripts\/gate-checks\.mjs/.test(grownBrowser[1]) && /scripts\/gate-mode\.mjs/.test(grownBrowser[1]), grownBrowser[1])
     // A ROW ADDED TO THE GATE (round 6, O-new-2): a 30-point row that needs no browser, written like the existing ones, is the edit that turned these checks red with nothing to say which number moved. Everything is read
     // RELATIVE to the real table's own counts (pins.read), so this check does not go red with the real ones when a row is added on purpose: it asserts what a ROW ADDED does, not what the table holds.
     const grown = pinsOf([...gateRows, { name: 'zz new row', weight: 30, run: () => true }]), was = pins.read, now = grown.read
@@ -156,46 +165,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   // THE WIRING OF confidence.mjs, which no test can run (the gate is the whole suite: the checks of this file read its source, as scripts/mutation-check.mjs's self-test reads its own for the
   // baseline's environment). The end-to-end proof is a run on a runner whose install failed (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 6).
   // THE TEXT THESE CHECKS READ IS THE CODE, NOT THE COMMENTS (round 6, F-D). confidence.mjs is read as TEXT here, and a comment that quotes a relative module path (`'./docs-helper.mjs'`) was read as a reach
-  // that needed a stand-in, one that writes `process.exit(1)` as an exit, so an edit that changed no behaviour turned the self-test red. `stripComments` removes `//` and block comments, and nothing else: the
-  // scanner knows the three string kinds (a template's `${}` nests), a regex literal after an operator or a keyword, and a division, so a `//` inside a string or a regex is text, not a comment. Newlines
-  // inside a block comment are kept, so what follows stays on its line. The same text in CODE is still a reach and still an exit (the controls below).
-  const stripComments = text => {
-    let i = 0
-    const template = () => {
-      let out = text[i++]
-      while (i < text.length) {
-        const c = text[i]
-        if (c === '\\') { out += text.slice(i, i + 2); i += 2 }
-        else if (c === '`') { out += c; i++; return out }
-        else if (c === '$' && text[i + 1] === '{') { i += 2; out += '${' + code(true) + '}'; i++ }
-        else { out += c; i++ }
-      }
-      return out
-    }
-    const code = nested => {
-      let out = '', depth = 0, prev = ''
-      while (i < text.length) {
-        const c = text[i], d = text[i + 1]
-        if (c === '/' && d === '/') { while (i < text.length && text[i] !== '\n') i++; continue }
-        if (c === '/' && d === '*') { const e = text.indexOf('*/', i + 2), end = e < 0 ? text.length : e + 2; out += text.slice(i, end).replace(/[^\n]/g, ''); i = end; continue }
-        if (c === "'" || c === '"') { const s = i++; while (i < text.length && text[i] !== c && text[i] !== '\n') i += text[i] === '\\' ? 2 : 1; i++; out += text.slice(s, i); prev = c; continue }
-        if (c === '`') { out += template(); prev = c; continue }
-        if (c === '/' && (prev === '' || /[(,=:[!&|?{};+\-*%<>~^]/.test(prev) || /(?:^|[^\w$.])(?:return|typeof|case|in|of|void|delete)$/.test(out.trimEnd()))) {
-          const s = i++
-          for (let inClass = false; i < text.length && text[i] !== '\n' && (inClass || text[i] !== '/'); i++) { if (text[i] === '\\') i++; else if (text[i] === '[') inClass = true; else if (text[i] === ']') inClass = false }
-          i++
-          while (/[a-z]/.test(text[i] ?? '')) i++
-          out += text.slice(s, i); prev = '/'; continue
-        }
-        if (c === '{') depth++
-        if (c === '}') { if (nested && depth === 0) return out; depth-- }
-        out += c; i++
-        if (!/\s/.test(c)) prev = c
-      }
-      return out
-    }
-    return code(false)
-  }
+  // that needed a stand-in, one that writes `process.exit(1)` as an exit, so an edit that changed no behaviour turned the self-test red. The comments are blanked by `blankComments` of scripts/strip-non-code.mjs, the
+  // scanner the gate's other readers use (row-confidence.mjs, check-script-orphans.mjs, check-exit-drains.mjs): same length, same lines, strings, templates and regular expressions kept. A first version of this
+  // file had a scanner of its own of about 30 lines; the review of 411729ee showed it dropped code after a regular expression that holds `//` (`if (a) /\//.test(s) && process.exit(0)`) and kept comments after a
+  // postfix `++` or a regular expression after `)`, `else`, `throw` and the other keywords, where the repo's scanner reads the same shapes right (BUILD-ON-A: one scanner, not two). The same text in CODE is still a reach and still an exit (the controls below).
+  const { blankComments: stripComments } = await import('./strip-non-code.mjs')
   /** What a text says wrong, as sentences, for a check's detail (round 6, F-D (d)): each regex the text must match and does not, each it must not match and does, and the end of the text. A message check used to print
    *  the statuses and records of the runs and not the regex that failed, so a reworded message was a red with the reason left to find. */
   const say = (what, out, wants, unwanted = []) => {
@@ -233,33 +207,64 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     const keys = m ? m[1].split(/, ?/) : []
     return keys.length === 5 && ['mode: MODE', 'possible', 'total', 'bar: BAR'].every(k => keys.includes(k)) && keys.filter(k => /^failed: \S/.test(k)).length === 1
   }
+  // exitForOk as a literal table of [what, the call, whether it is the call]: each row loses one thing the check needs (a key, the mode, the bar, the value of `failed`) or has one thing more (review of 411729ee, D: removing 'total' or 'bar: BAR' from the
+  // required keys, or loosening the `failed` test, left the self-test green because no fixture was a call without them).
+  const EXITFOR = [
+    ['as written', 'exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR })', true],
+    ['over lines with a trailing comma', 'exitFor({\n  mode: MODE,\n  failed: quickFailures.length,\n  possible,\n  total,\n  bar: BAR,\n})', true],
+    ['another key order', 'exitFor({ failed: 0, mode: MODE, bar: BAR, total, possible })', true],
+    ['without possible', 'exitFor({ mode: MODE, failed: 0, total, bar: BAR })', false],
+    ['without total', 'exitFor({ mode: MODE, failed: 0, possible, bar: BAR })', false],
+    ['another key where total stood (five keys, one of them wrong)', 'exitFor({ mode: MODE, failed: 0, possible, other, bar: BAR })', false],
+    ['without bar', 'exitFor({ mode: MODE, failed: 0, possible, total })', false],
+    ['for another mode', 'exitFor({ mode: QUICK, failed: 0, possible, total, bar: BAR })', false],
+    ['with an extra key', 'exitFor({ mode: MODE, failed: 0, possible, total, bar: BAR, extra: 1 })', false],
+    ['with two failed keys', 'exitFor({ mode: MODE, failed: 0, failed: 1, possible, total, bar: BAR })', false],
+    ['a failed key with no value', 'exitFor({ mode: MODE, failed:, possible, total, bar: BAR })', false],
+    ['a bar that is a number', 'exitFor({ mode: MODE, failed: 0, possible, total, bar: 90 })', false],
+    ['not an object', 'exitFor(opts)', false],
+  ]
+  const exitForBad = EXITFOR.filter(([, call, want]) => exitForOk(call) !== want).map(([what, call, want]) => `${what}: wanted ${want} for ${JSON.stringify(call)}`)
+  check('exitFor IS READ AS ITS FIVE KEYS: 13 literal calls (as written, over lines with a trailing comma, in another order; and one without possible, total or bar, one with another key where total stood, for another mode, with an extra key, with two failed keys, with a failed key that has no value, with a bar that is a number, and not an object)',
+    EXITFOR.length === 13 && exitForBad.length === 0, exitForBad.join(' | '))
   const exitCallsOf = code => [...code.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
   const exitCalls = exitCallsOf(gateSource)
   check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...), `possible` passed: seven of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(exitForOk).length === 7 && exitCalls.length === 10,
     `usage exits ${exitCalls.filter(c => c === '2').length} (pinned 3), exitFor calls ${exitCalls.filter(exitForOk).length} (pinned 7), calls ${exitCalls.length} (pinned 10); the calls that are neither: ${JSON.stringify(exitCalls.filter(c => c !== '2' && !exitForOk(c)))}; all: ${JSON.stringify(exitCalls)}`)
-  // THE COMMENT STRIP, as a literal table of [text, what it must become] (round 6, F-D (a), (b)): a comment goes, and only a comment: a `//` or `/*` inside a string of any kind, a template (its `${}` too), or a regex
-  // literal is text; a division is not a regex; a block comment keeps its newlines. Each row is one way the scanner can be wrong.
+  // THE COMMENT STRIP, as a literal table of [what, text, the comments in it] (round 6, F-D (a), (b)): the comments become blanks of the same length and the same lines, and nothing else changes. A `//` or `/*`
+  // inside a string of any kind, a template (its `${}` too) or a regex literal is text; a division is not a regex. The last rows are the shapes the review of 411729ee found the first scanner of this file read wrong.
   const STRIPPED = [
-    ['a line comment quoting a module', "const a = 1 // './x.mjs'\nconst b = 2\n", 'const a = 1 \nconst b = 2\n'],
-    ['a block comment holding process.exit(1)', 'x /* process.exit(1) */ y', 'x  y'],
-    ['a // inside a string is text, the comment after it is not', "const u = 'https://e.x/a' // tail\n", "const u = 'https://e.x/a' \n"],
-    ['a /* inside a double-quoted string', 'const s = "/* not a comment */"\n', 'const s = "/* not a comment */"\n'],
-    ['a template: text and an interpolation with a comment in it', 'const t = `a // b ${ x /* c */ } d`\n', 'const t = `a // b ${ x  } d`\n'],
-    ['a nested template inside an interpolation', "const n = `x ${ l.map(i => `- ${i}`).join('\\n') } y` // c\n", "const n = `x ${ l.map(i => `- ${i}`).join('\\n') } y` \n"],
-    ['a regex literal holding escaped slashes', 'const r = /\\/\\/x/.test(s) // c\n', 'const r = /\\/\\/x/.test(s) \n'],
-    ['a regex literal holding a quote, then a comment with an apostrophe', "const q = /'/.test(s) // it's\nconst z = 1\n", "const q = /'/.test(s) \nconst z = 1\n"],
-    ['an apostrophe in a comment does not open a string', "// don't\nconst q = 'a'\n", "\nconst q = 'a'\n"],
-    ['a division is not a regex', 'const d = a / b / c // d\nconst h = (a + b) / 2 // half\n', 'const d = a / b / c \nconst h = (a + b) / 2 \n'],
-    ['a regex after return', 'return /x/.test(y) // c\n', 'return /x/.test(y) \n'],
-    ['a block comment keeps its newlines', 'a /* x\ny */ b', 'a \n b'],
-    ['an unterminated block comment runs to the end', 'a /* b', 'a '],
-    ['code with no comment is unchanged', "import { a } from './b.mjs'\nprocess.exit(exitFor({ mode: MODE }))\n", "import { a } from './b.mjs'\nprocess.exit(exitFor({ mode: MODE }))\n"],
+    ['a line comment quoting a module', "const a = 1 // './x.mjs'\nconst b = 2\n", ["// './x.mjs'"]],
+    ['a block comment holding process.exit(1)', 'x /* process.exit(1) */ y', ['/* process.exit(1) */']],
+    ['a // inside a string is text, the comment after it is not', "const u = 'https://e.x/a' // tail\n", ['// tail']],
+    ['a /* inside a double-quoted string', 'const s = "/* not a comment */"\n', []],
+    ['a template: text and an interpolation with a comment in it', 'const t = `a // b ${ x /* c */ } d`\n', ['/* c */']],
+    ['a nested template inside an interpolation', "const n = `x ${ l.map(i => `- ${i}`).join('\\n') } y` // c\n", ['// c']],
+    ['a regex literal holding escaped slashes', 'const r = /\\/\\/x/.test(s) // c\n', ['// c']],
+    ['a regex literal holding a quote, then a comment with an apostrophe', "const q = /'/.test(s) // it's\nconst z = 1\n", ["// it's"]],
+    ['an apostrophe in a comment does not open a string', "// don't\nconst q = 'a'\n", ["// don't"]],
+    ['a division is not a regex', 'const d = a / b / c // d\nconst h = (a + b) / 2 // half\n', ['// d', '// half']],
+    ['a regex after return', 'return /x/.test(y) // c\n', ['// c']],
+    ['a block comment keeps its lines', 'a /* x\ny */ b', ['/* x\ny */']],
+    ['an unterminated block comment runs to the end', 'a /* b', ['/* b']],
+    ['code with no comment is unchanged', "import { a } from './b.mjs'\nprocess.exit(exitFor({ mode: MODE }))\n", []],
+    ["a regex holding // after the ) of an if header (the review's G1: the code after it was dropped as a comment)", 'if (a) /\\//.test(s) && process.exit(0) // c\n', ['// c']],
+    ['a comment after a postfix ++ and a division', "n_++ / 2 // see './docs-helper.mjs'\n", ["// see './docs-helper.mjs'"]],
+    ['a comment after a postfix -- and a division', 'n_-- / 2 // never process.exit(1) here\n', ['// never process.exit(1) here']],
+    ['a regex after the ) of a while header', 'while (a) /\\//.test(s) // c\n', ['// c']],
+    ['a regex after the ) of a for header', 'for (;;) /\\//.test(s) // c\n', ['// c']],
+    ['a regex after else', 'else /\\//.test(s) // c\n', ['// c']],
+    ['a regex after throw', 'throw /\\//.source // c\n', ['// c']],
+    ['a regex after await and yield', 'await /\\//.test(s); yield /\\//.test(s) // c\n', ['// c']],
+    ['a regex after new and instanceof', 'x instanceof /\\//.constructor; new /\\//.constructor // c\n', ['// c']],
+    ['a regex after a spread', 'f(.../\\//.exec(x)) // c\n', ['// c']],
   ]
-  const strippedBad = STRIPPED.map(([what, text, want]) => [what, stripComments(text), want]).filter(([, got, want]) => got !== want).map(([what, got, want]) => `${what}: got ${JSON.stringify(got)}, wanted ${JSON.stringify(want)}`)
-  check('THE COMMENT STRIP removes a comment and only a comment: 14 literal texts (line and block comments, a // or /* inside each kind of string, a template and a nested one, a regex literal, a division, a regex after return, a block comment\'s newlines, an unterminated one, plain code)',
-    STRIPPED.length === 14 && strippedBad.length === 0, strippedBad.join(' | '))
-  check('THE WIRING CHECKS READ THE CODE: confidence.mjs as they read it is shorter than the file, and no line of it is a comment line', gateSource.length < gateText.length && !/^\s*\/\//m.test(gateSource) && !/\/\*/.test(gateSource.replace(/'[^'\n]*'|"[^"\n]*"|`[^`]*`/g, '')),
-    `${gateSource.length} of ${gateText.length} characters kept`)
+  const blankedLike = (text, comments) => comments.reduce((s, c) => s.replace(c, m => m.replace(/[^\n]/g, ' ')), text)
+  const strippedBad = STRIPPED.map(([what, text, comments]) => [what, stripComments(text), blankedLike(text, comments)]).filter(([, got, want]) => got !== want).map(([what, got, want]) => `${what}: got ${JSON.stringify(got)}, wanted ${JSON.stringify(want)}`)
+  check('THE COMMENT STRIP blanks a comment and only a comment: 24 literal texts (line and block comments, a // or /* inside each kind of string, a template and a nested one, a regex literal, a division, a regex after return, after the ) of an if, while or for header, after else, throw, await, yield, new, instanceof and a spread, a comment after a postfix ++ or --, a block comment\'s lines, an unterminated one, plain code)',
+    STRIPPED.length === 24 && strippedBad.length === 0, strippedBad.join(' | '))
+  check('THE WIRING CHECKS READ THE CODE: confidence.mjs as they read it has the length of the file and is not the file, and no line of it is a comment line', gateSource.length === gateText.length && gateSource !== gateText && !/^\s*\/\//m.test(gateSource) && !/\/\*/.test(gateSource.replace(/'[^'\n]*'|"[^"\n]*"|`[^`]*`/g, '')),
+    `${gateSource.length} of ${gateText.length} characters, ${gateSource === gateText ? 'identical to the file' : 'comments blanked'}`)
   // THE EXIT SCAN OVER LITERAL TEXTS (round 6, F-D (b), (c)): a comment that says process.exit(1) is no exit, the same call in CODE is one that is neither a usage error nor exitFor's, and an exitFor call broken over lines, closed by a
   // trailing comma or written in another key order is the same call, while one that lost `possible`, took `possible: 0`, or took another mode is not.
   const shapeOf = text => { const calls = exitCallsOf(stripComments(text)); return `${calls.filter(c => c === '2').length}/${calls.filter(exitForOk).length}/${JSON.stringify(calls.filter(c => c !== '2' && !exitForOk(c)))}` }
@@ -303,7 +308,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       // THE MODULES confidence.mjs REACHES, each either a REAL COPY (it runs nothing and imports nothing that does) or a STAND-IN written below (it would run the real suite or git). The coverage of the stand-ins
       // is checked against what confidence.mjs imports, so a new import is a NAMED failure here, not a crash in every run below (round 4, finding 15; round 5, finding A15: gate-checks.mjs and mutation-check.mjs
       // were stood in for with no list at all, and a name added from either was an unnamed red with a JSON detail). The lists are LITERALS, and a check below ties each to the text of its stand-in.
-      const COPIED = ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs']
+      const COPIED = ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs', 'strip-non-code.mjs']
       for (const f of COPIED) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
       const STANDIN_EXPORTS = { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] }
       /** The names a module's text exports, sorted (`export const|function|class NAME`, `export { a, b as c }`, `export default`). */
@@ -374,8 +379,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       // What the scratch directory must cover is what every REAL COPY reaches, not only confidence.mjs: gate-mode.mjs imports `rows`, `ok` and `failures` from gate-checks.mjs too, and runs, as a copy, against the stand-in.
       const reach = (sources, copied, standIns) => Object.entries(sources).flatMap(([f, src]) => uncovered(stripComments(src), copied, standIns, { strings: f === 'confidence.mjs' }).map(m => `${f}: ${m}`))
       const copiedSources = Object.fromEntries(COPIED.map(f => [f, fs.readFileSync(join(here, f), 'utf8')]))
-      check('THE STAND-INS COVER WHAT THE COPIED MODULES REACH (confidence.mjs, gate-mode.mjs, gate-inventory.mjs): every name any of them imports from checks.mjs, gate-checks.mjs and mutation-check.mjs is exported by that stand-in, and every module any names is a stand-in or a real copy; a new import is named here, not found as a crash in every run below',
-        J(Object.keys(copiedSources)) === '["confidence.mjs","gate-mode.mjs","gate-inventory.mjs"]' && reach(copiedSources, COPIED, STANDIN_EXPORTS).length === 0, reach(copiedSources, COPIED, STANDIN_EXPORTS).join('; '))
+      check('THE STAND-INS COVER WHAT THE COPIED MODULES REACH (confidence.mjs, gate-mode.mjs, gate-inventory.mjs, strip-non-code.mjs): every name any of them imports from checks.mjs, gate-checks.mjs and mutation-check.mjs is exported by that stand-in, and every module any names is a stand-in or a real copy; a new import is named here, not found as a crash in every run below',
+        J(Object.keys(copiedSources)) === '["confidence.mjs","gate-mode.mjs","gate-inventory.mjs","strip-non-code.mjs"]' && reach(copiedSources, COPIED, STANDIN_EXPORTS).length === 0, reach(copiedSources, COPIED, STANDIN_EXPORTS).join('; '))
       // The same function over LITERAL sources (not edits of confidence.mjs, whose own import lines are what a careless edit changes: a fixture that edited them would be a crash, not a named failure, on exactly
       // that edit). Each differs from the control in one import and has a literal expected list; the controls take a name from a REAL copy, which needs no stand-in.
       const SRC = "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nimport { runIdentity } from './checks.mjs'\nimport { readInventory, diffAgainst } from './gate-inventory.mjs'\nconst spawned = new URL('./mutation-check.mjs', import.meta.url)\n"
@@ -399,7 +404,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         ['a copied module whose block comment holds an import line is not a reach', { 'confidence.mjs': SRC, 'gate-mode.mjs': "/*\nimport { x } from './in-a-comment.mjs'\n*/\n" }, []],
         ['control: the same module named in CODE after a string that holds `//` and a comment is still a reach', `${SRC}const u = 'https://example.com/a' // see './docs-helper.mjs'\nconst m = new URL('./other.mjs', import.meta.url)\n`, ['confidence.mjs: no stand-in or copy for module other.mjs']],
       ]
-      const LITERAL = { copied: ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs'], standIns: { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] } }
+      const LITERAL = { copied: ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs', 'strip-non-code.mjs'], standIns: { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] } }
       const results = cases.map(([what, src, want]) => [what, reach(typeof src === 'string' ? { 'confidence.mjs': src } : src, LITERAL.copied, LITERAL.standIns), want])
       check('...each way a new reach can go uncovered is a NAMED failure, and a name from a real copy is none: a name from gate-checks.mjs, from mutation-check.mjs and from checks.mjs, an unknown module (imported, or reached by `new URL`), a copy other than confidence.mjs, an aliased multi-line import, a namespace and a default import',
         J(LITERAL) === J({ copied: COPIED, standIns: STANDIN_EXPORTS }) && results.every(([, got, want]) => J(got) === J(want)), J(results.filter(([, got, want]) => J(got) !== J(want)).map(([what, got, want]) => ({ what, got, want }))))
