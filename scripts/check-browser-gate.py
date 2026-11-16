@@ -556,6 +556,29 @@ PY_FILE = re.compile(r"^[\w./\-]+\.py$")
 MAX_DEPTH = 16
 
 
+def blank_single_quoted(line):
+    """The line with the CONTENT of every single-quoted string replaced, character for character, by `_`, so that a `$(` or a backtick inside one (text, never a substitution) is no longer there. Double-quoted text is
+    left alone (a substitution inside it runs), a backslash outside single quotes escapes the next character, and a quote that never closes leaves the rest as it is. The words of the line keep their boundaries,
+    because a single-quoted string is one word whatever it holds. Review of 945daddf, P4."""
+    out, i, n, dq = list(line), 0, len(line), False
+    while i < n:
+        c = line[i]
+        if c == "\\":
+            i += 2
+            continue
+        if c == '"':
+            dq = not dq
+        elif c == "'" and not dq:
+            j = line.find("'", i + 1)
+            if j == -1:
+                break
+            for k in range(i + 1, j):
+                out[k] = "_"
+            i = j
+        i += 1
+    return "".join(out)
+
+
 def split_commands(line):
     """The words of each simple command on one logical line. Raises Unreadable on a shape that is not read."""
     line = ARITH_EXPANSION.sub("0", line)          # `sleep $((attempt * 3))`: arithmetic runs nothing; its words must not read as a command `attempt`
@@ -564,11 +587,17 @@ def split_commands(line):
         lex.whitespace_split = True
         lex.commenters = ""
         toks = list(lex)
+        lex_b = shlex.shlex(blank_single_quoted(strip_comment(line)), posix=True, punctuation_chars=True)
+        lex_b.whitespace_split = True
+        lex_b.commenters = ""
+        toks_b = list(lex_b)
     except ValueError as e:
         raise Unreadable(f"unbalanced quoting ({e})")
+    if len(toks_b) != len(toks):
+        toks_b = toks                                  # the two readings should have the same words; if they do not, read the real ones
     flat = []
-    for t in toks:
-        if "`" in t or "$(" in t:
+    for t, tb in zip(toks, toks_b):
+        if "`" in tb or "$(" in tb:                    # tb is the word with its single-quoted text blanked: a substitution inside single quotes is text
             raise Unreadable("a command substitution inside a word")
         if t and all(c in "();<>|&" for c in t):
             flat.extend(OPERATORS.findall(t))      # `);` is two operators, `&&` one
@@ -3339,6 +3368,17 @@ def self_test():
         check(f"round 6 (P2): `{cmd}` in a plain step is read: nothing unresolved", unresolved(cmd) == [], unresolved(cmd))
     check("round 6 (P2): ...and a launcher beside one of them is still a browser step (`tee x; node scripts/shot.mjs`, `rm x && npm run shot`)",
           all(needs_browser({"run": run}, pkg, read) is True for run in ("tee x; node scripts/shot.mjs", "rm x && node scripts/shot.mjs", "cp a b; node scripts/shot.mjs")), "")
+    # ROUND 6 (review of 945daddf, P4). A `$(` or a backtick inside SINGLE quotes is text: `echo 'run `npm run gate` locally'` is a message, not a substitution. Inside double quotes, or glued to the end of a word, it runs.
+    PINNED_SQ_TEXT = ["echo 'run `npm run gate` locally'", "echo 'a $(b) c'", "echo 'x' 'a `b`'", "printf '%s\\n' 'at $(date)'", "echo 'a; b $(c) | d'"]
+    PINNED_SUBST_RUNS = ['echo "a $(b)"', 'echo "a `b`"', "echo 'x'$(date)", 'echo `date`', "echo 'a' \"$(npm run shot)\"", "echo 'a'`date`", 'echo "it\'s $(date)"', "echo \\'$(date)"]
+    check(f"round 6 (P4): a `$(` or a backtick inside single quotes is text and reads as a plain echo (one of these {len(PINNED_SQ_TEXT)}: nothing unresolved)",
+          all(unresolved(c) == [] for c in PINNED_SQ_TEXT), [(c, unresolved(c)) for c in PINNED_SQ_TEXT if unresolved(c)])
+    check(f"round 6 (P4): ...while a substitution that runs (inside double quotes, glued to a closing single quote, after an escaped quote; one of these {len(PINNED_SUBST_RUNS)}) is still unresolved: a quoted one as `a command substitution inside a word`, an unquoted one through the command inside it",
+          all(unresolved(c) for c in PINNED_SUBST_RUNS) and all(any_of("a command substitution inside a word", unresolved(c)) for c in PINNED_SUBST_RUNS if '"' in c or "`" in c),
+          [(c, unresolved(c)) for c in PINNED_SUBST_RUNS if not unresolved(c)])
+    check("round 6 (P4): blank_single_quoted keeps the words (same text length, same quotes) and blanks only single-quoted content",
+          blank_single_quoted("echo 'a $(b)' \"c 'd'\" 'e'") == "echo '______' \"c 'd'\" '_'" and blank_single_quoted("x 'unterminated $(y)") == "x 'unterminated $(y)" and blank_single_quoted("a\\'b '$(c)'") == "a\\'b '____'",
+          [blank_single_quoted("echo 'a $(b)' \"c 'd'\" 'e'"), blank_single_quoted("x 'unterminated $(y)"), blank_single_quoted("a\\'b '$(c)'")])
     check("round 6 (P1): ...while a substitution in the value of a prefix whose command is a text tool stays kept as opaque (`echo \"$(date)\"; X=$(date) cat f`), and the plain forms read as before",
           kept('echo "$(date)"; X=$(date) cat f') and [h for h, _ in command_heads("X=1 npm run x")] == ["npm"] and [h for h, _ in command_heads("echo x")] == ["echo"],
           (kept('echo "$(date)"; X=$(date) cat f'), command_heads("X=1 npm run x")))
