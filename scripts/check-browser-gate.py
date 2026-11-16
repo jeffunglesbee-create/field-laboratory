@@ -1194,6 +1194,8 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT, flagged=()):
     return bad, {"steps": len(steps) - at - 1, "browser": len(browser), "plain": len(plain), "unreadable": unreadable, "opaque": len(opaque), "final_ok": final_ok}
 
 
+# What may follow the `]` that closes the rows array (comments blanked): a `;`, the end of the file, or a NEW statement, which starts on a later line with a name (a `(`, `[`, `.`, operator or `in`/`instanceof` there would continue the expression).
+ROWS_END = re.compile(r"[ \t]*;|\s*\n\s*(?!(?:in|instanceof)\b)[A-Za-z_$]|\s*\Z")
 ROW_START = re.compile(r"^[ \t]*\{[ \t]*name:[ \t]*(['\"])(.+?)\1,[ \t]*weight:[ \t]*(\d+)", re.M)
 # A call is a word NOT preceded by `.` or a word character (`res.ok`, `/a/.exec(x)` and `arr.all(...)` are property accesses, not calls of these).
 ROW_CALL = re.compile(r"(?<![.\w$])(ok|fails|all|execSync|execFileSync|spawnSync|spawn|exec)\b")
@@ -1210,13 +1212,17 @@ SCRIPTISH_HEADS = ("node", "npm", "npx", "python", "python3", "bash", "sh", "xvf
 SCRIPTISH = re.compile(r"^\s*(?:[A-Za-z_]\w*=\S*\s+)*(?:" + "|".join(SCRIPTISH_HEADS) + r")\b|(?:^|\s)(?:\$\{?\w+\}?/|\.{1,2}/)*scripts/[\w./-]+\.(?:mjs|cjs|js|py)\b")
 # The calls that only READ a path, so a script path as their first argument is a file and not a command (the arguments of `readFileSync('scripts/gate-checks.mjs')` in a row that checks a script's text).
 ROW_READ_CALLS = ("readFileSync", "existsSync", "readdirSync", "statSync")
+ROW_SCRIPT_FILE = re.compile(r"[\w./-]+\.(?:mjs|cjs|js|py)")                  # a string that is, whole, a script's file name or path
 ROW_READ_ARG = re.compile(r"""(?<![.\w$])(?:""" + "|".join(ROW_READ_CALLS) + r""")\s*\(\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)")""")
 # JAVASCRIPT TOKENS: strings, template literals, REGULAR EXPRESSION LITERALS (a quote or `//` inside one is no string or comment: `/it's/`, `/^https?:\/\//`) and comments, found by a scanner that remembers the last
-# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, `return`
-# or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
+# significant thing before a `/`. A `/` starts a regular expression only after a token that cannot end an expression: one of REGEX_AFTER (`(`, `,`, `=`, `:`, `[`, `!`, `&`, `|`, `?`, `{`, `}`, `;`), `=>`, one of
+# REGEX_AFTER_WORDS (`return`, `typeof`, `void`, `in`, `case`, `else`...) or the start: after a name, a number, a string or `)` it is a division, spaced or not (`(Date.now() - 0) / 1000 > 0 && ok(...)` had the first `/` read as the start of a regular expression up to the next
 # one, hiding the call between them). "Last significant" skips whitespace INCLUDING NEWLINES and comments: `=>` at the end of a line and `/it's/.test(s) && ok(...)` on the next is one regular expression and one
 # call (review of 48f504e, finding 26: the lookbehind of a single regular expression saw only the character before the whitespace on the same line, and the quote swallowed the call).
 REGEX_AFTER = frozenset("(,=:[!&|?{};")
+# The WORDS after which an expression starts, so a `/` is a regular expression and not a division: `typeof /it's/.test(s)`, `void /x/`, `x in /y/`, `case /z/`, `else /w/`, `do /v/` (review of 5b5a89b, A26; `return` was the only one). A word after a `.` is a
+# property name (`cfg.do / 2`), not one of these. Not read: a regular expression after `)` (`if (s) /it's/.test(s)`), which only a parser can tell from a division; it is a residual, filed.
+REGEX_AFTER_WORDS = frozenset({"return", "typeof", "void", "delete", "in", "of", "instanceof", "new", "throw", "case", "else", "do"})
 JS_STRING = re.compile(r"""'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`""", re.S)
 JS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
 JS_REGEX = re.compile(r"""/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*""")
@@ -1237,7 +1243,7 @@ def js_tokens(src):
             i = m.end()
             continue
         m = JS_STRING.match(src, i)
-        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev in ("=>", "return")):
+        if m is None and c == "/" and (prev == "" or prev in REGEX_AFTER or prev == "=>" or prev in REGEX_AFTER_WORDS):
             m = JS_REGEX.match(src, i)
         if m:
             out.append((i, m.end(), True))
@@ -1245,7 +1251,7 @@ def js_tokens(src):
             continue
         m = JS_WORD.match(src, i)
         if m:
-            i, prev = m.end(), ("return" if m.group(0) == "return" else "x")
+            i, prev = m.end(), (m.group(0) if m.group(0) in REGEX_AFTER_WORDS and prev != "." else "x")
             continue
         if src.startswith("=>", i):
             i, prev = i + 2, "=>"
@@ -1293,6 +1299,19 @@ def _matching_paren(shape, lp):
     return -1
 
 
+def _matching_bracket(shape, lb):
+    """The index of the `]` that closes the `[` at shape[lb] (strings and regular expressions are blanked, so their brackets do not count), or -1."""
+    depth = 0
+    for k in range(lb, len(shape)):
+        if shape[k] == "[":
+            depth += 1
+        elif shape[k] == "]":
+            depth -= 1
+            if depth == 0:
+                return k
+    return -1
+
+
 def _matching_brace(shape, lb):
     """The index of the `}` that closes the `{` at shape[lb] (strings and regular expressions are blanked, so their braces do not count), or -1."""
     depth = 0
@@ -1306,6 +1325,41 @@ def _matching_brace(shape, lb):
     return -1
 
 
+# A FILE THAT IMPORTS `rows` FROM scripts/gate-checks.mjs must not change the array: confidence.mjs iterates it, and `rows.push(...)` between its inventory comparison (diffAgainst, which compares names and weights
+# once) and its loop adds a row nothing read. `{ rows }`, `{ rows as r }` and `{ rows: r }` (a static import, `await import(...)`, `require(...)`) are the bindings; each use of the binding is a mutation when an Array method
+# that changes the array (ARRAY_MUTATORS), an assignment to an index or to `length`, or a reassignment follows it. Read from the importer's text with comments and strings blanked. An import that is not that form
+# (`import * as g`, a default, an `import()` that is not destructured) is a file this reader cannot attribute. Review of 5b5a89b, A27.
+ROWS_IMPORT = re.compile(r"""\{([^{}]*)\}\s*(?:from|=\s*(?:await\s+)?(?:import|require)\s*\()\s*['"][\w./-]*gate-checks\.mjs['"]""")
+ROWS_ANY_IMPORT = re.compile(r"""(?:\bfrom|\bimport\s*\(|\brequire\s*\()\s*['"][\w./-]*gate-checks\.mjs['"]""")
+ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
+
+
+def importer_rows_problems(root):
+    """[problem] for the files under scripts/ that import `rows` from gate-checks.mjs and change it."""
+    bad = []
+    for f in sorted(Path(root, "scripts").glob("*")):
+        if f.suffix not in (".mjs", ".cjs", ".js") or f.name == "gate-checks.mjs":
+            continue
+        raw = f.read_text(errors="replace")
+        if "gate-checks.mjs" not in raw or not ROWS_ANY_IMPORT.search(raw):
+            continue
+        blanked = _blank_comments(raw)
+        braced = list(ROWS_IMPORT.finditer(blanked))
+        if len(braced) < len(ROWS_ANY_IMPORT.findall(blanked)):
+            bad.append(f"scripts/{f.name} imports scripts/gate-checks.mjs other than as `{{ names }}` (`import * as`, a default, an `import()` that is not destructured): this reader cannot tell what it does to `rows`")
+        shape = _blank_strings(blanked)
+        for imp in braced:
+            for item in imp.group(1).split(","):
+                m = re.fullmatch(r"\s*rows(?:\s+as\s+(\w+)|\s*:\s*(\w+))?\s*", item)
+                if not m:
+                    continue
+                name = m.group(1) or m.group(2) or "rows"
+                use = re.search(r"(?<![\w$.])" + re.escape(name) + r"(?:\s*\.\s*(?:" + "|".join(ARRAY_MUTATORS) + r")\s*\(|\s*\[[^\]]*\]\s*=(?![=>])|\s*\.\s*length\s*=(?!=)|\s*=(?![=>]))", shape)
+                if use and not shape[:use.start()].endswith(("const ", "let ", "var ")):
+                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs it")
+    return bad
+
+
 def gate_rows(root="."):
     """([(name, weight, flagged, commands)], [problem]) for the rows of scripts/gate-checks.mjs, read by a CLOSED GRAMMAR: a row is `{ name: '...', weight: N,` at the start of a line; its `run:` is an arrow
     function or one of ROW_HELPERS; `flagged` is whether it carries `browser: true` or `browser: (...) =>` before its `run:`; `commands` are the string literals of its `ok(`, `fails(`, `all(`,
@@ -1315,12 +1369,20 @@ def gate_rows(root="."):
     `spawnSync('node', ['scripts/x.mjs'])`) (review 2026-11-15, finding 3 and round 2, finding 2)."""
     text = Path(root, "scripts", "gate-checks.mjs").read_text()
     at = text.index("const rows = [")
-    end = text.find("\nexport {", at)
-    end = len(text) if end < 0 else end
-    body = _blank_comments(text[at:end])
-    shape = _blank_strings(body)
-    starts = list(ROW_START.finditer(body))
+    blanked = _blank_comments(text[at:])
+    shape_all = _blank_strings(blanked)
     problems, out = [], []
+    # THE ARRAY ENDS AT ITS OWN `]`, wherever the file goes on from there: `];`, a helper written between the array and `export {`, are not part of it (they made the last row "not followed by a comma", a false red, review of
+    # 5b5a89b, B7). What may follow is a `;` or a new statement on a later line (ROWS_END): `].concat(more)`, `].map(...)` and `][0]` change the array that is exported.
+    rb = _matching_bracket(shape_all, shape_all.index("["))
+    end = len(blanked) if rb < 0 else rb + 1
+    body, shape = blanked[:end], shape_all[:end]
+    if rb < 0:
+        problems.append("the rows array of scripts/gate-checks.mjs does not close with a `]` this reader can find")
+    elif not ROWS_END.match(shape_all[end:]):
+        problems.append(f"the rows array of scripts/gate-checks.mjs is followed by `{shape_all[end:].strip()[:30]}`, which changes the array that is exported (`].concat(more)`, `].map(...)`, `][0]`): the rows read are not the rows `confidence.mjs` runs")
+    starts = list(ROW_START.finditer(body))
+    problems += importer_rows_problems(root)
     n_weight = len(re.findall(r"\bweight\s*:", shape))
     if n_weight != len(starts):
         problems.append(f"{n_weight} `weight:` keys in the rows array of scripts/gate-checks.mjs but {len(starts)} rows read: a row not written `{{ name: '...', weight: N` at the start of a line is not read, and a row not read is not compared")
@@ -1328,6 +1390,7 @@ def gate_rows(root="."):
     # first row, nothing but a comma between one row's `}` and the next row (a spread `...more`, a variable, a call, a row written with quoted keys or two on a line is none of the rows read), nothing but
     # `]` after the last; and the name `rows` is used nowhere else but its declaration and its `export { ... }` (`rows.push(...)`, `rows.splice`, `rows.unshift`, `rows = ...`, `rows[...] = ...`, `...rows`
     # change the array after it is read here). Review of 48f504e, finding 27: a row outside the literal, or with quoted keys, was not read, not counted and not compared.
+    # In every file that IMPORTS `rows` from it the name may be read but not changed (importer_rows_problems; review of 5b5a89b, A27).
     whole = _blank_strings(_blank_comments(text))
     spans = [(x.start(), x.end()) for x in re.finditer(r"\bexport\s*\{[^}]*\}", whole)]
     stray = [x for x in re.finditer(r"(?<![\w$])(?:(?<=\.\.\.)|(?<!\.))rows\b(?!\s*:)", whole) if x.start() != at + len("const ") and not any(s <= x.start() < e for s, e in spans)]
@@ -1392,6 +1455,14 @@ def gate_rows(root="."):
             lit = rest[s:e]
             if is_lit and lit[0] in "'\"" and SCRIPTISH.search(lit[1:-1]) and lit[1:-1] not in have:
                 problems.append(f"gate row {name!r} names a command ({lit[1:-1][:50]!r}) that no `ok(`, `fails(`, `all(`, `execSync(` or `shardedSuite(` call takes: this reader cannot attribute it")
+            # A STRING THAT IS A SCRIPT'S FILE NAME IS A SCRIPT THE ROW RUNS, wherever it sits (`['render-check.mjs'], { cwd: 'scripts' }`, `path.join('scripts', 'render-check.mjs')`, `'scripts/' + 'render-check.mjs'`): when it
+            # names a file that exists under scripts/ or at the root, the row is read as running that script, so a browser script behind it is classed as one (review of 5b5a89b, A25: SCRIPTISH needs `scripts/` in the string).
+            # A path a call that only READS takes (`have`) is a file, not a run.
+            if is_lit and lit[0] in "'\"" and ROW_SCRIPT_FILE.fullmatch(lit[1:-1]) and lit[1:-1] not in have:
+                for cand in (Path(root, "scripts", lit[1:-1]), Path(root, lit[1:-1])):
+                    if cand.is_file():
+                        cmds.append(("python3 " if lit[1:-1].endswith(".py") else "node ") + cand.relative_to(root).as_posix())
+                        break
         out.append((name, int(m.group(3)), flagged, cmds))
     return out, problems
 
@@ -3118,16 +3189,79 @@ def self_test():
     for label, after in [("`rows.push(...)` after the export", f"rows.push({row_x})\n"), ("`rows.splice(0, 1)`", "rows.splice(0, 1)\n"), ("`rows.unshift(...)`", f"rows.unshift({row_x})\n"), ("`rows = []`", "rows = []\n"),
                          ("`rows[0] = ...`", "rows[0] = {}\n"), ("`rows.length = 0`", "rows.length = 0\n"), ("`...rows` in another array", "const all = [...rows]\n"), ("`rows.pop()`", "rows.pop()\n")]:
         check(f"finding 27: {label} is refused: the array is changed after it is read", any_of("`rows` is used", row_pr("", after=after)), row_pr("", after=after))
-    check("finding 27: ...also in a statement between the array and the export",
-          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
+    check("finding 27: ...also in a statement between the array and the export (round 5, B7: refused for that, and no longer ALSO told its last row is not followed by a comma, which it is)",
+          any_of("`rows` is used", row_pr("", close="]\nrows.push(1)")) and not any_of("is not followed by a comma", row_pr("", close="]\nrows.push(1)")))
     check("finding 27: ...while `rows` as an object key, a property (`x.rows`) and one more name in the export are not a use", row_pr("", after="const a = { rows: 1 }\nconst b = x.rows.length\n") == [])
     check("finding 27: a spread, a variable or a call in front of the first row is refused", all(any_of("something before its first row", row_pr("", head=h)) for h in ("  ...more,\n", "  someRow,\n", "  makeRow(),\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/pure.mjs') },\n")))
     check("finding 27: ...and between two rows or after the last (`...more,`, a variable, a row with quoted keys, two rows on one line, `].concat(more)`)",
           all(any_of("is not followed by a comma", row_pr(b)) for b in ("  ...more,\n", "  someRow,\n", "  { 'name': 'q', 'weight': 1, run: () => ok('node scripts/shot.mjs') },\n",
                                                                         "  { name: 'q', weight: 1, run: () => ok('node scripts/pure.mjs') }, { name: 'r', weight: 1, run: () => ok('node scripts/pure.mjs') },\n"))
-          and any_of("is not followed by a comma", row_pr("", close="].concat(more)")))
+          and any_of("changes the array that is exported", row_pr("", close="].concat(more)")))
     check("finding 27: a row with no comma after it (not the last: JavaScript allows that one) is refused, and the real file's shape (`},` then `]`, and a last row with no comma) is clean",
           any_of("is not followed by a comma", row_pr("", head=one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n"))) and row_pr(one_row("() => ok('node scripts/pure.mjs')").replace("},\n", "}\n")) == [])
+
+    # ROUND 5, GROUP 4 (review of 5b5a89b, B7, A25, A26, A27). The rows reader.
+    # B7: the array ends at its own `]`. A `;` or a statement after it is no part of it; something that continues the expression is.
+    for label, close in [("`];`", "];"), ("a statement between the array and the export (`const helperLater = 1`)", "]\nconst helperLater = 1"), ("a comment after the `]`", "] // end of the rows"), ("two statements and a `;`", "];\nconst a = 1;\nconst b = 2")]:
+        check(f"round 5 (B7): the rows array followed by {label} reads clean (the last row is followed by `]`, which it is)", row_pr("", close=close) == [], row_pr("", close=close))
+    for label, close in [("`].concat(more)`", "].concat(more)"), ("`]` and `.concat(more)` on the next line", "]\n.concat(more)"), ("`].map(...)`", "].map(r => r)"), ("`][0]`", "][0]"), ("a call on the next line (`(more)`)", "]\n(more)"),
+                         ("an index on the next line (`[0]`)", "]\n[0]"), ("`] in x` on one line", "] in x"), ("`in x` on the next line", "]\nin x"), ("`instanceof X` on the next line", "]\ninstanceof X")]:
+        check(f"round 5 (B7): the rows array followed by {label} is refused: it changes the array that is exported", any_of("changes the array that is exported", row_pr("", close=close)), row_pr("", close=close))
+    # A25: a string that is a script's file name is a script the row runs, wherever it sits.
+    def row_pr_files(body, names=("shot.mjs", "pure.mjs", "probe.py"), root_names=("pre-launch.cjs",)):
+        d = tempfile.mkdtemp()
+        Path(d, "scripts").mkdir()
+        Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + body + "]\n\nexport { rows }\n")
+        for n in names:
+            Path(d, "scripts", n).write_text("x")
+        for n in root_names:
+            Path(d, n).write_text("x")
+        return gate_row_problems(d, pkg, read)
+    for label, run in [("`['shot.mjs'], { cwd: 'scripts' }` (A25)", "() => cp.spawnSync(process.execPath, ['shot.mjs'], { cwd: 'scripts' }).status === 0"), ("`path.join('scripts', 'shot.mjs')` (A25)", "() => cp.spawnSync(process.execPath, [path.join('scripts', 'shot.mjs')]).status === 0"),
+                       ("`['scripts/' + 'shot.mjs']` (A25)", "() => cp.spawnSync(process.execPath, ['scripts/' + 'shot.mjs']).status === 0"), ("a `.py` file (`['probe.py']`)", "() => helpers.runAll(['probe.py'])"),
+                       ("a file at the repository root (`['pre-launch.cjs']`)", "() => cp.spawnSync(process.execPath, ['pre-launch.cjs'])")]:
+        got = row_pr_files(one_row(run))
+        check(f"round 5 (A25): a row with {label} drives a browser and is not flagged", any_of("gate row 'x' drives a browser", got), got)
+    check("round 5 (A25): ...while the same call in a row flagged `browser: true`, a script that launches none, a name that is no file, and a path a call that only READS takes (`readFileSync('shot.mjs')`) read clean",
+          all(row_pr_files(b) == [] for b in ("  { name: 'x', weight: 10, browser: true,\n    run: () => cp.spawnSync(process.execPath, ['shot.mjs'], { cwd: 'scripts' }) },\n", one_row("() => cp.spawnSync(process.execPath, ['pure.mjs'], { cwd: 'scripts' })"),
+                                              one_row("() => cp.spawnSync(process.execPath, ['no-such.mjs'], { cwd: 'scripts' })"), one_row("() => ok('node scripts/pure.mjs') && readFileSync('shot.mjs', 'utf8').includes('x')"))),
+          [row_pr_files(b) for b in (one_row("() => cp.spawnSync(process.execPath, ['pure.mjs'], { cwd: 'scripts' })"),)])
+    # A26: a regular expression after a keyword that starts an expression.
+    PINNED_REGEX_WORDS = ("return", "typeof", "void", "delete", "in", "of", "instanceof", "new", "throw", "case", "else", "do")
+    check("REGEX_AFTER_WORDS: the words after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)", set(PINNED_REGEX_WORDS) == set(REGEX_AFTER_WORDS), sorted(REGEX_AFTER_WORDS))
+    for w in PINNED_REGEX_WORDS:
+        check(f"round 5 (A26): a regular expression after `{w}` (and after `{w}` and a newline) is one: the call after its quote is read", rx(f"{w} ") and rx(f"{w}\n      "), w)
+    check("round 5 (A26): ...a word after a `.` is a property name, not one of them: `cfg.do / 2 && ok(...) / 3` is a division and the call between the slashes is read, and a word that only STARTS with one (`typeofx`, `index`) is a name",
+          any_of("drives a browser", row_pr(one_row("() => cfg.do / 2 && ok('node scripts/shot.mjs') / 3"))) and any_of("drives a browser", row_pr(one_row("() => typeofx / 2 && ok('node scripts/shot.mjs') / 3"))) and
+          any_of("drives a browser", row_pr(one_row("() => index / 2 && ok('node scripts/shot.mjs') / 3"))))
+    PINNED_TOKENS_5 = [("typeof /it's/.test(s)", [(7, 13, True)]), ("x in /a'b/", [(5, 10, True)]), ("do /a'b/", [(3, 8, True)]), ("cfg.do / 2 / 3", []), ("typeofx / 2 / 3", []), ("case /a'b/:", [(5, 10, True)])]
+    check("round 5 (A26): the scanner's tokens are exactly these on each of these inputs (a regular expression after `typeof`, `in`, `do`, `case`; a division after a property named `do` and after a name that starts with a keyword)",
+          all(js_tokens(src) == want for src, want in PINNED_TOKENS_5), [(src, js_tokens(src), want) for src, want in PINNED_TOKENS_5 if js_tokens(src) != want])
+    # A27: a file that imports `rows` from gate-checks.mjs must not change it (confidence.mjs iterates it after its inventory comparison, which sees names and weights once).
+    def row_pr_importer(src, name="importer.mjs"):
+        d = tempfile.mkdtemp()
+        Path(d, "scripts").mkdir()
+        Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + "]\n\nexport { rows }\n")
+        Path(d, "scripts", name).write_text(src)
+        return gate_row_problems(d, pkg, read)
+    PINNED_ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
+    check("ARRAY_MUTATORS: the Array methods that change the array are exactly the nine pinned (a literal list)", set(PINNED_ARRAY_MUTATORS) == set(ARRAY_MUTATORS) and len(ARRAY_MUTATORS) == 9, ARRAY_MUTATORS)
+    for m in PINNED_ARRAY_MUTATORS:
+        got = row_pr_importer(f"import {{ rows }} from './gate-checks.mjs'\nrows.{m}(1)\n")
+        check(f"round 5 (A27): `rows.{m}(...)` in a file that imports rows is refused", any_of("changes `rows`", got), got)
+    for label, src in [("the review's `rows.push({...})` after `import { rows, ok, failures, NOT_APPLICABLE }`", "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nrows.push({ name: 'pushed by the importer', weight: 1, run: () => ok('node scripts/shot.mjs') })\n"),
+                       ("an alias (`rows as gateRows`)", "import { rows as gateRows } from './gate-checks.mjs'\ngateRows.splice(0, 1)\n"), ("`const { rows } = await import(...)`", "const { rows } = await import('./gate-checks.mjs')\nrows.unshift({})\n"),
+                       ("`const { rows: r } = require(...)`", "const { rows: r } = require('./gate-checks.mjs')\nr.pop()\n"), ("`rows.length = 0`", "import { rows } from './gate-checks.mjs'\nrows.length = 0\n"),
+                       ("`rows[0] = {}`", "import { rows } from './gate-checks.mjs'\nrows[0] = {}\n"), ("`rows = []`", "import { rows } from './gate-checks.mjs'\nrows = []\n")]:
+        got = row_pr_importer(src)
+        check(f"round 5 (A27): {label} is refused: the array is changed after it is read", any_of("changes `", got), got)
+    check("round 5 (A27): ...an import that is not `{ names }` (`import * as g`) is a file this reader cannot attribute", any_of("other than as `{ names }`", row_pr_importer("import * as g from './gate-checks.mjs'\ng.rows.push(1)\n")))
+    check("round 5 (A27): ...while reads (`for ... of rows`, `.map`, `.find`, `.length`, a spread, a copy that is pushed to), a mutation in a comment or a string, a property named `rows`, a local `rows` in a file that does not import it, "
+          "and a `let rows` that shadows it in a function, read clean",
+          all(row_pr_importer(src) == [] for src in ("import { rows } from './gate-checks.mjs'\nfor (const r of rows) r.run()\nconsole.log(rows.length, rows.map(r => r.name), rows.find(r => r.name === 'x'), [...rows])\nconst copy = [...rows]\ncopy.push(1)\n",
+                                                     "import { rows } from './gate-checks.mjs'\n// rows.push(1)\nconst t = 'rows.push(1)'\nconst o = { rows: 1 }\no.rows.push(2)\nx.rows = 3\n",
+                                                     "import { ok } from './gate-checks.mjs'\nconst rows = []\nrows.push(1)\n", "import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n")),
+          [row_pr_importer(src) for src in ("import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n",)])
 
     # FINDING 28. The final step's tests read only what the step's own `env:` defines.
     for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),

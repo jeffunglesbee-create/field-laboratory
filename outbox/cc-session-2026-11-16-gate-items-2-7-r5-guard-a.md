@@ -129,3 +129,62 @@ Red on purpose (`PASS [<id>]`; failing checks of the mutated copy):
 | `browser-gate-npm-body-comment-cut` | a body's trailing comment not cut first (`# a; b` refused) | 1 |
 | `browser-gate-npm-body-nested` | only the first script's body read | 1 |
 | `browser-gate-npm-body-hooks` | only the named script's body, not its hooks | 1 |
+
+## Group 4: the rows reader (B7, A25, A26, A27)
+
+**B7.** `gate_rows` cut the array at the first `\nexport {`, so a `];` or any statement between the array's `]` and `export {` made the last row "not followed by a comma" (a false
+red). The array now ends at its OWN `]` (`_matching_bracket` on the text with comments and strings blanked). What may follow is `ROWS_END`: a `;`, the end of the file, or a NEW
+statement that starts with a name on a later line; `].concat(more)`, `].map(...)`, `][0]`, a `(` or `[` or `.` on the next line, and `in`/`instanceof` there continue the expression
+and are refused (`changes the array that is exported`). Something between ROWS is still refused (unchanged). Two finding-27 fixtures changed: a statement after the array
+(`]\nrows.push(1)`) is now refused only for the stray `rows` (it was also told its last row had no comma, which it has), and `].concat(more)` is refused for the new message.
+
+**A25.** Every string literal in a row that is, whole, a script file name (`[\w./-]+\.(mjs|cjs|js|py)`), not taken by a call that only reads (`have`), and names a file that exists under
+`scripts/` or at the root, is now a command of the row (`node scripts/x.mjs`, `python3 scripts/x.py`), wherever it sits: `['render-check.mjs'], { cwd: 'scripts' }`,
+`path.join('scripts', 'render-check.mjs')`, `['scripts/' + 'render-check.mjs']`. `gate_row_problems` then reads it like any other command, so a browser script behind it in a row that
+is not flagged is refused, and one in a flagged row is accepted. The real file reads clean (`GATE ROWS: 23 read ... 7 flagged`, unchanged).
+
+**A26.** `REGEX_AFTER_WORDS` (the task's eleven plus `return`): after one of them a `/` starts a regular expression; a word after a `.` is a property name (`cfg.do / 2` is a division).
+The case after `)` (`if (s) /it's/.test(s)`) cannot be told from a division without parsing: residual, below.
+
+**A27.** READ, not run: `scripts/confidence.mjs` line 50 imports `rows`; line 110 `const inventoryProblems = diffAgainst(readInventory(), rows)` compares NAMES AND WEIGHTS once
+(`scripts/gate-inventory.mjs` lines 51 to 65: two maps, name to weight, nothing about `browser`); line 145 `for (const row of rows)` runs the array. So a `rows.push(...)` placed after
+line 110 and before line 145 is compared by nothing, and one placed between lines 51 and 109 is refused only if its name or weight is undeclared in `docs/gate-rows.txt`, and says nothing
+about whether the row drives a browser. NOT ALREADY_COVERED. `importer_rows_problems(root)` now reads every `scripts/*.mjs|cjs|js` that imports `rows` from gate-checks.mjs (`{ rows }`,
+`{ rows as r }`, `{ rows: r }`; static, `await import`, `require`) and refuses a use of the binding that is an Array mutator (`ARRAY_MUTATORS`, nine methods), an index or `length`
+assignment, or a reassignment; an import that is not `{ names }` is refused as unattributable. Real tree: 7 importers found (confidence.mjs, gate-inventory.mjs, gate-mode.mjs as
+`gateRows`, row-confidence.mjs, run-row.mjs, sharded-row-check.mjs; outbox-row-check.mjs imports no `rows`), 0 problems, 0.10 s.
+
+| input | before | now |
+|---|---|---|
+| `];` after the array; `]` then `const helperLater = 1` then `export {` (B7) | refused: `gate row 'p19' is not followed by a comma ...` (a false red) | clean |
+| `['shot.mjs'], { cwd: 'scripts' }`; `path.join('scripts', 'shot.mjs')`; `['scripts/' + 'shot.mjs']` in an unflagged row (A25) | clean (`verdict: gated`) | refused: `drives a browser (by its commands) and is not flagged` |
+| `() => typeof /it's/ === 'object' && ok('node scripts/shot.mjs')`; `() => void /it's/ \|\| ok(...)` (A26) | clean | refused: `drives a browser` |
+| `rows.push({...})` in an importer of `rows` (A27) | clean | refused: `scripts/importer.mjs changes `rows`, the array it imports ...` |
+
+(Run on the 9043fa75 file and this one over temporary roots with the review's inputs; old/new columns are those runs.)
+
+Self-test: 748 to 801 (53 new checks: 4 clean and 9 refused array ends, 5 A25 rows and the controls, 12 A26 words, the property name case and a token table, 9 mutators and 7 importer
+shapes, the unattributable import and the clean importers).
+
+Red on purpose (`PASS [<id>]`; failing checks of the mutated copy):
+
+| id | the break | failing |
+|---|---|---|
+| `browser-gate-rows-end-own-bracket` | the array runs to the end of the file | 35 |
+| `browser-gate-rows-end-continuation` | `].concat(more)` accepted | 10 |
+| `browser-gate-rows-end-semicolon` | `];` refused | 2 |
+| `browser-gate-rows-end-statement-start` | `(`, `[`, `.` allowed to start the next statement | 3 |
+| `browser-gate-rows-end-in-instanceof` | `in`/`instanceof` allowed to start the next statement | 2 |
+| `browser-gate-script-file-name` | a bare script file name is no command | 6 |
+| `browser-gate-script-file-read-exempt` | a path a read call takes is a run | 4 |
+| `browser-gate-script-file-root` | files at the root not looked for | 1 |
+| `browser-gate-script-file-python` | a `.py` run by node | 1 |
+| `browser-gate-regex-word-typeof` / `-in` / `-do` | a member of REGEX_AFTER_WORDS deleted | 3 / 3 / 3 |
+| `browser-gate-regex-word-property` | a word after `.` is a keyword | 2 |
+| `browser-gate-regex-word-remembered` | no keyword remembered | 16 |
+| `browser-gate-importer-called` | the importers are not read | 17 |
+| `browser-gate-importer-push` / `-copywithin` | a mutator deleted | 3 / 2 |
+| `browser-gate-importer-alias` | the alias is not followed | 2 |
+| `browser-gate-importer-index-assign` / `-length-assign` / `-reassign` | that alternative deleted | 1 / 1 / 1 |
+| `browser-gate-importer-non-braced` | `import * as` accepted | 1 |
+| `browser-gate-importer-shadow` | a `let rows` in a function counts as a change | 1 |
