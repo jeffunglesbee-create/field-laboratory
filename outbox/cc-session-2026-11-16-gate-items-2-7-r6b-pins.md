@@ -47,3 +47,20 @@ Mutation entries (each `PASS [id]` beside `PASS the unmutated tree passes every 
 | `delete-branches-self-test-run-line-only` | the Delete run as its first line only | the wrapped row (28 of 30 built: both mutants that read the continuation unbuilt) |
 | `delete-branches-self-test-noop-edit-survives` | `sub()` without the Miss | the new no-op check (the unchanged text is built and is the pin) |
 | `delete-branches-self-test-miss-names-no-pattern` | the unbuilt message without the pattern | the new no-op check |
+
+## F-C-2 (delete-branches, reachable false red): the Plan step written with `- id: plan` before `name: Plan (dry run)`
+
+REPRODUCED at base. BEFORE (edit in both files, `--self-test`): at `2aa79ba2` 33/35, `survived: no dry run before the Delete step` (the mutant replaced `name:` on the step's first line;
+there was none, so it changed nothing and was reported as a survivor). The same key order on the Delete step: 35/35 (not a defect). At the F-C-1 head, where a no-op mutant is already a named FAIL,
+the same edit is 32/36 and the detail reads `no dry run before the Delete step (its edit /name: .*/ matches nothing in its anchor "      - id: plan\n")`: named, but still a false red.
+
+Fix: `anchorsOf` locates the Plan step's name line anywhere between the step's first line and its run line (`planName`, `PLAN_NAME`), the mutant edits that line (the old first-line anchor `PLAN_STEP` had no other
+user and is gone), and a Plan step with no name line at all is listed in `missing` (`the Plan step's name line (none of its lines above the run line starts name: or - name:)`).
+Fixture row 10 of `wfEdits` (the name key moved below an id key, or back to the first line when it already is below), and one check, `A PLAN STEP WITH NO NAME LINE IS NAMED`.
+
+AFTER (same edits, both files): `- id: plan` before `name:` 37/37; `- id: del` before the Delete `name:` 37/37; no edit 37/37.
+
+| id | what it puts back | the fixture or check that goes red |
+|---|---|---|
+| `delete-branches-self-test-plan-name-on-first-line` | the mutant anchored on the Plan step's first line | the name-key row (29 of 30 built, `no dry run before the Delete step` unbuilt) and the no-name check |
+| `delete-branches-self-test-plan-name-missing-unlisted` | the `missing` entry for the name line, removed | the no-name check (`missing.length` 0, the detail is a bare `no step to anchor on`) |

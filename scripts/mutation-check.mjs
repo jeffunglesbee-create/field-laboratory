@@ -15243,6 +15243,23 @@ const MUTATIONS = [
     replace: "(its edit matches nothing in its anchor ${quoted(m.from)})",
     expect: "node scripts/delete-branches.mjs --self-test",
   },
+  // Round 6b, F-C-2: the Plan step's name is the line that holds its `name:` key wherever the step puts it, not the step's first line.
+  {
+    id: "delete-branches-self-test-plan-name-on-first-line",
+    file: "scripts/delete-branches.mjs",
+    claim: "the mutant that renames the Plan step finds its name line anywhere in the step, so `- id: plan` above `name: Plan (dry run)` (a free key order), in the pin and the workflow, is no false red",
+    find: "['no dry run before the Delete step', PLAN_NAME, sub(PLAN_NAME, /name: .*/, 'name: Something else')],",
+    replace: "['no dry run before the Delete step', `${A.lines[A.planFirst]}\\n`, sub(`${A.lines[A.planFirst]}\\n`, /name: .*/, 'name: Something else')],",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-self-test-plan-name-missing-unlisted",
+    file: "scripts/delete-branches.mjs",
+    claim: "a Plan step with no name line is named as not located, with where to edit, not left to a bare `no step to anchor on`",
+    find: "[planFirst >= 0 && planName < 0, \"the Plan step's name line (none of its lines above the run line starts `name:` or `- name:`)\"],",
+    replace: "[false, ''],",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
   {
     id: "delete-branches-main-unverified-not-printed",
     file: "scripts/delete-branches.mjs",
