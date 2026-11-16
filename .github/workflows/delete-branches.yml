@@ -3,8 +3,8 @@
 # WHY IT RUNS HERE. The sandbox's git proxy does not carry a ref deletion (`git push origin --delete` ends "the remote end hung up unexpectedly", measured 2026-11-15), so the proof branches of this
 # repository's CI-as-proxy runs, throwaway branches that are never merged, could not be removed from a session. The owner approved their deletion (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 5).
 # Dispatched by hand, with the names; no schedule and no push trigger: a deletion is something a person asks for.
-# The input reaches the script only through the environment and after a bare `--` (so a value that starts with `--` is a name to refuse, not a flag), and scripts/delete-branches.mjs --self-test reads this file's
-# shape (workflowProblems): `--apply` on the Delete step, no continue-on-error, no `if`, the input never inside a `run:` line.
+# The input reaches the script only through the environment and after a bare `--` (so a value that starts with `--` is a name to refuse, not a flag). scripts/delete-branches.mjs --self-test compares this file
+# line by line to a pin (WORKFLOW_PIN; comments, blank lines and trailing space are the only free text): an intended edit of any other line also edits the pin, in the same commit.
 name: delete-branches
 
 on:

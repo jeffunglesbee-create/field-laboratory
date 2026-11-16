@@ -120,34 +120,70 @@ const main = () => {
   process.exit(exitFor(r))
 }
 
-/** What is wrong with the shape of `.github/workflows/delete-branches.yml` (round 4, finding 19: nothing read the file, so `--apply` could be dropped, a failed deletion made green or the input inlined into a
- *  `run:` line with every check still green). A list of problems; empty when the file is as the script needs it. Whole-line comments are not read. */
+/** THE WORKFLOW IS PINNED, NOT READ (round 5, findings 12, 13, 14, 19). `.github/workflows/delete-branches.yml` is a tiny single-purpose file whose whole safety is its shape: `--apply` on the Delete step
+ *  and nowhere else, no `continue-on-error`, no `if`, the input reaching the script only through the environment. Reading it clause by clause (the first line of each `run:`, the literal text
+ *  `inputs.branches`, the `on:` block by regex) lost, each round, to one more spelling it did not read: a wrapped `run:` continuation ending `|| true`, `inputs['branches']`, a list hard-coded in the
+ *  Delete step, an extra step. So the file is compared to a COPY of itself: every line that is not a whole-line comment, a blank line or trailing whitespace must be the line the pin has, in the
+ *  same order, and nothing may follow. A wrapped continuation, another spelling of the input, an extra step or job, `shell:`, a changed key: each is a different line, so each is red, by
+ *  construction. There is no clause beside the comparison (one mechanism, no second layer).
+ *  AN INTENDED EDIT OF THE WORKFLOW IS ALSO AN EDIT OF THIS PIN, in the same commit: the message says so. (The comment lines of the workflow are free text and are not pinned.) */
+export const WORKFLOW_PIN = `name: delete-branches
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        description: 'Comma-separated throwaway branch names, each proof-<lower-case letters, digits, dashes>. Anything else, the default branch included, refuses the whole list.'
+        required: true
+permissions:
+  contents: write
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Plan (dry run)
+        env:
+          BRANCHES: \${{ inputs.branches }}
+        run: node scripts/delete-branches.mjs -- "$BRANCHES"
+      - name: Delete
+        env:
+          BRANCHES: \${{ inputs.branches }}
+        run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"`
+
+/** The lines of a workflow text that count: trailing space, tab and CR dropped (a CRLF file included), then blank lines and whole-line comments (first character after space and tab is `#`) dropped. Nothing else
+ *  is dropped. A `#` after other text is part of its line, so a changed `run:` line cannot hide behind one. Only space, tab and CR are whitespace here (a closed list, not `\s`): YAML keeps a no-break space
+ *  (U+00A0, what a paste from a rich-text page brings), a form feed or a BOM as content, so a line that ends in or consists of one is a different line, not a blank one. */
+const significant = text => String(text).split('\n').map(l => l.replace(/[ \t\r]+$/, '')).filter(l => l !== '' && !/^[ \t]*#/.test(l))
+
+/** What is wrong with `.github/workflows/delete-branches.yml` (or any text given): a list, empty when it is the pin, else ONE problem naming the first line that differs (expected, found). */
 export const workflowProblems = text => {
-  const problems = []
-  const body = text.split('\n').filter(l => !/^\s*#/.test(l)).join('\n') + '\n'
-  const on = /^on:\n((?:[ ]+.*\n|\n)*)/m.exec(body)?.[1] ?? ''
-  const triggers = [...on.matchAll(/^  (\S+?):/gm)].map(m => m[1])
-  if (triggers.join() !== 'workflow_dispatch') problems.push(`it must be started by hand only: \`on:\` has ${triggers.join(', ') || 'no trigger'}, not just workflow_dispatch`)
-  if (!/^permissions:\n  contents: write\n(?!  )/m.test(body)) problems.push('permissions must be exactly `contents: write` (what a ref deletion needs, and nothing more)')
-  if (/\bcontinue-on-error\b/.test(body)) problems.push('no step may continue on error: a deletion that failed must end the job red')
-  if (/^\s+if:/m.test(body)) problems.push('no step may be conditional: a skipped deletion would end the job green')
-  const refs = body.split('\n').filter(l => /inputs\.branches/.test(l))
-  if (refs.length === 0 || !refs.every(l => /^\s+BRANCHES: \$\{\{ inputs\.branches \}\}$/.test(l))) problems.push('the input may appear only as `BRANCHES: ${{ inputs.branches }}` in an env: block, never in a run: line')
-  const steps = body.split(/^      - /m).slice(1)
-  const idx = name => steps.findIndex(st => st.startsWith(`name: ${name}\n`))
-  const dry = idx('Plan (dry run)'), del = idx('Delete')
-  if (dry < 0 || del < 0 || dry > del) problems.push('the job needs a `Plan (dry run)` step before the `Delete` step')
-  const runs = i => (i < 0 ? [] : [...steps[i].matchAll(/^\s+run: (.*)$/gm)].map(m => m[1]))
-  if (JSON.stringify(runs(dry)) !== JSON.stringify(['node scripts/delete-branches.mjs -- "$BRANCHES"'])) problems.push('the Plan step must run exactly `node scripts/delete-branches.mjs -- "$BRANCHES"` (no --apply: it is the dry run)')
-  if (JSON.stringify(runs(del)) !== JSON.stringify(['node scripts/delete-branches.mjs --apply -- "$BRANCHES"'])) problems.push('the Delete step must run exactly `node scripts/delete-branches.mjs --apply -- "$BRANCHES"`')
-  return problems
+  const want = significant(WORKFLOW_PIN), got = significant(text)
+  const show = l => (l === undefined ? 'nothing (the text ends here)' : `\`${l}\``)
+  for (let i = 0; i < Math.max(want.length, got.length); i++) {
+    if (want[i] !== got[i]) return [`the workflow differs from its pin at significant line ${i + 1} (comments, blank lines and trailing space are not counted): expected ${show(want[i])}, found ${show(got[i])}. An intended edit of the workflow also edits WORKFLOW_PIN in scripts/delete-branches.mjs.`]
+  }
+  return []
 }
+
+/** THE SELF-TEST'S CHILDREN CARRY THIS IN THEIR ENVIRONMENT, and a run that carries it refuses `--self-test` at once (round 5, A18 observation). The self-test runs main() as child processes; a main() whose argv parse
+ *  lets `--self-test` through (the round-4 defect, re-introduced by an edit or a mutation) ran the self-test again inside every child, which started children of its own: 86 orphaned processes and a 120 s timeout
+ *  before the harness saw anything. With the marker, the second level is refused with exit 2 before it reads a fixture, so the recursion cannot start, whatever the parse does. */
+export const SELF_TEST_CHILD = 'DELETE_BRANCHES_SELF_TEST_CHILD'
 
 // --- self-test -----------------------------------------------------------------------
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (parseArgs(process.argv.slice(2)).selfTest) {
+    if (process.env[SELF_TEST_CHILD]) { console.error(`REFUSED  --self-test: this process is a child of a self-test (${SELF_TEST_CHILD} is set), and a self-test child never runs the self-test`); process.exit(2) }
+    // THE MARKER IS SET HERE, ONCE, in this process's own environment, so that every child it starts inherits it (a child started with `{ ...process.env }` too). Read first: a value of 'probe' says this
+    // process was started by the refusal fixture below, which only happens to run the self-test when the guard above is absent.
+    const isProbeChild = process.env[SELF_TEST_CHILD] === 'probe'
+    process.env[SELF_TEST_CHILD] = '1'
     const { createChecks, finish } = await import('./checks.mjs')
-    const { chmodSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } = await import('node:fs')
+    const { chmodSync, mkdtempSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } = await import('node:fs')
     const { tmpdir } = await import('node:os')
     const { join } = await import('node:path')
     const { check, summarize } = createChecks()
@@ -196,20 +232,44 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       // MAIN, END TO END, as the workflow starts it (round 4, findings 16-18: main() was never run by the self-test, so a dry run that deleted, a refusal that exited 0 and an argv parse that dropped a list
       // all stayed green). Each scenario is a fresh bare repository standing in for the remote, and main() is a child process run in a clone of it.
       const SELF = fileURLToPath(import.meta.url)
-      const fixture = (name, def, branches, rejectDeletes = false) => {
+      // `rejectDeletes`: true refuses every deletion, a branch name refuses that branch's only. `vanishAfterPush`: the remote is READ through a symlink and WRITTEN through its real path (`pushurl`), and the first
+      // accepted push removes the symlink, so the question asked after the pushes cannot be answered (a remote that becomes unreadable between the pushes and the final ls-remote).
+      const fixture = (name, def, branches, { rejectDeletes = false, vanishAfterPush = false } = {}) => {
         const rem = join(dir, `${name}.git`), wk = join(dir, name)
         g(['init', '-q', '--bare', '-b', def, rem]); g(['init', '-q', '-b', def, wk])
         g(['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], wk)
         g(['remote', 'add', 'origin', rem], wk)
         for (const b of branches) g(['push', '-q', 'origin', `HEAD:refs/heads/${b}`], wk)
         if (rejectDeletes) {
-          writeFileSync(join(rem, 'hooks', 'pre-receive'), '#!/bin/sh\nwhile read old new ref; do\n  case "$new" in *[!0]*) ;; *) echo "deletion refused by the fixture" >&2; exit 1 ;; esac\ndone\n')
+          const refused = rejectDeletes === true ? '*' : `refs/heads/${rejectDeletes}`
+          writeFileSync(join(rem, 'hooks', 'pre-receive'), `#!/bin/sh\nwhile read old new ref; do\n  case "$new" in *[!0]*) ;; *) case "$ref" in ${refused}) echo "deletion refused by the fixture" >&2; exit 1 ;; esac ;; esac\ndone\n`)
           chmodSync(join(rem, 'hooks', 'pre-receive'), 0o755)
+        }
+        if (vanishAfterPush) {
+          const link = join(dir, `${name}.link`)
+          symlinkSync(rem, link)
+          g(['remote', 'set-url', 'origin', link], wk); g(['remote', 'set-url', '--push', 'origin', rem], wk)
+          writeFileSync(join(rem, 'hooks', 'post-receive'), `#!/bin/sh\nrm -f '${link}'\n`)
+          chmodSync(join(rem, 'hooks', 'post-receive'), 0o755)
         }
         return { remote: rem, work: wk }
       }
-      const heads = f => JSON.stringify(g(['ls-remote', '--heads', 'origin'], f.work).split('\n').filter(Boolean).map(l => l.split('\t')[1].replace('refs/heads/', '')).sort())
-      const runMain = (f, ...args) => { const r = spawnSync(process.execPath, [SELF, ...args], { cwd: f.work, encoding: 'utf8', timeout: 60000 }); return { status: r.status, out: `${r.stdout}${r.stderr}` } }
+      const headsAt = (f, where) => JSON.stringify(g(['ls-remote', '--heads', where], f.work).split('\n').filter(Boolean).map(l => l.split('\t')[1].replace('refs/heads/', '')).sort())
+      const heads = f => headsAt(f, 'origin'), realHeads = f => headsAt(f, f.remote)
+      // Every child the self-test starts inherits the marker, which the self-test set in its own environment before it started any (see SELF_TEST_CHILD and `isProbeChild`).
+      const spawnChild = (argv, cwd) => { const r = spawnSync(process.execPath, argv, { cwd, encoding: 'utf8', timeout: 60000 }); return { status: r.status, out: `${r.stdout}${r.stderr}` } }
+      const runMain = (f, ...args) => spawnChild([SELF, ...args], f.work)
+      // THE RECURSION CANNOT START (round 5, A18 observation): a child that carries the marker and is asked for --self-test refuses at once, and every child the self-test starts carries it. The refusal
+      // fixture runs a child with the marker 'probe'; a child that finds it set to 'probe' is the guard's absence (it ran the self-test instead of refusing), so it skips this fixture and the recursion stops
+      // here, at one level, with the parent's check red. (Without the explicit 'probe' the child would inherit the marker and be refused, so dropping it from this call cannot start a recursion either.)
+      if (!isProbeChild) {
+        const probe = spawnSync(process.execPath, [SELF, '--self-test'], { cwd: dir, encoding: 'utf8', timeout: 60000, env: { ...process.env, [SELF_TEST_CHILD]: 'probe' } })
+        const asked = { status: probe.status, out: `${probe.stdout}${probe.stderr}` }
+        check('A SELF-TEST CHILD IS REFUSED THE SELF-TEST AT ONCE: `--self-test` with the marker set exits 2 saying so, and prints no check result',
+          asked.status === 2 && /REFUSED  --self-test: this process is a child of a self-test/.test(asked.out) && !/checks passed/.test(asked.out), `exit ${asked.status}; ${asked.out.slice(-300)}`)
+        const carried = spawnChild(['-e', "process.stdout.write(process.env.DELETE_BRANCHES_SELF_TEST_CHILD ?? 'unset')"], dir)
+        check('EVERY CHILD THE SELF-TEST STARTS CARRIES THE MARKER (a literal name, not the constant read back): the child prints 1', SELF_TEST_CHILD === 'DELETE_BRANCHES_SELF_TEST_CHILD' && carried.out === '1', `${SELF_TEST_CHILD}; child printed ${JSON.stringify(carried.out)}`)
+      }
       const a1 = parseArgs(['--apply', '--', 'proof-a']), a2 = parseArgs(['--', '--self-test']), a3 = parseArgs(['--force,proof-a']), a4 = parseArgs(['proof-a', 'proof-b'])
       const a5 = parseArgs(['--self-test']), a6 = parseArgs(['proof-a']), a7 = parseArgs([])
       check('THE ARGV: a list after a bare `--` is a list whatever it starts with (`--self-test` is a name to refuse, not a flag), an unknown `--x` before it is an error, two lists are an error, and a list with no `--` still works',
@@ -247,7 +307,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       check('A LIST THAT STARTS WITH `--` IS REFUSED, not taken for a flag: `-- --self-test` exits 2 naming it and prints no self-test result, `--force,proof-a` exits 2 as an unknown option, and nothing is deleted',
         selfList.status === 2 && /REFUSED  --self-test: it is not a throwaway/.test(selfList.out) && !/checks passed/.test(selfList.out) && flagList.status === 2 && /unknown option --force,proof-a/.test(flagList.out) && heads(m5) === '["main","proof-a"]',
         `${selfList.status} ${selfList.out.slice(-200)} | ${flagList.status} ${flagList.out.slice(-200)} | ${heads(m5)}`)
-      const m6 = fixture('m6', 'main', ['main', 'proof-p'], true)
+      const m6 = fixture('m6', 'main', ['main', 'proof-p'], { rejectDeletes: true })
       const rejected = runMain(m6, '--apply', '--', 'proof-p')
       check('A DELETION THE REMOTE REJECTS ENDS THE RUN RED through main(): exit 1, FAILED with the remote\'s reason, STILL THERE, and the branch is on the remote',
         rejected.status === 1 && /FAILED  proof-p: .*deletion refused by the fixture/.test(rejected.out) && /STILL THERE: proof-p/.test(rejected.out) && heads(m6) === '["main","proof-p"]', `exit ${rejected.status}; ${rejected.out.slice(-400)}`)
@@ -255,25 +315,89 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const vanished = apply(['proof-u', 'proof-v'], 'origin', m7.work, (args, cwd) => { git(args, cwd); if (args[2] === ':refs/heads/proof-v') renameSync(m7.remote, `${m7.remote}.gone`) })
       check('A FINAL QUESTION THAT FAILS KEEPS THE ACCOUNT: apply() returns instead of throwing, says why it could not confirm, names what was pushed without an error as unconfirmed, and the run exits 1',
         typeof vanished.unverified === 'string' && vanished.unverified.length > 0 && JSON.stringify(vanished.unconfirmed) === '["proof-u","proof-v"]' && vanished.failed.length === 0 && vanished.deleted.length === 0 && exitFor(vanished) === 1, JSON.stringify(vanished))
-      // THE WORKFLOW'S SHAPE (round 4, finding 19): the real file is clean, and each way of making it a no-op, a green failure or an injection is a problem (a mutation that does not apply throws).
-      const wfText = readFileSync(new URL('../.github/workflows/delete-branches.yml', import.meta.url), 'utf8')
-      const wfMutant = (from, to) => { if (wfText.split(from).length !== 2) throw new Error(`workflow mutation anchor is not unique: ${from}`); return wfText.replace(from, to) }
-      const DELETE_RUN = 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"', PLAN_RUN = 'run: node scripts/delete-branches.mjs -- "$BRANCHES"\n'
+      // MAIN'S OWN ACCOUNT WHEN THE FINAL QUESTION FAILS (round 5, A16 and A20). The check above runs apply() alone; the print and the exit that main() makes of its `unverified` result were never run, so
+      // dropping the COULD NOT CONFIRM line or exiting 0 there stayed green. Here the remote becomes unreadable after the pushes, and main() is run as the workflow runs it.
+      const m8 = fixture('m8', 'main', ['main', 'proof-u', 'proof-v'], { vanishAfterPush: true })
+      const unconfirmed = runMain(m8, '--apply', '--', 'proof-u,proof-v')
+      check('MAIN, WHEN WHAT IS LEFT CANNOT BE ASKED (the remote unreadable after the pushes): exit 1, `deleted 0 of 2`, COULD NOT CONFIRM with the reason, both names listed as pushed without an error, and the remote really lost both',
+        unconfirmed.status === 1 && /deleted 0 of 2: \(none\)/.test(unconfirmed.out) && /COULD NOT CONFIRM what is left on the remote \(.+\); pushed without an error: proof-u, proof-v$/m.test(unconfirmed.out) && realHeads(m8) === '["main"]',
+        `exit ${unconfirmed.status}; ${unconfirmed.out.slice(-400)}; ${realHeads(m8)}`)
+      // ...and with one deletion REJECTED as well: the rejected branch is FAILED, and is not listed as pushed without an error (its push did not succeed, so it was not pushed).
+      const m9 = fixture('m9', 'main', ['main', 'proof-r', 'proof-s'], { rejectDeletes: 'proof-r', vanishAfterPush: true })
+      const mixed = runMain(m9, '--apply', '--', 'proof-r,proof-s')
+      check('MAIN, A REJECTED DELETION AND A FINAL QUESTION THAT FAILS: exit 1, FAILED proof-r with the remote\'s reason, only proof-s is listed as pushed without an error (not the rejected proof-r), and proof-r is still on the remote',
+        mixed.status === 1 && /FAILED  proof-r: .*deletion refused by the fixture/.test(mixed.out) && /COULD NOT CONFIRM .+; pushed without an error: proof-s$/m.test(mixed.out) && !/pushed without an error: .*proof-r/.test(mixed.out) && realHeads(m9) === '["main","proof-r"]',
+        `exit ${mixed.status}; ${mixed.out.slice(-500)}; ${realHeads(m9)}`)
+      // THE WORKFLOW IS COMPARED TO ITS PIN (round 5, findings 12-14). Two different things are proven, and neither is built from the other's text:
+      //  - the REAL file is read and must be the pin: a table entry (or a person) that edits the real workflow gets a FAIL line here that names the line that differs;
+      //  - the MUTANTS are built from the PIN constant, never from the file, so editing the file cannot make the mutant builder fail (it used to throw "anchor is not unique" before workflowProblems
+      //    ran, and four of the five workflow table entries passed by that stack trace with no FAIL line at all). A mutant whose anchor is not in the pin is a FAIL line too, never a throw.
+      let wfReal = null, wfReadError = null
+      try { wfReal = readFileSync(new URL('../.github/workflows/delete-branches.yml', import.meta.url), 'utf8') } catch (e) { wfReadError = String(e.message ?? e) }
+      const wfRealProblems = wfReal === null ? [`could not read .github/workflows/delete-branches.yml: ${wfReadError}`] : workflowProblems(wfReal)
+      check('THE REAL .github/workflows/delete-branches.yml IS ITS PIN (comments, blank lines and trailing space aside): no line differs, none is missing, none is added', wfRealProblems.length === 0, wfRealProblems.join(' | '))
+      const wfMake = (from, to) => (WORKFLOW_PIN.split(from).length === 2 ? WORKFLOW_PIN.replace(from, () => to) : null)
+      const DEL = 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"', PLAN = 'run: node scripts/delete-branches.mjs -- "$BRANCHES"\n', DEL_STEP = '      - name: Delete\n'
+      const DEL_ENV = '      - name: Delete\n        env:\n          BRANCHES: ${{ inputs.branches }}'
+      const PLAN_BLOCK = '      - name: Plan (dry run)\n        env:\n          BRANCHES: ${{ inputs.branches }}\n        run: node scripts/delete-branches.mjs -- "$BRANCHES"\n'
+      const DEL_BLOCK = '      - name: Delete\n        env:\n          BRANCHES: ${{ inputs.branches }}\n        run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"'
+      // A LITERAL list of edits, each of which must be a problem. The pin comparison makes them all one mechanism; the list is how that is shown.
       const wfMutants = [
-        ['--apply dropped from the Delete step', DELETE_RUN, 'run: node scripts/delete-branches.mjs -- "$BRANCHES"'],
-        ['--apply on the dry run', PLAN_RUN, 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"\n'],
-        ['the list not after a bare --', DELETE_RUN, 'run: node scripts/delete-branches.mjs --apply "$BRANCHES"'],
-        ['continue-on-error on the Delete step', '      - name: Delete\n', '      - name: Delete\n        continue-on-error: true\n'],
-        ['a condition on the Delete step', '      - name: Delete\n', '      - name: Delete\n        if: always()\n'],
-        ['the input inlined into the run line', DELETE_RUN, 'run: node scripts/delete-branches.mjs --apply -- "${{ inputs.branches }}"'],
+        ['--apply dropped from the Delete step', DEL, 'run: node scripts/delete-branches.mjs -- "$BRANCHES"'],
+        ['--apply on the dry run', PLAN, 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"\n'],
+        ['the list not after a bare --', DEL, 'run: node scripts/delete-branches.mjs --apply "$BRANCHES"'],
+        ['continue-on-error on the Delete step', DEL_STEP, `${DEL_STEP}        continue-on-error: true\n`],
+        ['continue-on-error as a quoted key', DEL_STEP, `${DEL_STEP}        "continue-on-error": true\n`],
+        ['a condition on the Delete step', DEL_STEP, `${DEL_STEP}        if: always()\n`],
+        ['a shell: key on the Delete step', DEL_STEP, `${DEL_STEP}        shell: bash {0}\n`],
+        ['the input inlined into the run line', DEL, 'run: node scripts/delete-branches.mjs --apply -- "${{ inputs.branches }}"'],
         ['a schedule trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  schedule:\n    - cron: "0 * * * *"\n  workflow_dispatch:\n'],
         ['a push trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  push:\n  workflow_dispatch:\n'],
+        ['a trigger after a blank line', 'on:\n  workflow_dispatch:\n', 'on:\n  workflow_dispatch:\n\n  push:\n'],
         ['no dry run before the Delete step', '      - name: Plan (dry run)\n', '      - name: Something else\n'],
+        ['the Delete step before the Plan step', `${PLAN_BLOCK}${DEL_BLOCK}`, `${DEL_BLOCK}\n${PLAN_BLOCK.trimEnd()}`],
         ['the token cannot write', 'contents: write', 'contents: read'],
+        ['a job-level permissions block that widens the token', 'jobs:\n  delete:\n', 'jobs:\n  delete:\n    permissions:\n      contents: write\n      actions: write\n'],
+        ['a wrapped continuation of the Delete run ending || true (B12)', DEL, `${DEL}\n          || true`],
+        ['a wrapped continuation of the Delete run that deletes the default branch', DEL, `${DEL}\n          ; git push origin :refs/heads/main`],
+        ['a block scalar for the Delete run with || true after a # line', DEL, 'run: |\n          node scripts/delete-branches.mjs --apply -- "$BRANCHES"\n          # note\n          || true'],
+        ['a wrapped continuation behind a comment line', DEL, `${DEL}\n          # note\n          || true`],
+        ['|| true after a # on the same line', DEL, `${DEL} # || true`],
+        ['|| true glued to the line by a # that is no YAML comment', DEL, `${DEL}#|| true`],
+        ['the input spelled inputs[...] in an extra step', DEL, `${DEL}\n      - run: echo "\${{ inputs['branches'] }}"`],
+        ['the input spelled through github.event in the Delete env', DEL_ENV, '      - name: Delete\n        env:\n          BRANCHES: ${{ github.event["inputs"]["branches"] }}'],
+        ['a hard-coded list in the Delete step', DEL_ENV, '      - name: Delete\n        env:\n          BRANCHES: proof-a,proof-b'],
+        ['an extra step', DEL, `${DEL}\n      - run: echo done`],
+        ['an extra step that is one line with a trailing comment', DEL, `${DEL}\n      - run: ./extra.sh # fine`],
+        ['an extra job', DEL, `${DEL}\n  other:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi`],
+        ['the last line removed', DEL, ''],
+        ['the input not required', 'required: true', 'required: false'],
+        ['the input description changed', "description: 'Comma-separated", "description: 'Comma separated"],
       ]
-      const wfSurvivors = wfMutants.filter(([, from, to]) => workflowProblems(wfMutant(from, to)).length === 0).map(([what]) => what)
-      check('THE WORKFLOW FILE IS READ: the real .github/workflows/delete-branches.yml has no problem, and each of ten edits (no --apply, --apply on the dry run, no `--`, continue-on-error, an `if`, the input in a run line, a schedule, a push trigger, no dry run, a read-only token) has one',
-        workflowProblems(wfText).length === 0 && wfMutants.length === 10 && wfSurvivors.length === 0, `problems: ${workflowProblems(wfText).join(' | ')}; survived: ${wfSurvivors.join(', ')}`)
+      const wfBuilt = wfMutants.map(([what, from, to]) => ({ what, text: wfMake(from, to) }))
+      const wfUnbuilt = wfBuilt.filter(m => m.text === null).map(m => m.what)
+      check('EVERY WORKFLOW MUTANT IS BUILT: its anchor occurs exactly once in the pin (an anchor that does not is named here, not thrown)', wfUnbuilt.length === 0, `no unique anchor in the pin for: ${wfUnbuilt.join(', ')}`)
+      const wfSurvivors = wfBuilt.filter(m => m.text !== null && workflowProblems(m.text).length === 0).map(m => m.what)
+      check('THE PIN COMPARISON: each of thirty edits of the workflow (a wrapped || true continuation, another spelling of the input, a hard-coded list, an extra step or job, shell:, a changed key, a trigger, the token, the order) is a problem',
+        wfMutants.length === 30 && wfSurvivors.length === 0, `survived: ${wfSurvivors.join(', ')}`)
+      const wfFirst = workflowProblems(wfMake(DEL, `${DEL}\n          || true`) ?? '')
+      check('THE PROBLEM NAMES THE FIRST LINE THAT DIFFERS (expected and found) and says an intended edit also edits the pin',
+        wfFirst.length === 1 && wfFirst[0].includes(`at significant line ${significant(WORKFLOW_PIN).length + 1} `) && /expected nothing \(the text ends here\), found `\s*\|\| true`/.test(wfFirst[0]) && /also edits WORKFLOW_PIN/.test(wfFirst[0]), wfFirst.join(' | '))
+      const wfBenign = [
+        ['a comment line added', 'jobs:\n', '# a new comment\njobs:\n'],
+        ['an indented comment line added', DEL_STEP, `        # an indented comment\n${DEL_STEP}`],
+        ['a blank line added', 'jobs:\n', '\n\njobs:\n'],
+        ['trailing space on a line', DEL, `${DEL}   `],
+        ['CRLF line endings', null, null],
+      ].map(([what, from, to]) => ({ what, text: from === null ? WORKFLOW_PIN.replace(/\n/g, '\r\n') : wfMake(from, to) }))
+      const wfBenignBad = wfBenign.filter(m => m.text === null || workflowProblems(m.text).length > 0).map(m => m.what)
+      check('COMMENT LINES, BLANK LINES, TRAILING SPACE AND CRLF ARE NOT COUNTED (five edits, none a problem), so the pin is not stricter than the file needs', wfBenign.length === 5 && wfBenignBad.length === 0, `read as a problem: ${wfBenignBad.join(', ')}`)
+      // Only space, tab and CR are free: a LITERAL list of the characters that YAML keeps as content and `\s` would have stripped, each at the end of the Delete run line and alone on a line.
+      const wfOdd = ['\u00a0', '\f', '\v', '\ufeff', '\u2028'].flatMap(c => [wfMake(DEL, `${DEL}${c}`), wfMake('jobs:\n', `${c}\njobs:\n`)])
+      check('ONLY SPACE, TAB AND CR ARE FREE: a no-break space, form feed, vertical tab, BOM or line separator at the end of a line, or alone on one, is a problem (10 edits, none read as blank)',
+        wfOdd.length === 10 && wfOdd.every(t => t !== null && workflowProblems(t).length === 1), `${wfOdd.filter(t => t === null || workflowProblems(t).length !== 1).length} of ${wfOdd.length} not read as a problem`)
+      check('A MUTANT WHOSE ANCHOR IS NOT IN THE PIN IS A FAIL LINE, NOT A STACK TRACE: the builder answers null for an anchor that is absent and for one that occurs twice',
+        (() => { try { return wfMake('text that the pin does not have', 'x') === null && wfMake('node-version', 'x') !== null && wfMake('BRANCHES', 'x') === null } catch { return false } })())
     } finally { rmSync(dir, { recursive: true, force: true }) }
     check('A FAILURE WITH NO STDERR KEEPS ITS MESSAGE AND SIGNAL (git killed, or no output at all)', reasonOf({ stderr: '', message: 'Command failed: git push origin :refs/heads/x', signal: 'SIGTERM' }) === 'Command failed: git push origin :refs/heads/x (signal SIGTERM)' && reasonOf({ stderr: 'a\nb\n' }) === 'a | b', reasonOf({ stderr: '', message: 'm', signal: 'SIGTERM' }))
     check('THE EXIT: red when a branch is left or a deletion failed, green otherwise, and main() ends through it',
