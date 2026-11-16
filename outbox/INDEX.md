@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `51c4d02` | 2026-11-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-16 [skip ci] |
+| `51c4d02` | 2026-11-16 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
+| `51c4d02` | 2026-11-16 | [sport-vocabulary-2026-11-16T21-53-19-050Z.json](sport-vocabulary-2026-11-16T21-53-19-050Z.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
+| `a829577` | 2026-11-16 | [cc-session-2026-11-16-gate-items-2-7-final-state.md](cc-session-2026-11-16-gate-items-2-7-final-state.md) | docs: the landing's verify run and guards runs read; the no-launch record's runner half |
+| `a829577` | 2026-11-16 | [no-launch-check-2026-11-16.txt](no-launch-check-2026-11-16.txt) | docs: the landing's verify run and guards runs read; the no-launch record's runner half |
+| `6b65a61` | 2026-11-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `bd4e597` | 2026-11-16 | [no-launch-check-2026-11-16.txt](no-launch-check-2026-11-16.txt) | docs: items 2 to 7 of the apt-mirror CC-CMD are closed, each with its artifact; the no-launch record's local half |
 | `f29e870` | 2026-11-16 | [cc-session-2026-11-16-gate-items-2-7-final-state.md](cc-session-2026-11-16-gate-items-2-7-final-state.md) | docs: the final state of items 2 to 7, dated; the vocabulary probe's record (343 of 343, and 23 triaged OPEN with the equalities off) |
 | `f29e870` | 2026-11-16 | [guard-constants-probe-2026-11-16.txt](guard-constants-probe-2026-11-16.txt) | docs: the final state of items 2 to 7, dated; the vocabulary probe's record (343 of 343, and 23 triaged OPEN with the equalities off) |
