@@ -1,12 +1,10 @@
 {
-  "at": "2026-11-16T15:40:39.970Z",
+  "at": "2026-11-16T19:58:00.302Z",
   "scope": "full",
-  "ran": 104,
-  "from_mutations": 1582,
+  "ran": 111,
+  "from_mutations": 1982,
   "failing": 0,
-  "notApplicable": [
-    "node scripts/run-row.mjs \"this session wrote its outbox\""
-  ],
+  "notApplicable": [],
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -150,8 +148,7 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": false,
-      "notApplicable": true
+      "passed": true
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -211,6 +208,10 @@
     },
     {
       "cmd": "node scripts/sharded-row-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/delete-branches.mjs --self-test",
       "passed": true
     },
     {
@@ -295,6 +296,10 @@
     },
     {
       "cmd": "bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'",
+      "passed": true
+    },
+    {
+      "cmd": "python3 scripts/check-browser-gate.py --self-test",
       "passed": true
     },
     {
@@ -424,22 +429,42 @@
     {
       "cmd": "node scripts/egress-path-lib.mjs --self-test",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/no-launch-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutation-merge.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/gate-mode.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutation-compare.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node --input-type=module -e \"import { workflowProblems } from './scripts/delete-branches.mjs'; import { readFileSync } from 'node:fs'; const p = workflowProblems(readFileSync('.github/workflows/delete-branches.yml', 'utf8')); console.log(p.join('\\n') || 'the workflow is its pin'); process.exit(p.length ? 1 : 0)\"",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2570657,
-      2708602,
-      3127447,
-      3174422,
-      2491901,
-      2396279,
-      2937532,
-      3088187
+      3191167,
+      3329367,
+      4040844,
+      3742287,
+      3959201,
+      3494053,
+      2730479,
+      3190311
     ],
-    "longestMs": 3174422,
-    "sumMs": 22495027
+    "longestMs": 4040844,
+    "sumMs": 27677709
   }
 }
