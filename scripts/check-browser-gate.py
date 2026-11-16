@@ -1498,7 +1498,7 @@ def importer_rows_problems(root):
                 name = m.group(1) or m.group(2) or "rows"
                 use = re.search(r"(?<![\w$.])" + re.escape(name) + r"(?:\s*\.\s*(?:" + "|".join(ARRAY_MUTATORS) + r")\s*\(|\s*\[[^\]]*\]\s*=(?![=>])|\s*\.\s*length\s*=(?!=)|\s*=(?![=>]))", shape)
                 if use and not shape[:use.start()].endswith(("const ", "let ", "var ")):
-                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs it")
+                    bad.append(f"scripts/{f.name} changes `{name}`, the array it imports from scripts/gate-checks.mjs (`{shape[use.start():use.end()].strip()[:30]}`): a row changed there is not one this reader read, and `confidence.mjs` runs the rows of its own process (this file is refused whether or not it is loaded there: a file that only lists or reports the rows works on a copy, `[...{name}].sort(...)`)")
     return bad
 
 
