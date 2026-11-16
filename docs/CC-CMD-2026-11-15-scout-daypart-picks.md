@@ -73,6 +73,16 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
 5. **Relation to the single pick:** ANSWERED 2026-11-15 by the owner: "option c, should not replace any section of picks; it's its own thing." It is a separate section; Field's Pick, Scout's Pick and Pick'em stay as they are.
 6. **Its name.** ANSWERED 2026-11-15 by the owner: **Deep Cuts**. The working name had been "What to Watch", set aside because that exact string is already a bold section header in the client's series-preview prompt (`jubilant-bassoon/src/legacy/field.js` 35199, `**What to Watch** — 2 sentences ...`), and "watch" is the word ADR-002's summary of the patent claim uses for element 4 ("Displays a **recommendation** (watch/skip/switch)"). The name is not the claim test (all four elements are, `docs/ADR-002-CONTEXT.md`), and no legal verdict is made here (Rule 45).
 
+## Golf, read 2026-11-16
+
+The owner's word: golf "usually ... starts at 7am local time", which in ET runs from about 2am (events in Europe) to 1pm (Hawaii). Recorded as the owner's statement; not measured here, because no source this repo reads carries a tee time:
+
+- ARCHIVE_DB, 2026-10-16 to 2026-11-15: the `golf` rows (one per tournament round per day, `home` the tournament, `away` the round, e.g. "R3") have `start_time` null, `venue` null, `streams` null and no odds. The `PGA Tour` rows carry `start_time` at 04:00Z or 05:00Z, which is midnight ET, with `home` and `away` null.
+- ESPN's PGA scoreboard, read the same day through the FIELD browser tool (`site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard`, the Austin Championship, Round 4 suspended): the competition's `date` is `2026-11-12T05:00Z` and it carries **`timeValid: false`**, ESPN's own statement that the time is not a time. No venue object, and no tee time on any of its 120 competitors (keys: `athlete, id, linescores, order, score, statistics, type, uid`). Its broadcast is `ESPN+/Golf Chnl`, which the archive rows do not record.
+- The relay's `handleESPNGolfScoreboard` (field-relay-nba `src/index.js` 3765) keeps `ev.date` and drops `timeValid`, so the midnight placeholder reaches the archive as if it were a start.
+
+So golf cannot be placed in a window without inventing a time, and on today's data it cannot qualify for Scout either (no sides, no moneyline, no outlets). For Deep Cuts golf is out until a real tee-time source exists. Placing it by "7am local" would also need the venue's time zone, which neither source carries.
+
 ## Constraints any build must keep
 
 - ADR-002 / RUWT: pull only. A per-daypart pick must never become a notification at the start of each daypart (field-relay-nba CLAUDE.md, Rule A). Boolean gates, no composite score shown, as now.
