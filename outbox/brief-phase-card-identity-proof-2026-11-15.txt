@@ -1,0 +1,644 @@
+Proof record for docs/CC-CMD-2026-11-15-brief-phase-card-identity.md, built 2026-11-15 on branch brief-hook.
+Every block below is a command and its output, verbatim, colour codes stripped; section Z holds the harness. run.sh prints the script's own exit code as [exit N]; a second [exit N] after it is the wrapper's.
+The fixture is reconstructed from the log of live-check run 43658647710: ids, team lines and statuses are from that log, two kinds are deduced and marked in serve.mjs. It shows what the check does with those cards, not what the live page does; the live page is Task 6.
+
+
+==== 1. BEFORE ANY CHANGE: the committed script at 1b4459d9, run end to end on the fixture (harness in section Z) ====
+The copy is the committed file: blob 617cb3be97895eeae77359ca36e20239495cad55 in the commit; the copy hashes to 617cb3be97895eeae77359ca36e20239495cad55.
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/head/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+      evidence: game.id="CFB_2026-11-14_e401856889" espn_event_id=401856889
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401856889" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401856889" type="game_recap" text=22ch
+                card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858523" espn_event_id=401858523
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858523" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858523" type="game_recap" text=22ch
+                card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+                card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → Alabama @ Vanderbilt: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live | Michigan @ Oregon: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | California @ Virginia: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+
+==== 2. STEP 1: the 2026-11-14 slate in the self-test, and the mutation run that shows each new check can fail ====
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -6
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+
+22/22 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-A.mjs
+baseline, no mutation: exit 0; 22/22 checks passed
+CAUGHT      the slate stops colliding: Troy's team line no longer contains Alabama
+             exit 1; 2 check(s) red
+               - 2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the old predicate is tightened to BOTH teams (&&)
+             exit 1; 2 check(s) red
+               - 2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the partner of Alabama @ Vanderbilt is not during-play
+             exit 1; 1 check(s) red
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+CAUGHT      the game's OWN card is the one reading game_live
+             exit 1; 2 check(s) red
+               - ...each of those games has its OWN card among them, and it reads Final / game_recap
+               - ...and the unchanged verdict fails all three, on a card of ANOTHER game
+
+caught 4 of 4
+[exit 0]
+
+
+==== 3. STEP 2: the evidence names every card the verdict looked at ====
+The self-test, then a mutation run on evidenceLines and its checks.
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -7
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+
+26/26 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-B.mjs
+baseline, no mutation: exit 0; 26/26 checks passed
+CAUGHT      evidenceLines prints only the first card
+             exit 1; 2 check(s) red
+               - the evidence has one line per card the verdict looked at, not the first
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines drops the kind
+             exit 1; 2 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+               - ...a card with no kind says null rather than leaving a gap
+CAUGHT      evidenceLines drops the id
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines drops the status
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+CAUGHT      evidenceLines invents a line when there are no cards
+             exit 1; 1 check(s) red
+               - ...and no cards means no lines
+CAUGHT      evidenceLines prints the kind without quoting it
+             exit 1; 1 check(s) red
+               - ...each line carries the card's id, team line, status and kind
+
+caught 6 of 6
+[exit 0]
+
+The wiring in the executable half is not reachable from the self-test, so the whole script is run on the fixture (the matcher is still the
+substring one at this step: the rows still fail, and now the evidence lists every card each verdict examined, 2 + 3 + 3 = 8 cards for the
+three rows). Then the same run with the wiring mutated to print one card per row, which must give 3.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+      evidence: game.id="CFB_2026-11-14_e401856889" espn_event_id=401856889
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401856889" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401856889" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401856889" teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401871100" teams="Troy @ South Alabama" status="Start time passed, no score served" kind="game_live"
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858523" espn_event_id=401858523
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858523" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858523" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401858523" teams="Michigan @ Oregon" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401858521" teams="Washington @ Michigan St" status="Start time passed, no score served" kind="game_live"
+                card id="CFB_2026-11-14_e401860914" teams="Oregon St @ Boise St" status="Start time passed, no score served" kind="game_live"
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+                card id="CFB_2026-11-14_e401858295" teams="California @ Virginia" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401856861" teams="Kansas @ West Virginia" status="Final" kind="game_recap"
+                card id="CFB_2026-11-14_e401858299" teams="Stanford @ Virginia Tech" status="Start time passed, no score served" kind="game_live"
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → Alabama @ Vanderbilt: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live | Michigan @ Oregon: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | California @ Virginia: expected game_recap, shown DURING-PLAY KIND ON A FINAL GAME: game_live
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -c '^ *card id='
+8
+[exit 0]
+
+wiring mutant: the anchor `for (const line of evidenceLines(matching)) console.log(` occurs 1 time(s) in the script (must be 1)
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -c '^ *card id='
+3
+[exit 0]
+
+
+==== 4. STEP 3: the id join. 4a, the join checks written first and run against the predicate they replace (cardsForGame is a stub holding the substring predicate) ====
+The stub is the committed matcher moved into the function the checks call: `cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))`.
+Six checks must go red on it and two cannot discriminate it (the defined failure, and filter-not-find: both hold for the old predicate too).
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -24
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+FAIL  2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+      → took 2,3,3
+FAIL  ...and the unchanged verdict passes all three on it
+      → DURING-PLAY KIND ON A FINAL GAME: game_live | DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | DURING-PLAY KIND ON A FINAL GAME: game_live
+FAIL  ...saying nothing of duplication about a game that has one card
+      → DURING-PLAY KIND ON A FINAL GAME: game_live | DURING-PLAY KIND ON A FINAL GAME: game_live, game_live | DURING-PLAY KIND ON A FINAL GAME: game_live
+PASS  THE DEFINED FAILURE STILL FAILS THROUGH THE JOIN: the game's own card reading game_live
+FAIL  a card carrying no id belongs to no game, not even to a game with no id
+      → took 1,1
+FAIL  a game whose id is on no card has none, whatever team names its names are inside
+      → took Alabama @ Vanderbilt, Troy @ South Alabama
+FAIL  an id is compared whole: G1 does not take the card of G10
+      → took G10,G1
+PASS  two cards carrying one id are both returned: a filter, never a find
+
+28/34 checks passed
+[exit 1]
+
+red checks above: 6
+
+
+==== 5. STEP 3: the real join (4a's stub replaced by id equality, the loop wired to it, the no-card text and the comments rewritten) ====
+The self-test, then a mutation run on cardsForGame and its checks.
+
+$ node scripts/brief-phase-live-check.mjs --self-test | tail -24
+PASS  no matching cards is left for the caller to describe
+PASS  diacritics normalise so a name is comparable
+PASS  punctuation normalises — St. Louis and St Louis are one name
+PASS  SHORT WORDS ARE NOT TOKENS, or FC would match every club
+PASS  overlap finds a short name inside a long one
+PASS  overlap is 0 for an unrelated card
+PASS  THE BUG IS DETECTED: a during-play kind on a final game is not the expectation
+PASS  2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games
+PASS  ...each of those games has its OWN card among them, and it reads Final / game_recap
+PASS  ...and the unchanged verdict fails all three, on a card of ANOTHER game
+PASS  the evidence has one line per card the verdict looked at, not the first
+PASS  ...each line carries the card's id, team line, status and kind
+PASS  ...a card with no kind says null rather than leaving a gap
+PASS  ...and no cards means no lines
+PASS  2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+PASS  ...and the unchanged verdict passes all three on it
+PASS  ...saying nothing of duplication about a game that has one card
+PASS  THE DEFINED FAILURE STILL FAILS THROUGH THE JOIN: the game's own card reading game_live
+PASS  a card carrying no id belongs to no game, not even to a game with no id
+PASS  a game whose id is on no card has none, whatever team names its names are inside
+PASS  an id is compared whole: G1 does not take the card of G10
+PASS  two cards carrying one id are both returned: a filter, never a find
+
+34/34 checks passed
+[exit 0]
+
+$ node /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/mut.mjs /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/spec-C.mjs
+baseline, no mutation: exit 0; 34/34 checks passed
+CAUGHT      the join reverts to the substring predicate
+             exit 1; 6 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - a card carrying no id belongs to no game, not even to a game with no id
+               - a game whose id is on no card has none, whatever team names its names are inside
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the empty-id guard is dropped
+             exit 1; 1 check(s) red
+               - a card carrying no id belongs to no game, not even to a game with no id
+CAUGHT      the join takes the first card only (a find)
+             exit 1; 1 check(s) red
+               - two cards carrying one id are both returned: a filter, never a find
+CAUGHT      a team-name fallback is added behind the id
+             exit 1; 6 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - a card carrying no id belongs to no game, not even to a game with no id
+               - a game whose id is on no card has none, whatever team names its names are inside
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the id is matched by containment, not equality
+             exit 1; 1 check(s) red
+               - an id is compared whole: G1 does not take the card of G10
+CAUGHT      the join keys on the ESPN event id instead of the game id
+             exit 1; 5 check(s) red
+               - 2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own
+               - ...and the unchanged verdict passes all three on it
+               - ...saying nothing of duplication about a game that has one card
+               - an id is compared whole: G1 does not take the card of G10
+               - two cards carrying one id are both returned: a filter, never a find
+
+caught 6 of 6
+[exit 0]
+
+The loop's wiring is not reachable from the self-test: the whole script, end to end on the fixture. Variant ok, every card carries its game's id.
+Expected: the three games found by id, one card each, no evidence blocks, exit 0.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+  Alabama @ Vanderbilt                    game_recap    game_recap
+  Michigan @ Oregon                       game_recap    game_recap
+  California @ Virginia                   game_recap    game_recap
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+PASS  every final game with both phases shows its after-play brief (3 testable)
+
+5/5 checks passed
+[exit 0]
+[exit 0]
+
+Variant idmismatch: the California @ Virginia card carries another id than its game's. Expected: that row red with the no-card text and the page's
+near-name card with its id, the other two rows green, exit 1. A mismatch is loud.
+
+$ bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh idmismatch
+
+  slate 2026-11-14 — 8 game(s), 11 brief(s), 8 card(s)
+  final games carrying BOTH a during-play and an after-play brief: 3
+
+  game                                    expected      shown
+  Alabama @ Vanderbilt                    game_recap    game_recap
+  Michigan @ Oregon                       game_recap    game_recap
+      evidence: game.id="CFB_2026-11-14_e401858295" espn_event_id=401858295
+                finalized_at="2026-11-14 23:30:00" sport="CFB"
+                brief game_id="CFB_2026-11-14_e401858295" type="game_live" text=23ch
+                brief game_id="CFB_2026-11-14_e401858295" type="game_recap" text=22ch
+  California @ Virginia                   game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="CFB_2026-11-14_WRONG", "Kansas @ West Virginia" id="CFB_2026-11-14_e401856861")   <-- 
+
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+      → California @ Virginia: expected game_recap, shown (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="CFB_2026-11-14_WRONG", "Kansas @ West Virginia" id="CFB_2026-11-14_e401856861")
+
+4/5 checks passed
+[exit 1]
+[exit 0]
+
+Wiring mutants, each a copy of the script, refused unless the anchor occurs once and the copy differs. Each must fail the end-to-end run on variant ok.
+W1: the loop goes back to the substring predicate.
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire-mut.py /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs 'const matching = cardsForGame(cards, g)' 'const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))'
+mutant written; lines that differ from the script: 1
+[exit 0]
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -E '^(PASS|FAIL)|<-- |^\[exit'
+  Alabama @ Vanderbilt                    game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+  Michigan @ Oregon                       game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live, game_live   <-- 
+  California @ Virginia                   game_recap    DURING-PLAY KIND ON A FINAL GAME: game_live   <-- 
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+[exit 1]
+[exit 0]
+W2: the page's id is no longer read into the cards.
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire-mut.py /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs "id: el.getAttribute('data-game-id') ?? ''," "id: '',"
+mutant written; lines that differ from the script: 1
+[exit 0]
+
+$ SCRIPT=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/wire/scripts/brief-phase-live-check.mjs bash /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/run.sh ok | grep -E '^(PASS|FAIL)|<-- |^\[exit'
+  Alabama @ Vanderbilt                    game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "Alabama @ Vanderbilt" id="", "Troy @ South Alabama" id="")   <-- 
+  Michigan @ Oregon                       game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "Michigan @ Oregon" id="", "Washington @ Michigan St" id="")   <-- 
+  California @ Virginia                   game_recap    (NO CARD CARRIES THIS GAME'S ID; nearest by name: "California @ Virginia" id="", "Kansas @ West Virginia" id="")   <-- 
+PASS  the page reports a real viewed date, not a pinned capture
+PASS  the deployed page rendered cards at all
+PASS  the page logged no errors while rendering
+PASS  the relay served /context/date/2026-11-14
+FAIL  every final game with both phases shows its after-play brief (3 testable)
+[exit 1]
+[exit 0]
+
+
+==== 6. STEP 4: the brief_date dispatch input. BEFORE the edit, the two workflow guards on the committed workflow (HEAD 7bfaf77f) ====
+
+$ npm run --silent check:workflows 2>&1 | tail -4
+PASS  install: an install command the step reader cannot see is reported, not skipped
+PASS  install: a comment that mentions an install is not counted as a missed one
+
+71/71 checks passed
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | tail -4
+  .github/workflows/open-meteo-egress-probe.yml:40  N=1  a failed install ends the job red; it skips the Build and the Probe (the probe needs the browser and the build); the runner survey, the failure shapes and the fault-injected render-check carry always() and still run, and the last needs the build this skips (render-check.mjs imports build/Venues.js before it launches) and the browser the install did not give it, so after a failed install it fails and its not-observable verdict is committed on main and printed in the log on any other ref (N counts the Build only)
+  .github/workflows/verify-full.yml:178  N=2  a failed install ends the job red with no ledger line written (the peak-slate step and the Confidence gate are skipped, and the two ledger steps find nothing new); the proof-doc self-test, the one standalone browser-free step, runs on !cancelled(); N=2 is the site server and the Confidence gate, which this guard cannot see launching a browser (confidence.mjs spawns its rows, and 6 of its 23 rows drive one); the gate is ONE step whose 17 rows that drive no browser are lost with it, and giving the job the verify shape needs a browser-free-rows mode in scripts/confidence.mjs and a way to tell this guard that `npm run gate` needs a browser (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, items 2 and 6)
+
+verdict: gated
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | grep -E '^(COVERAGE|verdict)|live-check.yml'| cut -c1-220
+=== .github/workflows/live-check.yml, job `live`: the browser steps wait for the Chromium install ===
+COVERAGE: 2 job(s) get the whole shape (.github/workflows/verify.yml:verify, .github/workflows/live-check.yml:live).
+verdict: gated
+[exit 0]
+
+
+==== 6b. STEP 4: AFTER the edit. The diff, the guards, and the step's own URL line run with an unset, an empty, a set and two hostile values, then its own mutant ====
+
+$ git diff --stat -- .github/workflows/live-check.yml scripts/brief-phase-live-check.mjs
+ .github/workflows/live-check.yml   | 18 +++++++++++++++++-
+ scripts/brief-phase-live-check.mjs |  4 +++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
+[exit 0]
+
+$ npm run --silent check:workflows 2>&1 | tail -3
+PASS  install: a comment that mentions an install is not counted as a missed one
+
+71/71 checks passed
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py 2>&1 | grep -E '^(COVERAGE|verdict)|^=== .*live-check.yml'| cut -c1-220
+=== .github/workflows/live-check.yml, job `live`: the browser steps wait for the Chromium install ===
+COVERAGE: 2 job(s) get the whole shape (.github/workflows/verify.yml:verify, .github/workflows/live-check.yml:live).
+verdict: gated
+[exit 0]
+
+$ python3 scripts/check-browser-gate.py --self-test | tail -1
+262/262 checks passed
+[exit 0]
+
+$ python3 /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e/url-line.py
+line from the workflow: URL="https://field-laboratory.jeffunglesbee.workers.dev/${BRIEF_DATE:+?date=$BRIEF_DATE}" node scripts/brief-phase-live-check.mjs
+step env block: {'BRIEF_DATE': '${{ inputs.brief_date }}'}
+BRIEF_DATE=None                             -> https://field-laboratory.jeffunglesbee.workers.dev/   [one output line, empty stderr: True]
+BRIEF_DATE=''                               -> https://field-laboratory.jeffunglesbee.workers.dev/   [one output line, empty stderr: True]
+BRIEF_DATE='2026-11-14'                     -> https://field-laboratory.jeffunglesbee.workers.dev/?date=2026-11-14   [one output line, empty stderr: True]
+BRIEF_DATE='2026-11-14; echo INJECTED'      -> https://field-laboratory.jeffunglesbee.workers.dev/?date=2026-11-14; echo INJECTED   [one output line, empty stderr: True]
+BRIEF_DATE='$(echo INJECTED)'               -> https://field-laboratory.jeffunglesbee.workers.dev/?date=$(echo INJECTED)   [one output line, empty stderr: True]
+checked 5 of 5 values; 0 produced extra output
+MUTANT, the input interpolated into the command: URL="https://field-laboratory.jeffunglesbee.workers.dev/${{ inputs.brief_date }}" node scripts/brief-phase-live-check.mjs
+  after substituting '2026-11-14"; echo INJECTED; echo "': output ['INJECTED', ' printenv URL']
+  the same test would have flagged it: True
+[exit 0]
+
+
+==== Z. The harness, verbatim ====
+
+---- serve.mjs
+// Serves a page and a relay for scripts/brief-phase-live-check.mjs, so its executable half runs end to end
+// (browser, DOM read, relay fetch, verdict, print) against a fixture reconstructed from the 2026-11-14 00:32Z
+// live-check render (run 43658647710). Ids, team lines and statuses are from that run's log. Two kinds are NOT in the
+// log and are deduced (marked below); everything else the page and relay carry is built here, not observed.
+//
+//   node serve.mjs <port> [variant]
+//   variants:  ok          every card carries its game's id
+//              idmismatch  the `California @ Virginia` card carries another id than its game's
+import http from 'node:http'
+
+const [port, variant = 'ok'] = process.argv.slice(2)
+const S = 'Start time passed, no score served'
+const cards = [
+  { id: 'CFB_2026-11-14_e401856889', teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401871100', teams: 'Troy @ South Alabama',     status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401858523', teams: 'Michigan @ Oregon',        status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401858521', teams: 'Washington @ Michigan St', status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401860914', teams: 'Oregon St @ Boise St',     status: S,       kind: 'game_live' },
+  { id: 'CFB_2026-11-14_e401858295', teams: 'California @ Virginia',    status: 'Final', kind: 'game_recap' },
+  { id: 'CFB_2026-11-14_e401856861', teams: 'Kansas @ West Virginia',   status: 'Final', kind: 'game_recap' },   // kind deduced
+  { id: 'CFB_2026-11-14_e401858299', teams: 'Stanford @ Virginia Tech', status: S,       kind: 'game_live' },    // kind deduced
+]
+const testable = new Set(['Alabama @ Vanderbilt', 'Michigan @ Oregon', 'California @ Virginia'])
+
+const shownId = c => (variant === 'idmismatch' && c.teams === 'California @ Virginia') ? 'CFB_2026-11-14_WRONG' : c.id
+const page = `<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>fixture</title></head><body>
+<span id="viewed-date">2026-11-14</span>
+${cards.map(c => `<div class="desk-card" data-game-id="${shownId(c)}"><div class="desk-card__teams">${c.teams}</div><div class="desk-card__status">${c.status}</div>${c.kind ? `<div class="desk-card__brief-kind">${c.kind}</div>` : ''}</div>`).join('\n')}
+</body></html>`
+
+const games = cards.map(c => {
+  const [away, home] = c.teams.split(' @ ')
+  const final = testable.has(c.teams) || c.teams === 'Kansas @ West Virginia'
+  return { id: c.id, away, home, espn_event_id: Number(c.id.split('_e')[1]), finalized_at: final ? '2026-11-14 23:30:00' : null, sport: 'CFB' }
+})
+const briefs = []
+for (const c of cards) {
+  const live = { game_id: c.id, brief_type: 'game_live', brief_text: 'written while it was on' }
+  const recap = { game_id: c.id, brief_type: 'game_recap', brief_text: 'written after it ended' }
+  if (testable.has(c.teams)) briefs.push(live, recap)
+  else briefs.push(c.kind === 'game_live' ? live : recap)
+}
+const payload = JSON.stringify({ games: { regular: games, postseason: [] }, briefs })
+
+http.createServer((req, res) => {
+  if (req.url === '/' || req.url.startsWith('/?')) { res.setHeader('content-type', 'text/html'); res.end(page) }
+  else if (req.url === '/context/date/2026-11-14') { res.setHeader('content-type', 'application/json'); res.end(payload) }
+  else { res.statusCode = 404; res.end('not found') }
+}).listen(Number(port), '127.0.0.1')
+
+---- run.sh
+#!/usr/bin/env bash
+# Runs scripts/brief-phase-live-check.mjs end to end against serve.mjs. Run from the repository root.
+#   [SCRIPT=<path to a copy of the script>] bash run.sh <variant>
+set -u
+D=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/brief-e2e
+PORT=${PORT:-18765}
+node "$D/serve.mjs" "$PORT" "${1:-ok}" & SP=$!
+sleep 1
+URL="http://127.0.0.1:$PORT/" RELAY="http://127.0.0.1:$PORT" node "${SCRIPT:-scripts/brief-phase-live-check.mjs}"
+E=$?
+kill $SP 2>/dev/null; wait $SP 2>/dev/null
+echo "[exit $E]"
+
+---- mut.mjs
+// Mutation run for the self-test of scripts/brief-phase-live-check.mjs, on a COPY outside the repository.
+//   node mut.mjs <spec.mjs>      (run from the repository root; the spec default-exports { file, mutants: [{ name, anchor, with }] })
+// Every mutant is refused, and the whole run with it (exit 2), unless its anchor occurs exactly once in the file and the
+// mutated text differs from the original. A baseline run of the unmutated copy must exit 0 first. A mutant counts as
+// caught when the self-test of the mutated copy exits non-zero. The last line is `caught K of N`.
+import fs from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { spawnSync } from 'node:child_process'
+
+const specPath = path.resolve(process.argv[2])
+const spec = (await import(pathToFileURL(specPath).href)).default
+const src = fs.readFileSync(spec.file, 'utf8')
+const root = path.join(path.dirname(specPath), 'mutwt')
+fs.rmSync(root, { recursive: true, force: true })
+fs.mkdirSync(path.join(root, 'scripts'), { recursive: true })
+fs.copyFileSync(path.join(path.dirname(spec.file), 'checks.mjs'), path.join(root, 'scripts/checks.mjs'))
+fs.symlinkSync(path.resolve('node_modules'), path.join(root, 'node_modules'))
+const target = path.join(root, 'scripts/brief-phase-live-check.mjs')
+const run = text => { fs.writeFileSync(target, text); return spawnSync('node', [target, '--self-test'], { encoding: 'utf8' }) }
+
+const base = run(src)
+console.log(`baseline, no mutation: exit ${base.status}; ${(base.stdout.match(/\d+\/\d+ checks passed/) ?? ['no summary'])[0]}`)
+if (base.status !== 0) { console.log('REFUSED: the unmutated copy does not pass'); process.exit(2) }
+
+let caught = 0
+for (const m of spec.mutants) {
+  const n = src.split(m.anchor).length - 1
+  if (n !== 1) { console.log(`REFUSED: the anchor of "${m.name}" occurs ${n} times, not 1`); process.exit(2) }
+  const mutated = src.replace(m.anchor, () => m.with)
+  if (mutated === src) { console.log(`REFUSED: "${m.name}" changed nothing`); process.exit(2) }
+  const r = run(mutated)
+  const red = (r.stdout.match(/^FAIL {2}.*$/gm) ?? []).map(l => l.slice(6))
+  const isCaught = r.status !== 0
+  if (isCaught) caught++
+  console.log(`${isCaught ? 'CAUGHT    ' : 'NOT CAUGHT'}  ${m.name}\n             exit ${r.status}; ${red.length} check(s) red${red.map(f => `\n               - ${f.slice(0, 100)}`).join('')}`)
+}
+console.log(`\ncaught ${caught} of ${spec.mutants.length}`)
+process.exit(caught === spec.mutants.length ? 0 : 1)
+
+---- wire-mut.py
+#!/usr/bin/env python3
+# Writes a mutated COPY of scripts/brief-phase-live-check.mjs for the end-to-end wiring checks.
+#   wire-mut.py <out file> <anchor> <replacement>
+# Refuses (exit 2) unless the anchor occurs exactly once and the copy differs from the script; prints how many lines differ.
+import sys
+out, anchor, repl = sys.argv[1:4]
+s = open('scripts/brief-phase-live-check.mjs').read()
+n = s.count(anchor)
+if n != 1:
+    print(f"REFUSED: anchor occurs {n} times, not 1"); sys.exit(2)
+m = s.replace(anchor, repl)
+if m == s:
+    print("REFUSED: the replacement changed nothing"); sys.exit(2)
+open(out, 'w').write(m)
+print("mutant written; lines that differ from the script:", sum(1 for x, y in zip(s.splitlines(), m.splitlines()) if x != y))
+
+---- url-line.py
+#!/usr/bin/env python3
+# Runs the brief step's own URL line, read from .github/workflows/live-check.yml (not retyped), with the node command replaced
+# by `printenv URL`, under an unset, an empty, a set and two hostile values of BRIEF_DATE. Run from the repository root.
+import yaml, subprocess, os
+d = yaml.safe_load(open('.github/workflows/live-check.yml'))
+st = [x for x in d['jobs']['live']['steps'] if x.get('name', '').startswith('A finished game shows the brief')]
+assert len(st) == 1, f"{len(st)} steps match"
+lines = [l for l in st[0]['run'].splitlines() if l.startswith('URL=')]
+assert len(lines) == 1 and lines[0].count('node scripts/brief-phase-live-check.mjs') == 1, lines
+cmd = lines[0].replace('node scripts/brief-phase-live-check.mjs', 'printenv URL')
+print("line from the workflow:", lines[0])
+print("step env block:", st[0]['env'])
+bad = 0
+for val in (None, '', '2026-11-14', '2026-11-14; echo INJECTED', '$(echo INJECTED)'):
+    env = {k: v for k, v in os.environ.items() if k != 'BRIEF_DATE'}
+    if val is not None: env['BRIEF_DATE'] = val
+    r = subprocess.run(['bash', '-c', cmd], env=env, capture_output=True, text=True)
+    out = r.stdout.splitlines()
+    ran_nothing_else = len(out) == 1 and r.stderr == ''
+    bad += 0 if ran_nothing_else else 1
+    print(f"BRIEF_DATE={val!r:<32} -> {out[0] if out else ''}   [one output line, empty stderr: {ran_nothing_else}]")
+print(f"checked 5 of 5 values; {bad} produced extra output")
+
+# THE CHECK ABOVE MUST BE ABLE TO FAIL (Rule 90). The unsafe form is the input interpolated into the command text. GitHub does that
+# substitution before the shell sees the line; it is done here by hand, on a hostile value that closes the quote.
+anchor = '${BRIEF_DATE:+?date=$BRIEF_DATE}'
+assert lines[0].count(anchor) == 1
+unsafe = lines[0].replace(anchor, '${{ inputs.brief_date }}')
+assert unsafe != lines[0]
+hostile = '2026-11-14"; echo INJECTED; echo "'
+cmd2 = unsafe.replace('node scripts/brief-phase-live-check.mjs', 'printenv URL').replace('${{ inputs.brief_date }}', hostile)
+r = subprocess.run(['bash', '-c', cmd2], capture_output=True, text=True)
+extra = len(r.stdout.splitlines()) != 1 or r.stderr != ''
+print("MUTANT, the input interpolated into the command:", unsafe)
+print(f"  after substituting {hostile!r}: output {r.stdout.splitlines()!r}")
+print(f"  the same test would have flagged it: {extra}")
+raise SystemExit(0 if (bad == 0 and extra) else 1)
+
+---- spec-A.mjs
+// Mutants of the three checks added for the 2026-11-14 slate (step 1 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'the slate stops colliding: Troy\'s team line no longer contains Alabama',
+      anchor: "'Troy @ South Alabama'", with: "'Troy @ Southern Miss'" },
+    { name: 'the old predicate is tightened to BOTH teams (&&)',
+      anchor: 'c.teams.includes(game.away) || c.teams.includes(game.home))', with: 'c.teams.includes(game.away) && c.teams.includes(game.home))' },
+    { name: 'the partner of Alabama @ Vanderbilt is not during-play',
+      anchor: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_live' }", with: "teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_recap' }" },
+    { name: 'the game\'s OWN card is the one reading game_live',
+      anchor: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' }", with: "teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_live' }" },
+  ],
+}
+
+---- spec-B.mjs
+// Mutants of evidenceLines and its checks (step 2 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'evidenceLines prints only the first card',
+      anchor: 'export const evidenceLines = matching => matching.map(c =>', with: 'export const evidenceLines = matching => matching.slice(0, 1).map(c =>' },
+    { name: 'evidenceLines drops the kind',
+      anchor: ' status=${JSON.stringify(c.status)} kind=${JSON.stringify(c.kind)}`)', with: ' status=${JSON.stringify(c.status)}`)' },
+    { name: 'evidenceLines drops the id',
+      anchor: 'card id=${JSON.stringify(c.id)} teams=', with: 'card teams=' },
+    { name: 'evidenceLines drops the status',
+      anchor: ' status=${JSON.stringify(c.status)} kind=', with: ' kind=' },
+    { name: 'evidenceLines invents a line when there are no cards',
+      anchor: 'export const evidenceLines = matching => matching.map(c =>', with: "export const evidenceLines = matching => (matching.length ? matching : [{ id: '', teams: '', status: '', kind: null }]).map(c =>" },
+    { name: 'evidenceLines prints the kind without quoting it',
+      anchor: 'kind=${JSON.stringify(c.kind)}`)', with: 'kind=${c.kind}`)' },
+  ],
+}
+
+---- spec-C.mjs
+// Mutants of cardsForGame and the join checks (step 3 of 4).
+export default {
+  file: 'scripts/brief-phase-live-check.mjs',
+  mutants: [
+    { name: 'the join reverts to the substring predicate',
+      anchor: 'cards.filter(c => c.id !== \'\' && c.id === game.id)', with: 'cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))' },
+    { name: 'the empty-id guard is dropped',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id === game.id' },
+    { name: 'the join takes the first card only (a find)',
+      anchor: 'cards.filter(c => c.id !== \'\' && c.id === game.id)', with: 'cards.filter(c => c.id !== \'\' && c.id === game.id).slice(0, 1)' },
+    { name: 'a team-name fallback is added behind the id',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: '(c.id !== \'\' && c.id === game.id) || c.teams.includes(game.away)' },
+    { name: 'the id is matched by containment, not equality',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id !== \'\' && c.id.includes(game.id)' },
+    { name: 'the join keys on the ESPN event id instead of the game id',
+      anchor: 'c.id !== \'\' && c.id === game.id', with: 'c.id !== \'\' && c.id.endsWith(String(game.espn_event_id))' },
+  ],
+}

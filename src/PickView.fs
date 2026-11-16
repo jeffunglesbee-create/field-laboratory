@@ -61,11 +61,24 @@ let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
         // editorial one.
         child panel (el "p" "pick-empty"
                         "No pick section in this payload. The analytics bundle either has not run for this date or predates the ranked field.") |> ignore
-    | Passed reason ->
+    | Passed(reason, board) ->
         // `passReasonText`, never the relay's sentence. The live route returned
         // "top game scored 1.0 — under the 3.0 watch-bar" on 2026-08-10, and
         // this line rendered it verbatim until live-tabs-check caught it.
         child panel (el "p" "pick-empty" (passReasonText reason)) |> ignore
+
+        // The refusal stands; what came closest is still shown. Same rules as
+        // "Also ranked" on a pick night: matchup and reasons, never the rank.
+        // The tie is named, because on 2026-11-14 all five were level.
+        if not board.Closest.IsEmpty then
+            child panel (el "h3" "pick-panel__what" "Closest on the board") |> ignore
+            match leadershipNote board.Leadership with
+            | Some note -> child panel (el "div" "pick-leader__tie" note) |> ignore
+            | None -> ()
+            for entry in board.Closest do
+                let row = child panel (el "div" "pick-chaser" "")
+                child row (el "span" "" (entryMatchup entry)) |> ignore
+                child row (el "span" "pick-chaser__reasons" (String.concat " · " entry.Reasons)) |> ignore
     | Picked board ->
         let leader = child panel (el "div" "pick-leader" "")
         child leader (el "div" "pick-leader__matchup" (entryMatchup board.Leader)) |> ignore
@@ -118,16 +131,32 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
                     ("\"The one game tonight you'd never find on your own, but definitely should watch.\" "
                      + "A national broadcast DISQUALIFIES a game here — the opposite of Field's Pick.")) |> ignore
 
-    let verdicts = games |> List.map (fun g -> g, scoutVerdict g seriesEntries)
-    let qualifying =
-        verdicts |> List.filter (fun (_, v) -> match v with Qualifying _ -> true | _ -> false)
-
-    match qualifying with
-    | (game, Qualifying gates) :: _ ->
+    // `chooseScout`, not the first qualifier in slate order: precedence by gate,
+    // then nearest to even, and whatever is still level is named, not hidden.
+    // No gate names in this text: tab-check reads gate lines by splitting on them.
+    match chooseScout games seriesEntries with
+    | AllFinished qualified ->
+        child panel (el "p" "pick-empty"
+                        (sprintf "Every game that qualified on this slate has finished (%d). "
+                                 qualified
+                         + "The pick moves on as games end, and none is left to watch.")) |> ignore
+    | Chosen choice ->
         let leader = child panel (el "div" "pick-leader" "")
-        child leader (el "div" "pick-leader__matchup" (matchupText game.Sport game.Home game.Away)) |> ignore
-        child leader (el "div" "pick-brief" (verdictSummary (Qualifying gates))) |> ignore
-    | _ ->
+        child leader (el "div" "pick-leader__matchup" (matchupText choice.Choice.Sport choice.Choice.Home choice.Choice.Away)) |> ignore
+        match choice.Level with
+        | [] -> ()
+        | level ->
+            child leader (el "div" "pick-leader__tie"
+                            (sprintf "level with %d other%s on the same signals: %s"
+                                     (List.length level) (if List.length level = 1 then "" else "s")
+                                     (level |> List.map (fun g -> matchupText g.Sport g.Home g.Away) |> String.concat "; "))) |> ignore
+        child leader (el "div" "pick-brief" (verdictSummary (Qualifying choice.Gates))) |> ignore
+        child leader (el "div" "pick-chaser__reasons" (sprintf "Chosen as %s." choice.Basis)) |> ignore
+        if choice.Finished > 0 then
+            child leader (el "div" "pick-chaser__reasons"
+                            (sprintf "%d qualifier%s already finished, so the pick has moved on."
+                                     choice.Finished (if choice.Finished = 1 then "" else "s"))) |> ignore
+    | NoneQualify ->
         // The honest result on this payload, and the whole point of the
         // exercise. Production's gates are JS booleans, so a gate with no input
         // returns false and reads as "does not qualify". Here it reports what

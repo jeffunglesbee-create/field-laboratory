@@ -106,8 +106,8 @@ let private postGameDramaText (zone: AmnestyZone) (g: Game) =
     | Malformed err -> arcFault err
     | Decoded arc ->
         match g.DramaPeak with
-        | Some peak -> sprintf "arc %d pts, peak %s" (arcLength arc) (formatDramaPeak zone peak)
-        | None -> sprintf "arc %d pts" (arcLength arc)
+        | Some(Scored peak) -> sprintf "arc %d pts, peak %s" (arcLength arc) (formatDramaPeak zone peak)
+        | Some NotScored | None -> sprintf "arc %d pts" (arcLength arc)
 
 /// The 30-bar sparkline. Post-game only, for the same reason the peak is.
 ///
@@ -126,8 +126,8 @@ let private renderSparkline (zone: AmnestyZone) (g: Game) : HTMLElement option =
             let wrap = el "div" "spark" ""
             let caption =
                 match g.DramaPeak with
-                | Some peak -> sprintf "drama over time (peak %s)" (formatDramaPeak zone peak)
-                | None -> "drama over time"
+                | Some(Scored peak) -> sprintf "drama over time (peak %s)" (formatDramaPeak zone peak)
+                | Some NotScored | None -> "drama over time"
             let row = el "div" "spark__row" ""
             // The chart is decorative on top of a caption that already states
             // the peak, so it is hidden from assistive tech rather than read out

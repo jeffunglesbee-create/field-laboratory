@@ -12,6 +12,52 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1985b7c` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `1985b7c` | 2026-11-15 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `1985b7c` | 2026-11-15 | [sport-vocabulary-2026-11-15T18-42-58-008Z.json](sport-vocabulary-2026-11-15T18-42-58-008Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `0010647` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `9fdcadc` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `824bd7c` | 2026-11-15 | [scout-rolling-pick-2026-11-15.md](scout-rolling-pick-2026-11-15.md) | feat: Scout's Pick skips finished games, so the pick rolls forward through the day |
+| `f0a78f0` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `1dd9fc2` | 2026-11-15 | [scout-choice-2026-11-15.md](scout-choice-2026-11-15.md) | feat: Scout's Pick chooses among qualifiers by gate precedence, then nearest to even, and names what is still level |
+| `0cd348b` | 2026-11-15 | [cc-session-2026-11-15-brief-hook.md](cc-session-2026-11-15-brief-hook.md) | docs: session record for the brief-phase check and the hook, 2026-11-15 |
+| `986761a` | 2026-11-15 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-15T14:17 [skip ci] |
+| `0cfc0ce` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `17dc13a` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 58e81d2 [skip ci] |
+| `b8b43f0` | 2026-11-15 | [live-check-schedule-sweep-2026-11-15.txt](live-check-schedule-sweep-2026-11-15.txt) | docs: live-check's daily beat observed the brief rule in 0 of 20 runs, filed with its measurement |
+| `3aea19d` | 2026-11-15 | [push-lands-pyyaml-message-2026-11-15.txt](push-lands-pyyaml-message-2026-11-15.txt) | fix: check-push-lands.py says what to install when PyYAML is missing |
+| `58e81d2` | 2026-11-15 | [hook-runs-the-workflow-guards-proof-2026-11-15.txt](hook-runs-the-workflow-guards-proof-2026-11-15.txt) | ci: the pre-commit hook runs the two guards that parse workflow YAML |
+| `6623066` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | ci: live-check takes an optional brief_date, so a finished day can be replayed |
+| `7bfaf77` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | fix: the brief-phase check finds a game's cards by the game's id, not by team name |
+| `1e9176a` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | fix: the brief-phase evidence names every card the verdict looked at |
+| `471dc3c` | 2026-11-15 | [brief-phase-card-identity-proof-2026-11-15.txt](brief-phase-card-identity-proof-2026-11-15.txt) | test: the brief-phase self-test reproduces the 2026-11-14 collisions |
+| `b00a144` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `410fbd8` | 2026-11-15 | [brief-hook-premises-2026-11-15.txt](brief-hook-premises-2026-11-15.txt) | docs: file the brief-phase card-identity and hook-runs-the-guards CC-CMDs, with the premises tested first |
+| `8f9ba58` | 2026-11-15 | [scout-coinflip-gate-2026-11-15.md](scout-coinflip-gate-2026-11-15.md) | feat: Scout's Pick gains Gate E, a coin-flip pre-game market, from the moneylines the payload already carries |
+| `58def9f` | 2026-11-15 | [pickem-lock-lines-groups-2026-11-15.md](pickem-lock-lines-groups-2026-11-15.md) | feat: Pick'em locks picks at kickoff, shows each side's served line, and groups rows open / under way / settled |
+| `9f691bc` | 2026-11-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `9f691bc` | 2026-11-15 | [sport-vocabulary-2026-11-15T08-00-29-873Z.json](sport-vocabulary-2026-11-15T08-00-29-873Z.json) | drift-sentinel: ok on 2026-11-15 [skip ci] |
+| `bc7a6f1` | 2026-11-14 | [cc-session-2026-11-14-tls-stage.md](cc-session-2026-11-14-tls-stage.md) | docs: the TLS stage's session record names all three clock errors, not two |
+| `57c3ebe` | 2026-11-14 | [cc-session-2026-11-14-tls-stage.md](cc-session-2026-11-14-tls-stage.md) | docs: the weather failure's TLS stage is done: session record and the CC-CMD's Status and Outcome |
+| `db3bfef` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `f30d2b9` | 2026-11-15 | [egress-path-e2e-20261115T041303Z.txt](egress-path-e2e-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [egress-path-live-20261115T041303Z.txt](egress-path-live-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [egress-path-survey-20261115T041303Z.txt](egress-path-survey-20261115T041303Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [open-meteo-egress-2026-11-15T04-12-58-684Z.json](open-meteo-egress-2026-11-15T04-12-58-684Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f30d2b9` | 2026-11-15 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `22bc415` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 5c2021b [skip ci] |
+| `226a9ba` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `8807ffb` | 2026-11-15 | [outlet-registry-2026-11-15.md](outlet-registry-2026-11-15.md) | feat: Scout's broadcast registry knows every outlet on the 11-14 slate, by the owner's classification |
+| `2e4c205` | 2026-11-15 | [drama-not-scored-2026-11-15.md](drama-not-scored-2026-11-15.md) | fix: the relay's drama 0 is read as its "cannot be scored" mark, and the stats panel says so |
+| `ecae613` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `247ec33` | 2026-11-15 | [pick-pass-closest-2026-11-15.md](pick-pass-closest-2026-11-15.md) | feat: on a pass night Field's Pick shows what came closest, from the relay's own ranked list |
+| `5c2021b` | 2026-11-15 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | fix: two gaps a generic operator sweep found in the TLS stage's new code are closed |
+| `370da1a` | 2026-11-15 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | fix: runLive's address clause and the live artifact's address lines are failed on purpose |
+| `f3c9f80` | 2026-11-14 | [egress-path-tls-mutations-2026-11-14.txt](egress-path-tls-mutations-2026-11-14.txt) | feat: the weather failure message names every address the host has and whether a TLS handshake to each completes |
+| `461ff94` | 2026-11-14 | [tls-stage-premise-2026-11-14.txt](tls-stage-premise-2026-11-14.txt) | docs: CC-CMD for the weather failure's TLS stage and every address, filed on 14 runner runs of premises |
+| `c7c2927` | 2026-11-15 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the render-check race is fixed on main, the first proof slot's match is on the relay's slate, and soccer's pre shape is read |
+| `33ce43f` | 2026-11-15 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: open item 1 of the Chromium gate: the landing runs and the first healthy live-check |
+| `090f8ef` | 2026-11-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `5ea7b98` | 2026-11-15 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: open item 1 of the Chromium gate is landed: the scored gate, 530 of 530 |
 | `c7ed523` | 2026-11-15 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ef2afa8 [skip ci] |
 | `266b414` | 2026-11-14 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | ci: browser-gate generalization, final: the fixes from two independent reviews, sweep 295 of 295 |

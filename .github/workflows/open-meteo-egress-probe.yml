@@ -32,7 +32,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # browser-gate: exempt 1 -- a failed install ends the job red; it skips the Build and the Probe (the probe needs the browser and the build); the runner survey, the failure shapes and the fault-injected render-check carry always() and still run, and the last needs the build this skips (render-check.mjs imports build/Venues.js before it launches) and the browser the install did not give it, so after a failed install it fails and its not-observable verdict is committed (N counts the Build only)
+      # browser-gate: exempt 1 -- a failed install ends the job red; it skips the Build and the Probe (the probe needs the browser and the build); the runner survey, the failure shapes and the fault-injected render-check carry always() and still run, and the last needs the build this skips (render-check.mjs imports build/Venues.js before it launches) and the browser the install did not give it, so after a failed install it fails and its not-observable verdict is committed on main and printed in the log on any other ref (N counts the Build only)
       - name: Install
         run: |
           npm ci
@@ -145,9 +145,19 @@ jobs:
           tail -n 40 "$RAW"
           node scripts/egress-path-lib.mjs --judge "$RAW" "$RC" "$OUT" "api.open-meteo.com resolves to ${FAULT:-nothing}"
 
+      # Only on main, and the check is in the script, not in `if:`. `git push origin HEAD:main` below pushes whatever this checkout's HEAD is, so a dispatch from a
+      # branch would put that branch's commits on main unreviewed. On a branch the readings are in the log instead: every step above prints the artifact it wrote.
+      # It is not an `if:` because this step has to run after a failed install too (it commits the verdict that says so), and scripts/check-browser-gate.py counts a
+      # step whose `if` says more than always() as one a failed install may skip: with `if: always() && github.ref == 'refs/heads/main'` it counted 2 against the
+      # annotation's 1. docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md, Task 2.
       - name: Commit the reading
         if: always()
         run: |
+          echo "ref: ${GITHUB_REF:-unset}"
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "not refs/heads/main: nothing is committed or pushed from this run; the readings are in the log above"
+            exit 0
+          fi
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
           git add outbox

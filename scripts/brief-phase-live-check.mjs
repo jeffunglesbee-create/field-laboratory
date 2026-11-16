@@ -26,12 +26,14 @@
 //   NOT OBSERVABLE  no final game on today's slate carries more than one brief.
 //                   Nothing to prefer, so the rule is untested — reported as
 //                   such, never as green. On a heartbeat that is neutral; on a
-//                   dispatch it means the day was wrong, not the code.
+//                   dispatch it means the day was wrong, not the code, and a
+//                   dispatch can name the day (live-check.yml's `brief_date`).
 //   FAIL            a card shows a during-play kind while an after-play brief
 //                   for that same game exists in the payload.
 //   PASS            every such game shows its after-play brief.
 //
 // Usage:  URL=https://… node scripts/brief-phase-live-check.mjs
+//         URL='https://…/?date=2026-11-14' node scripts/brief-phase-live-check.mjs   (a finished day)
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
@@ -53,9 +55,13 @@ const AFTER_PLAY = new Set(['game_recap'])
 /**
  * Team-name normalisation, for the DIAGNOSTIC only — never for the verdict.
  *
- * The verdict still uses exact substring matching, deliberately. Loosening it
- * would make the check agree with the page more often without anyone learning
- * why it disagreed, which is how a red turns into a shrug.
+ * The verdict was exact substring matching, deliberately, and is now exact id
+ * equality (`cardsForGame`). The ruling this comment kept still holds: loosening
+ * the match would make the check agree with the page more often without anyone
+ * learning why it disagreed, which is how a red turns into a shrug. What changed
+ * is what "exact" is exact about. A substring is exact about a string, and a
+ * string is not a game. These helpers now only choose the near-name cards that
+ * are printed when no card carries a game's id.
  */
 export const norm = t => (t || '')
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // Málaga -> Malaga
@@ -101,6 +107,30 @@ export const verdictForCards = (matching, want, duringPlay) => {
   }
   return { ok: true, shown: matching.length > 1 ? `${want} (${matching.length} cards, duplicated upstream)` : want }
 }
+
+/**
+ * One evidence line for every card the verdict looked at.
+ *
+ * The row's evidence printed `matching[0]` while the verdict failed the row on ANY card in `matching`, so a row could
+ * fail on a card the log never showed. That is what the 2026-11-14 logs did: every one printed the game's own
+ * Final / game_recap card above a verdict naming `game_live`, and the card that carried it belonged to another game.
+ */
+export const evidenceLines = matching => matching.map(c =>
+  `card id=${JSON.stringify(c.id)} teams=${JSON.stringify(c.teams)} status=${JSON.stringify(c.status)} kind=${JSON.stringify(c.kind)}`)
+
+/**
+ * The cards that belong to one game: the cards whose id is the game's id.
+ *
+ * The page writes `data-game-id` on every card, from the same payload row (`card.setAttribute("data-game-id",
+ * game.Id)` in src/Scoreboard.fs), and scripts/render-check.mjs reads it the same way. An id names a game exactly and
+ * needs no convention to agree with itself. A team name does not: until 2026-11-15 this check found a game's cards by
+ * team-name substring, and `Alabama` is inside `South Alabama`, `Michigan` inside `Michigan St`, `Virginia` inside
+ * `West Virginia`. The verdict failed a finished game on the card of another game in six renders running.
+ *
+ * A card with no id (`''`) belongs to no game. This is a filter and never a find: when two cards carry one id both
+ * are returned and the verdict reports it.
+ */
+export const cardsForGame = (cards, game) => cards.filter(c => c.id !== '' && c.id === game.id)
 
 /** Brief `game_id` values resolve to a game by its own id or its ESPN event id. */
 export const briefMatches = (game, brief) => {
@@ -179,6 +209,97 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('THE BUG IS DETECTED: a during-play kind on a final game is not the expectation',
     expectedKind(g, [live, recap]) !== 'game_live',
     'the screenshot that prompted this showed GAME_LIVE on a 3-3 final')
+
+  // THE 2026-11-14 SLATE, and the predicate this check used to find a game's cards.
+  //
+  // `live-check` went red on three games in six renders from 2026-11-14 23:06Z. These are the cards the 00:32Z render
+  // (run 43658647710) printed for them and for the games whose names sit inside theirs: `Alabama` is inside
+  // `South Alabama`, `Michigan` inside `Michigan St`, `Oregon` inside `Oregon St`, `Virginia` inside `West Virginia`
+  // and `Virginia Tech`. Ids, team lines and statuses are from that log. The log's evidence line printed only the
+  // game's OWN card, so the other cards' kinds are in the verdict text and not in the log: `Alabama @ Vanderbilt` has
+  // one other card and failed with one `game_live`, `Michigan @ Oregon` failed with `game_live, game_live` against two,
+  // so those three kinds are certain. `Stanford @ Virginia Tech` and `Kansas @ West Virginia` are DEDUCED: one
+  // `game_live` sat between them, and the one reading Final is not during-play.
+  const SP = 'Start time passed, no score served'
+  const slate = [
+    { id: 'CFB_2026-11-14_e401856889', teams: 'Alabama @ Vanderbilt',     status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401871100', teams: 'Troy @ South Alabama',     status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401858523', teams: 'Michigan @ Oregon',        status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401858521', teams: 'Washington @ Michigan St', status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401860914', teams: 'Oregon St @ Boise St',     status: SP,      kind: 'game_live' },
+    { id: 'CFB_2026-11-14_e401858295', teams: 'California @ Virginia',    status: 'Final', kind: 'game_recap' },
+    { id: 'CFB_2026-11-14_e401856861', teams: 'Kansas @ West Virginia',   status: 'Final', kind: 'game_recap' },  // kind deduced
+    { id: 'CFB_2026-11-14_e401858299', teams: 'Stanford @ Virginia Tech', status: SP,      kind: 'game_live' },   // kind deduced
+  ]
+  const redGames = [
+    { id: 'CFB_2026-11-14_e401856889', away: 'Alabama',    home: 'Vanderbilt' },
+    { id: 'CFB_2026-11-14_e401858523', away: 'Michigan',   home: 'Oregon' },
+    { id: 'CFB_2026-11-14_e401858295', away: 'California', home: 'Virginia' },
+  ]
+  // TEST-ONLY copy of the predicate this check used until 2026-11-15. It is here to prove the slate above still
+  // collides: if it stopped colliding, every check below that rests on the slate would prove nothing.
+  const substringCards = (cards, game) => cards.filter(c => c.teams.includes(game.away) || c.teams.includes(game.home))
+  const bySubstring = redGames.map(game => substringCards(slate, game))
+
+  check('2026-11-14 SLATE: the substring predicate takes 2, 3 and 3 cards for the three red games',
+    bySubstring.map(m => m.length).join() === '2,3,3',
+    `took ${bySubstring.map(m => m.length).join()}`)
+  check('...each of those games has its OWN card among them, and it reads Final / game_recap',
+    redGames.every((game, i) => {
+      const own = bySubstring[i].filter(c => c.id === game.id)
+      return own.length === 1 && own[0].status === 'Final' && own[0].kind === 'game_recap'
+    }),
+    'the page was right')
+  check('...and the unchanged verdict fails all three, on a card of ANOTHER game',
+    redGames.every((game, i) => {
+      const culprits = bySubstring[i].filter(c => D.has(c.kind))
+      return verdictForCards(bySubstring[i], 'game_recap', D).ok === false &&
+        culprits.length > 0 && culprits.every(c => c.id !== game.id)
+    }),
+    'the matcher took the wrong cards')
+
+  // THE EVIDENCE NAMES EVERY CARD THE VERDICT LOOKED AT.
+  const twoCards = [
+    { id: 'G1', teams: 'Lynx @ Dream', status: 'Final', kind: 'game_recap' },
+    { id: 'G2', teams: 'Sparks @ Storm', status: SP, kind: 'game_live' },
+  ]
+  const lines = evidenceLines(twoCards)
+  check('the evidence has one line per card the verdict looked at, not the first',
+    lines.length === 2, `${lines.length} line(s)`)
+  check('...each line carries the card\'s id, team line, status and kind',
+    lines.length === 2 && twoCards.every((c, i) => [c.id, c.teams, c.status, c.kind].every(v => lines[i].includes(JSON.stringify(v)))))
+  check('...a card with no kind says null rather than leaving a gap',
+    evidenceLines([{ id: 'G3', teams: 'X @ Y', status: 'Scheduled', kind: null }])[0].endsWith('kind=null'))
+  check('...and no cards means no lines',
+    evidenceLines([]).length === 0)
+
+  // THE JOIN IS THE CARD'S ID.
+  const byId = redGames.map(game => cardsForGame(slate, game))
+  const verdictsById = byId.map(m => verdictForCards(m, 'game_recap', D))
+  check('2026-11-14 SLATE: the id join takes ONE card for each of the three red games, its own',
+    redGames.every((game, i) => byId[i].length === 1 && byId[i][0].id === game.id),
+    `took ${byId.map(m => m.length).join()}`)
+  check('...and the unchanged verdict passes all three on it',
+    verdictsById.every(v => v.ok === true), verdictsById.map(v => v.shown).join(' | '))
+  check('...saying nothing of duplication about a game that has one card',
+    verdictsById.every(v => v.shown === 'game_recap'), verdictsById.map(v => v.shown).join(' | '))
+  check('THE DEFINED FAILURE STILL FAILS THROUGH THE JOIN: the game\'s own card reading game_live',
+    verdictForCards(
+      cardsForGame(slate.map(c => c.id === redGames[0].id ? { ...c, kind: 'game_live' } : c), redGames[0]),
+      'game_recap', D).ok === false,
+    'the join must not launder a wrong card of the game\'s own')
+  const noId = { id: '', teams: 'Alabama @ Vanderbilt', status: 'Final', kind: 'game_recap' }
+  const withNoId = [cardsForGame([noId], { id: '', away: 'Alabama', home: 'Vanderbilt' }), cardsForGame([noId], redGames[0])]
+  check('a card carrying no id belongs to no game, not even to a game with no id',
+    withNoId.every(m => m.length === 0), `took ${withNoId.map(m => m.length).join()}`)
+  const unknown = cardsForGame(slate, { id: 'CFB_2026-11-14_none', away: 'Alabama', home: 'Vanderbilt' })
+  check('a game whose id is on no card has none, whatever team names its names are inside',
+    unknown.length === 0, `took ${unknown.map(c => c.teams).join(', ')}`)
+  const whole = cardsForGame([{ ...noId, id: 'G10' }, { ...noId, id: 'G1' }], { id: 'G1', away: 'A', home: 'B' })
+  check('an id is compared whole: G1 does not take the card of G10',
+    whole.map(c => c.id).join() === 'G1', `took ${whole.map(c => c.id).join()}`)
+  check('two cards carrying one id are both returned: a filter, never a find',
+    cardsForGame([slate[0], { ...slate[0], status: SP }], redGames[0]).length === 2)
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -240,6 +361,7 @@ if (isMain(import.meta.url)) {
 
   // Every card's venue/teams line and, where present, its brief kind.
   const cards = await page.$$eval('.desk-card', els => els.map(el => ({
+    id: el.getAttribute('data-game-id') ?? '',
     teams: el.querySelector('.desk-card__teams')?.textContent?.trim() ?? '',
     status: el.querySelector('.desk-card__status')?.textContent?.trim() ?? '',
     kind: el.querySelector('.desk-card__brief-kind')?.textContent?.trim() ?? null,
@@ -322,21 +444,30 @@ if (isMain(import.meta.url)) {
     // reads as a rendering defect in the desk. The desk is right: it rendered
     // both rows the relay served. Taking the first of two and describing it as
     // "the" card is this file's bug.
-    const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))
-    const card = matching[0]
+    //
+    // THE CARDS ARE FOUND BY ID, NOT BY NAME (2026-11-15). Three rows were red in
+    // six renders from 2026-11-14 because a team name found other games' cards:
+    // the verdict failed `Alabama @ Vanderbilt` on the `game_live` card of
+    // `Troy @ South Alabama`, while its own card read Final / game_recap. The
+    // evidence printed only that own card. `cardsForGame` joins on the id the
+    // page writes on every card, and the evidence below prints every card the
+    // verdict looked at. Whether the stub above carries its own id is not
+    // recorded here; two cards with one id are both kept and reported.
+    const matching = cardsForGame(cards, g)
     const v = verdictForCards(matching, want, DURING_PLAY)
     let shown = v.shown
     if (matching.length) {
       // verdictForCards decided; nothing more to describe.
     } else {
-      // Not "no card". Either the game is absent from the page, or it is there
-      // under a name this exact-substring matcher cannot see.
+      // Not "no card". No card carries this game's id: either the game is absent
+      // from the page, or the page drew it under another id than the payload's.
+      // The nearest team lines, with their ids, say which.
       const near = cards
         .map(c => ({ c, n: Math.max(overlap(c.teams, g.away), overlap(c.teams, g.home)) }))
         .filter(x => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 2)
       shown = near.length
-        ? `(NO EXACT MATCH; page has: ${near.map(x => JSON.stringify(x.c.teams)).join(', ')})`
-        : '(NOT RENDERED — no card on the page shares a word with either team)'
+        ? `(NO CARD CARRIES THIS GAME'S ID; nearest by name: ${near.map(x => `${JSON.stringify(x.c.teams)} id=${JSON.stringify(x.c.id)}`).join(', ')})`
+        : '(NOT RENDERED — no card carries this game\'s id and none shares a word with either team)'
     }
     const ok = matching.length ? v.ok : false
     if (!ok) {
@@ -360,7 +491,7 @@ if (isMain(import.meta.url)) {
       for (const b of mine.slice(0, 6)) {
         console.log(`                brief game_id=${JSON.stringify(b.game_id)} type=${JSON.stringify(b.brief_type)} text=${(b.brief_text || '').length}ch`)
       }
-      if (card) console.log(`                card teams=${JSON.stringify(card.teams)} status=${JSON.stringify(card.status)} kind=${JSON.stringify(card.kind)}`)
+      for (const line of evidenceLines(matching)) console.log(`                ${line}`)
     }
     console.log(`  ${label.slice(0, 40).padEnd(40)}${want.padEnd(14)}${shown}${ok ? '' : '   <-- '}`)
   }

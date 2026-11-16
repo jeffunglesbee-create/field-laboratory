@@ -1,0 +1,78 @@
+Premises of docs/CC-CMD-2026-11-15-live-check-daily-beat-late.md, tested 2026-11-15 over REST (the sandbox cannot reach the deployed page).
+checked 20 of 20 scheduled live-check runs; delay after the 03:37Z cron, hours: min 5.70, median 7.80, max 8.45, over 20 runs
+brief step in those runs: observed (PASS or FAIL) 0 of 20; NOT OBSERVABLE 18; no brief lines (an earlier step failed and the brief step was skipped; shown below) 2; unreadable 0
+slate lines that print the run's own created date: 17 of 17
+
+---- the claim under test, live-check.yml, verbatim
+  # MOVED 2026-08-31 from '37 6 * * *' to an evening-ET hour, and the reason is
+  # that the old one could never exercise half this job.
+  #
+  # 06:37 UTC is 02:37 in FIELD's zone. The page renders the CURRENT ET day, and
+  # at 02:37 that day is two and a half hours old with no fixtures on it. So the
+  # daily run met an empty slate every time. Until today that surfaced as a raw
+  # TimeoutError; now it is correctly reported NOT OBSERVABLE — which is honest
+  # and still means the brief-phase rule, live-grouping and the schedule rows
+  # were never tested by the schedule, only by deploys.
+  #
+  # 03:37 UTC is 23:37 EDT and 22:37 EST — evening ET in both halves of the
+  # year, with the day's early fixtures final and carrying recaps. That is the
+  # state these checks are written for.
+  #
+  # Same one run a day. The cost is identical and the coverage is not.
+  schedule:
+    - cron: '37 3 * * *'
+
+---- one row per scheduled run: id, created (UTC), conclusion, the slate date and size the page printed, final games carrying both phases, the brief verdict
+43708978645 2026-11-15T11:27:06Z success slate=2026-11-15 games=26 testable=0 brief=NOT-OBSERVABLE
+43587347908 2026-11-14T10:52:50Z failure slate=2026-11-14 games=75 testable=0 brief=NOT-OBSERVABLE
+43417450850 2026-11-13T11:29:20Z success slate=2026-11-13 games=14 testable=0 brief=NOT-OBSERVABLE
+43212126608 2026-11-12T11:47:13Z success slate=2026-11-12 games=18 testable=0 brief=NOT-OBSERVABLE
+43011774291 2026-11-11T11:25:05Z success slate=2026-11-11 games=21 testable=0 brief=NOT-OBSERVABLE
+42809765820 2026-11-10T11:43:20Z success slate=2026-11-10 games=33 testable=0 brief=NOT-OBSERVABLE
+42613880170 2026-11-09T12:03:44Z failure slate=2026-11-09 games=13 testable=0 brief=NOT-OBSERVABLE
+42472682229 2026-11-08T10:44:19Z success slate=2026-11-08 games=54 testable=0 brief=NOT-OBSERVABLE
+42364844307 2026-11-07T10:39:02Z failure slate=none testable=none brief=NO-BRIEF-LINES
+42210279467 2026-11-06T11:26:35Z success slate=2026-11-06 games=22 testable=0 brief=NOT-OBSERVABLE
+42019175306 2026-11-05T11:28:00Z success slate=2026-11-05 games=52 testable=0 brief=NOT-OBSERVABLE
+41821532590 2026-11-04T11:31:10Z success slate=2026-11-04 games=31 testable=0 brief=NOT-OBSERVABLE
+41626325527 2026-11-03T11:17:37Z failure slate=none testable=none brief=NO-BRIEF-LINES
+41438478659 2026-11-02T11:39:00Z success slate=2026-11-02 games=28 testable=0 brief=NOT-OBSERVABLE
+41298963755 2026-11-01T10:46:47Z success slate=2026-11-01 games=48 testable=0 brief=NOT-OBSERVABLE
+41190663342 2026-10-31T09:55:51Z success slate=2026-10-31 games=15 testable=0 brief=NOT-OBSERVABLE
+41040676448 2026-10-30T10:25:45Z success slate=2026-10-30 games=21 testable=0 brief=NOT-OBSERVABLE
+40857108100 2026-10-29T10:22:56Z success slate=2026-10-29 games=30 testable=0 brief=NOT-OBSERVABLE
+40668559446 2026-10-28T09:59:41Z success slate=2026-10-28 games=57 testable=0 brief=NOT-OBSERVABLE
+40479828935 2026-10-27T09:18:53Z failure slate=none testable=none brief=NOT-OBSERVABLE
+
+---- the runs that printed no brief lines: which step failed, and what happened to the brief step
+42364844307
+  step 9 The deploy landed (published is the newest deployable commit): completed/failure
+  step 14 A finished game shows the brief written after it finished: completed/skipped
+41626325527
+  step 9 The deploy landed (published is the newest deployable commit): completed/failure
+  step 14 A finished game shows the brief written after it finished: completed/skipped
+
+---- contrast: runs that DID observe the rule (the six red renders of 2026-11-14/15, started by deploys), same extraction
+43651541854  workflow_run created 2026-11-14T23:06:31Z  slate 2026-11-14 — 78 game(s)  final games carrying BOTH a during-play and an after-play brief: 16
+43676533656  workflow_run created 2026-11-15T04:23:11Z  slate 2026-11-14 — 79 game(s)  final games carrying BOTH a during-play and an after-play brief: 42
+
+---- harness: sweep.sh, verbatim
+#!/usr/bin/env bash
+# Reads the brief step of the last 20 SCHEDULE-event runs of live-check over REST (the sandbox cannot reach the deployed page), one row per run.
+# Run from the repository root:  bash sweep.sh <work dir>      prints the table; saves each job log in <work dir>.
+D=${1:?work dir}
+mkdir -p "$D"
+gh run list --workflow live-check.yml --event schedule --limit 20 --json databaseId,createdAt,conclusion --jq '.[] | "\(.databaseId) \(.createdAt) \(.conclusion)"' > "$D/runs.txt"
+while read -r id created concl; do
+  jid=$(gh run view "$id" --json jobs --jq '[.jobs[] | select(.name=="live")][0].databaseId' 2>/dev/null)
+  if [ -z "$jid" ] || [ "$jid" = "null" ]; then echo "$id $created $concl NO-JOB"; continue; fi
+  if ! gh api "repos/jeffunglesbee-create/field-laboratory/actions/jobs/$jid/logs" > "$D/$id.log" 2>/dev/null; then echo "$id $created $concl LOG-UNREADABLE"; continue; fi
+  L=$(sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z //' "$D/$id.log")
+  slate=$(grep -oE 'slate 20[0-9-]+ — [0-9]+ game\(s\)' <<<"$L" | head -1 | sed -E 's/slate (20[0-9-]+) — ([0-9]+) game.*/\1 games=\2/')
+  both=$(grep -oE 'final games carrying BOTH a during-play and an after-play brief: [0-9]+' <<<"$L" | head -1 | grep -oE '[0-9]+$')
+  if grep -q 'brief-phase rule NOT OBSERVABLE' <<<"$L"; then v=NOT-OBSERVABLE
+  elif grep -qE 'FAIL.*every final game with both phases' <<<"$L"; then v=FAIL
+  elif grep -qE 'PASS.*every final game with both phases' <<<"$L"; then v=PASS
+  else v=NO-BRIEF-LINES; fi
+  echo "$id $created $concl slate=${slate:-none} testable=${both:-none} brief=$v"
+done < "$D/runs.txt"

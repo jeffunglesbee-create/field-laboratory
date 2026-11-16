@@ -129,7 +129,12 @@ if '--self-test' in sys.argv:
     print('fails under set -e on its own and is out of scope.')
     sys.exit(1 if bad else 0)
 
-import yaml
+# The pre-commit hook runs this on every commit since 2026-11-15, so a box without PyYAML reaches this line. It must say what to install and
+# stop, as check-browser-gate.py does, not die on a traceback and not carry on without the workflows.
+try:
+    import yaml
+except ImportError:  # pragma: no cover - the runner image has it; a dev box without it must say so, not skip
+    sys.exit("check-push-lands.py needs PyYAML (python3 -m pip install pyyaml)")
 files = sorted(glob.glob('.github/workflows/*.yml'))
 G = U = parsed = 0
 unreadable = []

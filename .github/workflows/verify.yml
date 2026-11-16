@@ -903,6 +903,21 @@ jobs:
       - name: Game state at fixed instants
         run: npm run check:state
 
+      # The relay's drama 0 (peak 0, no arc) is its "cannot be scored" mark.
+      # Read as a peak, it printed "DRAMA 0" under every NBA/NHL/NFL/CFB final.
+      - name: Drama 0 is the relay's mark, not a reading
+        run: npm run check:drama-reading
+
+      # Scout's Gate 0 reads broadcasts through an explicit registry. Held
+      # against the 11-14 slate: no outlet unknown, the owner's ruling by table.
+      - name: Broadcast registry against a real slate
+        run: npm run check:outlet-registry
+
+      # Scout's Gate E: a level pre-game market qualifies, by the real 11-14
+      # lines with hand-computed expectations; Gate 0 still vetoes national.
+      - name: Scout coin-flip gate against real lines
+        run: npm run check:scout-coinflip
+
       # A row the desk cannot name both sides of must cost exactly that row.
       # `Decode.list` is all-or-nothing, so on 2026-08-13 one PGA Tour row with
       # NULL sides took the whole deployed slate down and live-check reported

@@ -2364,5 +2364,32 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-11-15",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-15",
+    "at": "2026-11-15T18:42:31.967Z",
+    "sports": {
+      "NBA": {
+        "rows": 9,
+        "withOdds": 9,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 0
+      },
+      "NFL": {
+        "rows": 12,
+        "withOdds": 12,
+        "withDraw": 0
+      },
+      "golf": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    }
   }
 ]

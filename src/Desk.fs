@@ -777,6 +777,24 @@ type SealedDrama = private SealedDrama of float<drama>
 /// closed.
 type SealedArc = private SealedArc of int list
 
+/// What `drama_peak` actually says.
+///
+/// The relay writes 0 for a game it cannot score, and the 0 is a mark, not a
+/// measurement. `field-relay-nba/scripts/drama-backfill.mjs` stores
+/// `drama_peak = 0, drama_arc = null` for every sport `classifySport` calls
+/// `other` (NBA, NHL, NFL, CFB, golf and others) and for an event ESPN does not
+/// have. A scored game always carries its arc.
+///
+/// Measured in ARCHIVE_DB 2026-11-15, every row with a peak: 2,101 with peak 0
+/// and arc the string "null", 2,827 with a positive peak and a list of points,
+/// and no other combination. The laboratory read the 0 as a peak and the stats
+/// panel printed "DRAMA 0" under every NBA, NHL, NFL and CFB final, including
+/// the overtime ones, a value nothing ever measured.
+type DramaReading =
+    | Scored of SealedDrama
+    /// Peak 0 with no arc: the relay's own "cannot be scored" mark.
+    | NotScored
+
 /// Number of samples in the arc. Deliberately NOT gated: a count of
 /// observations is a factual property of the data, not an interest level, so it
 /// carries none of the ADR-002 weight the values themselves do.
@@ -818,7 +836,7 @@ type Game =
       Tags: Nested<string list>
       StartTime: DateTimeOffset option
       RawStartTime: string option
-      DramaPeak: SealedDrama option
+      DramaPeak: DramaReading option
       DramaArc: Nested<SealedArc>
       OpeningOdds: Nested<Odds>
       ClosingOdds: Nested<Odds>
@@ -1073,6 +1091,9 @@ let oddsDecoder : Decoder<Odds> =
 let gameDecoder : Decoder<Game> =
     Decode.object (fun get ->
         let rawStart = get.Optional.Field "start_time" Decode.string
+        let dramaArc =
+            get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int |> Decode.map SealedArc))
+            |> Option.defaultValue NotPresent
         { Id = get.Required.Field "id" Decode.string
           Sport = get.Required.Field "sport" Decode.string |> sportOfString
           League = get.Optional.Field "league" Decode.string |> Option.defaultValue ""
@@ -1095,11 +1116,16 @@ let gameDecoder : Decoder<Game> =
           // Sealed at the boundary, not at the render site. The raw float exists
           // for exactly one expression and is never stored unwrapped, so there
           // is no point downstream where an unsealed drama number is in scope.
+          //
+          // The 0 is told apart from a peak here, with the arc that shows which
+          // it is, and nowhere else (see `DramaReading`).
           DramaPeak =
             get.Optional.Field "drama_peak" Decode.float
-            |> Option.map (fun v -> SealedDrama(v * 1.0<drama>))
-          DramaArc = get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int |> Decode.map SealedArc))
-                     |> Option.defaultValue NotPresent
+            |> Option.map (fun v ->
+                match v, dramaArc with
+                | 0.0, NotPresent -> NotScored
+                | _ -> Scored(SealedDrama(v * 1.0<drama>)))
+          DramaArc = dramaArc
           OpeningOdds = get.Optional.Field "opening_odds" (nestedJson oddsDecoder)
                         |> Option.defaultValue NotPresent
           ClosingOdds = get.Optional.Field "closing_odds" (nestedJson oddsDecoder)
@@ -1581,7 +1607,7 @@ let winProbabilityFrom (isSoccer: bool) (homeML: int option) (drawML: int option
 
 /// The best available odds snapshot for a game — closing preferred over opening,
 /// and only a decoded one.
-let private bestOdds (g: Game) : Odds option =
+let bestOdds (g: Game) : Odds option =
     match g.ClosingOdds, g.OpeningOdds with
     | Decoded c, _ -> Some c
     | _, Decoded o -> Some o

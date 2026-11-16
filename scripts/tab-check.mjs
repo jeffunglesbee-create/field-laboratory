@@ -197,7 +197,7 @@ check('the chasers render too, so "ranked" means something',
 // Each unanswerable gate is now named with the data it needs, so a gate that
 // starts claiming a real answer is caught individually.
 const gateSays = (gate, pattern) => {
-  const line = scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate))
+  const line = scoutText.split(/(?=Gate [0A-E])/).find(l => l.startsWith(gate))
   return line !== undefined && pattern.test(line)
 }
 
@@ -208,7 +208,7 @@ for (const [gate, needs] of [
 ]) {
   check(`${gate} says "cannot tell" and names what it needs`,
     gateSays(gate, /cannot tell/i) && gateSays(gate, needs),
-    `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+    `${gate} line: ${(scoutText.split(/(?=Gate [0A-E])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
 }
 
 // TWO CLAIMS, and only one of them is about the code.
@@ -217,10 +217,10 @@ for (const [gate, needs] of [
 // any payload, so it runs everywhere and is the assertion that actually guards
 // the renderer.
 const GATE_FORM = /qualifies —|no —|cannot tell —/
-for (const gate of ['Gate 0', 'Gate A', 'Gate B', 'Gate C', 'Gate D']) {
+for (const gate of ['Gate 0', 'Gate A', 'Gate B', 'Gate C', 'Gate D', 'Gate E']) {
   check(`${gate} states one of the three answers, never a blank`,
     gateSays(gate, GATE_FORM),
-    `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+    `${gate} line: ${(scoutText.split(/(?=Gate [0A-E])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
 }
 
 // FIXTURE-SPECIFIC. "Everything is unanswerable" must not be a way to pass, and
@@ -237,7 +237,7 @@ if (FIXTURE === 'games-2026-08-09') {
   for (const gate of ['Gate 0', 'Gate A']) {
     check(`${gate} gives a real answer, since THIS payload can answer it`,
       gateSays(gate, /qualifies —|no —/) && !gateSays(gate, /cannot tell/i),
-      `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+      `${gate} line: ${(scoutText.split(/(?=Gate [0A-E])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
   }
 } else {
   console.log(`\n  (the two answerable-gate assertions are specific to `

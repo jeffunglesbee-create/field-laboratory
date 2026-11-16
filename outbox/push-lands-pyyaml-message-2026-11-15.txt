@@ -1,0 +1,178 @@
+Proof record for docs/CC-CMD-2026-11-15-hook-runs-the-workflow-guards.md, Task 2b, built 2026-11-15 on branch brief-hook.
+The check (check.sh, section Z): with every site-packages disabled (python3 -S) the guard must exit 1 AND its own output must carry the remedy.
+Results, read from the runs below: committed guard at 58e81d25: FAIL (expected FAIL); fixed guard: PASS (expected PASS); browser guard as reference: PASS (expected PASS); caught 3 of 3 mutants; the whole hook with PyYAML unreachable: exit 1.
+Scope: one guard, one failure mode (PyYAML missing). Whether a fresh cloud session has PyYAML is NOT established here; this shows what the hook does when it does not.
+
+
+==== 1. The change (git diff --staged of the two files, against 58e81d25, the commit that carries the hook change) ====
+diff --git a/.githooks/pre-commit b/.githooks/pre-commit
+index 29eba472..34fd1c13 100755
+--- a/.githooks/pre-commit
++++ b/.githooks/pre-commit
+@@ -97,8 +97,8 @@ npm run --silent check:setup-script
+ # step's script turns it red with no workflow touched, and a comment naming
+ # playwright does not (outbox/brief-hook-premises-2026-11-15.txt, B4). Both read
+ # files and run nothing: no network, no build, no browser. Needs PyYAML (python3 -m
+-# pip install pyyaml). Without it the browser guard says so, check-push-lands.py
+-# stops on ModuleNotFoundError, and either way the commit stops, which is the point.
++# pip install pyyaml). Without it each guard says so and the commit stops, which is
++# the point.
+ npm run --silent check:browser-gate
+ npm run --silent check:push-lands
+ 
+diff --git a/scripts/check-push-lands.py b/scripts/check-push-lands.py
+index 47dd88f1..e874f1b4 100755
+--- a/scripts/check-push-lands.py
++++ b/scripts/check-push-lands.py
+@@ -129,7 +129,12 @@ if '--self-test' in sys.argv:
+     print('fails under set -e on its own and is out of scope.')
+     sys.exit(1 if bad else 0)
+ 
+-import yaml
++# The pre-commit hook runs this on every commit since 2026-11-15, so a box without PyYAML reaches this line. It must say what to install and
++# stop, as check-browser-gate.py does, not die on a traceback and not carry on without the workflows.
++try:
++    import yaml
++except ImportError:  # pragma: no cover - the runner image has it; a dev box without it must say so, not skip
++    sys.exit("check-push-lands.py needs PyYAML (python3 -m pip install pyyaml)")
+ files = sorted(glob.glob('.github/workflows/*.yml'))
+ G = U = parsed = 0
+ unreadable = []
+
+
+==== 2. BEFORE: the guard as committed at 58e81d25, run from a copy of that blob ====
+The check must FAIL here (that is the gap): exit 1 is not enough, the remedy must be named.
+guard: /tmp/tmp.iO6zJ87H2C/check-push-lands.py
+exit: 1
+last stderr lines:
+  |   File "/tmp/tmp.iO6zJ87H2C/check-push-lands.py", line 132, in <module>
+  |     import yaml
+  | ModuleNotFoundError: No module named 'yaml'
+CHECK FAIL
+
+Reference: the browser guard, same check, from the tree (it names the remedy, so the check must PASS):
+guard: scripts/check-browser-gate.py
+exit: 1
+last stderr lines:
+  | check-browser-gate.py needs PyYAML (python3 -m pip install pyyaml)
+CHECK PASS (exit 1 and the remedy is named)
+
+
+==== 3. AFTER: the fixed scripts/check-push-lands.py in the tree ====
+guard: scripts/check-push-lands.py
+exit: 1
+last stderr lines:
+  | check-push-lands.py needs PyYAML (python3 -m pip install pyyaml)
+CHECK PASS (exit 1 and the remedy is named)
+
+
+==== 4. Mutants of the fix (Rule 90): the check must fail on each ====
+positive control (the fixed file, unmutated): CHECK PASS
+M1 the remedy is gone from the message: anchor unique, copy differs by -29 chars; CAUGHT
+M2 it says so and exits 0, a skip that reads as a pass: anchor unique, copy differs by +27 chars; CAUGHT
+M3 the handler is deleted, a bare import again: anchor unique, copy differs by -200 chars; CAUGHT
+caught 3 of 3 mutants
+[exit 0]
+
+
+==== 5. The whole pre-commit hook with PyYAML unreachable (python3 -S through a PATH shim, section Z) ====
+The hook stops at the first of the two new guards, which says what to install. last line: check-browser-gate.py needs PyYAML (python3 -m pip install pyyaml)
+hook exit: 1; elapsed 46.3 s
+Its last 6 lines:
+  |   docs/SETUP-SCRIPT.md: the block a human is told to paste is 8 lines
+  | 
+  | PASS  the documented paste block cannot kill a session the way the field did
+  | 
+  | 1/1 checks passed
+  | check-browser-gate.py needs PyYAML (python3 -m pip install pyyaml)
+
+$ PATH=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/pyyaml-msg/shim:$PATH python3 -c 'import sys; print("no_site flag:", sys.flags.no_site)'
+no_site flag: 1
+[exit 0]
+
+$ PATH=/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/pyyaml-msg/shim:$PATH python3 -c 'import yaml' 2>&1 | tail -1
+ModuleNotFoundError: No module named 'yaml'
+[exit 1]
+
+
+==== 6. Controls with PyYAML present: the guard's own checks, unchanged ====
+
+$ python3 scripts/check-push-lands.py --self-test | grep -E 'self-test:'
+self-test: 12/12
+[exit 0]
+
+$ python3 scripts/check-push-lands.py | grep -E '^OK:|verdict:'
+  verdict: all-guarded
+OK: all 26 push-retry loop(s) verify that the push landed.
+[exit 0]
+
+$ python3 scripts/mutate-push-lands.py 2>&1 | grep -E 'mutations caught'
+6 of 6 mutations caught.
+[exit 0]
+
+Who runs check-push-lands.py, over .github/, scripts/ and package.json (verify-full.yml:317 is a comment; the run lines are verify.yml:71 and :73, and the hook through package.json):
+
+$ grep -rnE 'check-push-lands' .github scripts package.json | grep -v '^scripts/check-push-lands.py' | grep -v '^scripts/mutate-push-lands.py' | grep -v '^scripts/mutation-check.mjs' | cut -c1-170
+.github/workflows/verify.yml:71:          python3 scripts/check-push-lands.py --self-test
+.github/workflows/verify.yml:73:          python3 scripts/check-push-lands.py
+.github/workflows/verify-full.yml:317:          # 0: verify the push landed (scripts/check-push-lands.py requires this).
+scripts/check-ignore-parity.mjs:21:// `check-push-lands.py` is the precedent: read a workflow's own declarations
+package.json:25:    "check:push-lands": "python3 scripts/check-push-lands.py --self-test && python3 scripts/check-push-lands.py",
+[exit 0]
+
+
+==== Z. The harness, verbatim ====
+
+---- check.sh
+#!/usr/bin/env bash
+# The check for "a guard without PyYAML says what to install and stops": with EVERY site-packages disabled (python3 -S),
+# the guard must exit 1 AND its own output must carry the remedy. Run from the repository root.
+#   bash check.sh [path-to-guard]      default scripts/check-push-lands.py
+G=${1:-scripts/check-push-lands.py}
+out=$(python3 -S "$G" 2>&1 >/dev/null); e=$?
+printf 'guard: %s\nexit: %s\nlast stderr lines:\n' "$G" "$e"
+printf '%s\n' "$out" | tail -3 | sed 's/^/  | /'
+if [ "$e" = 1 ] && printf '%s' "$out" | grep -qF 'needs PyYAML (python3 -m pip install pyyaml)'; then echo "CHECK PASS (exit 1 and the remedy is named)"; else echo "CHECK FAIL"; fi
+
+---- mut.py
+#!/usr/bin/env python3
+"""Rule 90 for the missing-PyYAML handling in scripts/check-push-lands.py. Run from the repository root:  python3 mut.py <path to check.sh>
+Each mutant is made on a COPY in a temporary directory; the tracked file is only read. Each asserts its anchor is unique and that the copy differs
+from the source BEFORE a verdict is printed, and the unmutated file must pass the check first (a positive control), so NOT CAUGHT cannot mean "nothing
+was mutated"."""
+import pathlib, subprocess, sys, tempfile
+CHECK = sys.argv[1]
+SRC = pathlib.Path('scripts/check-push-lands.py').read_text()
+MSG = 'sys.exit("check-push-lands.py needs PyYAML (python3 -m pip install pyyaml)")'
+HANDLER = ('try:\n    import yaml\nexcept ImportError:  # pragma: no cover - the runner image has it; a dev box without it must say so, not skip\n    ' + MSG + '\n')
+MUTANTS = [
+    ('M1 the remedy is gone from the message', MSG, 'sys.exit("check-push-lands.py needs something")'),
+    ('M2 it says so and exits 0, a skip that reads as a pass', MSG, 'print("check-push-lands.py needs PyYAML (python3 -m pip install pyyaml)", file=sys.stderr); sys.exit(0)'),
+    ('M3 the handler is deleted, a bare import again', HANDLER, 'import yaml\n'),
+]
+def verdict(text):
+    with tempfile.TemporaryDirectory(prefix='pyyaml-mut-') as td:
+        p = pathlib.Path(td) / 'check-push-lands.py'
+        p.write_text(text)
+        r = subprocess.run(['bash', CHECK, str(p)], capture_output=True, text=True)
+    return r.stdout
+ctl = verdict(SRC)
+print('positive control (the fixed file, unmutated):', 'CHECK PASS' if 'CHECK PASS' in ctl else 'CHECK FAIL')
+if 'CHECK PASS' not in ctl:
+    print('STOP: the check is red on the unmutated file, so no mutant can be judged'); sys.exit(1)
+caught = 0
+for name, find, repl in MUTANTS:
+    n = SRC.count(find)
+    assert n == 1, f'{name}: its anchor occurs {n} times, not once'
+    mutated = SRC.replace(find, repl)
+    assert mutated != SRC, f'{name}: the mutation changed nothing'
+    out = verdict(mutated)
+    ok = 'CHECK FAIL' in out and 'CHECK PASS' not in out
+    caught += ok
+    print(f'{name}: anchor unique, copy differs by {len(mutated) - len(SRC):+d} chars; {"CAUGHT" if ok else "NOT CAUGHT"}')
+print(f'caught {caught} of {len(MUTANTS)} mutants')
+sys.exit(0 if caught == len(MUTANTS) else 1)
+
+---- the PATH shim (a python3 that disables every site-packages)
+#!/usr/bin/env bash
+exec /usr/local/bin/python3 -S "$@"

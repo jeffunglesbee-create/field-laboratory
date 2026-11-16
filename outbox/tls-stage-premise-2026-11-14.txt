@@ -1,0 +1,2042 @@
+checked 14 of 14 runs
+
+TLS-stage premises, measured on GitHub-hosted runners on 2026-11-14 (20:22 to 20:50 ET; the logs are stamped 2026-11-15 01:22 to 01:50 UTC).
+Filed under docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md. Every run below is a `workflow_dispatch` of probe-url.yml, from `main` (the first and the last run) or from the throwaway branch `tls-premise`
+(never merged), which carries the probe script in that workflow. The coverage line above counts the runs read; each run's output is copied under its own heading, and the table is counted from those blocks by a script, not typed.
+
+The two addresses: WEST = 51.81.167.44, EAST = 167.114.211.86. AAAA: 45 of 45 AAAA queries in these runs (c-ares to 1.1.1.1, 8.8.8.8 and 9.9.9.9, and to the zone's authoritative servers) answered ENODATA.
+The "system resolver gave" and "ECS views" lines are read from the v1 to v3 output blocks; ECS views are Google DoH JSON (https://8.8.8.8/resolve) with edns_client_subnet set to the /24 of a runner egress address that a committed artifact records, labelled with that runner's region.
+
+## Table (counted from the verbatim blocks below)
+
+### 43662807241  [doh]  region westus3 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:22:43.4867332Z
+  what this version measured: Cloudflare DoH JSON with `ct=application/dns-json` in the query string
+  workflow carried by: main (probe-url.yml, unchanged)
+  system resolver gave: not measured by this version
+  result: HTTP 400, 0 bytes (3 of 3 requests: 3 answered 400)
+
+### 43663522665  [v1]  region centralus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:31:59.1097481Z
+  what this version measured: every address the system resolver, three public resolvers and the zone's nameservers return; TLS x3 and a pinned request x2 per address
+  workflow carried by: 493d8d88
+  system resolver gave: 167.114.211.86
+  51.81.167.44: not among the addresses this run found
+  167.114.211.86: node tls (v1/v2 form: no ALPN set): TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer
+
+### 43663760226  [v2]  region westcentralus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:35:01.4779563Z
+  what this version measured: v1 plus the two addresses committed artifacts record, the delegation, five client subnets (ECS), the runner's egress
+  workflow carried by: 0fca629f
+  system resolver gave: 51.81.167.44
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 167.114.211.86
+  51.81.167.44: node tls (v1/v2 form: no ALPN set): TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer
+  167.114.211.86: node tls (v1/v2 form: no ALPN set): TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer
+
+### 43663762250  [v2]  region westus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:35:02.9984112Z
+  what this version measured: as above
+  workflow carried by: 0fca629f
+  system resolver gave: 51.81.167.44
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 51.81.167.44
+  51.81.167.44: node tls (v1/v2 form: no ALPN set): TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer
+  167.114.211.86: node tls (v1/v2 form: no ALPN set): TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer
+
+### 43663764458  [v2]  region us-east-1 (cloud AWS); image ubuntu-26.04@20261111.82.6; started 2026-11-15T01:35:04.0173243Z
+  what this version measured: as above
+  workflow carried by: 0fca629f
+  system resolver gave: 167.114.211.86
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 167.114.211.86
+  51.81.167.44: node tls (v1/v2 form: no ALPN set): TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer
+  167.114.211.86: node tls (v1/v2 form: no ALPN set): TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer
+
+### 43663766611  [v2]  region westus3 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:35:06.1533135Z
+  what this version measured: as above
+  workflow carried by: 0fca629f
+  system resolver gave: 51.81.167.44
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 51.81.167.44
+  51.81.167.44: node tls (v1/v2 form: no ALPN set): TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer
+  167.114.211.86: node tls (v1/v2 form: no ALPN set): TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer
+
+### 43664347630  [v3]  region centralus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:42:29.8430359Z
+  what this version measured: v2 plus, per address, Node TLS (default 1596-byte hello and a 366-byte classical hello), Node https, curl (default and --curves X25519:P-256)
+  workflow carried by: 33a21783
+  system resolver gave: 167.114.211.86
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 167.114.211.86
+  51.81.167.44: node default hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | node classical hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | curl default hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28) | curl classical hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28)
+  167.114.211.86: node default hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | node classical hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | curl default hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28) | curl classical hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28)
+
+### 43664349705  [v3]  region westus2 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:42:31.9020158Z
+  what this version measured: as above
+  workflow carried by: 33a21783
+  system resolver gave: 51.81.167.44
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 51.81.167.44
+  51.81.167.44: node default hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | node classical hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | curl default hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28) | curl classical hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28)
+  167.114.211.86: node default hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | node classical hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | curl default hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28) | curl classical hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28)
+
+### 43664351856  [v3]  region westus3 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:42:33.4399255Z
+  what this version measured: as above
+  workflow carried by: 33a21783
+  system resolver gave: 51.81.167.44
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 51.81.167.44
+  51.81.167.44: node default hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | node classical hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | curl default hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28) | curl classical hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28)
+  167.114.211.86: node default hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | node classical hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | curl default hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28) | curl classical hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28)
+
+### 43664354526  [v3]  region northcentralus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:42:34.9556139Z
+  what this version measured: as above
+  workflow carried by: 33a21783
+  system resolver gave: 167.114.211.86
+  ECS views: westus2 20.80.173.0/24 -> 51.81.167.44; westus3 20.168.93.0/24 -> 51.81.167.44; southcentralus 20.64.49.0/24 -> 167.114.211.86; eastus2 68.220.172.0/24 -> 167.114.211.86; none 0.0.0.0/0 -> 167.114.211.86
+  51.81.167.44: node default hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | node classical hello: TLS handshake: 0 of 3 completed, 3 no answer; pinned request: 0 of 2 HTTP 200, 2 no answer | curl default hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28) | curl classical hello: curl: 0 of 2 HTTP 200, 2 timed out (exit 28)
+  167.114.211.86: node default hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | node classical hello: TLS handshake: 3 of 3 completed, 0 no answer; pinned request: 2 of 2 HTTP 200, 0 no answer | curl default hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28) | curl classical hello: curl: 2 of 2 HTTP 200, 0 timed out (exit 28)
+
+### 43664740677  [v4]  region eastus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:47:40.4510511Z
+  what this version measured: per address: TCP-only connects before and after, Node TLS default hello, curl -v, openssl s_client, and a tcpdump of the address
+  workflow carried by: beb31891
+  system resolver gave: not measured by this version
+  51.81.167.44: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 92 ms, tls no-answer-in-4000ms; curl: HTTP 000 connect=0.000000s tls=0.000000s total=10.002816s; openssl: printed only "Connecting to 51.81.167.44" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 8 of them window 0; 0 client data (PSH) segments
+  167.114.211.86: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 20 ms, tls ok 21 ms TLSv1.3; curl: HTTP 200 connect=0.015760s tls=0.035866s total=0.052381s; openssl: printed only "Connecting to 167.114.211.86" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 0 of them window 0; 1 client data (PSH) segments
+
+### 43664742747  [v4]  region eastus2 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:47:42.3059884Z
+  what this version measured: as above
+  workflow carried by: beb31891
+  system resolver gave: not measured by this version
+  51.81.167.44: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 82 ms, tls no-answer-in-4000ms; curl: HTTP 000 connect=0.000000s tls=0.000000s total=10.002831s; openssl: printed only "Connecting to 51.81.167.44" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 8 of them window 0; 0 client data (PSH) segments
+  167.114.211.86: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 25 ms, tls ok 26 ms TLSv1.3; curl: HTTP 200 connect=0.019827s tls=0.043622s total=0.064619s; openssl: printed only "Connecting to 167.114.211.86" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 0 of them window 0; 1 client data (PSH) segments
+
+### 43664744892  [v4]  region eastus2 (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T01:47:43.7853268Z
+  what this version measured: as above
+  workflow carried by: beb31891
+  system resolver gave: not measured by this version
+  51.81.167.44: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 82 ms, tls no-answer-in-4000ms; curl: HTTP 000 connect=0.000000s tls=0.000000s total=10.002581s; openssl: printed only "Connecting to 51.81.167.44" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 8 of them window 0; 0 client data (PSH) segments
+  167.114.211.86: TCP-only connects 6 of 6 completed; node TLS default hello: tcp ok 27 ms, tls ok 25 ms TLSv1.3; curl: HTTP 200 connect=0.019455s tls=0.042506s total=0.063104s; openssl: printed only "Connecting to 167.114.211.86" until its cap; capture (90 lines printed): 8 SYN-ACK from the server, 0 of them window 0; 1 client data (PSH) segments
+
+### 43665722193  [doh-fixtures]  region centralus (cloud Azure); image ubuntu-26.04@20261111.196.1; started 2026-11-15T02:00:45.8977853Z
+  what this version measured: real Google DoH JSON responses, captured as the self-test fixtures: the west view, the east view, no subnet, NXDOMAIN, AAAA with no data, a CNAME chain, a malformed subnet (HTTP 400)
+  workflow carried by: main (probe-url.yml, unchanged)
+  system resolver gave: not measured by this version
+  result: 6 of 7 requests answered HTTP 200, 1 HTTP 400 (the malformed subnet); see the block
+
+## Verbatim output blocks
+
+######## run 43662807241 [doh] region westus3 #########################################################
+==============================================================
+GET https://1.1.1.1/dns-query?name=api.open-meteo.com&type=A&ct=application/dns-json
+  RESULT: HTTP 400, 0 bytes
+  --- first 400 bytes ---
+
+  ^ non-2xx
+==============================================================
+GET https://1.1.1.1/dns-query?name=api.open-meteo.com&type=AAAA&ct=application/dns-json
+  RESULT: HTTP 400, 0 bytes
+  --- first 400 bytes ---
+
+  ^ non-2xx
+==============================================================
+GET https://1.1.1.1/dns-query?name=api.open-meteo.invalid&type=A&ct=application/dns-json
+  RESULT: HTTP 400, 0 bytes
+  --- first 400 bytes ---
+
+  ^ non-2xx
+##[error]Process completed with exit code 1.
+
+######## run 43663522665 [v1] region centralus #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 145 ms [{"address":"167.114.211.86","family":4}]
+system-v6: 6 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 15 ms [{"address":"167.114.211.86","ttl":1789}]
+c-ares 1.1.1.1 AAAA: 18 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 33 ms [{"address":"167.114.211.86","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 29 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 12 ms [{"address":"167.114.211.86","ttl":29}]
+c-ares 9.9.9.9 AAAA: 9 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 79 ms HTTP 200 202 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":1547,"data":"167.114.211.86"}]}
+doh 1.1.1.1 without header: 30 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 77 ms HTTP 200 245 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"167.114.211.86"}],"Comment":"Response from 109.104.147.1."}
+ns open-meteo.com: 10 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 14 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 7 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 8 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 17 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 8 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 7 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+addresses: 1 found: 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9]
+address 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9]: 
+  tls 1: tcp ok 36 ms, tls ok 38 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 2: tcp ok 33 ms, tls ok 34 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 3: tcp ok 40 ms, tls ok 41 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  pinned request 1: HTTP 200 608 bytes 151 ms
+  pinned request 2: HTTP 200 608 bytes 50 ms
+coverage: checked 1 of 1 addresses found by the system resolver, three public resolvers and the zone's nameservers
+
+######## run 43663760226 [v2] region westcentralus #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 25 ms [{"address":"51.81.167.44","family":4}]
+system-v6: 24 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 19 ms [{"address":"167.114.211.86","ttl":580}]
+c-ares 1.1.1.1 AAAA: 18 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 43 ms [{"address":"51.81.167.44","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 42 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 3 ms [{"address":"167.114.211.86","ttl":287}]
+c-ares 9.9.9.9 AAAA: 3 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 123 ms HTTP 200 200 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":91,"data":"167.114.211.86"}]}
+doh 1.1.1.1 without header: 59 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 74 ms HTTP 200 202 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}]}
+ns open-meteo.com: 21 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 20 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 19 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 18 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 20 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 18 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 18 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 20 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 20 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 21 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 22 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 20 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 137 ms [{"address":"51.81.167.44","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 19 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 18 ms [{"address":"51.81.167.44","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 47 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 48 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 48 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 91.200.176.1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 46 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as none (0.0.0.0/0): 36 ms HTTP 200 status 0 answers ["167.114.211.86"] 
+trace 1.1.1.1: ip=13.71.229.242 colo=DFW http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 51.81.167.44 [system; c-ares 8.8.8.8; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts] | 167.114.211.86 [c-ares 1.1.1.1; c-ares 9.9.9.9; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts]
+address 167.114.211.86 [c-ares 1.1.1.1; c-ares 9.9.9.9; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts]: 
+  tls 1: tcp ok 47 ms, tls ok 52 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 2: tcp ok 47 ms, tls ok 49 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 3: tcp ok 47 ms, tls ok 49 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  pinned request 1: HTTP 200 608 bytes 165 ms
+  pinned request 2: HTTP 200 607 bytes 54 ms
+address 51.81.167.44 [system; c-ares 8.8.8.8; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]: 
+  tls 1: tcp ok 32 ms, tls no-answer-in-5000ms
+  tls 2: tcp ok 32 ms, tls no-answer-in-5000ms
+  tls 3: tcp ok 31 ms, tls no-answer-in-5000ms
+  pinned request 1: no-answer-in-10000ms
+  pinned request 2: no-answer-in-10000ms
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43663762250 [v2] region westus #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 7 ms [{"address":"51.81.167.44","family":4}]
+system-v6: 5 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 2 ms [{"address":"51.81.167.44","ttl":559}]
+c-ares 1.1.1.1 AAAA: 2 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 222 ms [{"address":"51.81.167.44","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 12 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 9 ms [{"address":"51.81.167.44","ttl":534}]
+c-ares 9.9.9.9 AAAA: 9 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 187 ms HTTP 200 199 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":419,"data":"51.81.167.44"}]}
+doh 1.1.1.1 without header: 11 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 45 ms HTTP 200 242 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}],"Comment":"Response from 91.200.176.1."}
+ns open-meteo.com: 4 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 4 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 2 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 2 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 4 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 2 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 3 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 17 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 13 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 14 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 12 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 7 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 149 ms [{"address":"51.81.167.44","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 4 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 10 ms [{"address":"51.81.167.44","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 16 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 14 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 17 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 15 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as none (0.0.0.0/0): 17 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+trace 1.1.1.1: ip=52.234.42.32 colo=SJC http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts] | 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]
+address 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]: 
+  tls 1: tcp ok 71 ms, tls ok 75 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 2: tcp ok 71 ms, tls ok 74 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 3: tcp ok 71 ms, tls ok 74 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  pinned request 1: HTTP 200 608 bytes 219 ms
+  pinned request 2: HTTP 200 607 bytes 72 ms
+address 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts]: 
+  tls 1: tcp ok 16 ms, tls no-answer-in-5000ms
+  tls 2: tcp ok 17 ms, tls no-answer-in-5000ms
+  tls 3: tcp ok 17 ms, tls no-answer-in-5000ms
+  pinned request 1: no-answer-in-10000ms
+  pinned request 2: no-answer-in-10000ms
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43663764458 [v2] region us-east-1 #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 5 ms [{"address":"167.114.211.86","family":4}]
+system-v6: 3 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 3 ms [{"address":"167.114.211.86","ttl":735}]
+c-ares 1.1.1.1 AAAA: 4 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 6 ms [{"address":"167.114.211.86","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 6 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 2 ms [{"address":"167.114.211.86","ttl":1285}]
+c-ares 9.9.9.9 AAAA: 2 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 67 ms HTTP 200 201 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":275,"data":"167.114.211.86"}]}
+doh 1.1.1.1 without header: 23 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 20 ms HTTP 200 204 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"167.114.211.86"}]}
+ns open-meteo.com: 6 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 5 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 3 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 3 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 4 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 2 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 3 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 5 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 5 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 7 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 8 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 5 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 2 ms [{"address":"167.114.211.86","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 5 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 1 ms [{"address":"167.114.211.86","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 11 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 10 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff2::1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 11 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 11 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 2400:52e0:fff0::1.
+ecs as none (0.0.0.0/0): 7 ms HTTP 200 status 0 answers ["167.114.211.86"] 
+trace 1.1.1.1: ip=3.41.210.135 colo=IAD http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts] | 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]
+address 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts]: 
+  tls 1: tcp ok 16 ms, tls ok 18 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 2: tcp ok 16 ms, tls ok 17 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 3: tcp ok 16 ms, tls ok 16 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  pinned request 1: HTTP 200 608 bytes 51 ms
+  pinned request 2: HTTP 200 607 bytes 17 ms
+address 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]: 
+  tls 1: tcp ok 73 ms, tls no-answer-in-5000ms
+  tls 2: tcp ok 78 ms, tls no-answer-in-5000ms
+  tls 3: tcp ok 73 ms, tls no-answer-in-5000ms
+  pinned request 1: no-answer-in-10000ms
+  pinned request 2: no-answer-in-10000ms
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43663766611 [v2] region westus3 #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 8 ms [{"address":"51.81.167.44","family":4}]
+system-v6: 72 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 10 ms [{"address":"51.81.167.44","ttl":596}]
+c-ares 1.1.1.1 AAAA: 9 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 14 ms [{"address":"51.81.167.44","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 175 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 14 ms [{"address":"51.81.167.44","ttl":843}]
+c-ares 9.9.9.9 AAAA: 9 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 121 ms HTTP 200 199 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":837,"data":"51.81.167.44"}]}
+doh 1.1.1.1 without header: 35 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 34 ms HTTP 200 243 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}],"Comment":"Response from 109.104.147.1."}
+ns open-meteo.com: 13 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 12 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 15 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 13 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 14 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 10 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 9 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 13 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 14 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 11 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 12 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 16 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 139 ms [{"address":"51.81.167.44","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 14 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 9 ms [{"address":"51.81.167.44","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 18 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 19 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 18 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 19 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as none (0.0.0.0/0): 16 ms HTTP 200 status 0 answers ["51.81.167.44"] 
+trace 1.1.1.1: ip=20.168.119.241 colo=LAX http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts] | 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]
+address 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]: 
+  tls 1: tcp ok 71 ms, tls ok 76 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 2: tcp ok 71 ms, tls ok 76 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  tls 3: tcp ok 72 ms, tls ok 76 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+  pinned request 1: HTTP 200 608 bytes 220 ms
+  pinned request 2: HTTP 200 608 bytes 73 ms
+address 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts]: 
+  tls 1: tcp ok 32 ms, tls no-answer-in-5000ms
+  tls 2: tcp ok 41 ms, tls no-answer-in-5000ms
+  tls 3: tcp ok 32 ms, tls no-answer-in-5000ms
+  pinned request 1: no-answer-in-10000ms
+  pinned request 2: no-answer-in-10000ms
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43664347630 [v3] region centralus #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 34 ms [{"address":"167.114.211.86","family":4}]
+system-v6: 171 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 11 ms [{"address":"167.114.211.86","ttl":861}]
+c-ares 1.1.1.1 AAAA: 25 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 19 ms [{"address":"167.114.211.86","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 34 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 16 ms [{"address":"167.114.211.86","ttl":1520}]
+c-ares 9.9.9.9 AAAA: 15 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 89 ms HTTP 200 201 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":916,"data":"167.114.211.86"}]}
+doh 1.1.1.1 without header: 28 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 61 ms HTTP 200 249 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"167.114.211.86"}],"Comment":"Response from 2400:52e0:fff0::1."}
+ns open-meteo.com: 15 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 35 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 7 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 8 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 10 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 9 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 8 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 24 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 16 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 15 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 19 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 26 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 134 ms [{"address":"167.114.211.86","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 12 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 15 ms [{"address":"167.114.211.86","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 22 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 21 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 91.200.176.1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 25 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 2400:52e0:fff0::1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 22 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 91.200.176.1.
+ecs as none (0.0.0.0/0): 20 ms HTTP 200 status 0 answers ["167.114.211.86"] 
+trace 1.1.1.1: ip=20.83.53.51 colo=MSP http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts] | 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]
+curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5.5 zlib/1.3.1 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.68.0 librtmp/2.3 mit-krb5/1.22.1 OpenLDAP/2.6.10  exit=0
+openssl cli: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)  exit=0
+address 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 43 ms, tls ok 44 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 37 ms, tls ok 38 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 44 ms, tls ok 44 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 119 ms
+    : pinned request 2: HTTP 200 607 bytes 39 ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 39 ms, tls ok 33 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 52 ms, tls ok 52 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 32 ms, tls ok 34 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 607 bytes 122 ms
+    : pinned request 2: HTTP 200 608 bytes 39 ms
+  curl default hello: 
+    : try 1: HTTP 200 connect=0.038451s tls=0.076659s total=0.112914s  exit=0
+    : try 2: HTTP 200 connect=0.035029s tls=0.069620s total=0.102009s  exit=0
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 200 connect=0.050339s tls=0.103684s total=0.155014s  exit=0
+    : try 2: HTTP 200 connect=0.057121s tls=0.110427s total=0.161630s  exit=0
+address 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 52 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 49 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 56 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 57 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 57 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 58 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  curl default hello: 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002793s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002505s curl: (28) Connection timed out after 12002 milliseconds exit=28
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002831s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002060s curl: (28) Connection timed out after 12002 milliseconds exit=28
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43664349705 [v3] region westus2 #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 6 ms [{"address":"51.81.167.44","family":4}]
+system-v6: 54 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 6 ms [{"address":"51.81.167.44","ttl":343}]
+c-ares 1.1.1.1 AAAA: 6 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 19 ms [{"address":"51.81.167.44","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 19 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 6 ms [{"address":"51.81.167.44","ttl":1082}]
+c-ares 9.9.9.9 AAAA: 5 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 81 ms HTTP 200 199 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":343,"data":"51.81.167.44"}]}
+doh 1.1.1.1 without header: 30 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 51 ms HTTP 200 247 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}],"Comment":"Response from 2400:52e0:fff0::1."}
+ns open-meteo.com: 10 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 8 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 9 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 8 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 7 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 7 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 6 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 10 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 9 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 10 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 9 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 8 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 158 ms [{"address":"51.81.167.44","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 8 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 32 ms [{"address":"51.81.167.44","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 43 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 91.200.176.1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 26 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 48 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 21 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 91.200.176.1.
+ecs as none (0.0.0.0/0): 13 ms HTTP 200 status 0 answers ["51.81.167.44"] 
+trace 1.1.1.1: ip=4.155.199.87 colo=SEA http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts] | 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]
+curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5.5 zlib/1.3.1 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.68.0 librtmp/2.3 mit-krb5/1.22.1 OpenLDAP/2.6.10  exit=0
+openssl cli: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)  exit=0
+address 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 68 ms, tls ok 71 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 68 ms, tls ok 71 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 69 ms, tls ok 71 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 208 ms
+    : pinned request 2: HTTP 200 608 bytes 68 ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 68 ms, tls ok 70 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 68 ms, tls ok 70 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 70 ms, tls ok 70 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 607 bytes 207 ms
+    : pinned request 2: HTTP 200 608 bytes 69 ms
+  curl default hello: 
+    : try 1: HTTP 200 connect=0.067372s tls=0.138338s total=0.206271s  exit=0
+    : try 2: HTTP 200 connect=0.067292s tls=0.138252s total=0.206379s  exit=0
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 200 connect=0.067044s tls=0.137784s total=0.205665s  exit=0
+    : try 2: HTTP 200 connect=0.067385s tls=0.138395s total=0.206576s  exit=0
+address 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 11 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 10 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 10 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 10 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 10 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 10 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  curl default hello: 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002516s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002225s curl: (28) Connection timed out after 12002 milliseconds exit=28
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002529s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002260s curl: (28) Connection timed out after 12002 milliseconds exit=28
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43664351856 [v3] region westus3 #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 8 ms [{"address":"51.81.167.44","family":4}]
+system-v6: 6 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 11 ms [{"address":"51.81.167.44","ttl":1729}]
+c-ares 1.1.1.1 AAAA: 10 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 15 ms [{"address":"51.81.167.44","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 13 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 9 ms [{"address":"51.81.167.44","ttl":396}]
+c-ares 9.9.9.9 AAAA: 10 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 119 ms HTTP 200 200 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":1078,"data":"51.81.167.44"}]}
+doh 1.1.1.1 without header: 32 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 32 ms HTTP 200 243 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}],"Comment":"Response from 109.104.147.1."}
+ns open-meteo.com: 12 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 11 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 10 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 10 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 12 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 10 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 10 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 12 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 13 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 13 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 12 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 13 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 136 ms [{"address":"51.81.167.44","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 13 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 8 ms [{"address":"51.81.167.44","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 18 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 109.104.147.1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 16 ms HTTP 200 status 0 answers ["51.81.167.44"] 
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 16 ms HTTP 200 status 0 answers ["167.114.211.86"] 
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 18 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 109.104.147.1.
+ecs as none (0.0.0.0/0): 16 ms HTTP 200 status 0 answers ["51.81.167.44"] 
+trace 1.1.1.1: ip=20.171.196.38 colo=LAX http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts] | 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]
+curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5.5 zlib/1.3.1 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.68.0 librtmp/2.3 mit-krb5/1.22.1 OpenLDAP/2.6.10  exit=0
+openssl cli: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)  exit=0
+address 167.114.211.86 [ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 71 ms, tls ok 74 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 71 ms, tls ok 73 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 71 ms, tls ok 73 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 218 ms
+    : pinned request 2: HTTP 200 608 bytes 72 ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 72 ms, tls ok 73 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 71 ms, tls ok 73 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 72 ms, tls ok 73 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 215 ms
+    : pinned request 2: HTTP 200 607 bytes 73 ms
+  curl default hello: 
+    : try 1: HTTP 200 connect=0.070755s tls=0.145215s total=0.216604s  exit=0
+    : try 2: HTTP 200 connect=0.070197s tls=0.144440s total=0.215670s  exit=0
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 200 connect=0.070131s tls=0.143962s total=0.215172s  exit=0
+    : try 2: HTTP 200 connect=0.070840s tls=0.146989s total=0.218216s  exit=0
+address 51.81.167.44 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; ecs as none; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 32 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 32 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 31 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 31 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 31 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 31 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  curl default hello: 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002703s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002999s curl: (28) Connection timed out after 12002 milliseconds exit=28
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002417s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002945s curl: (28) Connection timed out after 12002 milliseconds exit=28
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43664354526 [v3] region northcentralus #########################################################
+node: v22.23.4
+system-resolvers: ["127.0.0.53"]
+system-v4: 65 ms [{"address":"167.114.211.86","family":4}]
+system-v6: 138 ms ERR ENOTFOUND getaddrinfo ENOTFOUND api.open-meteo.com
+c-ares 1.1.1.1 A: 4 ms [{"address":"167.114.211.86","ttl":1022}]
+c-ares 1.1.1.1 AAAA: 16 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 8.8.8.8 A: 25 ms [{"address":"167.114.211.86","ttl":1800}]
+c-ares 8.8.8.8 AAAA: 24 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+c-ares 9.9.9.9 A: 9 ms [{"address":"167.114.211.86","ttl":556}]
+c-ares 9.9.9.9 AAAA: 2 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+doh 1.1.1.1 with accept header: 66 ms HTTP 200 201 bytes content-type application/dns-json body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com","type":1}],"Answer":[{"name":"api.open-meteo.com","type":1,"TTL":897,"data":"167.114.211.86"}]}
+doh 1.1.1.1 without header: 17 ms HTTP 400 0 bytes content-type null body 
+doh 8.8.8.8 /resolve: 77 ms HTTP 200 244 bytes content-type application/json; charset=UTF-8 body {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"167.114.211.86"}],"Comment":"Response from 91.200.176.1."}
+ns open-meteo.com: 7 ms ["arely.ns.cloudflare.com","phil.ns.cloudflare.com"]
+ns-address arely.ns.cloudflare.com: 4 ms ["108.162.194.164","162.159.38.164","172.64.34.164"]
+authoritative arely.ns.cloudflare.com 108.162.194.164 A: 4 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative arely.ns.cloudflare.com 108.162.194.164 AAAA: 4 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns-address phil.ns.cloudflare.com: 5 ms ["108.162.193.137","172.64.33.137","173.245.59.137"]
+authoritative phil.ns.cloudflare.com 108.162.193.137 A: 10 ms ERR ENODATA queryA ENODATA api.open-meteo.com
+authoritative phil.ns.cloudflare.com 108.162.193.137 AAAA: 7 ms ERR ENODATA queryAaaa ENODATA api.open-meteo.com
+ns api.open-meteo.com: 10 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+cname api.open-meteo.com: 8 ms ERR ENODATA queryCname ENODATA api.open-meteo.com
+soa api.open-meteo.com: 16 ms {"nsname":"geo-ns01.open-meteo.com","hostmaster":"info.open-meteo.com","serial":2022067441,"refresh":7200,"retry":900,"expire":1209600,"minttl":86400}
+ns-list api: 11 ms ["geo-ns01.open-meteo.com","geo-ns02.open-meteo.com"]
+ns-address geo-ns01.open-meteo.com: 10 ms ["91.200.176.1"]
+authoritative geo-ns01.open-meteo.com 91.200.176.1 A: 120 ms [{"address":"167.114.211.86","ttl":1800}]
+ns-address geo-ns02.open-meteo.com: 8 ms ["109.104.147.1"]
+authoritative geo-ns02.open-meteo.com 109.104.147.1 A: 19 ms [{"address":"167.114.211.86","ttl":1800}]
+ecs as westus2 20.80.173.98 (20.80.173.0/24): 33 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as westus3 20.168.93.82 (20.168.93.0/24): 33 ms HTTP 200 status 0 answers ["51.81.167.44"] Response from 2400:52e0:fff0::1.
+ecs as southcentralus 20.64.49.212 (20.64.49.0/24): 28 ms HTTP 200 status 0 answers ["167.114.211.86"] 
+ecs as eastus2 68.220.172.168 (68.220.172.0/24): 32 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 91.200.176.1.
+ecs as none (0.0.0.0/0): 32 ms HTTP 200 status 0 answers ["167.114.211.86"] Response from 2400:52e0:fff0::1.
+trace 1.1.1.1: ip=52.252.244.5 colo=ORD http=http/1.1 loc=US tls=TLSv1.3
+addresses: 2 found: 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts] | 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]
+curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5.5 zlib/1.3.1 brotli/1.2.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.68.0 librtmp/2.3 mit-krb5/1.22.1 OpenLDAP/2.6.10  exit=0
+openssl cli: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)  exit=0
+address 167.114.211.86 [system; c-ares 1.1.1.1; c-ares 8.8.8.8; c-ares 9.9.9.9; authoritative geo-ns01.open-meteo.com; authoritative geo-ns02.open-meteo.com; ecs as southcentralus 20.64.49.212; ecs as eastus2 68.220.172.168; ecs as none; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 26 ms, tls ok 28 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 27 ms, tls ok 26 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 25 ms, tls ok 27 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 86 ms
+    : pinned request 2: HTTP 200 608 bytes 26 ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 32 ms, tls ok 27 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 2: tcp ok 33 ms, tls ok 27 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : tls 3: tcp ok 25 ms, tls ok 27 ms TLSv1.3 authorized=true cn=*.open-meteo.com fp=A8:0A:61:A1
+    : pinned request 1: HTTP 200 608 bytes 78 ms
+    : pinned request 2: HTTP 200 606 bytes 26 ms
+  curl default hello: 
+    : try 1: HTTP 200 connect=0.028918s tls=0.057086s total=0.082271s  exit=0
+    : try 2: HTTP 200 connect=0.027109s tls=0.054981s total=0.080241s  exit=0
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 200 connect=0.024812s tls=0.053316s total=0.078471s  exit=0
+    : try 2: HTTP 200 connect=0.027738s tls=0.055377s total=0.080534s  exit=0
+address 51.81.167.44 [ecs as westus2 20.80.173.98; ecs as westus3 20.168.93.82; recorded in committed artifacts]: 
+  node default hello (1596 B, with X25519MLKEM768): 
+    : tls 1: tcp ok 54 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 51 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 67 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  node classical hello (366 B, X25519:prime256v1:secp384r1): 
+    : tls 1: tcp ok 49 ms, tls no-answer-in-5000ms
+    : tls 2: tcp ok 54 ms, tls no-answer-in-5000ms
+    : tls 3: tcp ok 51 ms, tls no-answer-in-5000ms
+    : pinned request 1: no-answer-in-10000ms
+    : pinned request 2: no-answer-in-10000ms
+  curl default hello: 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002727s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002908s curl: (28) Connection timed out after 12002 milliseconds exit=28
+  curl classical hello (--curves X25519:P-256): 
+    : try 1: HTTP 000 connect=0.000000s tls=0.000000s total=12.002364s curl: (28) Connection timed out after 12002 milliseconds exit=28
+    : try 2: HTTP 000 connect=0.000000s tls=0.000000s total=12.002151s curl: (28) Connection timed out after 12002 milliseconds exit=28
+coverage: checked 2 of 2 addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts
+
+######## run 43664740677 [v4] region eastus #########################################################
+tcpdump: /usr/bin/tcpdump; curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5; openssl: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
+=================== 51.81.167.44
+tcp-only, three connects before anything else: connected 69 ms | connected 67 ms | connected 67 ms
+node tls, default hello, 4 s cap: tcp ok 92 ms, tls no-answer-in-4000ms
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* Connection timed out after 10002 milliseconds
+curl: (28) Connection timed out after 10002 milliseconds
+HTTP 000 connect=0.000000s tls=0.000000s total=10.002816s
+--- openssl s_client, 10 s cap
+Connecting to 51.81.167.44
+--- tcp-only, three connects after the others
+connected 64 ms | connected 72 ms | connected 67 ms
+--- tcpdump of 51.81.167.44: 292 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707263.859653 eth0  Out IP (tos 0x0, ttl 64, id 3895, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x8a49), seq 4441986, win 64240, options [mss 1460,sackOK,TS val 383468270 ecr 0,nop,wscale 10], length 0
+1794707263.859658 enP33696s1 Out IP (tos 0x0, ttl 64, id 3895, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x8a49), seq 4441986, win 64240, options [mss 1460,sackOK,TS val 383468270 ecr 0,nop,wscale 10], length 0
+1794707263.926690 enP33696s1 In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47658: Flags [S.], cksum 0xf327 (correct), seq 2853551335, ack 4441987, win 0, options [mss 1460,sackOK,TS val 61679450 ecr 383468270,nop,wscale 7], length 
+1794707263.926690 eth0  In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47658: Flags [S.], cksum 0xf327 (correct), seq 2853551335, ack 4441987, win 0, options [mss 1460,sackOK,TS val 61679450 ecr 383468270,nop,wscale 7], length 
+1794707263.926738 eth0  Out IP (tos 0x0, ttl 64, id 3896, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x2172), ack 1, win 63, options [nop,nop,TS val 383468337 ecr 61679450], length 0
+1794707263.926741 enP33696s1 Out IP (tos 0x0, ttl 64, id 3896, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x2172), ack 1, win 63, options [nop,nop,TS val 383468337 ecr 61679450], length 0
+1794707263.927783 eth0  Out IP (tos 0x0, ttl 64, id 44701, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x091b), seq 3279285677, win 64240, options [mss 1460,sackOK,TS val 980137764 ecr 0,nop,wscale 10], length 0
+1794707263.927785 enP33696s1 Out IP (tos 0x0, ttl 64, id 44701, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x091b), seq 3279285677, win 64240, options [mss 1460,sackOK,TS val 980137764 ecr 0,nop,wscale 10], length 0
+1794707263.994193 enP33696s1 In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47668: Flags [S.], cksum 0xd81d (correct), seq 1633853238, ack 3279285678, win 0, options [mss 1460,sackOK,TS val 61679514 ecr 980137764,nop,wscale 7], leng
+1794707263.994193 eth0  In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47668: Flags [S.], cksum 0xd81d (correct), seq 1633853238, ack 3279285678, win 0, options [mss 1460,sackOK,TS val 61679514 ecr 980137764,nop,wscale 7], leng
+1794707263.994235 eth0  Out IP (tos 0x0, ttl 64, id 44702, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x0668), ack 1, win 63, options [nop,nop,TS val 980137831 ecr 61679514], length 0
+1794707263.994238 enP33696s1 Out IP (tos 0x0, ttl 64, id 44702, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x0668), ack 1, win 63, options [nop,nop,TS val 980137831 ecr 61679514], length 0
+1794707263.994649 eth0  Out IP (tos 0x0, ttl 64, id 42904, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x788a), seq 3557860283, win 64240, options [mss 1460,sackOK,TS val 170963257 ecr 0,nop,wscale 10], length 0
+1794707263.994651 enP33696s1 Out IP (tos 0x0, ttl 64, id 42904, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x788a), seq 3557860283, win 64240, options [mss 1460,sackOK,TS val 170963257 ecr 0,nop,wscale 10], length 0
+1794707264.061331 enP33696s1 In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47682: Flags [S.], cksum 0x5a35 (correct), seq 938522048, ack 3557860284, win 0, options [mss 1460,sackOK,TS val 61679578 ecr 170963257,nop,wscale 7], lengt
+1794707264.061331 eth0  In  IP (tos 0x0, ttl 45, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.47682: Flags [S.], cksum 0x5a35 (correct), seq 938522048, ack 3557860284, win 0, options [mss 1460,sackOK,TS val 61679578 ecr 170963257,nop,wscale 7], lengt
+1794707264.061376 eth0  Out IP (tos 0x0, ttl 64, id 42905, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x887f), ack 1, win 63, options [nop,nop,TS val 170963324 ecr 61679578], length 0
+1794707264.061378 enP33696s1 Out IP (tos 0x0, ttl 64, id 42905, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x887f), ack 1, win 63, options [nop,nop,TS val 170963324 ecr 61679578], length 0
+1794707264.081234 eth0  Out IP (tos 0x0, ttl 64, id 39617, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x3161), seq 159500580, win 64240, options [mss 1460,sackOK,TS val 3253262770 ecr 0,nop,wscale 10], length 0
+1794707264.081237 enP33696s1 Out IP (tos 0x0, ttl 64, id 39617, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [S], cksum 0xe57c (incorrect -> 0x3161), seq 159500580, win 64240, options [mss 1460,sackOK,TS val 3253262770 ecr 0,nop,wscale 10], length 0
+1794707264.150303 enP33696s1 In  IP (tos 0x0, ttl 44, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.50784: Flags [S.], cksum 0x41bd (correct), seq 1447913522, ack 159500581, win 0, options [mss 1460,sackOK,TS val 61679706 ecr 3253262770,nop,wscale 7], leng
+1794707264.150303 eth0  In  IP (tos 0x0, ttl 44, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.208.50784: Flags [S.], cksum 0x41bd (correct), seq 1447913522, ack 159500581, win 0, options [mss 1460,sackOK,TS val 61679706 ecr 3253262770,nop,wscale 7], leng
+1794707264.150353 eth0  Out IP (tos 0x0, ttl 64, id 39618, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x7005), ack 1, win 63, options [nop,nop,TS val 3253262839 ecr 61679706], length 0
+1794707264.150357 enP33696s1 Out IP (tos 0x0, ttl 64, id 39618, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x7005), ack 1, win 63, options [nop,nop,TS val 3253262839 ecr 61679706], length 0
+1794707264.200986 eth0  Out IP (tos 0x0, ttl 64, id 3897, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x2060), ack 1, win 63, options [nop,nop,TS val 383468612 ecr 61679450], length 0
+1794707264.200991 enP33696s1 Out IP (tos 0x0, ttl 64, id 3897, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x2060), ack 1, win 63, options [nop,nop,TS val 383468612 ecr 61679450], length 0
+1794707264.264998 eth0  Out IP (tos 0x0, ttl 64, id 44703, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x055a), ack 1, win 63, options [nop,nop,TS val 980138102 ecr 61679514], length 0
+1794707264.265003 enP33696s1 Out IP (tos 0x0, ttl 64, id 44703, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x055a), ack 1, win 63, options [nop,nop,TS val 980138102 ecr 61679514], length 0
+1794707264.328998 eth0  Out IP (tos 0x0, ttl 64, id 42906, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x8774), ack 1, win 63, options [nop,nop,TS val 170963592 ecr 61679578], length 0
+1794707264.329003 enP33696s1 Out IP (tos 0x0, ttl 64, id 42906, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x8774), ack 1, win 63, options [nop,nop,TS val 170963592 ecr 61679578], length 0
+1794707264.424975 eth0  Out IP (tos 0x0, ttl 64, id 39619, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x6ef3), ack 1, win 63, options [nop,nop,TS val 3253263114 ecr 61679706], length 0
+1794707264.424980 enP33696s1 Out IP (tos 0x0, ttl 64, id 39619, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x6ef3), ack 1, win 63, options [nop,nop,TS val 3253263114 ecr 61679706], length 0
+1794707264.745004 eth0  Out IP (tos 0x0, ttl 64, id 3898, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x1e40), ack 1, win 63, options [nop,nop,TS val 383469156 ecr 61679450], length 0
+1794707264.745010 enP33696s1 Out IP (tos 0x0, ttl 64, id 3898, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x1e40), ack 1, win 63, options [nop,nop,TS val 383469156 ecr 61679450], length 0
+1794707264.809002 eth0  Out IP (tos 0x0, ttl 64, id 44704, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x033a), ack 1, win 63, options [nop,nop,TS val 980138646 ecr 61679514], length 0
+1794707264.809007 enP33696s1 Out IP (tos 0x0, ttl 64, id 44704, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x033a), ack 1, win 63, options [nop,nop,TS val 980138646 ecr 61679514], length 0
+1794707264.872977 eth0  Out IP (tos 0x0, ttl 64, id 42907, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x8554), ack 1, win 63, options [nop,nop,TS val 170964136 ecr 61679578], length 0
+1794707264.872982 enP33696s1 Out IP (tos 0x0, ttl 64, id 42907, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47682 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x8554), ack 1, win 63, options [nop,nop,TS val 170964136 ecr 61679578], length 0
+1794707265.001003 eth0  Out IP (tos 0x0, ttl 64, id 39620, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x6cb3), ack 1, win 63, options [nop,nop,TS val 3253263690 ecr 61679706], length 0
+1794707265.001008 enP33696s1 Out IP (tos 0x0, ttl 64, id 39620, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.50784 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x6cb3), ack 1, win 63, options [nop,nop,TS val 3253263690 ecr 61679706], length 0
+1794707265.833009 eth0  Out IP (tos 0x0, ttl 64, id 3899, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x1a00), ack 1, win 63, options [nop,nop,TS val 383470244 ecr 61679450], length 0
+1794707265.833015 enP33696s1 Out IP (tos 0x0, ttl 64, id 3899, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47658 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0x1a00), ack 1, win 63, options [nop,nop,TS val 383470244 ecr 61679450], length 0
+1794707265.896996 eth0  Out IP (tos 0x0, ttl 64, id 44705, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.47668 > 51.81.167.44.443: Flags [.], cksum 0xe574 (incorrect -> 0xfef9), ack 1, win 63, options [nop,nop,TS val 980139734 ecr 61679514], length 0
+=================== 167.114.211.86
+tcp-only, three connects before anything else: connected 23 ms | connected 16 ms | connected 16 ms
+node tls, default hello, 4 s cap: tcp ok 20 ms, tls ok 21 ms TLSv1.3
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted http/1.1
+* SSL certificate verified via OpenSSL.
+} [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* Connection #0 to host api.open-meteo.com:443 left intact
+HTTP 200 connect=0.015760s tls=0.035866s total=0.052381s
+--- openssl s_client, 10 s cap
+Connecting to 167.114.211.86
+CONNECTION ESTABLISHED
+Protocol version: TLSv1.3
+Ciphersuite: TLS_AES_256_GCM_SHA384
+Peer certificate: CN=*.open-meteo.com
+Hash used: SHA256
+Signature type: ecdsa_secp256r1_sha256
+Verification: OK
+Peer Temp Key: X25519, 253 bits
+DONE
+--- tcp-only, three connects after the others
+connected 16 ms | connected 15 ms | connected 15 ms
+--- tcpdump of 167.114.211.86: 372 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707295.388760 eth0  Out IP (tos 0x0, ttl 64, id 13262, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0x1007), seq 2035777192, win 64240, options [mss 1460,sackOK,TS val 1615376597 ecr 0,nop,wscale 10], length 0
+1794707295.388766 enP33696s1 Out IP (tos 0x0, ttl 64, id 13262, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0x1007), seq 2035777192, win 64240, options [mss 1460,sackOK,TS val 1615376597 ecr 0,nop,wscale 10], length 0
+1794707295.410041 enP33696s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44178: Flags [S.], cksum 0xfa68 (correct), seq 2380126344, ack 2035777193, win 65160, options [mss 1460,sackOK,TS val 1799307346 ecr 1615376597,nop,wscale
+1794707295.410041 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44178: Flags [S.], cksum 0xfa68 (correct), seq 2380126344, ack 2035777193, win 65160, options [mss 1460,sackOK,TS val 1799307346 ecr 1615376597,nop,wscale
+1794707295.410077 eth0  Out IP (tos 0x0, ttl 64, id 13263, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x2769), ack 1, win 63, options [nop,nop,TS val 1615376619 ecr 1799307346], length 0
+1794707295.410079 enP33696s1 Out IP (tos 0x0, ttl 64, id 13263, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x2769), ack 1, win 63, options [nop,nop,TS val 1615376619 ecr 1799307346], length 0
+1794707295.410578 eth0  Out IP (tos 0x0, ttl 64, id 13264, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0x2768), seq 1, ack 1, win 63, options [nop,nop,TS val 1615376619 ecr 1799307346], length 0
+1794707295.410580 enP33696s1 Out IP (tos 0x0, ttl 64, id 13264, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0x2768), seq 1, ack 1, win 63, options [nop,nop,TS val 1615376619 ecr 1799307346], length 0
+1794707295.411039 eth0  Out IP (tos 0x0, ttl 64, id 6101, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0xe29f), seq 1558179524, win 64240, options [mss 1460,sackOK,TS val 500092172 ecr 0,nop,wscale 10], length 0
+1794707295.411041 enP33696s1 Out IP (tos 0x0, ttl 64, id 6101, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0xe29f), seq 1558179524, win 64240, options [mss 1460,sackOK,TS val 500092172 ecr 0,nop,wscale 10], length 0
+1794707295.424731 enP33696s1 In  IP (tos 0x0, ttl 49, id 60362, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44178: Flags [F.], cksum 0x2599 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307361 ecr 1615376619], length 0
+1794707295.424731 eth0  In  IP (tos 0x0, ttl 49, id 60362, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44178: Flags [F.], cksum 0x2599 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307361 ecr 1615376619], length 0
+1794707295.424756 eth0  Out IP (tos 0x0, ttl 64, id 13265, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x274a), ack 2, win 63, options [nop,nop,TS val 1615376633 ecr 1799307361], length 0
+1794707295.424757 enP33696s1 Out IP (tos 0x0, ttl 64, id 13265, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44178 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x274a), ack 2, win 63, options [nop,nop,TS val 1615376633 ecr 1799307361], length 0
+1794707295.426353 enP33696s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44184: Flags [S.], cksum 0x9ba2 (correct), seq 1733832797, ack 1558179525, win 65160, options [mss 1460,sackOK,TS val 1799307362 ecr 500092172,nop,wscale 
+1794707295.426353 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44184: Flags [S.], cksum 0x9ba2 (correct), seq 1733832797, ack 1558179525, win 65160, options [mss 1460,sackOK,TS val 1799307362 ecr 500092172,nop,wscale 
+1794707295.426375 eth0  Out IP (tos 0x0, ttl 64, id 6102, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0xc8a9), ack 1, win 63, options [nop,nop,TS val 500092187 ecr 1799307362], length 0
+1794707295.426377 enP33696s1 Out IP (tos 0x0, ttl 64, id 6102, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0xc8a9), ack 1, win 63, options [nop,nop,TS val 500092187 ecr 1799307362], length 0
+1794707295.426431 eth0  Out IP (tos 0x0, ttl 64, id 6103, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0xc8a8), seq 1, ack 1, win 63, options [nop,nop,TS val 500092187 ecr 1799307362], length 0
+1794707295.426432 enP33696s1 Out IP (tos 0x0, ttl 64, id 6103, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0xc8a8), seq 1, ack 1, win 63, options [nop,nop,TS val 500092187 ecr 1799307362], length 0
+1794707295.426647 eth0  Out IP (tos 0x0, ttl 64, id 23586, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0x7881), seq 1929015437, win 64240, options [mss 1460,sackOK,TS val 938902813 ecr 0,nop,wscale 10], length 0
+1794707295.426649 enP33696s1 Out IP (tos 0x0, ttl 64, id 23586, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0x7881), seq 1929015437, win 64240, options [mss 1460,sackOK,TS val 938902813 ecr 0,nop,wscale 10], length 0
+1794707295.440734 enP33696s1 In  IP (tos 0x0, ttl 49, id 61760, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44184: Flags [F.], cksum 0xc6d9 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307377 ecr 500092187], length 0
+1794707295.440734 eth0  In  IP (tos 0x0, ttl 49, id 61760, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44184: Flags [F.], cksum 0xc6d9 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307377 ecr 500092187], length 0
+1794707295.440749 eth0  Out IP (tos 0x0, ttl 64, id 6104, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0xc88a), ack 2, win 63, options [nop,nop,TS val 500092201 ecr 1799307377], length 0
+1794707295.440750 enP33696s1 Out IP (tos 0x0, ttl 64, id 6104, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44184 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0xc88a), ack 2, win 63, options [nop,nop,TS val 500092201 ecr 1799307377], length 0
+1794707295.442214 enP33696s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44186: Flags [S.], cksum 0xe01a (correct), seq 3931897523, ack 1929015438, win 65160, options [mss 1460,sackOK,TS val 1799307377 ecr 938902813,nop,wscale 
+1794707295.442214 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44186: Flags [S.], cksum 0xe01a (correct), seq 3931897523, ack 1929015438, win 65160, options [mss 1460,sackOK,TS val 1799307377 ecr 938902813,nop,wscale 
+1794707295.442235 eth0  Out IP (tos 0x0, ttl 64, id 23587, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x0d21), ack 1, win 63, options [nop,nop,TS val 938902829 ecr 1799307377], length 0
+1794707295.442237 enP33696s1 Out IP (tos 0x0, ttl 64, id 23587, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x0d21), ack 1, win 63, options [nop,nop,TS val 938902829 ecr 1799307377], length 0
+1794707295.442307 eth0  Out IP (tos 0x0, ttl 64, id 23588, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0x0d20), seq 1, ack 1, win 63, options [nop,nop,TS val 938902829 ecr 1799307377], length 0
+1794707295.442308 enP33696s1 Out IP (tos 0x0, ttl 64, id 23588, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [F.], cksum 0x85c0 (incorrect -> 0x0d20), seq 1, ack 1, win 63, options [nop,nop,TS val 938902829 ecr 1799307377], length 0
+1794707295.447929 eth0  Out IP (tos 0x0, ttl 64, id 44595, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44196 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0xf20d), seq 1231642540, win 64240, options [mss 1460,sackOK,TS val 4186211434 ecr 0,nop,wscale 10], length 0
+1794707295.447932 enP33696s1 Out IP (tos 0x0, ttl 64, id 44595, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.208.44196 > 167.114.211.86.443: Flags [S], cksum 0x85c8 (incorrect -> 0xf20d), seq 1231642540, win 64240, options [mss 1460,sackOK,TS val 4186211434 ecr 0,nop,wscale 10], length 0
+1794707295.457497 enP33696s1 In  IP (tos 0x0, ttl 49, id 26695, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44186: Flags [F.], cksum 0x0b50 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307393 ecr 938902829], length 0
+1794707295.457497 eth0  In  IP (tos 0x0, ttl 49, id 26695, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.208.44186: Flags [F.], cksum 0x0b50 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1799307393 ecr 938902829], length 0
+1794707295.457522 eth0  Out IP (tos 0x0, ttl 64, id 23589, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x0d00), ack 2, win 63, options [nop,nop,TS val 938902844 ecr 1799307393], length 0
+1794707295.457524 enP33696s1 Out IP (tos 0x0, ttl 64, id 23589, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44186 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x0d00), ack 2, win 63, options [nop,nop,TS val 938902844 ecr 1799307393], length 0
+1794707295.463035 enP33696s1 In  IP (tos 0x0, ttl 50, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44196: Flags [S.], cksum 0x05ce (correct), seq 2423106662, ack 1231642541, win 65160, options [mss 1460,sackOK,TS val 1799307398 ecr 4186211434,nop,wscale
+1794707295.463035 eth0  In  IP (tos 0x0, ttl 50, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.208.44196: Flags [S.], cksum 0x05ce (correct), seq 2423106662, ack 1231642541, win 65160, options [mss 1460,sackOK,TS val 1799307398 ecr 4186211434,nop,wscale
+1794707295.463054 eth0  Out IP (tos 0x0, ttl 64, id 44596, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44196 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x32d4), ack 1, win 63, options [nop,nop,TS val 4186211450 ecr 1799307398], length 0
+1794707295.463055 enP33696s1 Out IP (tos 0x0, ttl 64, id 44596, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.208.44196 > 167.114.211.86.443: Flags [.], cksum 0x85c0 (incorrect -> 0x32d4), ack 1, win 63, options [nop,nop,TS val 4186211450 ecr 1799307398], length 0
+1794707295.463359 eth0  Out IP (tos 0x0, ttl 64, id 44597, offset 0, flags [DF], proto TCP (6), length 1662)
+    10.1.0.208.44196 > 167.114.211.86.443: Flags [P.], cksum 0x8c0a (incorrect -> 0x58a5), seq 1:1611, ack 1, win 63, options [nop,nop,TS val 4186211450 ecr 1799307398], length 1610
+
+######## run 43664742747 [v4] region eastus2 #########################################################
+tcpdump: /usr/bin/tcpdump; curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5; openssl: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
+=================== 51.81.167.44
+tcp-only, three connects before anything else: connected 74 ms | connected 73 ms | connected 70 ms
+node tls, default hello, 4 s cap: tcp ok 82 ms, tls no-answer-in-4000ms
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* Connection timed out after 10002 milliseconds
+curl: (28) Connection timed out after 10002 milliseconds
+HTTP 000 connect=0.000000s tls=0.000000s total=10.002831s
+--- openssl s_client, 10 s cap
+Connecting to 51.81.167.44
+--- tcp-only, three connects after the others
+connected 73 ms | connected 69 ms | connected 76 ms
+--- tcpdump of 51.81.167.44: 288 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707266.231417 eth0  Out IP (tos 0x0, ttl 64, id 41056, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xe4bd), seq 2165420881, win 64240, options [mss 1460,sackOK,TS val 142257895 ecr 0,nop,wscale 10], length 0
+1794707266.231432 enP4307s1 Out IP (tos 0x0, ttl 64, id 41056, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xe4bd), seq 2165420881, win 64240, options [mss 1460,sackOK,TS val 142257895 ecr 0,nop,wscale 10], length 0
+1794707266.304148 enP4307s1 In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.38402: Flags [S.], cksum 0x7511 (correct), seq 1756614036, ack 2165420882, win 0, options [mss 1460,sackOK,TS val 61681818 ecr 142257895,nop,wscale 7], lengt
+1794707266.304148 eth0  In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.38402: Flags [S.], cksum 0x7511 (correct), seq 1756614036, ack 2165420882, win 0, options [mss 1460,sackOK,TS val 61681818 ecr 142257895,nop,wscale 7], lengt
+1794707266.304202 eth0  Out IP (tos 0x0, ttl 64, id 41057, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa355), ack 1, win 63, options [nop,nop,TS val 142257968 ecr 61681818], length 0
+1794707266.304204 enP4307s1 Out IP (tos 0x0, ttl 64, id 41057, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa355), ack 1, win 63, options [nop,nop,TS val 142257968 ecr 61681818], length 0
+1794707266.305428 eth0  Out IP (tos 0x0, ttl 64, id 35559, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xd87e), seq 563664307, win 64240, options [mss 1460,sackOK,TS val 2575069599 ecr 0,nop,wscale 10], length 0
+1794707266.305430 enP4307s1 Out IP (tos 0x0, ttl 64, id 35559, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xd87e), seq 563664307, win 64240, options [mss 1460,sackOK,TS val 2575069599 ecr 0,nop,wscale 10], length 0
+1794707266.377827 enP4307s1 In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35742: Flags [S.], cksum 0xc348 (correct), seq 1581088084, ack 563664308, win 0, options [mss 1460,sackOK,TS val 61681882 ecr 2575069599,nop,wscale 7], lengt
+1794707266.377827 eth0  In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35742: Flags [S.], cksum 0xc348 (correct), seq 1581088084, ack 563664308, win 0, options [mss 1460,sackOK,TS val 61681882 ecr 2575069599,nop,wscale 7], lengt
+1794707266.377888 eth0  Out IP (tos 0x0, ttl 64, id 35560, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xf18d), ack 1, win 63, options [nop,nop,TS val 2575069671 ecr 61681882], length 0
+1794707266.377891 enP4307s1 Out IP (tos 0x0, ttl 64, id 35560, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xf18d), ack 1, win 63, options [nop,nop,TS val 2575069671 ecr 61681882], length 0
+1794707266.378448 eth0  Out IP (tos 0x0, ttl 64, id 64874, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xf662), seq 1684330153, win 64240, options [mss 1460,sackOK,TS val 118137441 ecr 0,nop,wscale 10], length 0
+1794707266.378450 enP4307s1 Out IP (tos 0x0, ttl 64, id 64874, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0xf662), seq 1684330153, win 64240, options [mss 1460,sackOK,TS val 118137441 ecr 0,nop,wscale 10], length 0
+1794707266.448094 enP4307s1 In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35752: Flags [S.], cksum 0x657a (correct), seq 3142556532, ack 1684330154, win 0, options [mss 1460,sackOK,TS val 61682010 ecr 118137441,nop,wscale 7], lengt
+1794707266.448094 eth0  In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35752: Flags [S.], cksum 0x657a (correct), seq 3142556532, ack 1684330154, win 0, options [mss 1460,sackOK,TS val 61682010 ecr 118137441,nop,wscale 7], lengt
+1794707266.448149 eth0  Out IP (tos 0x0, ttl 64, id 64875, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x93c1), ack 1, win 63, options [nop,nop,TS val 118137511 ecr 61682010], length 0
+1794707266.448152 enP4307s1 Out IP (tos 0x0, ttl 64, id 64875, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x93c1), ack 1, win 63, options [nop,nop,TS val 118137511 ecr 61682010], length 0
+1794707266.456392 eth0  Out IP (tos 0x0, ttl 64, id 12961, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0x0983), seq 700838031, win 64240, options [mss 1460,sackOK,TS val 3727546572 ecr 0,nop,wscale 10], length 0
+1794707266.456395 enP4307s1 Out IP (tos 0x0, ttl 64, id 12961, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [S], cksum 0xe4fa (incorrect -> 0x0983), seq 700838031, win 64240, options [mss 1460,sackOK,TS val 3727546572 ecr 0,nop,wscale 10], length 0
+1794707266.528714 enP4307s1 In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35762: Flags [S.], cksum 0xfc29 (correct), seq 2731028524, ack 700838032, win 0, options [mss 1460,sackOK,TS val 61682074 ecr 3727546572,nop,wscale 7], lengt
+1794707266.528714 eth0  In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.78.35762: Flags [S.], cksum 0xfc29 (correct), seq 2731028524, ack 700838032, win 0, options [mss 1460,sackOK,TS val 61682074 ecr 3727546572,nop,wscale 7], lengt
+1794707266.528768 eth0  Out IP (tos 0x0, ttl 64, id 12962, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x2a6f), ack 1, win 63, options [nop,nop,TS val 3727546644 ecr 61682074], length 0
+1794707266.528771 enP4307s1 Out IP (tos 0x0, ttl 64, id 12962, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x2a6f), ack 1, win 63, options [nop,nop,TS val 3727546644 ecr 61682074], length 0
+1794707266.581013 eth0  Out IP (tos 0x0, ttl 64, id 41058, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa241), ack 1, win 63, options [nop,nop,TS val 142258245 ecr 61681818], length 0
+1794707266.581019 enP4307s1 Out IP (tos 0x0, ttl 64, id 41058, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa241), ack 1, win 63, options [nop,nop,TS val 142258245 ecr 61681818], length 0
+1794707266.652996 eth0  Out IP (tos 0x0, ttl 64, id 35561, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xf07a), ack 1, win 63, options [nop,nop,TS val 2575069947 ecr 61681882], length 0
+1794707266.653002 enP4307s1 Out IP (tos 0x0, ttl 64, id 35561, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xf07a), ack 1, win 63, options [nop,nop,TS val 2575069947 ecr 61681882], length 0
+1794707266.724990 eth0  Out IP (tos 0x0, ttl 64, id 64876, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x92ad), ack 1, win 63, options [nop,nop,TS val 118137788 ecr 61682010], length 0
+1794707266.724996 enP4307s1 Out IP (tos 0x0, ttl 64, id 64876, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x92ad), ack 1, win 63, options [nop,nop,TS val 118137788 ecr 61682010], length 0
+1794707266.805006 eth0  Out IP (tos 0x0, ttl 64, id 12963, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x295b), ack 1, win 63, options [nop,nop,TS val 3727546921 ecr 61682074], length 0
+1794707266.805012 enP4307s1 Out IP (tos 0x0, ttl 64, id 12963, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x295b), ack 1, win 63, options [nop,nop,TS val 3727546921 ecr 61682074], length 0
+1794707267.156994 eth0  Out IP (tos 0x0, ttl 64, id 41059, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa001), ack 1, win 63, options [nop,nop,TS val 142258821 ecr 61681818], length 0
+1794707267.157001 enP4307s1 Out IP (tos 0x0, ttl 64, id 41059, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xa001), ack 1, win 63, options [nop,nop,TS val 142258821 ecr 61681818], length 0
+1794707267.220975 eth0  Out IP (tos 0x0, ttl 64, id 35562, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xee42), ack 1, win 63, options [nop,nop,TS val 2575070515 ecr 61681882], length 0
+1794707267.220980 enP4307s1 Out IP (tos 0x0, ttl 64, id 35562, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35742 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0xee42), ack 1, win 63, options [nop,nop,TS val 2575070515 ecr 61681882], length 0
+1794707267.284985 eth0  Out IP (tos 0x0, ttl 64, id 64877, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x907d), ack 1, win 63, options [nop,nop,TS val 118138348 ecr 61682010], length 0
+1794707267.284990 enP4307s1 Out IP (tos 0x0, ttl 64, id 64877, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x907d), ack 1, win 63, options [nop,nop,TS val 118138348 ecr 61682010], length 0
+1794707267.412998 eth0  Out IP (tos 0x0, ttl 64, id 12964, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x26fb), ack 1, win 63, options [nop,nop,TS val 3727547529 ecr 61682074], length 0
+1794707267.413004 enP4307s1 Out IP (tos 0x0, ttl 64, id 12964, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35762 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x26fb), ack 1, win 63, options [nop,nop,TS val 3727547529 ecr 61682074], length 0
+1794707268.309012 eth0  Out IP (tos 0x0, ttl 64, id 41060, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x9b81), ack 1, win 63, options [nop,nop,TS val 142259973 ecr 61681818], length 0
+1794707268.309019 enP4307s1 Out IP (tos 0x0, ttl 64, id 41060, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.38402 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x9b81), ack 1, win 63, options [nop,nop,TS val 142259973 ecr 61681818], length 0
+1794707268.372988 eth0  Out IP (tos 0x0, ttl 64, id 64878, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.35752 > 51.81.167.44.443: Flags [.], cksum 0xe4f2 (incorrect -> 0x8c3d), ack 1, win 63, options [nop,nop,TS val 118139436 ecr 61682010], length 0
+=================== 167.114.211.86
+tcp-only, three connects before anything else: connected 24 ms | connected 20 ms | connected 20 ms
+node tls, default hello, 4 s cap: tcp ok 25 ms, tls ok 26 ms TLSv1.3
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted http/1.1
+* SSL certificate verified via OpenSSL.
+} [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* Connection #0 to host api.open-meteo.com:443 left intact
+HTTP 200 connect=0.019827s tls=0.043622s total=0.064619s
+--- openssl s_client, 10 s cap
+Connecting to 167.114.211.86
+CONNECTION ESTABLISHED
+Protocol version: TLSv1.3
+Ciphersuite: TLS_AES_256_GCM_SHA384
+Peer certificate: CN=*.open-meteo.com
+Hash used: SHA256
+Signature type: ecdsa_secp256r1_sha256
+Verification: OK
+Peer Temp Key: X25519, 253 bits
+DONE
+--- tcp-only, three connects after the others
+connected 22 ms | connected 20 ms | connected 19 ms
+--- tcpdump of 167.114.211.86: 348 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707297.781123 eth0  Out IP (tos 0x0, ttl 64, id 45101, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x4c08), seq 3310576141, win 64240, options [mss 1460,sackOK,TS val 1461284540 ecr 0,nop,wscale 10], length 0
+1794707297.781129 enP4307s1 Out IP (tos 0x0, ttl 64, id 45101, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x4c08), seq 3310576141, win 64240, options [mss 1460,sackOK,TS val 1461284540 ecr 0,nop,wscale 10], length 0
+1794707297.802972 enP4307s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36090: Flags [S.], cksum 0x7ab9 (correct), seq 2779869495, ack 3310576142, win 65160, options [mss 1460,sackOK,TS val 1983529093 ecr 1461284540,nop,wscale 
+1794707297.802972 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36090: Flags [S.], cksum 0x7ab9 (correct), seq 2779869495, ack 3310576142, win 65160, options [mss 1460,sackOK,TS val 1983529093 ecr 1461284540,nop,wscale 
+1794707297.803014 eth0  Out IP (tos 0x0, ttl 64, id 45102, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa7b9), ack 1, win 63, options [nop,nop,TS val 1461284562 ecr 1983529093], length 0
+1794707297.803016 enP4307s1 Out IP (tos 0x0, ttl 64, id 45102, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa7b9), ack 1, win 63, options [nop,nop,TS val 1461284562 ecr 1983529093], length 0
+1794707297.803540 eth0  Out IP (tos 0x0, ttl 64, id 45103, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0xa7b8), seq 1, ack 1, win 63, options [nop,nop,TS val 1461284562 ecr 1983529093], length 0
+1794707297.803542 enP4307s1 Out IP (tos 0x0, ttl 64, id 45103, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0xa7b8), seq 1, ack 1, win 63, options [nop,nop,TS val 1461284562 ecr 1983529093], length 0
+1794707297.804012 eth0  Out IP (tos 0x0, ttl 64, id 59763, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x53c6), seq 708955, win 64240, options [mss 1460,sackOK,TS val 3116849735 ecr 0,nop,wscale 10], length 0
+1794707297.804014 enP4307s1 Out IP (tos 0x0, ttl 64, id 59763, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x53c6), seq 708955, win 64240, options [mss 1460,sackOK,TS val 3116849735 ecr 0,nop,wscale 10], length 0
+1794707297.822347 enP4307s1 In  IP (tos 0x0, ttl 49, id 35165, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36090: Flags [F.], cksum 0xa5e2 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529115 ecr 1461284562], length 0
+1794707297.822347 eth0  In  IP (tos 0x0, ttl 49, id 35165, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36090: Flags [F.], cksum 0xa5e2 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529115 ecr 1461284562], length 0
+1794707297.822372 eth0  Out IP (tos 0x0, ttl 64, id 45104, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa78e), ack 2, win 63, options [nop,nop,TS val 1461284581 ecr 1983529115], length 0
+1794707297.822373 enP4307s1 Out IP (tos 0x0, ttl 64, id 45104, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36090 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa78e), ack 2, win 63, options [nop,nop,TS val 1461284581 ecr 1983529115], length 0
+1794707297.823337 enP4307s1 In  IP (tos 0x0, ttl 48, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36094: Flags [S.], cksum 0x76fd (correct), seq 2922869780, ack 708956, win 65160, options [mss 1460,sackOK,TS val 1983529116 ecr 3116849735,nop,wscale 7], 
+1794707297.823337 eth0  In  IP (tos 0x0, ttl 48, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36094: Flags [S.], cksum 0x76fd (correct), seq 2922869780, ack 708956, win 65160, options [mss 1460,sackOK,TS val 1983529116 ecr 3116849735,nop,wscale 7], 
+1794707297.823361 eth0  Out IP (tos 0x0, ttl 64, id 59764, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa400), ack 1, win 63, options [nop,nop,TS val 3116849754 ecr 1983529116], length 0
+1794707297.823363 enP4307s1 Out IP (tos 0x0, ttl 64, id 59764, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa400), ack 1, win 63, options [nop,nop,TS val 3116849754 ecr 1983529116], length 0
+1794707297.823439 eth0  Out IP (tos 0x0, ttl 64, id 59765, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0xa3ff), seq 1, ack 1, win 63, options [nop,nop,TS val 3116849754 ecr 1983529116], length 0
+1794707297.823440 enP4307s1 Out IP (tos 0x0, ttl 64, id 59765, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0xa3ff), seq 1, ack 1, win 63, options [nop,nop,TS val 3116849754 ecr 1983529116], length 0
+1794707297.823691 eth0  Out IP (tos 0x0, ttl 64, id 9349, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x9012), seq 3296360160, win 64240, options [mss 1460,sackOK,TS val 3538918103 ecr 0,nop,wscale 10], length 0
+1794707297.823693 enP4307s1 Out IP (tos 0x0, ttl 64, id 9349, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0x9012), seq 3296360160, win 64240, options [mss 1460,sackOK,TS val 3538918103 ecr 0,nop,wscale 10], length 0
+1794707297.842152 enP4307s1 In  IP (tos 0x0, ttl 48, id 48543, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36094: Flags [F.], cksum 0xa22c (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529135 ecr 3116849754], length 0
+1794707297.842152 eth0  In  IP (tos 0x0, ttl 48, id 48543, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36094: Flags [F.], cksum 0xa22c (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529135 ecr 3116849754], length 0
+1794707297.842176 eth0  Out IP (tos 0x0, ttl 64, id 59766, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa3d8), ack 2, win 63, options [nop,nop,TS val 3116849773 ecr 1983529135], length 0
+1794707297.842177 enP4307s1 Out IP (tos 0x0, ttl 64, id 59766, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36094 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0xa3d8), ack 2, win 63, options [nop,nop,TS val 3116849773 ecr 1983529135], length 0
+1794707297.843260 enP4307s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36100: Flags [S.], cksum 0x0072 (correct), seq 3616603519, ack 3296360161, win 65160, options [mss 1460,sackOK,TS val 1983529135 ecr 3538918103,nop,wscale 
+1794707297.843260 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36100: Flags [S.], cksum 0x0072 (correct), seq 3616603519, ack 3296360161, win 65160, options [mss 1460,sackOK,TS val 1983529135 ecr 3538918103,nop,wscale 
+1794707297.843277 eth0  Out IP (tos 0x0, ttl 64, id 9350, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x2d74), ack 1, win 63, options [nop,nop,TS val 3538918123 ecr 1983529135], length 0
+1794707297.843278 enP4307s1 Out IP (tos 0x0, ttl 64, id 9350, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x2d74), ack 1, win 63, options [nop,nop,TS val 3538918123 ecr 1983529135], length 0
+1794707297.843359 eth0  Out IP (tos 0x0, ttl 64, id 9351, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0x2d73), seq 1, ack 1, win 63, options [nop,nop,TS val 3538918123 ecr 1983529135], length 0
+1794707297.843360 enP4307s1 Out IP (tos 0x0, ttl 64, id 9351, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [F.], cksum 0x853e (incorrect -> 0x2d73), seq 1, ack 1, win 63, options [nop,nop,TS val 3538918123 ecr 1983529135], length 0
+1794707297.849314 eth0  Out IP (tos 0x0, ttl 64, id 12546, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36106 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0xc505), seq 2132278292, win 64240, options [mss 1460,sackOK,TS val 3639287825 ecr 0,nop,wscale 10], length 0
+1794707297.849316 enP4307s1 Out IP (tos 0x0, ttl 64, id 12546, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.78.36106 > 167.114.211.86.443: Flags [S], cksum 0x8546 (incorrect -> 0xc505), seq 2132278292, win 64240, options [mss 1460,sackOK,TS val 3639287825 ecr 0,nop,wscale 10], length 0
+1794707297.862428 enP4307s1 In  IP (tos 0x0, ttl 49, id 33339, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36100: Flags [F.], cksum 0x2ba0 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529154 ecr 3538918123], length 0
+1794707297.862428 eth0  In  IP (tos 0x0, ttl 49, id 33339, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.78.36100: Flags [F.], cksum 0x2ba0 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 1983529154 ecr 3538918123], length 0
+1794707297.862446 eth0  Out IP (tos 0x0, ttl 64, id 9352, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x2d4c), ack 2, win 63, options [nop,nop,TS val 3538918142 ecr 1983529154], length 0
+1794707297.862448 enP4307s1 Out IP (tos 0x0, ttl 64, id 9352, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36100 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x2d4c), ack 2, win 63, options [nop,nop,TS val 3538918142 ecr 1983529154], length 0
+1794707297.869505 enP4307s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36106: Flags [S.], cksum 0x25a3 (correct), seq 3113823007, ack 2132278293, win 65160, options [mss 1460,sackOK,TS val 1983529161 ecr 3639287825,nop,wscale 
+1794707297.869505 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.78.36106: Flags [S.], cksum 0x25a3 (correct), seq 3113823007, ack 2132278293, win 65160, options [mss 1460,sackOK,TS val 1983529161 ecr 3639287825,nop,wscale 
+1794707297.869534 eth0  Out IP (tos 0x0, ttl 64, id 12547, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36106 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x52a5), ack 1, win 63, options [nop,nop,TS val 3639287845 ecr 1983529161], length 0
+1794707297.869536 enP4307s1 Out IP (tos 0x0, ttl 64, id 12547, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.78.36106 > 167.114.211.86.443: Flags [.], cksum 0x853e (incorrect -> 0x52a5), ack 1, win 63, options [nop,nop,TS val 3639287845 ecr 1983529161], length 0
+1794707297.869872 eth0  Out IP (tos 0x0, ttl 64, id 12548, offset 0, flags [DF], proto TCP (6), length 1662)
+    10.1.0.78.36106 > 167.114.211.86.443: Flags [P.], cksum 0x8b88 (incorrect -> 0x34ec), seq 1:1611, ack 1, win 63, options [nop,nop,TS val 3639287845 ecr 1983529161], length 1610
+
+######## run 43664744892 [v4] region eastus2 #########################################################
+tcpdump: /usr/bin/tcpdump; curl: curl 8.18.0 (x86_64-pc-linux-gnu) libcurl/8.18.0 OpenSSL/3.5; openssl: OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
+=================== 51.81.167.44
+tcp-only, three connects before anything else: connected 74 ms | connected 73 ms | connected 71 ms
+node tls, default hello, 4 s cap: tcp ok 82 ms, tls no-answer-in-4000ms
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* Connection timed out after 10002 milliseconds
+curl: (28) Connection timed out after 10002 milliseconds
+HTTP 000 connect=0.000000s tls=0.000000s total=10.002581s
+--- openssl s_client, 10 s cap
+Connecting to 51.81.167.44
+--- tcp-only, three connects after the others
+connected 74 ms | connected 69 ms | connected 78 ms
+--- tcpdump of 51.81.167.44: 288 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707266.966976 eth0  Out IP (tos 0x0, ttl 64, id 35615, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0x13b3), seq 816391671, win 64240, options [mss 1460,sackOK,TS val 68771886 ecr 0,nop,wscale 10], length 0
+1794707266.966981 enP1598s1 Out IP (tos 0x0, ttl 64, id 35615, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0x13b3), seq 816391671, win 64240, options [mss 1460,sackOK,TS val 68771886 ecr 0,nop,wscale 10], length 0
+1794707267.039034 enP1598s1 In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38784: Flags [S.], cksum 0x3ac6 (correct), seq 2727016957, ack 816391672, win 0, options [mss 1460,sackOK,TS val 61682586 ecr 68771886,nop,wscale 7], length
+1794707267.039034 eth0  In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38784: Flags [S.], cksum 0x3ac6 (correct), seq 2727016957, ack 816391672, win 0, options [mss 1460,sackOK,TS val 61682586 ecr 68771886,nop,wscale 7], length
+1794707267.039092 eth0  Out IP (tos 0x0, ttl 64, id 35616, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x690b), ack 1, win 63, options [nop,nop,TS val 68771958 ecr 61682586], length 0
+1794707267.039095 enP1598s1 Out IP (tos 0x0, ttl 64, id 35616, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x690b), ack 1, win 63, options [nop,nop,TS val 68771958 ecr 61682586], length 0
+1794707267.040192 eth0  Out IP (tos 0x0, ttl 64, id 62251, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0xad26), seq 254452705, win 64240, options [mss 1460,sackOK,TS val 4030299692 ecr 0,nop,wscale 10], length 0
+1794707267.040195 enP1598s1 Out IP (tos 0x0, ttl 64, id 62251, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0xad26), seq 254452705, win 64240, options [mss 1460,sackOK,TS val 4030299692 ecr 0,nop,wscale 10], length 0
+1794707267.112058 enP1598s1 In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38786: Flags [S.], cksum 0x0acf (correct), seq 424954975, ack 254452706, win 0, options [mss 1460,sackOK,TS val 61682650 ecr 4030299692,nop,wscale 7], lengt
+1794707267.112058 eth0  In  IP (tos 0x0, ttl 43, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38786: Flags [S.], cksum 0x0acf (correct), seq 424954975, ack 254452706, win 0, options [mss 1460,sackOK,TS val 61682650 ecr 4030299692,nop,wscale 7], lengt
+1794707267.112104 eth0  Out IP (tos 0x0, ttl 64, id 62252, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x3914), ack 1, win 63, options [nop,nop,TS val 4030299764 ecr 61682650], length 0
+1794707267.112107 enP1598s1 Out IP (tos 0x0, ttl 64, id 62252, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x3914), ack 1, win 63, options [nop,nop,TS val 4030299764 ecr 61682650], length 0
+1794707267.112572 eth0  Out IP (tos 0x0, ttl 64, id 62238, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0x7a32), seq 3595271913, win 64240, options [mss 1460,sackOK,TS val 109312159 ecr 0,nop,wscale 10], length 0
+1794707267.112574 enP1598s1 Out IP (tos 0x0, ttl 64, id 62238, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0x7a32), seq 3595271913, win 64240, options [mss 1460,sackOK,TS val 109312159 ecr 0,nop,wscale 10], length 0
+1794707267.183135 enP1598s1 In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38800: Flags [S.], cksum 0x2b15 (correct), seq 2263976775, ack 3595271914, win 0, options [mss 1460,sackOK,TS val 61682714 ecr 109312159,nop,wscale 7], leng
+1794707267.183135 eth0  In  IP (tos 0x0, ttl 42, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38800: Flags [S.], cksum 0x2b15 (correct), seq 2263976775, ack 3595271914, win 0, options [mss 1460,sackOK,TS val 61682714 ecr 109312159,nop,wscale 7], leng
+1794707267.183181 eth0  Out IP (tos 0x0, ttl 64, id 62239, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x595c), ack 1, win 63, options [nop,nop,TS val 109312229 ecr 61682714], length 0
+1794707267.183183 enP1598s1 Out IP (tos 0x0, ttl 64, id 62239, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x595c), ack 1, win 63, options [nop,nop,TS val 109312229 ecr 61682714], length 0
+1794707267.191181 eth0  Out IP (tos 0x0, ttl 64, id 40589, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0xcbaf), seq 3282393935, win 64240, options [mss 1460,sackOK,TS val 572113340 ecr 0,nop,wscale 10], length 0
+1794707267.191183 enP1598s1 Out IP (tos 0x0, ttl 64, id 40589, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [S], cksum 0xe564 (incorrect -> 0xcbaf), seq 3282393935, win 64240, options [mss 1460,sackOK,TS val 572113340 ecr 0,nop,wscale 10], length 0
+1794707267.263141 enP1598s1 In  IP (tos 0x0, ttl 41, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38816: Flags [S.], cksum 0x3d37 (correct), seq 1330512390, ack 3282393936, win 0, options [mss 1460,sackOK,TS val 61682778 ecr 572113340,nop,wscale 7], leng
+1794707267.263141 eth0  In  IP (tos 0x0, ttl 41, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    51.81.167.44.443 > 10.1.0.184.38816: Flags [S.], cksum 0x3d37 (correct), seq 1330512390, ack 3282393936, win 0, options [mss 1460,sackOK,TS val 61682778 ecr 572113340,nop,wscale 7], leng
+1794707267.263195 eth0  Out IP (tos 0x0, ttl 64, id 40590, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6b7c), ack 1, win 63, options [nop,nop,TS val 572113412 ecr 61682778], length 0
+1794707267.263197 enP1598s1 Out IP (tos 0x0, ttl 64, id 40590, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6b7c), ack 1, win 63, options [nop,nop,TS val 572113412 ecr 61682778], length 0
+1794707267.315575 eth0  Out IP (tos 0x0, ttl 64, id 35617, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x67f7), ack 1, win 63, options [nop,nop,TS val 68772235 ecr 61682586], length 0
+1794707267.315579 enP1598s1 Out IP (tos 0x0, ttl 64, id 35617, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x67f7), ack 1, win 63, options [nop,nop,TS val 68772235 ecr 61682586], length 0
+1794707267.387549 eth0  Out IP (tos 0x0, ttl 64, id 62253, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x3801), ack 1, win 63, options [nop,nop,TS val 4030300040 ecr 61682650], length 0
+1794707267.387554 enP1598s1 Out IP (tos 0x0, ttl 64, id 62253, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x3801), ack 1, win 63, options [nop,nop,TS val 4030300040 ecr 61682650], length 0
+1794707267.459577 eth0  Out IP (tos 0x0, ttl 64, id 62240, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x5848), ack 1, win 63, options [nop,nop,TS val 109312506 ecr 61682714], length 0
+1794707267.459582 enP1598s1 Out IP (tos 0x0, ttl 64, id 62240, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x5848), ack 1, win 63, options [nop,nop,TS val 109312506 ecr 61682714], length 0
+1794707267.539572 eth0  Out IP (tos 0x0, ttl 64, id 40591, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6a68), ack 1, win 63, options [nop,nop,TS val 572113689 ecr 61682778], length 0
+1794707267.539577 enP1598s1 Out IP (tos 0x0, ttl 64, id 40591, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6a68), ack 1, win 63, options [nop,nop,TS val 572113689 ecr 61682778], length 0
+1794707267.875577 eth0  Out IP (tos 0x0, ttl 64, id 35618, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x65c7), ack 1, win 63, options [nop,nop,TS val 68772795 ecr 61682586], length 0
+1794707267.875583 enP1598s1 Out IP (tos 0x0, ttl 64, id 35618, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x65c7), ack 1, win 63, options [nop,nop,TS val 68772795 ecr 61682586], length 0
+1794707267.939569 eth0  Out IP (tos 0x0, ttl 64, id 62254, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x35d9), ack 1, win 63, options [nop,nop,TS val 4030300592 ecr 61682650], length 0
+1794707267.939575 enP1598s1 Out IP (tos 0x0, ttl 64, id 62254, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38786 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x35d9), ack 1, win 63, options [nop,nop,TS val 4030300592 ecr 61682650], length 0
+1794707268.003569 eth0  Out IP (tos 0x0, ttl 64, id 62241, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x5628), ack 1, win 63, options [nop,nop,TS val 109313050 ecr 61682714], length 0
+1794707268.003573 enP1598s1 Out IP (tos 0x0, ttl 64, id 62241, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x5628), ack 1, win 63, options [nop,nop,TS val 109313050 ecr 61682714], length 0
+1794707268.131576 eth0  Out IP (tos 0x0, ttl 64, id 40592, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6818), ack 1, win 63, options [nop,nop,TS val 572114281 ecr 61682778], length 0
+1794707268.131581 enP1598s1 Out IP (tos 0x0, ttl 64, id 40592, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38816 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6818), ack 1, win 63, options [nop,nop,TS val 572114281 ecr 61682778], length 0
+1794707269.027576 eth0  Out IP (tos 0x0, ttl 64, id 35619, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6147), ack 1, win 63, options [nop,nop,TS val 68773947 ecr 61682586], length 0
+1794707269.027583 enP1598s1 Out IP (tos 0x0, ttl 64, id 35619, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38784 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x6147), ack 1, win 63, options [nop,nop,TS val 68773947 ecr 61682586], length 0
+1794707269.091586 eth0  Out IP (tos 0x0, ttl 64, id 62242, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.38800 > 51.81.167.44.443: Flags [.], cksum 0xe55c (incorrect -> 0x51e8), ack 1, win 63, options [nop,nop,TS val 109314138 ecr 61682714], length 0
+=================== 167.114.211.86
+tcp-only, three connects before anything else: connected 22 ms | connected 20 ms | connected 20 ms
+node tls, default hello, 4 s cap: tcp ok 27 ms, tls ok 25 ms TLSv1.3
+--- curl -v, default hello, 10 s cap
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [1573 bytes data]
+* SSL Trust Anchors:
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.3 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted http/1.1
+* SSL certificate verified via OpenSSL.
+} [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+* Connection #0 to host api.open-meteo.com:443 left intact
+HTTP 200 connect=0.019455s tls=0.042506s total=0.063104s
+--- openssl s_client, 10 s cap
+Connecting to 167.114.211.86
+CONNECTION ESTABLISHED
+Protocol version: TLSv1.3
+Ciphersuite: TLS_AES_256_GCM_SHA384
+Peer certificate: CN=*.open-meteo.com
+Hash used: SHA256
+Signature type: ecdsa_secp256r1_sha256
+Verification: OK
+Peer Temp Key: X25519, 253 bits
+DONE
+--- tcp-only, three connects after the others
+connected 23 ms | connected 20 ms | connected 19 ms
+--- tcpdump of 167.114.211.86: 348 lines, the first 90
+libibverbs: Warning: couldn't open config directory '/etc/libibverbs.d'.
+tcpdump: WARNING: any: That device doesn't support promiscuous mode
+(Promiscuous mode not supported on the "any" device)
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+1794707298.521521 eth0  Out IP (tos 0x0, ttl 64, id 40972, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0xa2e4), seq 3079736946, win 64240, options [mss 1460,sackOK,TS val 1480483450 ecr 0,nop,wscale 10], length 0
+1794707298.521539 enP1598s1 Out IP (tos 0x0, ttl 64, id 40972, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0xa2e4), seq 3079736946, win 64240, options [mss 1460,sackOK,TS val 1480483450 ecr 0,nop,wscale 10], length 0
+1794707298.542004 enP1598s1 In  IP (tos 0x0, ttl 48, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41518: Flags [S.], cksum 0xe0a7 (correct), seq 2476618395, ack 3079736947, win 65160, options [mss 1460,sackOK,TS val 3279762655 ecr 1480483450,nop,wscale
+1794707298.542004 eth0  In  IP (tos 0x0, ttl 48, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41518: Flags [S.], cksum 0xe0a7 (correct), seq 2476618395, ack 3079736947, win 65160, options [mss 1460,sackOK,TS val 3279762655 ecr 1480483450,nop,wscale
+1794707298.542042 eth0  Out IP (tos 0x0, ttl 64, id 40973, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x0da9), ack 1, win 63, options [nop,nop,TS val 1480483471 ecr 3279762655], length 0
+1794707298.542043 enP1598s1 Out IP (tos 0x0, ttl 64, id 40973, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x0da9), ack 1, win 63, options [nop,nop,TS val 1480483471 ecr 3279762655], length 0
+1794707298.542591 eth0  Out IP (tos 0x0, ttl 64, id 40974, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0x0da7), seq 1, ack 1, win 63, options [nop,nop,TS val 1480483472 ecr 3279762655], length 0
+1794707298.542592 enP1598s1 Out IP (tos 0x0, ttl 64, id 40974, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0x0da7), seq 1, ack 1, win 63, options [nop,nop,TS val 1480483472 ecr 3279762655], length 0
+1794707298.543024 eth0  Out IP (tos 0x0, ttl 64, id 40912, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0x8d95), seq 2062719947, win 64240, options [mss 1460,sackOK,TS val 993084430 ecr 0,nop,wscale 10], length 0
+1794707298.543026 enP1598s1 Out IP (tos 0x0, ttl 64, id 40912, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0x8d95), seq 2062719947, win 64240, options [mss 1460,sackOK,TS val 993084430 ecr 0,nop,wscale 10], length 0
+1794707298.561179 enP1598s1 In  IP (tos 0x0, ttl 48, id 1332, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41518: Flags [F.], cksum 0x0bd3 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762675 ecr 1480483472], length 0
+1794707298.561179 eth0  In  IP (tos 0x0, ttl 48, id 1332, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41518: Flags [F.], cksum 0x0bd3 (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762675 ecr 1480483472], length 0
+1794707298.561205 eth0  Out IP (tos 0x0, ttl 64, id 40975, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x0d80), ack 2, win 63, options [nop,nop,TS val 1480483490 ecr 3279762675], length 0
+1794707298.561206 enP1598s1 Out IP (tos 0x0, ttl 64, id 40975, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41518 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x0d80), ack 2, win 63, options [nop,nop,TS val 1480483490 ecr 3279762675], length 0
+1794707298.562007 enP1598s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41532: Flags [S.], cksum 0x8fae (correct), seq 3371776214, ack 2062719948, win 65160, options [mss 1460,sackOK,TS val 3279762675 ecr 993084430,nop,wscale 
+1794707298.562007 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41532: Flags [S.], cksum 0x8fae (correct), seq 3371776214, ack 2062719948, win 65160, options [mss 1460,sackOK,TS val 3279762675 ecr 993084430,nop,wscale 
+1794707298.562030 eth0  Out IP (tos 0x0, ttl 64, id 40913, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xbcb1), ack 1, win 63, options [nop,nop,TS val 993084449 ecr 3279762675], length 0
+1794707298.562032 enP1598s1 Out IP (tos 0x0, ttl 64, id 40913, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xbcb1), ack 1, win 63, options [nop,nop,TS val 993084449 ecr 3279762675], length 0
+1794707298.562087 eth0  Out IP (tos 0x0, ttl 64, id 40914, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0xbcb0), seq 1, ack 1, win 63, options [nop,nop,TS val 993084449 ecr 3279762675], length 0
+1794707298.562088 enP1598s1 Out IP (tos 0x0, ttl 64, id 40914, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0xbcb0), seq 1, ack 1, win 63, options [nop,nop,TS val 993084449 ecr 3279762675], length 0
+1794707298.562316 eth0  Out IP (tos 0x0, ttl 64, id 53949, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0x0493), seq 2154146302, win 64240, options [mss 1460,sackOK,TS val 368238247 ecr 0,nop,wscale 10], length 0
+1794707298.562318 enP1598s1 Out IP (tos 0x0, ttl 64, id 53949, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0x0493), seq 2154146302, win 64240, options [mss 1460,sackOK,TS val 368238247 ecr 0,nop,wscale 10], length 0
+1794707298.580646 enP1598s1 In  IP (tos 0x0, ttl 49, id 22034, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41532: Flags [F.], cksum 0xbadd (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762694 ecr 993084449], length 0
+1794707298.580646 eth0  In  IP (tos 0x0, ttl 49, id 22034, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41532: Flags [F.], cksum 0xbadd (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762694 ecr 993084449], length 0
+1794707298.580660 eth0  Out IP (tos 0x0, ttl 64, id 40915, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xbc89), ack 2, win 63, options [nop,nop,TS val 993084468 ecr 3279762694], length 0
+1794707298.580661 enP1598s1 Out IP (tos 0x0, ttl 64, id 40915, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41532 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xbc89), ack 2, win 63, options [nop,nop,TS val 993084468 ecr 3279762694], length 0
+1794707298.582053 enP1598s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41534: Flags [S.], cksum 0x3fbe (correct), seq 869373144, ack 2154146303, win 65160, options [mss 1460,sackOK,TS val 3279762695 ecr 368238247,nop,wscale 7
+1794707298.582053 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41534: Flags [S.], cksum 0x3fbe (correct), seq 869373144, ack 2154146303, win 65160, options [mss 1460,sackOK,TS val 3279762695 ecr 368238247,nop,wscale 7
+1794707298.582083 eth0  Out IP (tos 0x0, ttl 64, id 53950, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x6cc0), ack 1, win 63, options [nop,nop,TS val 368238267 ecr 3279762695], length 0
+1794707298.582085 enP1598s1 Out IP (tos 0x0, ttl 64, id 53950, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x6cc0), ack 1, win 63, options [nop,nop,TS val 368238267 ecr 3279762695], length 0
+1794707298.582179 eth0  Out IP (tos 0x0, ttl 64, id 53951, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0x6cbf), seq 1, ack 1, win 63, options [nop,nop,TS val 368238267 ecr 3279762695], length 0
+1794707298.582180 enP1598s1 Out IP (tos 0x0, ttl 64, id 53951, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [F.], cksum 0x85a8 (incorrect -> 0x6cbf), seq 1, ack 1, win 63, options [nop,nop,TS val 368238267 ecr 3279762695], length 0
+1794707298.588138 eth0  Out IP (tos 0x0, ttl 64, id 46275, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41536 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0xe989), seq 1586637715, win 64240, options [mss 1460,sackOK,TS val 645302633 ecr 0,nop,wscale 10], length 0
+1794707298.588141 enP1598s1 Out IP (tos 0x0, ttl 64, id 46275, offset 0, flags [DF], proto TCP (6), length 60)
+    10.1.0.184.41536 > 167.114.211.86.443: Flags [S], cksum 0x85b0 (incorrect -> 0xe989), seq 1586637715, win 64240, options [mss 1460,sackOK,TS val 645302633 ecr 0,nop,wscale 10], length 0
+1794707298.600919 enP1598s1 In  IP (tos 0x0, ttl 49, id 1050, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41534: Flags [F.], cksum 0x6aec (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762714 ecr 368238267], length 0
+1794707298.600919 eth0  In  IP (tos 0x0, ttl 49, id 1050, offset 0, flags [DF], proto TCP (6), length 52)
+    167.114.211.86.443 > 10.1.0.184.41534: Flags [F.], cksum 0x6aec (correct), seq 1, ack 2, win 510, options [nop,nop,TS val 3279762714 ecr 368238267], length 0
+1794707298.600946 eth0  Out IP (tos 0x0, ttl 64, id 53952, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x6c98), ack 2, win 63, options [nop,nop,TS val 368238286 ecr 3279762714], length 0
+1794707298.600948 enP1598s1 Out IP (tos 0x0, ttl 64, id 53952, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41534 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0x6c98), ack 2, win 63, options [nop,nop,TS val 368238286 ecr 3279762714], length 0
+1794707298.608806 enP1598s1 In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41536: Flags [S.], cksum 0xa779 (correct), seq 353120448, ack 1586637716, win 65160, options [mss 1460,sackOK,TS val 3279762720 ecr 645302633,nop,wscale 7
+1794707298.608806 eth0  In  IP (tos 0x0, ttl 49, id 0, offset 0, flags [DF], proto TCP (6), length 60)
+    167.114.211.86.443 > 10.1.0.184.41536: Flags [S.], cksum 0xa779 (correct), seq 353120448, ack 1586637716, win 65160, options [mss 1460,sackOK,TS val 3279762720 ecr 645302633,nop,wscale 7
+1794707298.608829 eth0  Out IP (tos 0x0, ttl 64, id 46276, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41536 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xd47a), ack 1, win 63, options [nop,nop,TS val 645302654 ecr 3279762720], length 0
+1794707298.608830 enP1598s1 Out IP (tos 0x0, ttl 64, id 46276, offset 0, flags [DF], proto TCP (6), length 52)
+    10.1.0.184.41536 > 167.114.211.86.443: Flags [.], cksum 0x85a8 (incorrect -> 0xd47a), ack 1, win 63, options [nop,nop,TS val 645302654 ecr 3279762720], length 0
+1794707298.609162 eth0  Out IP (tos 0x0, ttl 64, id 46277, offset 0, flags [DF], proto TCP (6), length 1662)
+    10.1.0.184.41536 > 167.114.211.86.443: Flags [P.], cksum 0x8bf2 (incorrect -> 0x8b18), seq 1:1611, ack 1, win 63, options [nop,nop,TS val 645302654 ecr 3279762720], length 1610
+
+######## run 43665722193 [doh-fixtures] region centralus #########################################################
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.com&type=A&edns_client_subnet=20.80.173.0%2F24
+  RESULT: HTTP 200, 285 bytes
+  --- first 400 bytes ---
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"51.81.167.44"}],"edns_client_subnet":"20.80.173.0/24","Comment":"Response from 2400:52e0:fff0::1."}
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.com&type=A&edns_client_subnet=68.220.172.0%2F24
+  RESULT: HTTP 200, 242 bytes
+  --- first 400 bytes ---
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":258,"data":"167.114.211.86"}],"edns_client_subnet":"68.220.172.0/24"}
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.com&type=A
+  RESULT: HTTP 200, 245 bytes
+  --- first 400 bytes ---
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":1}],"Answer":[{"name":"api.open-meteo.com.","type":1,"TTL":1800,"data":"167.114.211.86"}],"Comment":"Response from 109.104.147.1."}
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.invalid&type=A
+  RESULT: HTTP 200, 255 bytes
+  --- first 400 bytes ---
+{"Status":3,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"api.open-meteo.invalid.","type":1}],"Authority":[{"name":".","type":6,"TTL":86278,"data":"a.root-servers.net. nstld.verisign-grs.com. 2026111401 1800 900 604800 86400"}]}
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.com&type=AAAA
+  RESULT: HTTP 200, 317 bytes
+  --- first 400 bytes ---
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"api.open-meteo.com.","type":28}],"Authority":[{"name":"api.open-meteo.com.","type":6,"TTL":900,"data":"geo-ns01.open-meteo.com. info.open-meteo.com. 2022067441 7200 900 1209600 86400"}],"Comment":"Response from 2400:52e0:fff0::1."}
+==============================================================
+GET https://8.8.8.8/resolve?name=www.github.com&type=A
+  RESULT: HTTP 200, 297 bytes
+  --- first 400 bytes ---
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"www.github.com.","type":1}],"Answer":[{"name":"www.github.com.","type":5,"TTL":1666,"data":"github.com."},{"name":"github.com.","type":1,"TTL":60,"data":"140.82.114.3"}],"Comment":"Response from 205.251.197.3."}
+==============================================================
+GET https://8.8.8.8/resolve?name=api.open-meteo.com&type=A&edns_client_subnet=not-a-subnet
+  RESULT: HTTP 400, 1668 bytes
+  --- first 400 bytes ---
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 400 (Bad Request)!!1</title>
+  <style>
+    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#222;padding:15px}body{margin:7% auto 0;max-width:390px;min-height:180px;padding:30px 0 15px}* > body{background
+  ^ non-2xx
+##[error]Process completed with exit code 1.
+
+## Local measurement (the authoring sandbox, Node v22.23.4, not a runner): does Node's fetch send the same ClientHello as tls.connect with ALPN http/1.1?
+
+command: node hello2.mjs (source in the appendix); exit status 0
+classical {"recordLen":366,"nCipher":52,"exts":[65281,0,11,10,35,16,22,23,13,43,45,51],"sni":"localhost","groups":[29,23,24],"alpn":["http/1.1"],"keyShares":[29]}
+node v22.23.4 openssl 3.5.9
+fetch   {"recordLen":1596,"nCipher":52,"exts":[65281,0,11,10,35,16,22,23,13,43,45,51],"sni":"localhost","groups":[4588,29,23,30,24,25,256,257],"alpn":["http/1.1"],"keyShares":[4588,29]}
+tls     {"recordLen":1596,"nCipher":52,"exts":[65281,0,11,10,35,16,22,23,13,43,45,51],"sni":"localhost","groups":[4588,29,23,30,24,25,256,257],"alpn":["http/1.1"],"keyShares":[4588,29]}
+same cipher count: true | same extension order: true | same SNI: true | same ALPN: true | same groups: true | same key-share groups: true | record length fetch/tls: 1596 1596
+
+## Appendix: the scripts that ran
+
+---------- v1 (commit 493d8d88, workflow probe-url.yml on branch tls-premise; the script is inside its `run:` block) ----------
+// One-off premise probe for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). It runs on a throwaway branch and is never merged.
+// It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
+//   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
+//   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
+//   3. what the zone's own nameservers answer (the set a resolver could be handed);
+//   4. for every address found: three TLS handshakes with the host's name as SNI (connect and handshake timed apart), and two pinned requests.
+import dns from 'node:dns';
+import tls from 'node:tls';
+import https from 'node:https';
+
+const HOST = 'api.open-meteo.com';
+const PATH = '/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto';
+const PUBLIC = ['1.1.1.1', '8.8.8.8', '9.9.9.9'];
+const say = (key, value) => console.log(`${key}: ${value}`);
+const codeOf = (e) => e?.code ?? e?.cause?.code ?? e?.name ?? 'error';
+const clip = (s, n = 300) => (String(s).length > n ? `${String(s).slice(0, n)}...` : String(s));
+const ms = (t0) => Date.now() - t0;
+
+setTimeout(() => { say('global-cap', 'reached 150000 ms, exiting'); process.exit(0); }, 150000).unref();
+
+async function asked(label, fn) {
+  const t0 = Date.now();
+  try { const v = await fn(); say(label, `${ms(t0)} ms ${clip(JSON.stringify(v), 400)}`); return v; }
+  catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.message ?? e, 160)}`); return null; }
+}
+
+say('node', process.version);
+say('system-resolvers', JSON.stringify(dns.getServers()));
+
+// 1. the system resolver
+const found = new Map();            // address -> set of sources
+const note = (addr, source) => { if (!found.has(addr)) found.set(addr, new Set()); found.get(addr).add(source); };
+for (const family of [4, 6]) {
+  const r = await asked(`system-v${family}`, () => dns.promises.lookup(HOST, { family, all: true }));
+  for (const a of r ?? []) if (a.family === family) note(a.address, 'system');
+}
+
+// 2. a public resolver, by plain DNS (c-ares)
+for (const server of PUBLIC) {
+  for (const [name, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const resolver = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+    resolver.setServers([server]);
+    const r = await asked(`c-ares ${server} ${name}`, () => resolver[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `c-ares ${server}`);
+  }
+}
+
+// 2b. the same question by DNS-over-HTTPS JSON, with and without the header
+for (const [label, url, headers] of [
+  ['doh 1.1.1.1 with accept header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, { accept: 'application/dns-json' }],
+  ['doh 1.1.1.1 without header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, {}],
+  ['doh 8.8.8.8 /resolve', `https://8.8.8.8/resolve?name=${HOST}&type=A`, {}],
+]) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
+    const body = await res.text();
+    say(label, `${ms(t0)} ms HTTP ${res.status} ${body.length} bytes content-type ${res.headers.get('content-type')} body ${clip(body, 420)}`);
+  } catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+}
+
+// 3. the zone's own nameservers
+const via = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+via.setServers(['1.1.1.1']);
+const ns = (await asked('ns open-meteo.com', () => via.resolveNs('open-meteo.com'))) ?? [];
+for (const name of ns.slice(0, 4)) {
+  const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+  if (!ips[0]) continue;
+  const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+  direct.setServers([ips[0]]);
+  for (const [rr, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const r = await asked(`authoritative ${name} ${ips[0]} ${rr}`, () => direct[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+  }
+}
+
+// 4. every address found
+const addresses = [...found.keys()];
+say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
+
+function tlsOnce(address, capMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    let tConnect = null;
+    const socket = tls.connect({ host: address, port: 443, servername: HOST });
+    const finish = (verdict) => { socket.destroy(); resolve(verdict); };
+    const timer = setTimeout(() => finish(tConnect === null ? `tcp no-answer-in-${capMs}ms` : `tcp ok ${tConnect} ms, tls no-answer-in-${capMs}ms`), capMs);
+    socket.once('connect', () => { tConnect = ms(t0); });
+    socket.once('secureConnect', () => {
+      clearTimeout(timer);
+      const cert = socket.getPeerCertificate();
+      finish(`tcp ok ${tConnect} ms, tls ok ${ms(t0) - tConnect} ms ${socket.getProtocol()} authorized=${socket.authorized} cn=${cert?.subject?.CN ?? '?'} fp=${String(cert?.fingerprint256 ?? '?').slice(0, 11)}`);
+    });
+    socket.once('error', (e) => { clearTimeout(timer); finish(tConnect === null ? `tcp ${codeOf(e)}` : `tcp ok ${tConnect} ms, tls ${codeOf(e)} ${clip(e.message, 80)}`); });
+  });
+}
+
+function pinnedGet(address, capMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const family = address.includes(':') ? 6 : 4;
+    const lookup = (_host, options, cb) => (options?.all ? cb(null, [{ address, family }]) : cb(null, address, family));
+    const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' } }, (res) => {
+      let n = 0;
+      res.on('data', (c) => { n += c.length; });
+      res.on('end', () => resolve(`HTTP ${res.statusCode} ${n} bytes ${ms(t0)} ms`));
+      res.on('error', (e) => resolve(`response ${codeOf(e)} after ${ms(t0)} ms`));
+    });
+    req.once('timeout', () => { req.destroy(); resolve(`no-answer-in-${capMs}ms`); });
+    req.once('error', (e) => resolve(`${codeOf(e)} after ${ms(t0)} ms`));
+  });
+}
+
+await Promise.all(addresses.map(async (address) => {
+  const handshakes = [];
+  for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000)); await new Promise((r) => setTimeout(r, 300)); }
+  const requests = [];
+  for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000));
+  say(`address ${address} [${[...found.get(address)].join('; ')}]`, '');
+  handshakes.forEach((h, i) => say(`  tls ${i + 1}`, h));
+  requests.forEach((r, i) => say(`  pinned request ${i + 1}`, r));
+}));
+
+say('coverage', `checked ${addresses.length} of ${addresses.length} addresses found by the system resolver, three public resolvers and the zone's nameservers`);
+process.exit(0);
+
+---------- v2 (commit 0fca629f) ----------
+// One-off premise probe (second version) for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). The first run (centralus) found one address from every resolver;
+// this one adds the two addresses the committed artifacts record, the host's delegation, what the zone answers for other client subnets, and the runner's own egress. It runs on a throwaway branch and is never merged.
+// It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
+//   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
+//   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
+//   3. what the zone's own nameservers answer (the set a resolver could be handed);
+//   4. for every address found: three TLS handshakes with the host's name as SNI (connect and handshake timed apart), and two pinned requests.
+import dns from 'node:dns';
+import tls from 'node:tls';
+import https from 'node:https';
+
+const HOST = 'api.open-meteo.com';
+const PATH = '/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto';
+const PUBLIC = ['1.1.1.1', '8.8.8.8', '9.9.9.9'];
+const say = (key, value) => console.log(`${key}: ${value}`);
+const codeOf = (e) => e?.code ?? e?.cause?.code ?? e?.name ?? 'error';
+const clip = (s, n = 300) => (String(s).length > n ? `${String(s).slice(0, n)}...` : String(s));
+const ms = (t0) => Date.now() - t0;
+
+setTimeout(() => { say('global-cap', 'reached 240000 ms, exiting'); process.exit(0); }, 240000).unref();
+
+async function asked(label, fn) {
+  const t0 = Date.now();
+  try { const v = await fn(); say(label, `${ms(t0)} ms ${clip(JSON.stringify(v), 400)}`); return v; }
+  catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.message ?? e, 160)}`); return null; }
+}
+
+say('node', process.version);
+say('system-resolvers', JSON.stringify(dns.getServers()));
+
+// 1. the system resolver
+const found = new Map();            // address -> set of sources
+const note = (addr, source) => { if (!found.has(addr)) found.set(addr, new Set()); found.get(addr).add(source); };
+for (const family of [4, 6]) {
+  const r = await asked(`system-v${family}`, () => dns.promises.lookup(HOST, { family, all: true }));
+  for (const a of r ?? []) if (a.family === family) note(a.address, 'system');
+}
+
+// 2. a public resolver, by plain DNS (c-ares)
+for (const server of PUBLIC) {
+  for (const [name, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const resolver = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+    resolver.setServers([server]);
+    const r = await asked(`c-ares ${server} ${name}`, () => resolver[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `c-ares ${server}`);
+  }
+}
+
+// 2b. the same question by DNS-over-HTTPS JSON, with and without the header
+for (const [label, url, headers] of [
+  ['doh 1.1.1.1 with accept header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, { accept: 'application/dns-json' }],
+  ['doh 1.1.1.1 without header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, {}],
+  ['doh 8.8.8.8 /resolve', `https://8.8.8.8/resolve?name=${HOST}&type=A`, {}],
+]) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
+    const body = await res.text();
+    say(label, `${ms(t0)} ms HTTP ${res.status} ${body.length} bytes content-type ${res.headers.get('content-type')} body ${clip(body, 420)}`);
+  } catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+}
+
+// 3. the zone's own nameservers
+const via = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+via.setServers(['1.1.1.1']);
+const ns = (await asked('ns open-meteo.com', () => via.resolveNs('open-meteo.com'))) ?? [];
+for (const name of ns.slice(0, 4)) {
+  const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+  if (!ips[0]) continue;
+  const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+  direct.setServers([ips[0]]);
+  for (const [rr, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const r = await asked(`authoritative ${name} ${ips[0]} ${rr}`, () => direct[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+  }
+}
+
+// 3b. the delegation of the host itself (the zone's nameservers above answered no A for it)
+for (const [label, method] of [['ns', 'resolveNs'], ['cname', 'resolveCname'], ['soa', 'resolveSoa']]) await asked(`${label} ${HOST}`, () => via[method](HOST));
+const apiNs = (await asked('ns-list api', () => via.resolveNs(HOST))) ?? [];
+for (const name of apiNs.slice(0, 4)) {
+  const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+  if (!ips[0]) continue;
+  const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+  direct.setServers([ips[0]]);
+  const r = await asked(`authoritative ${name} ${ips[0]} A`, () => direct.resolve4(HOST, { ttl: true }));
+  for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+}
+
+// 3c. what the zone answers for other client subnets (Google's JSON API takes edns_client_subnet). The subnets are the /24s of four runners'
+// own egress addresses as the committed artifacts recorded them, so each stands for the region that runner ran in; none is invented.
+for (const [label, subnet] of [
+  ['as westus2 20.80.173.98', '20.80.173.0/24'], ['as westus3 20.168.93.82', '20.168.93.0/24'],
+  ['as southcentralus 20.64.49.212', '20.64.49.0/24'], ['as eastus2 68.220.172.168', '68.220.172.0/24'], ['as none', '0.0.0.0/0'],
+]) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(`https://8.8.8.8/resolve?name=${HOST}&type=A&edns_client_subnet=${encodeURIComponent(subnet)}`, { signal: AbortSignal.timeout(5000) });
+    const j = JSON.parse(await res.text());
+    say(`ecs ${label} (${subnet})`, `${ms(t0)} ms HTTP ${res.status} status ${j.Status} answers ${JSON.stringify((j.Answer ?? []).map((a) => a.data))} ${j.Comment ?? ''}`);
+    for (const a of j.Answer ?? []) if (/^\d+\.\d+\.\d+\.\d+$/.test(a.data)) note(a.data, `ecs ${label}`);
+  } catch (e) { say(`ecs ${label} (${subnet})`, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+}
+
+// 3d. where this runner reaches the internet from, and which Cloudflare site answered (1.1.1.1 is anycast)
+try {
+  const t = await (await fetch('https://1.1.1.1/cdn-cgi/trace', { signal: AbortSignal.timeout(5000) })).text();
+  say('trace 1.1.1.1', t.split('\n').filter((l) => /^(ip|colo|loc|http|tls)=/.test(l)).join(' '));
+} catch (e) { say('trace 1.1.1.1', `ERR ${codeOf(e)}`); }
+
+// 3e. the two addresses the committed artifacts record DNS handing a runner, probed whatever DNS says now
+// (outbox/open-meteo-egress-2026-11-14T17-19-34-656Z.json and the live-check job logs 43620118846 and 43631078973)
+for (const known of ['167.114.211.86', '51.81.167.44']) note(known, 'recorded in committed artifacts');
+
+// 4. every address found
+const addresses = [...found.keys()];
+say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
+
+function tlsOnce(address, capMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    let tConnect = null;
+    const socket = tls.connect({ host: address, port: 443, servername: HOST });
+    const finish = (verdict) => { socket.destroy(); resolve(verdict); };
+    const timer = setTimeout(() => finish(tConnect === null ? `tcp no-answer-in-${capMs}ms` : `tcp ok ${tConnect} ms, tls no-answer-in-${capMs}ms`), capMs);
+    socket.once('connect', () => { tConnect = ms(t0); });
+    socket.once('secureConnect', () => {
+      clearTimeout(timer);
+      const cert = socket.getPeerCertificate();
+      finish(`tcp ok ${tConnect} ms, tls ok ${ms(t0) - tConnect} ms ${socket.getProtocol()} authorized=${socket.authorized} cn=${cert?.subject?.CN ?? '?'} fp=${String(cert?.fingerprint256 ?? '?').slice(0, 11)}`);
+    });
+    socket.once('error', (e) => { clearTimeout(timer); finish(tConnect === null ? `tcp ${codeOf(e)}` : `tcp ok ${tConnect} ms, tls ${codeOf(e)} ${clip(e.message, 80)}`); });
+  });
+}
+
+function pinnedGet(address, capMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const family = address.includes(':') ? 6 : 4;
+    const lookup = (_host, options, cb) => (options?.all ? cb(null, [{ address, family }]) : cb(null, address, family));
+    const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' } }, (res) => {
+      let n = 0;
+      res.on('data', (c) => { n += c.length; });
+      res.on('end', () => resolve(`HTTP ${res.statusCode} ${n} bytes ${ms(t0)} ms`));
+      res.on('error', (e) => resolve(`response ${codeOf(e)} after ${ms(t0)} ms`));
+    });
+    req.once('timeout', () => { req.destroy(); resolve(`no-answer-in-${capMs}ms`); });
+    req.once('error', (e) => resolve(`${codeOf(e)} after ${ms(t0)} ms`));
+  });
+}
+
+await Promise.all(addresses.map(async (address) => {
+  const handshakes = [];
+  for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000)); await new Promise((r) => setTimeout(r, 300)); }
+  const requests = [];
+  for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000));
+  say(`address ${address} [${[...found.get(address)].join('; ')}]`, '');
+  handshakes.forEach((h, i) => say(`  tls ${i + 1}`, h));
+  requests.forEach((r, i) => say(`  pinned request ${i + 1}`, r));
+}));
+
+say('coverage', `checked ${addresses.length} of ${addresses.length} addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts`);
+process.exit(0);
+
+---------- v3 (commit 33a21783) ----------
+// One-off premise probe (third version) for docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md (Rule 100). The first run (centralus) found one address from every resolver;
+// the second added the two addresses the committed artifacts record, the host's delegation, what the zone answers for other client subnets, and the runner's own egress. It found the west
+// address accepting TCP and never answering the handshake from four runners. Node 22.23.4 bundles OpenSSL 3.5.9, whose ClientHello carries the post-quantum hybrid key share X25519MLKEM768
+// and is 1596 bytes (measured on the authoring sandbox with a capture server: 1596 bytes, groups 4588,29,23,30,24,25,256,257); with ecdhCurve 'X25519:prime256v1:secp384r1' it is 366 bytes.
+// This version hands every address both hellos, by Node's TLS, by Node's https, and by curl (system OpenSSL), so a stall that follows the hello's size is told from one that follows the address. It runs on a throwaway branch and is never merged.
+// It measures, on whatever runner it lands on, the four things the TLS-stage design rests on, with the primitives the design would use:
+//   1. what the system resolver (getaddrinfo, the path fetch takes) answers for the host;
+//   2. what a public resolver answers, asked two ways: plain DNS through c-ares (UDP/53) and DNS-over-HTTPS JSON with the accept header;
+//   3. what the zone's own nameservers answer (the set a resolver could be handed);
+//   4. for every address found: three TLS handshakes with the host's name as SNI (connect and handshake timed apart), and two pinned requests.
+import dns from 'node:dns';
+import tls from 'node:tls';
+import https from 'node:https';
+import { spawnSync } from 'node:child_process';
+
+const HOST = 'api.open-meteo.com';
+const PATH = '/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto';
+const PUBLIC = ['1.1.1.1', '8.8.8.8', '9.9.9.9'];
+const say = (key, value) => console.log(`${key}: ${value}`);
+const codeOf = (e) => e?.code ?? e?.cause?.code ?? e?.name ?? 'error';
+const clip = (s, n = 300) => (String(s).length > n ? `${String(s).slice(0, n)}...` : String(s));
+const ms = (t0) => Date.now() - t0;
+
+setTimeout(() => { say('global-cap', 'reached 240000 ms, exiting'); process.exit(0); }, 240000).unref();
+
+async function asked(label, fn) {
+  const t0 = Date.now();
+  try { const v = await fn(); say(label, `${ms(t0)} ms ${clip(JSON.stringify(v), 400)}`); return v; }
+  catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.message ?? e, 160)}`); return null; }
+}
+
+say('node', process.version);
+say('system-resolvers', JSON.stringify(dns.getServers()));
+
+// 1. the system resolver
+const found = new Map();            // address -> set of sources
+const note = (addr, source) => { if (!found.has(addr)) found.set(addr, new Set()); found.get(addr).add(source); };
+for (const family of [4, 6]) {
+  const r = await asked(`system-v${family}`, () => dns.promises.lookup(HOST, { family, all: true }));
+  for (const a of r ?? []) if (a.family === family) note(a.address, 'system');
+}
+
+// 2. a public resolver, by plain DNS (c-ares)
+for (const server of PUBLIC) {
+  for (const [name, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const resolver = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+    resolver.setServers([server]);
+    const r = await asked(`c-ares ${server} ${name}`, () => resolver[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `c-ares ${server}`);
+  }
+}
+
+// 2b. the same question by DNS-over-HTTPS JSON, with and without the header
+for (const [label, url, headers] of [
+  ['doh 1.1.1.1 with accept header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, { accept: 'application/dns-json' }],
+  ['doh 1.1.1.1 without header', `https://1.1.1.1/dns-query?name=${HOST}&type=A`, {}],
+  ['doh 8.8.8.8 /resolve', `https://8.8.8.8/resolve?name=${HOST}&type=A`, {}],
+]) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(5000) });
+    const body = await res.text();
+    say(label, `${ms(t0)} ms HTTP ${res.status} ${body.length} bytes content-type ${res.headers.get('content-type')} body ${clip(body, 420)}`);
+  } catch (e) { say(label, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+}
+
+// 3. the zone's own nameservers
+const via = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+via.setServers(['1.1.1.1']);
+const ns = (await asked('ns open-meteo.com', () => via.resolveNs('open-meteo.com'))) ?? [];
+for (const name of ns.slice(0, 4)) {
+  const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+  if (!ips[0]) continue;
+  const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+  direct.setServers([ips[0]]);
+  for (const [rr, method] of [['A', 'resolve4'], ['AAAA', 'resolve6']]) {
+    const r = await asked(`authoritative ${name} ${ips[0]} ${rr}`, () => direct[method](HOST, { ttl: true }));
+    for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+  }
+}
+
+// 3b. the delegation of the host itself (the zone's nameservers above answered no A for it)
+for (const [label, method] of [['ns', 'resolveNs'], ['cname', 'resolveCname'], ['soa', 'resolveSoa']]) await asked(`${label} ${HOST}`, () => via[method](HOST));
+const apiNs = (await asked('ns-list api', () => via.resolveNs(HOST))) ?? [];
+for (const name of apiNs.slice(0, 4)) {
+  const ips = (await asked(`ns-address ${name}`, () => via.resolve4(name))) ?? [];
+  if (!ips[0]) continue;
+  const direct = new dns.promises.Resolver({ timeout: 2000, tries: 2 });
+  direct.setServers([ips[0]]);
+  const r = await asked(`authoritative ${name} ${ips[0]} A`, () => direct.resolve4(HOST, { ttl: true }));
+  for (const a of r ?? []) note(a.address, `authoritative ${name}`);
+}
+
+// 3c. what the zone answers for other client subnets (Google's JSON API takes edns_client_subnet). The subnets are the /24s of four runners'
+// own egress addresses as the committed artifacts recorded them, so each stands for the region that runner ran in; none is invented.
+for (const [label, subnet] of [
+  ['as westus2 20.80.173.98', '20.80.173.0/24'], ['as westus3 20.168.93.82', '20.168.93.0/24'],
+  ['as southcentralus 20.64.49.212', '20.64.49.0/24'], ['as eastus2 68.220.172.168', '68.220.172.0/24'], ['as none', '0.0.0.0/0'],
+]) {
+  const t0 = Date.now();
+  try {
+    const res = await fetch(`https://8.8.8.8/resolve?name=${HOST}&type=A&edns_client_subnet=${encodeURIComponent(subnet)}`, { signal: AbortSignal.timeout(5000) });
+    const j = JSON.parse(await res.text());
+    say(`ecs ${label} (${subnet})`, `${ms(t0)} ms HTTP ${res.status} status ${j.Status} answers ${JSON.stringify((j.Answer ?? []).map((a) => a.data))} ${j.Comment ?? ''}`);
+    for (const a of j.Answer ?? []) if (/^\d+\.\d+\.\d+\.\d+$/.test(a.data)) note(a.data, `ecs ${label}`);
+  } catch (e) { say(`ecs ${label} (${subnet})`, `${ms(t0)} ms ERR ${codeOf(e)} ${clip(e?.cause?.message ?? e?.message ?? e, 160)}`); }
+}
+
+// 3d. where this runner reaches the internet from, and which Cloudflare site answered (1.1.1.1 is anycast)
+try {
+  const t = await (await fetch('https://1.1.1.1/cdn-cgi/trace', { signal: AbortSignal.timeout(5000) })).text();
+  say('trace 1.1.1.1', t.split('\n').filter((l) => /^(ip|colo|loc|http|tls)=/.test(l)).join(' '));
+} catch (e) { say('trace 1.1.1.1', `ERR ${codeOf(e)}`); }
+
+// 3e. the two addresses the committed artifacts record DNS handing a runner, probed whatever DNS says now
+// (outbox/open-meteo-egress-2026-11-14T17-19-34-656Z.json and the live-check job logs 43620118846 and 43631078973)
+for (const known of ['167.114.211.86', '51.81.167.44']) note(known, 'recorded in committed artifacts');
+
+// 4. every address found
+const addresses = [...found.keys()];
+say('addresses', `${addresses.length} found: ${addresses.map((a) => `${a} [${[...found.get(a)].join('; ')}]`).join(' | ') || 'none'}`);
+
+const CLASSICAL = 'X25519:prime256v1:secp384r1';
+function tlsOnce(address, capMs, extra = {}) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    let tConnect = null;
+    const socket = tls.connect({ host: address, port: 443, servername: HOST, ALPNProtocols: ['http/1.1'], ...extra });
+    const finish = (verdict) => { socket.destroy(); resolve(verdict); };
+    const timer = setTimeout(() => finish(tConnect === null ? `tcp no-answer-in-${capMs}ms` : `tcp ok ${tConnect} ms, tls no-answer-in-${capMs}ms`), capMs);
+    socket.once('connect', () => { tConnect = ms(t0); });
+    socket.once('secureConnect', () => {
+      clearTimeout(timer);
+      const cert = socket.getPeerCertificate();
+      finish(`tcp ok ${tConnect} ms, tls ok ${ms(t0) - tConnect} ms ${socket.getProtocol()} authorized=${socket.authorized} cn=${cert?.subject?.CN ?? '?'} fp=${String(cert?.fingerprint256 ?? '?').slice(0, 11)}`);
+    });
+    socket.once('error', (e) => { clearTimeout(timer); finish(tConnect === null ? `tcp ${codeOf(e)}` : `tcp ok ${tConnect} ms, tls ${codeOf(e)} ${clip(e.message, 80)}`); });
+  });
+}
+
+function pinnedGet(address, capMs, extra = {}) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const family = address.includes(':') ? 6 : 4;
+    const lookup = (_host, options, cb) => (options?.all ? cb(null, [{ address, family }]) : cb(null, address, family));
+    const req = https.get({ host: HOST, path: PATH, lookup, timeout: capMs, headers: { accept: 'application/json' }, ...extra }, (res) => {
+      let n = 0;
+      res.on('data', (c) => { n += c.length; });
+      res.on('end', () => resolve(`HTTP ${res.statusCode} ${n} bytes ${ms(t0)} ms`));
+      res.on('error', (e) => resolve(`response ${codeOf(e)} after ${ms(t0)} ms`));
+    });
+    req.once('timeout', () => { req.destroy(); resolve(`no-answer-in-${capMs}ms`); });
+    req.once('error', (e) => resolve(`${codeOf(e)} after ${ms(t0)} ms`));
+  });
+}
+
+const tool = (cmd, args) => { const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 25000 }); return `${(r.stdout || '').trim()} ${(r.stderr || '').trim().slice(0, 140)} exit=${r.status}`.trim(); };
+say('curl', tool('sh', ['-c', 'curl --version | head -1']));
+say('openssl cli', tool('openssl', ['version']));
+const curl = (address, curves) => tool('curl', ['-sS', '-m', '12', '--resolve', `${HOST}:443:${address}`, ...(curves ? ['--curves', curves] : []), '-o', '/dev/null', '-w', 'HTTP %{http_code} connect=%{time_connect}s tls=%{time_appconnect}s total=%{time_total}s', `https://${HOST}${PATH}`]);
+
+await Promise.all(addresses.map(async (address) => {
+  const rows = [];
+  for (const [label, extra] of [['default hello (1596 B, with X25519MLKEM768)', {}], [`classical hello (366 B, ${CLASSICAL})`, { ecdhCurve: CLASSICAL }]]) {
+    const handshakes = [];
+    for (let i = 0; i < 3; i++) { handshakes.push(await tlsOnce(address, 5000, extra)); await new Promise((r) => setTimeout(r, 300)); }
+    const requests = [];
+    for (let i = 0; i < 2; i++) requests.push(await pinnedGet(address, 10000, extra));
+    rows.push([`node ${label}`, handshakes.map((h, i) => `tls ${i + 1}: ${h}`).concat(requests.map((r, i) => `pinned request ${i + 1}: ${r}`))]);
+  }
+  rows.push(['curl default hello', [1, 2].map((i) => `try ${i}: ${curl(address)}`)]);
+  rows.push(['curl classical hello (--curves X25519:P-256)', [1, 2].map((i) => `try ${i}: ${curl(address, 'X25519:P-256')}`)]);
+  say(`address ${address} [${[...found.get(address)].join('; ')}]`, '');
+  for (const [label, lines] of rows) { say(`  ${label}`, ''); lines.forEach((l) => say('    ', l)); }
+}));
+
+say('coverage', `checked ${addresses.length} of ${addresses.length} addresses: those found by the system resolver, three public resolvers, the zone's nameservers and five client subnets, plus the two recorded in committed artifacts`);
+process.exit(0);
+
+---------- v4 script (commit beb31891) ----------
+// What a TCP-only connect and one default-hello TLS handshake do to one address, from this runner. Run before and between curl, openssl and a packet capture.
+import net from 'node:net';
+import tls from 'node:tls';
+const address = process.argv[2];
+const ms = (t0) => Date.now() - t0;
+const tcpOnce = (cap) => new Promise((resolve) => {
+  const t0 = Date.now();
+  const s = net.connect({ host: address, port: 443 });
+  const done = (v) => { s.destroy(); resolve(v); };
+  const t = setTimeout(() => done(`no-connect-in-${cap}ms`), cap);
+  s.once('connect', () => { clearTimeout(t); done(`connected ${ms(t0)} ms`); });
+  s.once('error', (e) => { clearTimeout(t); done(e.code ?? 'error'); });
+});
+const tlsOnce = (cap) => new Promise((resolve) => {
+  const t0 = Date.now();
+  let tcp = null;
+  const s = tls.connect({ host: address, port: 443, servername: 'api.open-meteo.com', ALPNProtocols: ['http/1.1'] });
+  const done = (v) => { s.destroy(); resolve(v); };
+  const t = setTimeout(() => done(tcp === null ? `tcp no-connect-in-${cap}ms` : `tcp ok ${tcp} ms, tls no-answer-in-${cap}ms`), cap);
+  s.once('connect', () => { tcp = ms(t0); });
+  s.once('secureConnect', () => { clearTimeout(t); done(`tcp ok ${tcp} ms, tls ok ${ms(t0) - tcp} ms ${s.getProtocol()}`); });
+  s.once('error', (e) => { clearTimeout(t); done(tcp === null ? `tcp ${e.code}` : `tcp ok ${tcp} ms, tls ${e.code ?? e.message}`); });
+});
+const before = []; for (let i = 0; i < 3; i++) before.push(await tcpOnce(3000));
+console.log(`tcp-only, three connects before anything else: ${before.join(' | ')}`);
+console.log(`node tls, default hello, 4 s cap: ${await tlsOnce(4000)}`);
+process.exit(0);
+
+---------- v4 step (the shell around it; commit beb31891) ----------
+          set +e
+          URL='https://api.open-meteo.com/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto'
+          echo "tcpdump: $(command -v tcpdump || echo absent); curl: $(curl --version | head -1 | cut -c1-60); openssl: $(openssl version)"
+          for ADDR in 51.81.167.44 167.114.211.86; do
+            echo "=================== $ADDR"
+            CAP="$RUNNER_TEMP/cap-$ADDR.txt"
+            : > "$CAP"
+            if command -v tcpdump >/dev/null 2>&1; then
+              sudo timeout --signal=INT 45 tcpdump -nn -tt -v -l -i any "tcp port 443 and host $ADDR" > "$CAP" 2>&1 &
+              sleep 2
+            fi
+            node "$RUNNER_TEMP/v4.mjs" "$ADDR"
+            echo "--- curl -v, default hello, 10 s cap"
+            curl -v -sS -m 10 --resolve "api.open-meteo.com:443:$ADDR" -o /dev/null -w 'HTTP %{http_code} connect=%{time_connect}s tls=%{time_appconnect}s total=%{time_total}s\n' "$URL" 2>&1 | grep -E '^\* (Trying|Connected|Connection|TLSv|ALPN|SSL|Operation)|^\} \[|^HTTP|^curl:' | cut -c1-170 | head -24
+            echo "--- openssl s_client, 10 s cap"
+            timeout 12 openssl s_client -connect "$ADDR:443" -servername api.open-meteo.com -brief < /dev/null 2>&1 | cut -c1-170 | head -14
+            echo "--- tcp-only, three connects after the others"
+            node -e 'const net=require("net");const a=process.argv[1];(async()=>{const r=[];for(let i=0;i<3;i++)r.push(await new Promise(res=>{const t0=Date.now();const s=net.connect({host:a,port:443});const d=v=>{s.destroy();res(v)};const t=setTimeout(()=>d("no-connect-in-3000ms"),3000);s.once("connect",()=>{clearTimeout(t);d("connected "+(Date.now()-t0)+" ms")});s.once("error",e=>{clearTimeout(t);d(e.code)})}));console.log(r.join(" | "));process.exit(0)})()' "$ADDR"
+            sleep 2
+            sudo pkill -INT tcpdump
+            sleep 1
+            echo "--- tcpdump of $ADDR: $(wc -l < "$CAP") lines, the first 90"
+            head -90 "$CAP" | cut -c1-190
+          done
+
+---------- hello2.mjs (the local ClientHello comparison; run in the sandbox, not on a runner) ----------
+import net from 'node:net';
+import tls from 'node:tls';
+
+// Parse the first TLS record of a ClientHello into the facts that could make a server stall: cipher count, extension order, SNI, ALPN, groups, record length.
+function parseHello(b) {
+  if (b[0] !== 0x16 || b[5] !== 0x01) return { error: `not a ClientHello (${b[0]},${b[5]})` };
+  let p = 5 + 4 + 2 + 32;                    // record header, handshake header, version, random
+  p += 1 + b[p];                             // session id
+  const nCipher = b.readUInt16BE(p) / 2; p += 2 + b.readUInt16BE(p);
+  p += 1 + b[p];                             // compression
+  const extEnd = p + 2 + b.readUInt16BE(p); p += 2;
+  const exts = [], facts = {};
+  while (p < extEnd) {
+    const type = b.readUInt16BE(p), len = b.readUInt16BE(p + 2), d = b.subarray(p + 4, p + 4 + len);
+    exts.push(type);
+    if (type === 0) facts.sni = d.subarray(5).toString();
+    if (type === 16) { const l = d.readUInt16BE(0); const out = []; let q = 2; while (q < 2 + l) { out.push(d.subarray(q + 1, q + 1 + d[q]).toString()); q += 1 + d[q]; } facts.alpn = out; }
+    if (type === 10) { const out = []; for (let q = 2; q < d.length; q += 2) out.push(d.readUInt16BE(q)); facts.groups = out; }
+    if (type === 51) { const out = []; let q = 2; while (q < d.length) { out.push(d.readUInt16BE(q)); q += 4 + d.readUInt16BE(q + 2); } facts.keyShares = out; }
+    p += 4 + len;
+  }
+  return { recordLen: b.readUInt16BE(3), nCipher, exts, ...facts };
+}
+
+const grab = () => new Promise(resolve => {
+  const got = [];
+  const server = net.createServer(s => { s.once('data', d => { got.push(d); s.destroy(); }); s.on('error', () => {}); });
+  server.listen(0, '127.0.0.1', () => resolve({ port: server.address().port, got, close: () => server.close() }));
+});
+
+const a = await grab();
+await fetch(`https://localhost:${a.port}/`, { signal: AbortSignal.timeout(1500) }).catch(() => {});
+await new Promise(r => setTimeout(r, 200));
+const viaFetch = a.got[0] ? parseHello(a.got[0]) : 'no bytes';
+a.close();
+
+const b = await grab();
+await new Promise(res => { const s = tls.connect({ host: '127.0.0.1', port: b.port, servername: 'localhost', ALPNProtocols: ['http/1.1'] }); s.on('error', () => res()); s.on('close', () => res()); setTimeout(res, 1500); });
+await new Promise(r => setTimeout(r, 200));
+const viaTls = b.got[0] ? parseHello(b.got[0]) : 'no bytes';
+b.close();
+
+const c = await grab();
+await new Promise(res => { const sk = tls.connect({ host: '127.0.0.1', port: c.port, servername: 'localhost', ALPNProtocols: ['http/1.1'], ecdhCurve: 'X25519:prime256v1:secp384r1' }); sk.on('error', () => res()); sk.on('close', () => res()); setTimeout(res, 1500); });
+await new Promise(r => setTimeout(r, 200));
+const viaClassical = c.got[0] ? parseHello(c.got[0]) : 'no bytes';
+c.close();
+console.log('classical', JSON.stringify(viaClassical));
+console.log('node', process.version, 'openssl', process.versions.openssl);
+console.log('fetch  ', JSON.stringify(viaFetch));
+console.log('tls    ', JSON.stringify(viaTls));
+const same = (k) => JSON.stringify(viaFetch?.[k]) === JSON.stringify(viaTls?.[k]);
+console.log('same cipher count:', same('nCipher'), '| same extension order:', same('exts'), '| same SNI:', same('sni'), '| same ALPN:', same('alpn'), '| same groups:', same('groups'), '| same key-share groups:', same('keyShares'), '| record length fetch/tls:', viaFetch?.recordLen, viaTls?.recordLen);
+process.exit(0);
+

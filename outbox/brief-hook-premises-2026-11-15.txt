@@ -1,0 +1,439 @@
+Premises of docs/CC-CMD-2026-11-15-brief-phase-card-identity.md and docs/CC-CMD-2026-11-15-hook-runs-the-workflow-guards.md, tested 2026-11-15.
+checked 6 of 6 red live-check runs; 16 red rows; passing rows whose printed card count the replay reproduced: 199 of 199 (differs on 0)
+own card of a red row printed as game_recap: 16 of 16
+Every block below is the command and its output, verbatim; sections A are about the brief-phase check, B about the hook, Z holds the script.
+
+
+==== A1. The two newest live-check runs are green, and the brief step says why (run 43707398981, 43708978645) ====
+-- run 43707398981: the brief step's own lines
+592:  slate 2026-11-15 — 26 game(s), 256 brief(s), 26 card(s)
+593:  final games carrying BOTH a during-play and an after-play brief: 0
+595:  NOT OBSERVABLE — no game on this slate carries both phases, so the
+596:  preference has nothing to choose between. This is not a pass.
+598:##[warning]brief-phase rule NOT OBSERVABLE on 2026-11-15
+-- run 43708978645: the brief step's own lines
+593:  slate 2026-11-15 — 26 game(s), 256 brief(s), 26 card(s)
+594:  final games carrying BOTH a during-play and an after-play brief: 0
+596:  NOT OBSERVABLE — no game on this slate carries both phases, so the
+597:  preference has nothing to choose between. This is not a pass.
+599:##[warning]brief-phase rule NOT OBSERVABLE on 2026-11-15
+
+
+==== A2. The card matcher replayed against the saved job logs of all six red runs (script verbatim in section Z1) ====
+-- run 43651541854
+log: live-check-43651541854.log  matcher: either team (||), the check's own
+cards parsed: 76; rows parsed: 16 (1 red, 15 passing)
+replay vs log, passing rows: checked 15 of 15; the replay's card count equals the printed one on 15, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Scheduled 2026-11-15T00:00Z (parsed 00:00)]
+
+-- run 43658647710
+log: live-check-43658647710.log  matcher: either team (||), the check's own
+cards parsed: 77; rows parsed: 31 (3 red, 28 passing)
+replay vs log, passing rows: checked 28 of 28; the replay's card count equals the printed one on 28, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Start time passed, no score served]
+
+RED ROW  Michigan @ Oregon   (game id CFB_2026-11-14_e401858523; the row's own card: "Michigan @ Oregon" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858523  Michigan @ Oregon  [Final]
+    PARTNER CFB_2026-11-14_e401858521  Washington @ Michigan St  [Start time passed, no score served]
+    PARTNER CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Start time passed, no score served]
+
+RED ROW  California @ Virginia   (game id CFB_2026-11-14_e401858295; the row's own card: "California @ Virginia" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858295  California @ Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401858299  Stanford @ Virginia Tech  [Start time passed, no score served]
+
+-- run 43669286520
+log: live-check-43669286520.log  matcher: either team (||), the check's own
+cards parsed: 77; rows parsed: 42 (3 red, 39 passing)
+replay vs log, passing rows: checked 39 of 39; the replay's card count equals the printed one on 39, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Start time passed, no score served]
+
+RED ROW  Michigan @ Oregon   (game id CFB_2026-11-14_e401858523; the row's own card: "Michigan @ Oregon" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858523  Michigan @ Oregon  [Final]
+    PARTNER CFB_2026-11-14_e401858521  Washington @ Michigan St  [Final]
+    PARTNER CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Final]
+
+RED ROW  California @ Virginia   (game id CFB_2026-11-14_e401858295; the row's own card: "California @ Virginia" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858295  California @ Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401858299  Stanford @ Virginia Tech  [Start time passed, no score served]
+
+-- run 43671813126
+log: live-check-43671813126.log  matcher: either team (||), the check's own
+cards parsed: 77; rows parsed: 42 (3 red, 39 passing)
+replay vs log, passing rows: checked 39 of 39; the replay's card count equals the printed one on 39, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Start time passed, no score served]
+
+RED ROW  Michigan @ Oregon   (game id CFB_2026-11-14_e401858523; the row's own card: "Michigan @ Oregon" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858523  Michigan @ Oregon  [Final]
+    PARTNER CFB_2026-11-14_e401858521  Washington @ Michigan St  [Final]
+    PARTNER CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Final]
+
+RED ROW  California @ Virginia   (game id CFB_2026-11-14_e401858295; the row's own card: "California @ Virginia" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858295  California @ Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401858299  Stanford @ Virginia Tech  [Start time passed, no score served]
+
+-- run 43673414837
+log: live-check-43673414837.log  matcher: either team (||), the check's own
+cards parsed: 77; rows parsed: 42 (3 red, 39 passing)
+replay vs log, passing rows: checked 39 of 39; the replay's card count equals the printed one on 39, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Start time passed, no score served]
+
+RED ROW  Michigan @ Oregon   (game id CFB_2026-11-14_e401858523; the row's own card: "Michigan @ Oregon" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858523  Michigan @ Oregon  [Final]
+    PARTNER CFB_2026-11-14_e401858521  Washington @ Michigan St  [Final]
+    PARTNER CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Final]
+
+RED ROW  California @ Virginia   (game id CFB_2026-11-14_e401858295; the row's own card: "California @ Virginia" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858295  California @ Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401858299  Stanford @ Virginia Tech  [Start time passed, no score served]
+
+-- run 43676533656
+log: live-check-43676533656.log  matcher: either team (||), the check's own
+cards parsed: 77; rows parsed: 42 (3 red, 39 passing)
+replay vs log, passing rows: checked 39 of 39; the replay's card count equals the printed one on 39, differs on 0
+
+RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+  cards the matcher takes for it: 2
+    OWN     CFB_2026-11-14_e401856889  Alabama @ Vanderbilt  [Final]
+    PARTNER CFB_2026-11-14_e401871100  Troy @ South Alabama  [Start time passed, no score served]
+
+RED ROW  Michigan @ Oregon   (game id CFB_2026-11-14_e401858523; the row's own card: "Michigan @ Oregon" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858523  Michigan @ Oregon  [Final]
+    PARTNER CFB_2026-11-14_e401858521  Washington @ Michigan St  [Final]
+    PARTNER CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Final]
+
+RED ROW  California @ Virginia   (game id CFB_2026-11-14_e401858295; the row's own card: "California @ Virginia" [Final])
+  cards the matcher takes for it: 3
+    OWN     CFB_2026-11-14_e401858295  California @ Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+    PARTNER CFB_2026-11-14_e401858299  Stanford @ Virginia Tech  [Start time passed, no score served]
+
+-- the two passing rows the check printed with a card count above 1, on a slate where those are different games (run 43676533656)
+ROW  Missouri @ Georgia   (passing; the check printed 4; the replay takes 4)
+    CFB_2026-11-14_e401858297  Georgia Tech @ Clemson  [Final]
+    CFB_2026-11-14_e401870796  New Mexico St @ Missouri St  [Final]
+    CFB_2026-11-14_e401856883  Missouri @ Georgia  [Final]
+    CFB_2026-11-14_e401869952  GA Southern @ Georgia St  [Final]
+
+ROW  Kansas @ West Virginia   (passing; the check printed 2; the replay takes 2)
+    CFB_2026-11-14_e401856862  Kansas St @ TCU  [Final]
+    CFB_2026-11-14_e401856861  Kansas @ West Virginia  [Final]
+
+ROW  Oregon St @ Boise St   (passing; the check printed 1; the replay takes 1)
+    CFB_2026-11-14_e401860914  Oregon St @ Boise St  [Final]
+
+-- NEGATIVE CONTROL on run 43676533656: the matcher requires BOTH teams (the replay must disagree with the log)
+CONTROL> log: live-check-43676533656.log  matcher: BOTH teams (&&)
+CONTROL> cards parsed: 77; rows parsed: 42 (3 red, 39 passing)
+CONTROL> replay vs log, passing rows: checked 39 of 39; the replay's card count equals the printed one on 37, differs on 2
+CONTROL>   DIFFERS  Missouri @ Georgia: log printed 4, replay found 1
+CONTROL>   DIFFERS  Kansas @ West Virginia: log printed 2, replay found 1
+CONTROL> 
+CONTROL> RED ROW  Alabama @ Vanderbilt   (game id CFB_2026-11-14_e401856889; the row's own card: "Alabama @ Vanderbilt" [Final])
+CONTROL>   cards the matcher takes for it: 1
+
+
+==== A3. What each red row printed for its OWN card, and the verdict text, in the six red runs ====
+-- run 43651541854
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+-- run 43658647710
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live, game_live  <-- 
+  card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+-- run 43669286520
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+-- run 43671813126
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+-- run 43673414837
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+-- run 43676533656
+  card teams="Alabama @ Vanderbilt" status="Final" kind="game_recap"
+  Alabama @ Vanderbilt  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="Michigan @ Oregon" status="Final" kind="game_recap"
+  Michigan @ Oregon  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+  card teams="California @ Virginia" status="Final" kind="game_recap"
+  California @ Virginia  game_recap  DURING-PLAY KIND ON A FINAL GAME: game_live  <-- 
+
+
+==== A4. The join key the page puts on every card, and who else already joins on it ====
+
+$ grep -nE 'data-game-id' src/Scoreboard.fs scripts/render-check.mjs scripts/lineups-card-lib.mjs scripts/live-score-probe.mjs scripts/spark-check.mjs | cut -c1-170
+src/Scoreboard.fs:538:    card.setAttribute("data-game-id", game.Id)
+scripts/render-check.mjs:96:  id: n.getAttribute('data-game-id'),
+scripts/lineups-card-lib.mjs:274:      id: card.getAttribute('data-game-id'),
+scripts/live-score-probe.mjs:429:          gameId: c.getAttribute('data-game-id'),
+scripts/spark-check.mjs:45:const card = `.desk-card[data-game-id="${arcGame.id}"]`
+[exit 0]
+
+
+==== A5. The page replays a past day: the query parameter, and the relay still serving 2026-11-14 ====
+
+$ sed -n '54,66p' src/Program.fs
+/// The date being viewed. `?date=YYYY-MM-DD` makes any day linkable and
+/// reloadable; the FIELD-zone day otherwise.
+///
+/// Said "today in UTC" until 2026-10-16, which was wrong twice over: this line
+/// has called `fieldToday ()` (ET) since `FieldDay` replaced `todayUtc()`, and
+/// the relay it claimed to match does not key in UTC either. A comment naming
+/// the exact zone the code below had stopped using survived because nothing
+/// reads a comment. Checked against the relay's own data, not its source: of
+/// 847 archive rows whose UTC and ET days differ, all 847 carry the ET day
+/// (measured 2026-10-20). Until 2026-10-19, 13 CFL rows carried the UTC day,
+/// from a writer since fixed.
+let private viewedDate () =
+    queryParam "date" |> Option.defaultValue (Desk.fieldDayIso (Desk.fieldToday ()))
+[exit 0]
+-- relay, read through the hand-off server (the sandbox cannot reach *.workers.dev), 2026-11-15 06:5x ET:
+probe_relay_route("/context/date/2026-11-14") -> status 200, contentType application/json, bodyBytes 339314 (the body is truncated by the tool)
+
+
+==== A6. Prior art: CC-CMDs that mention the brief-phase check or its verdict (BUILD-ON-A) ====
+
+$ ls docs/CC-CMD-*.md | wc -l
+71
+[exit 0]
+
+$ grep -lE 'brief-phase|brief phase|verdictForCards|live-on-final|during-play kind|DURING-PLAY KIND|briefKeyMatches' docs/CC-CMD-*.md
+docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md
+docs/CC-CMD-2026-11-11-soccer-live-scores.md
+docs/CC-CMD-2026-11-15-brief-phase-card-identity.md
+[exit 0]
+
+$ grep -rlE 'brief-phase-live-check' outbox | sort
+outbox/brief-hook-premises-2026-11-15.txt
+outbox/cc-no-card-was-two-failures-2026-08-31.md
+outbox/cc-session-2026-10-19-precommit-hook-needs-build.md
+outbox/cc-session-2026-11-08-epl-forecast-on-cards.md
+outbox/cc-the-phase-rule-verified-live-2026-08-29.md
+outbox/cc-the-relay-serves-one-fixture-twice-2026-08-31.md
+outbox/cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md
+[exit 0]
+
+
+==== B1. Guards that parse workflow YAML, and every local caller of each ====
+
+$ grep -lE '^\s*(import yaml|from yaml)' scripts/*.py
+scripts/check-browser-gate.py
+scripts/check-push-lands.py
+[exit 0]
+
+$ grep -nE 'check-browser-gate|check-push-lands' .githooks/pre-commit package.json scripts/gate-checks.mjs scripts/confidence.mjs
+package.json:24:    "check:browser-gate": "python3 scripts/check-browser-gate.py --self-test && python3 scripts/check-browser-gate.py",
+[exit 0]
+
+$ grep -nE 'check-browser-gate|check-push-lands' .github/workflows/*.yml | cut -c1-150
+.github/workflows/live-check.yml:101:      # never green with the deployed page's browser checks skipped. scripts/check-browser-gate.py (job `browser-
+.github/workflows/live-check.yml:325:      # skipped. The outcome comes in through `env:`; scripts/check-browser-gate.py RUNS this script under `bash 
+.github/workflows/open-meteo-egress-probe.yml:150:      # It is not an `if:` because this step has to run after a failed install too (it commits the v
+.github/workflows/verify-full.yml:317:          # 0: verify the push landed (scripts/check-push-lands.py requires this).
+.github/workflows/verify.yml:71:          python3 scripts/check-push-lands.py --self-test
+.github/workflows/verify.yml:73:          python3 scripts/check-push-lands.py
+.github/workflows/verify.yml:87:          python3 scripts/check-browser-gate.py --self-test
+.github/workflows/verify.yml:88:          python3 scripts/check-browser-gate.py
+.github/workflows/verify.yml:334:      # the install did not succeed, so it is never green with the browser steps skipped. scripts/check-browser-gate.
+.github/workflows/verify.yml:1409:      # echo, `exit N` and `[ ]` comparisons of the outcome: scripts/check-browser-gate.py RUNS it under `bash -e` (
+[exit 0]
+
+
+==== B2. What each costs, measured on this machine ====
+
+$ bash -c 'time python3 scripts/check-browser-gate.py >/dev/null' 2>&1 | grep real
+real	0m1.128s
+[exit 0]
+
+$ bash -c 'time python3 scripts/check-browser-gate.py --self-test | tail -1' 2>&1 | grep -E 'real|checks passed'
+262/262 checks passed
+real	0m2.539s
+[exit 0]
+
+$ bash -c 'time (python3 scripts/check-push-lands.py --self-test | tail -1; python3 scripts/check-push-lands.py | tail -1)' 2>&1 | grep -E 'real|checks|OK:'
+OK: all 26 push-retry loop(s) verify that the push landed.
+real	0m0.264s
+[exit 0]
+
+
+==== B3. PyYAML here: where it is, when it arrived, and whether this repo's session setup installs it ====
+
+$ python3 -c 'import yaml; print(yaml.__version__, yaml.__file__)'
+6.0.3 /root/.local/lib/python3.13/site-packages/yaml/__init__.py
+[exit 0]
+
+$ stat -c '%y  %n' /root/.local/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info
+2026-11-03 17:13:23.000000000 -0500  /root/.local/lib/python3.13/site-packages/pyyaml-6.0.3.dist-info
+[exit 0]
+
+$ python3 -m pip show pyyaml | grep -E '^(Version|Location|Required-by)'
+Version: 6.0.3
+Location: /root/.local/lib/python3.13/site-packages
+Required-by: conan, mkdocs, mkdocs-get-deps, pymdown-extensions, pyyaml_env_tag
+[exit 0]
+
+$ uptime -s
+2026-11-15 06:53:30
+[exit 0]
+
+$ grep -cEi 'pyyaml|pip install|pip3' scripts/install_pkgs.sh docs/SETUP-SCRIPT.md
+scripts/install_pkgs.sh:0
+docs/SETUP-SCRIPT.md:0
+[exit 1]
+
+
+==== B4. A staged WORKFLOW file is not the only edit that reddens the browser guard (scratch worktree, tree restored after each) ====
+Each block: the mutation, proof it was applied and which files changed, the guard's exit code and its verdict line.
+-- worktree 4799ab1c, clean: 0 changed files
+-- M1: the entry script of an ungated verify step gains a playwright import and a chromium.launch (a script edit only)
+   applied: 1 mutant line(s); files changed: scripts/check-script-orphans.mjs 
+   guard exit: 1
+FAIL: 1 problem(s):
+  - .github/workflows/verify.yml: step 'No script a workflow depends on became unreachable' needs a browser and must carry `steps.chromium.outcome == 'success'` in its `if`, joined only by `&&` to always(), success(), !cancelled()
+   restored, changed files: 0
+-- M0 control: the same file gains only a COMMENT that names playwright
+   applied: 1 comment line; files changed: scripts/check-script-orphans.mjs 
+   guard exit: 0, last line: verdict: gated
+   restored, changed files: 0
+
+
+==== B5. The two times one of these guards went red after the commit had landed ====
+
+$ grep -nE 'push-lands. failure the first landing hit' docs/CC-CMD-2026-10-28-gate-baseline-step-autostash.md | cut -c1-200
+12:`outbox/cc-session-2026-10-28-gate-baseline-step.md`, including the `push-lands` failure the first landing hit.
+[exit 0]
+
+$ grep -nE 'a69191d5|9ec6907c' outbox/cc-session-2026-11-14-tls-stage.md | head -4 | cut -c1-260
+13:| `a69191d5` | the workflow guard, on branch `tls-stage` | |
+20:| `9ec6907c` | the workflow guard's fix (see "What was wrong"): the ref check moves into the Commit step's script and the step's `if:` is `always()` again | `browser-gate` green in `verify` 43675133674 (next row) and in 43675679692 (the landing) |
+30:- `a69191d5`: `.github/workflows/open-meteo-egress-probe.yml`, 4 lines. The Commit step ran only when `github.ref == 'refs/heads/main'`, written as the step's `if:` (`always() && github.ref == 'refs/heads/main'`). It ends in `git push origin HEAD:main`, so 
+34:- `9ec6907c`: `.github/workflows/open-meteo-egress-probe.yml`, 1 file, 12 insertions and 4 deletions. The Commit step's `if:` is `always()` again. The ref check is the first thing its script does: it prints `ref: <GITHUB_REF>`, and when that is not `refs/he
+[exit 0]
+
+
+==== Z1. The replay script, verbatim ====
+// Replays brief-phase-live-check.mjs's card matcher against a saved live-check job log, offline.
+//   node replay-matcher.mjs <job log> [--and] [--rows=<label>|<label>...]
+// The log holds (a) the slate's cards as the weather step prints them: a game-id line, then `teams  score  [status]`,
+// and (b) the brief step's table: one row per testable game, `label  expected  shown`, where a row that matched more
+// than one card and passed prints `(N cards, duplicated upstream)`.
+// The replay applies the check's own predicate to (a) for every row of (b) and compares its card count with the count
+// the check printed. It can fail: with --and (both teams must match) the counts change and it must disagree with the log.
+import fs from 'node:fs'
+
+const [file, ...flags] = process.argv.slice(2)
+const AND = flags.includes('--and')
+const SHOW = (flags.find(f => f.startsWith('--rows=')) ?? '').slice(7).split('|').filter(Boolean)
+const strip = l => l.replace(/^\d{4}-\d\d-\d\dT[\d:.]+Z /, '')
+const lines = fs.readFileSync(file, 'utf8').split('\n').map(strip)
+
+// (a) cards: `  <GAME_ID>` then `    teams  score  [status]`
+const cards = []
+for (let i = 0; i < lines.length - 1; i++) {
+  const idm = lines[i].match(/^ {2}([A-Za-z0-9]+_\d{4}-\d\d-\d\d_\S+)$/)
+  if (!idm) continue
+  const tm = lines[i + 1].match(/^ {4}(.+?) {2}(—|\d+–\d+) {2}\[(.+)\]$/)
+  if (!tm) continue
+  cards.push({ id: idm[1], teams: tm[1], score: tm[2], status: tm[3] })
+}
+
+// (b) rows: from `  game ... expected ... shown` to the blank line after the table
+const start = lines.findIndex(l => /^ {2}game {30,}expected {2,}shown$/.test(l))
+const rows = []
+const evidence = new Map()
+if (start >= 0) {
+  let lastEvidenceId = null
+  for (let i = start + 1; i < lines.length; i++) {
+    const l = lines[i]
+    if (l.trim() === '') break
+    const ev = l.match(/^ {6}evidence: game\.id="([^"]+)"/)
+    if (ev) { lastEvidenceId = ev[1]; continue }
+    if (/^ {16}/.test(l)) continue
+    const rm = l.match(/^ {2}(.{40})(\S+) +(.+?)( +<-- )?$/)
+    if (!rm) continue
+    const label = rm[1].trim()
+    const [away, home] = label.split(' @ ')
+    const n = (rm[3].match(/\((\d+) cards, duplicated upstream\)/) ?? [])[1]
+    rows.push({ label, away, home, expected: rm[2], shown: rm[3], red: !!rm[4], printedN: n ? Number(n) : (rm[4] ? null : 1), gameId: rm[4] ? lastEvidenceId : null })
+  }
+}
+
+const matchOf = (r) => cards.filter(c => AND
+  ? (c.teams.includes(r.away) && c.teams.includes(r.home))
+  : (c.teams.includes(r.away) || c.teams.includes(r.home)))
+
+let agree = 0, disagree = 0
+const bad = []
+for (const r of rows.filter(r => !r.red)) {
+  const m = matchOf(r)
+  if (m.length === r.printedN) agree++
+  else { disagree++; bad.push(`${r.label}: log printed ${r.printedN}, replay found ${m.length}`) }
+}
+const passing = rows.filter(r => !r.red).length
+console.log(`log: ${file.split('/').pop()}  matcher: ${AND ? 'BOTH teams (&&)' : "either team (||), the check's own"}`)
+console.log(`cards parsed: ${cards.length}; rows parsed: ${rows.length} (${rows.filter(r => r.red).length} red, ${passing} passing)`)
+console.log(`replay vs log, passing rows: checked ${passing} of ${passing}; the replay's card count equals the printed one on ${agree}, differs on ${disagree}`)
+for (const b of bad.slice(0, 8)) console.log(`  DIFFERS  ${b}`)
+
+for (const r of rows.filter(r => r.red)) {
+  const m = matchOf(r)
+  const own = cards.find(c => c.id === r.gameId)
+  console.log(`\nRED ROW  ${r.label}   (game id ${r.gameId}; the row's own card: ${own ? `${JSON.stringify(own.teams)} [${own.status}]` : 'NOT FOUND in the card list'})`)
+  console.log(`  cards the matcher takes for it: ${m.length}`)
+  for (const c of m) console.log(`    ${c.id === r.gameId ? 'OWN    ' : 'PARTNER'} ${c.id}  ${c.teams}  [${c.status}]`)
+}
+
+for (const label of SHOW) {
+  const r = rows.find(x => x.label === label)
+  if (!r) { console.log(`\nROW ${label}: not in this log's table`); continue }
+  const m = matchOf(r)
+  console.log(`\nROW  ${r.label}   (${r.red ? 'red' : 'passing'}; the check printed ${r.printedN ?? 'no card count'}; the replay takes ${m.length})`)
+  for (const c of m) console.log(`    ${c.id}  ${c.teams}  [${c.status}]`)
+}
