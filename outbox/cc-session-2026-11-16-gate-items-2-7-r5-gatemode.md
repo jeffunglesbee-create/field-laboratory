@@ -54,3 +54,26 @@ Red on purpose, all `PASS` under `--only`:
 - the existing `PASS [gate-mode-confidence-inventory-refusal-off]` still goes red (its fixture is now the real comparison).
 
 After: `node scripts/gate-mode.mjs --self-test` printed `34/34 checks passed` (33 before this commit, one check added for the weightless row and the reordered inventory).
+
+## A15: the stand-ins covered some modules' export lists and not others; the first red was unnamed   REACHABLE, FIXED
+
+Classification: reachable. A new `import { x } from './gate-checks.mjs'` in `confidence.mjs` (the gate imports `shardedSuite`-like helpers from it whenever a row gets one) is an ordinary edit. It was a false red, not a green: the failing end-to-end checks said `{"full":[1,null,null,null,null],...}` and named nothing.
+
+What changed (all in the `--self-test` of `scripts/gate-mode.mjs`):
+- Every module `confidence.mjs` reaches is now either a REAL copy (`COPIED`: `confidence.mjs`, `gate-mode.mjs`, and, since A13, `gate-inventory.mjs`) or a stand-in with a LITERAL export list: `checks.mjs` `['runIdentity']`, `gate-checks.mjs` `['NOT_APPLICABLE','failures','ok','rows']` (it was in no list), `mutation-check.mjs` `[]` (it is run as a process, so any name imported from it is uncovered).
+- A check ties each literal list to the TEXT of its stand-in (`exportNames` reads `export const|function|class`, `export { a, b as c }`, `export default`), so a list cannot drift from what is written.
+- `uncovered(src, copied, standIns)` returns sentences: `no stand-in for: <name> from <module>` for a name imported from a stand-in that does not export it (the name before `as` is the export; a namespace or default import is named too, since neither can be compared with a list), and `no stand-in or copy for module <m>` for any `'./x.mjs'` the source names that is neither (an import, a dynamic import, `new URL('./x.mjs', ...)`). The check on the real `confidence.mjs` is named `THE STAND-INS COVER WHAT confidence.mjs REACHES`, and its detail is that sentence list.
+- A non-vacuity check: the reader must find the imports `confidence.mjs` has today (a literal list), so a reader that finds nothing cannot read as full coverage.
+- The function is run over ten LITERAL sources (one import differing each; not edits of `confidence.mjs`, because a fixture that edited the import line would be a crash on exactly the edit it is meant to name; I wrote that version first and the review's own input made it throw). The literal lists those fixtures use are asserted equal to the constants.
+
+The review's own inputs, run on the baseline copy (9043fa75) and on this tree:
+- `shardedSuite` added to the import from `gate-checks.mjs`: before `21/32`, first red `THE REAL confidence.mjs OVER STAND-IN ROWS ...` with detail `{"full":[1,null,null,null,null],...}`; after `24/37`, first red `THE STAND-INS COVER WHAT confidence.mjs REACHES`, detail `no stand-in for: shardedSuite from gate-checks.mjs`.
+- `import { somethingNew } from './mutation-check.mjs'` added: before `21/32`, the same unnamed first red; after `24/37`, first red the same named check, detail `no stand-in for: somethingNew from mutation-check.mjs`.
+(The review found a namespace import of a stand-in stayed green; it is now a named failure on purpose, since a property that is not exported reads `undefined` and fails later and quieter. A name from a real copy, such as `gate-mode.mjs`, stays green: control case.)
+
+Red on purpose (each applied once, self-test run, restored; counts are of 37):
+- `gate-mode-standin-coverage-blind` 36/37; `gate-mode-standin-module-unknown-passes` 36/37; `gate-mode-standin-list-drifts` 34/37 (first red the literal-vs-text check); `gate-mode-standin-text-drops-an-export` 24/37 (first red the same named check); `gate-mode-standin-import-alias-read-as-name` 36/37; `gate-mode-standin-namespace-import-passes` 36/37; `gate-mode-standin-default-import-passes` 36/37; `gate-mode-standin-reader-finds-nothing` 35/37 (first red the non-vacuity check); `gate-mode-standin-copy-list-loses-a-module` 23/37 (first red `THE STAND-INS COVER WHAT confidence.mjs REACHES`: `no stand-in or copy for module gate-inventory.mjs`).
+- Each prints `PASS [<id>] ...` under `node scripts/mutation-check.mjs --only <id>` (9 of 9; the lines are in the commit's run log above and reproduced by the command).
+- `node scripts/mutation-check.mjs --anchors`: `checked 1683 of 1686 mutation anchors; 0 stale` (the 3 not checked are the same as at 9043fa75).
+
+After: `node scripts/gate-mode.mjs --self-test` printed `37/37 checks passed` (34 before this commit; the one coverage check became four, and the fixture check holds ten cases).

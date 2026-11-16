@@ -154,16 +154,34 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     try {
       fs.mkdirSync(join(scratch, 'scripts')); fs.mkdirSync(join(scratch, 'docs'))
       const here = fileURLToPath(new URL('.', import.meta.url))
-      for (const f of ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
-      // The names confidence.mjs imports from the module that is stood in for, against the names the stand-in exports (a LITERAL list): a new import in confidence.mjs is then a named failure here,
-      // not a crash in every run below (round 4, finding 15). gate-inventory.mjs is a real copy now, so it has no list.
-      const STANDIN_EXPORTS = { 'checks.mjs': ['runIdentity'] }
-      const imported = mod => (new RegExp(`import \\{([^}]*)\\} from './${mod.replace('.', '\\.')}'`).exec(gateSource)?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean)
-      const missing = Object.entries(STANDIN_EXPORTS).flatMap(([mod, have]) => imported(mod).filter(n => !have.includes(n)).map(n => `${n} from ${mod}`))
-      check('THE STAND-INS COVER WHAT confidence.mjs IMPORTS from the module they replace (checks.mjs): a new import is named here, not found as a crash in every run below',
-        missing.length === 0 && imported('checks.mjs').length === 1, `no stand-in for: ${missing.join(', ')}`)
-      fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`)
-      fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
+      // THE MODULES confidence.mjs REACHES, each either a REAL COPY (it runs nothing and imports nothing that does) or a STAND-IN written below (it would run the real suite or git). The coverage of the stand-ins
+      // is checked against what confidence.mjs imports, so a new import is a NAMED failure here, not a crash in every run below (round 4, finding 15; round 5, finding A15: gate-checks.mjs and mutation-check.mjs
+      // were stood in for with no list at all, and a name added from either was an unnamed red with a JSON detail). The lists are LITERALS, and a check below ties each to the text of its stand-in.
+      const COPIED = ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs']
+      for (const f of COPIED) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
+      const STANDIN_EXPORTS = { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] }
+      /** The names a module's text exports, sorted (`export const|function|class NAME`, `export { a, b as c }`, `export default`). */
+      const exportNames = text => [...new Set([
+        ...[...text.matchAll(/^export\s+(?:async\s+)?(?:const|let|var|function\*?|class)\s+([\w$]+)/gm)].map(m => m[1]),
+        ...[...text.matchAll(/^export\s*\{([^}]*)\}/gm)].flatMap(m => m[1].split(',').map(x => x.trim().split(/\s+as\s+/).pop()).filter(Boolean)),
+        ...(/^export\s+default\b/m.test(text) ? ['default'] : []),
+      ])].sort()
+      /** Every relative import statement of a source: its module, and the names it takes (`{ a, b as c }` gives a and b; a default import gives `default`; `* as ns` gives `*`; a bare `import './x.mjs'` none). */
+      const importsOf = src => [...src.matchAll(/^import\s+(?:([^'"]*?)\s+from\s+)?'\.\/([^']+)'/gm)].map(m => {
+        const clause = m[1] ?? '', names = []
+        const brace = /\{([^}]*)\}/.exec(clause)
+        if (brace) names.push(...brace[1].split(',').map(x => x.trim().split(/\s+as\s+/)[0]).filter(Boolean))
+        const rest = clause.replace(/\{[^}]*\}/, '').replace(/,/g, ' ').trim()
+        if (rest.startsWith('*')) names.push('*')
+        else if (rest) names.push('default')
+        return { mod: m[2], names }
+      })
+      /** What of a source's reach the scratch directory does not cover, each as a sentence naming it: a name imported from a stand-in that the stand-in does not export, and a module the source names that is neither
+       *  a copy nor a stand-in (a static import, a dynamic one, or `new URL('./x.mjs', ...)`). */
+      const uncovered = (src, copied, standIns) => [
+        ...[...new Set([...src.matchAll(/['"]\.\/([\w.-]+\.mjs)['"]/g)].map(m => m[1]))].filter(m => !copied.includes(m) && !(m in standIns)).map(m => `no stand-in or copy for module ${m}`),
+        ...importsOf(src).flatMap(({ mod, names }) => (mod in standIns ? names.filter(n => !standIns[mod].includes(n)).map(n => `no stand-in for: ${n} from ${mod}`) : [])),
+      ]
       const ROW = {
         good: "  { name: 'good', weight: 990, run: ran('good') },\n",
         bad: "  { name: 'bad', weight: 10, run: ran('bad', false) },\n",
@@ -185,6 +203,40 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       const weightOf = n => Number(/weight: (\d+)/.exec(ROW[n])?.[1])
       const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\n`
         + `const ran = (n, v = true) => () => { appendFileSync('ran.log', n + '\\n'); return v }\nexport const rows = [\n${names.map(n => ROW[n]).join('')}]\n`
+      const STANDIN_SRC = {
+        'checks.mjs': `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`,
+        'gate-checks.mjs': standIn(['good']), 'mutation-check.mjs': `process.exit(0)\n`,
+      }
+      for (const [f, text] of Object.entries(STANDIN_SRC)) if (f !== 'gate-checks.mjs') fs.writeFileSync(join(scratch, 'scripts', f), text)
+      const J = JSON.stringify
+      check('THE STAND-INS EXPORT WHAT THEIR LITERAL LIST SAYS: the text of each stand-in below exports exactly the names listed for it (checks.mjs, gate-checks.mjs, and none for mutation-check.mjs, which is run as a process), so a list cannot drift from what is written',
+        J(Object.fromEntries(Object.entries(STANDIN_SRC).map(([f, t]) => [f, exportNames(t)]))) === J(STANDIN_EXPORTS), J(Object.fromEntries(Object.entries(STANDIN_SRC).map(([f, t]) => [f, exportNames(t)]))))
+      const READS = { 'gate-checks.mjs': ['rows', 'ok', 'failures', 'NOT_APPLICABLE'], 'checks.mjs': ['runIdentity'] }
+      const found = Object.fromEntries(Object.keys(READS).map(m => [m, importsOf(gateSource).filter(i => i.mod === m).flatMap(i => i.names)]))
+      check('THE IMPORT READER FINDS what confidence.mjs imports from the stand-ins today (a literal list), so an empty result cannot read as full coverage',
+        Object.entries(READS).every(([m, names]) => names.every(n => found[m].includes(n))), `not found: ${Object.entries(READS).flatMap(([m, names]) => names.filter(n => !found[m].includes(n)).map(n => `${n} from ${m}`)).join(', ')}`)
+      check('THE STAND-INS COVER WHAT confidence.mjs REACHES: every name it imports from checks.mjs, gate-checks.mjs and mutation-check.mjs is exported by that stand-in, and every module it names is a stand-in or a real copy; a new import is named here, not found as a crash in every run below',
+        uncovered(gateSource, COPIED, STANDIN_EXPORTS).length === 0, `${uncovered(gateSource, COPIED, STANDIN_EXPORTS).join('; ')}`)
+      // The same function over LITERAL sources (not edits of confidence.mjs, whose own import lines are what a careless edit changes: a fixture that edited them would be a crash, not a named failure, on exactly
+      // that edit). Each differs from the control in one import and has a literal expected list; the controls take a name from a REAL copy, which needs no stand-in.
+      const SRC = "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nimport { runIdentity } from './checks.mjs'\nimport { readInventory, diffAgainst } from './gate-inventory.mjs'\nconst spawned = new URL('./mutation-check.mjs', import.meta.url)\n"
+      const GC = "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'", CK = "import { runIdentity } from './checks.mjs'"
+      const cases = [
+        ['control: the imports as they are', SRC, []],
+        ['a name added from gate-checks.mjs', SRC.replace(GC, GC.replace('NOT_APPLICABLE }', 'NOT_APPLICABLE, shardedSuite }')), ['no stand-in for: shardedSuite from gate-checks.mjs']],
+        ['a name imported from mutation-check.mjs, whose stand-in is process.exit(0)', `${SRC}import { thing } from './mutation-check.mjs'\n`, ['no stand-in for: thing from mutation-check.mjs']],
+        ['a name added from checks.mjs', SRC.replace(CK, "import { runIdentity, finish } from './checks.mjs'"), ['no stand-in for: finish from checks.mjs']],
+        ['a module that is neither a copy nor a stand-in', `${SRC}import { x } from './brand-new.mjs'\n`, ['no stand-in or copy for module brand-new.mjs']],
+        ['a module reached by `new URL`', `${SRC}const other = new URL('./other.mjs', import.meta.url)\n`, ['no stand-in or copy for module other.mjs']],
+        ['a multi-line import with an alias: the name before `as` is the export', SRC.replace(GC, "import {\n  rows as r,\n  ok,\n  failures,\n  NOT_APPLICABLE,\n  shardedSuite as s,\n} from './gate-checks.mjs'"), ['no stand-in for: shardedSuite from gate-checks.mjs']],
+        ['a namespace import of a stand-in cannot be compared with its list', SRC.replace(GC, "import * as gc from './gate-checks.mjs'"), ['no stand-in for: * from gate-checks.mjs']],
+        ['a default import of a stand-in', SRC.replace(GC, "import gc from './gate-checks.mjs'"), ['no stand-in for: default from gate-checks.mjs']],
+        ['control: a name added from gate-mode.mjs (a real copy)', `${SRC}import { MODES } from './gate-mode.mjs'\n`, []],
+      ]
+      const LITERAL = { copied: ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs'], standIns: { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] } }
+      const results = cases.map(([what, src, want]) => [what, uncovered(src, LITERAL.copied, LITERAL.standIns), want])
+      check('...each way a new reach can go uncovered is a NAMED failure, and a name from a real copy is none: a name from gate-checks.mjs, from mutation-check.mjs and from checks.mjs, an unknown module (imported, or reached by `new URL`), an aliased multi-line import, a namespace and a default import',
+        J(LITERAL) === J({ copied: COPIED, standIns: STANDIN_EXPORTS }) && results.every(([, got, want]) => J(got) === J(want)), J(results.filter(([, got, want]) => J(got) !== J(want)).map(([what, got, want]) => ({ what, got, want }))))
       const go = (names, flags = [], env = {}, inventory = names.map(n => `${weightOf(n)} ${n}`)) => {
         fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names)); fs.writeFileSync(join(scratch, 'docs', 'gate-rows.txt'), `${inventory.join('\n')}\n`)
         fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true })
@@ -195,7 +247,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         try { ran = fs.readFileSync(join(scratch, 'ran.log'), 'utf8').split('\n').filter(Boolean) } catch { ran = [] }
         return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran }
       }
-      const J = JSON.stringify
       const FOUR = ['good', 'bad', 'build', 'browser']
       // A failing row whose weight leaves the score above the bar (a weight-10 row of 1010 points: 99): only the conjunction of failing rows can keep it red.
       const red = { full: go(FOUR), quick: go(FOUR, ['--quick']), browserless: go(FOUR, ['--browserless']) }
