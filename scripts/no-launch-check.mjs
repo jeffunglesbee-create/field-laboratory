@@ -182,6 +182,17 @@ export function scanTrapLoss(dir, known = KNOWN_NODE_OPTIONS_LINES, skip = ['no-
  *  the problems of the verdict and the count in its closing line are all read through this, so they cannot disagree (round 5, A2: the label had an expression of its own, and a killed command printed `ok`). */
 export const isClean = r => r.exit === 0 && r.launches.length === 0
 
+/** The sentence a line that names the node options off the list is refused with: where it is, what it says, why it matters and what to do (the list is edited on purpose, in the commit that writes the line). */
+export const offenderProblem = o => `${o.at} names the node options in a line that is not on the list (KNOWN_NODE_OPTIONS_LINES in scripts/no-launch-check.mjs): \`${o.text.slice(0, 200)}\`. A child started with a value of its own, a filtered copy, or none runs outside the trap. Append to the inherited value (\`\${process.env.NODE_OPTIONS ?? ''} --require ...\`) and add the line to the list on purpose, or say it without the word`
+/** The sentence a listed line that is no longer in its file is refused with. A line that was REWORDED is both at once (the new text is an offender, the old is stale), so the remedy names that pair: list the new line, delete the old. */
+export const staleProblem = t => `${t.file} is listed with a line that is no longer in it: \`${t.text.slice(0, 200)}\` (delete it from KNOWN_NODE_OPTIONS_LINES, so the list does not outlive what it allows; if the line was reworded, not removed, the reworded line is refused above: add that one on purpose and delete this one)`
+/** What the real-scan check prints when it is red (round 6, O-new-1): the SAME sentences verdictOf prints, one per offender and per stale entry, because the self-test is read first and the no-argument run, where verdictOf speaks, is never reached after it
+ *  (`--self-test && node scripts/no-launch-check.mjs`). Empty when the scan is clean and read the scripts it was meant to read (`minFiles` scripts, `minLines` lines that name the node options: a scan that reads nothing is not a clean one). */
+export const scanDetail = (scan, minFiles = 50, minLines = 10) => [...scan.offenders.map(offenderProblem), ...scan.stale.map(staleProblem), ...(scan.files < minFiles || scan.lines < minLines ? [`the scan read ${scan.files} script(s) and ${scan.lines} line(s) that name the node options, fewer than the ${minFiles} and ${minLines} this check expects: it is not reading scripts/`] : [])].join('\n      → ')
+
+/** The real-scan check's two arguments, `[passed, detail]`, in one place so the self-test can read exactly what the check is given: clean means no offender, no stale entry, and a scan that read at least `minFiles` scripts and `minLines` lines. */
+export const scanCheckOf = (scan, minFiles = 50, minLines = 10) => [scan.offenders.length === 0 && scan.stale.length === 0 && scan.files >= minFiles && scan.lines >= minLines, scanDetail(scan, minFiles, minLines)]
+
 /** The verdict from the measurements: ok only when every command is clean (isClean), every control saw a launch, the list was not vacuous and (when a count is pinned) is the pinned size, and (when it was scanned)
  *  every line of scripts/ that names the node options is on the list and every listed line is still there. */
 export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = null, expected = null) {
@@ -194,8 +205,8 @@ export function verdictOf(results, controls, minCommands = MIN_COMMANDS, scan = 
     if (r.launches.length) problems.push(`\`${r.cmd.join(' ')}\` attempted a browser launch (${[...new Set(r.launches)].join(', ')})`)
     else problems.push(`\`${r.cmd.join(' ')}\` did not complete (exit ${r.exit}${r.signal ? `, ${r.signal}` : ''}: ${r.last.slice(0, 120)}), so it is not established that it launches nothing`)
   }
-  for (const o of scan?.offenders ?? []) problems.push(`${o.at} names the node options in a line that is not on the list (KNOWN_NODE_OPTIONS_LINES in scripts/no-launch-check.mjs): \`${o.text.slice(0, 200)}\`. A child started with a value of its own, a filtered copy, or none runs outside the trap. Append to the inherited value (\`\${process.env.NODE_OPTIONS ?? ''} --require ...\`) and add the line to the list on purpose, or say it without the word`)
-  for (const t of scan?.stale ?? []) problems.push(`${t.file} is listed with a line that is no longer in it: \`${t.text.slice(0, 200)}\` (delete it from KNOWN_NODE_OPTIONS_LINES, so the list does not outlive what it allows)`)
+  for (const o of scan?.offenders ?? []) problems.push(offenderProblem(o))
+  for (const t of scan?.stale ?? []) problems.push(staleProblem(t))
   const clean = results.filter(isClean).length
   const line = `checked ${results.length} of ${results.length} commands: ${clean} exited 0 with 0 launches; controls: ${controls.length - blind.length} of ${controls.length} saw a launch`
     + (expected !== null ? `; the guard's list is the pinned ${expected}` : '')
@@ -454,7 +465,17 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       scanned.files === 44 && scanned.lines === 44 && scanned.lines - scanned.offenders.length === 4, JSON.stringify({ files: scanned.files, lines: scanned.lines, offenders: scanned.offenders.length }))
     const real = scanTrapLoss(join(ROOT, 'scripts'))
     check(`...and the real scripts/ has every line that names the node options on the list and every listed line still there (${real.lines - real.offenders.length} of ${real.lines} lines on the list in ${real.files} scripts, ${real.stale.length} stale)`,
-      real.offenders.length === 0 && real.stale.length === 0 && real.lines >= 10 && real.files >= 50, JSON.stringify({ files: real.files, lines: real.lines, offenders: real.offenders, stale: real.stale }))
+      ...scanCheckOf(real))
+    // THE DETAIL SAYS HOW TO FIX IT (round 6, O-new-1: rewording a listed comment printed only a JSON dump; the sentence that names the remedy came from verdictOf, which `--self-test && no-argument` never reaches). A reworded line is an
+    // offender (the new text) and a stale entry (the old): both sentences, with the remedy, are in the detail, read here from the pair `scanCheckOf` hands the check above.
+    const rewordedScan = { files: 60, lines: 12, offenders: [{ at: 'scripts/x.mjs:7', text: '// the reworded line NODE_OPTIONS' }], stale: [{ file: 'scripts/x.mjs', text: '// the old line NODE_OPTIONS' }] }
+    const [rewordedPass, reworded] = scanCheckOf(rewordedScan)
+    const [cleanPass, cleanDetail] = scanCheckOf({ files: 60, lines: 12, offenders: [], stale: [] })
+    check('THE REAL-SCAN DETAIL SAYS HOW TO FIX A REWORDED LISTED LINE: the new line with its file and line, the sentence that says to add it to the list on purpose, the old line, and the sentence that says to delete it (the same sentences verdictOf prints); a clean scan passes with no detail, and a scan that read too little fails and says so',
+      rewordedPass === false && /scripts\/x\.mjs:7 names the node options in a line that is not on the list/.test(reworded) && /the reworded line/.test(reworded) && /add the line to the list on purpose/.test(reworded)
+        && /scripts\/x\.mjs is listed with a line that is no longer in it: `\/\/ the old line/.test(reworded) && /delete it from KNOWN_NODE_OPTIONS_LINES/.test(reworded) && /the reworded line is refused above: add that one on purpose and delete this one/.test(reworded)
+        && cleanPass === true && cleanDetail === '' && scanCheckOf(scanOk)[0] === false && /the scan read 5 script\(s\) and 3 line\(s\) that name the node options, fewer than the 50 and 10/.test(scanCheckOf(scanOk)[1]),
+      reworded)
 
     // THE NODE VERSION GUARD: reachable. A named import of registerHooks is a link error on a Node without it, before any message.
     check('A NODE WITHOUT registerHooks IS REPORTED, not a link error: the test is `typeof` on the namespace', trapSupported({}) === false && trapSupported({ registerHooks() {} }) === true && trapSupported() === true, `this Node ${process.version}`)

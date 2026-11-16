@@ -160,8 +160,8 @@ jobs:
 const significant = text => String(text).split('\n').map(l => l.replace(/[ \t\r]+$/, '')).filter(l => l !== '' && !/^[ \t]*#/.test(l))
 
 /** What is wrong with `.github/workflows/delete-branches.yml` (or any text given): a list, empty when it is the pin, else ONE problem naming the first line that differs (expected, found). */
-export const workflowProblems = text => {
-  const want = significant(WORKFLOW_PIN), got = significant(text)
+export const workflowProblems = (text, pin = WORKFLOW_PIN) => {
+  const want = significant(pin), got = significant(text)
   const show = l => (l === undefined ? 'nothing (the text ends here)' : `\`${l}\``)
   for (let i = 0; i < Math.max(want.length, got.length); i++) {
     if (want[i] !== got[i]) return [`the workflow differs from its pin at significant line ${i + 1} (comments, blank lines and trailing space are not counted): expected ${show(want[i])}, found ${show(got[i])}. An intended edit of the workflow also edits WORKFLOW_PIN in scripts/delete-branches.mjs.`]
@@ -336,64 +336,128 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       try { wfReal = readFileSync(new URL('../.github/workflows/delete-branches.yml', import.meta.url), 'utf8') } catch (e) { wfReadError = String(e.message ?? e) }
       const wfRealProblems = wfReal === null ? [`could not read .github/workflows/delete-branches.yml: ${wfReadError}`] : workflowProblems(wfReal)
       check('THE REAL .github/workflows/delete-branches.yml IS ITS PIN (comments, blank lines and trailing space aside): no line differs, none is missing, none is added', wfRealProblems.length === 0, wfRealProblems.join(' | '))
-      const wfMake = (from, to) => (WORKFLOW_PIN.split(from).length === 2 ? WORKFLOW_PIN.replace(from, () => to) : null)
-      const DEL = 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"', PLAN = 'run: node scripts/delete-branches.mjs -- "$BRANCHES"\n', DEL_STEP = '      - name: Delete\n'
-      const DEL_ENV = '      - name: Delete\n        env:\n          BRANCHES: ${{ inputs.branches }}'
-      const PLAN_BLOCK = '      - name: Plan (dry run)\n        env:\n          BRANCHES: ${{ inputs.branches }}\n        run: node scripts/delete-branches.mjs -- "$BRANCHES"\n'
-      const DEL_BLOCK = '      - name: Delete\n        env:\n          BRANCHES: ${{ inputs.branches }}\n        run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"'
-      // A LITERAL list of edits, each of which must be a problem. The pin comparison makes them all one mechanism; the list is how that is shown.
-      const wfMutants = [
-        ['--apply dropped from the Delete step', DEL, 'run: node scripts/delete-branches.mjs -- "$BRANCHES"'],
-        ['--apply on the dry run', PLAN, 'run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"\n'],
-        ['the list not after a bare --', DEL, 'run: node scripts/delete-branches.mjs --apply "$BRANCHES"'],
-        ['continue-on-error on the Delete step', DEL_STEP, `${DEL_STEP}        continue-on-error: true\n`],
-        ['continue-on-error as a quoted key', DEL_STEP, `${DEL_STEP}        "continue-on-error": true\n`],
-        ['a condition on the Delete step', DEL_STEP, `${DEL_STEP}        if: always()\n`],
-        ['a shell: key on the Delete step', DEL_STEP, `${DEL_STEP}        shell: bash {0}\n`],
-        ['the input inlined into the run line', DEL, 'run: node scripts/delete-branches.mjs --apply -- "${{ inputs.branches }}"'],
-        ['a schedule trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  schedule:\n    - cron: "0 * * * *"\n  workflow_dispatch:\n'],
-        ['a push trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  push:\n  workflow_dispatch:\n'],
-        ['a trigger after a blank line', 'on:\n  workflow_dispatch:\n', 'on:\n  workflow_dispatch:\n\n  push:\n'],
-        ['no dry run before the Delete step', '      - name: Plan (dry run)\n', '      - name: Something else\n'],
-        ['the Delete step before the Plan step', `${PLAN_BLOCK}${DEL_BLOCK}`, `${DEL_BLOCK}\n${PLAN_BLOCK.trimEnd()}`],
-        ['the token cannot write', 'contents: write', 'contents: read'],
-        ['a job-level permissions block that widens the token', 'jobs:\n  delete:\n', 'jobs:\n  delete:\n    permissions:\n      contents: write\n      actions: write\n'],
-        ['a wrapped continuation of the Delete run ending || true (B12)', DEL, `${DEL}\n          || true`],
-        ['a wrapped continuation of the Delete run that deletes the default branch', DEL, `${DEL}\n          ; git push origin :refs/heads/main`],
-        ['a block scalar for the Delete run with || true after a # line', DEL, 'run: |\n          node scripts/delete-branches.mjs --apply -- "$BRANCHES"\n          # note\n          || true'],
-        ['a wrapped continuation behind a comment line', DEL, `${DEL}\n          # note\n          || true`],
-        ['|| true after a # on the same line', DEL, `${DEL} # || true`],
-        ['|| true glued to the line by a # that is no YAML comment', DEL, `${DEL}#|| true`],
-        ['the input spelled inputs[...] in an extra step', DEL, `${DEL}\n      - run: echo "\${{ inputs['branches'] }}"`],
-        ['the input spelled through github.event in the Delete env', DEL_ENV, '      - name: Delete\n        env:\n          BRANCHES: ${{ github.event["inputs"]["branches"] }}'],
-        ['a hard-coded list in the Delete step', DEL_ENV, '      - name: Delete\n        env:\n          BRANCHES: proof-a,proof-b'],
-        ['an extra step', DEL, `${DEL}\n      - run: echo done`],
-        ['an extra step that is one line with a trailing comment', DEL, `${DEL}\n      - run: ./extra.sh # fine`],
-        ['an extra job', DEL, `${DEL}\n  other:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi`],
-        ['the last line removed', DEL, ''],
-        ['the input not required', 'required: true', 'required: false'],
-        ['the input description changed', "description: 'Comma-separated", "description: 'Comma separated"],
-      ]
-      const wfBuilt = wfMutants.map(([what, from, to]) => ({ what, text: wfMake(from, to) }))
-      const wfUnbuilt = wfBuilt.filter(m => m.text === null).map(m => m.what)
-      check('EVERY WORKFLOW MUTANT IS BUILT: its anchor occurs exactly once in the pin (an anchor that does not is named here, not thrown)', wfUnbuilt.length === 0, `no unique anchor in the pin for: ${wfUnbuilt.join(', ')}`)
+      // THE ANCHORS OF THE MUTANTS ARE FOUND IN THE PIN, NOT COPIED FROM IT (round 6, finding B13). The mutants used to be built from hard-coded text blocks of the pin (the Delete step's `name:` line, its env block, the
+      // Plan and Delete blocks side by side), so an INTENDED edit inside either step, made to the workflow and to WORKFLOW_PIN as the first refusal says, left a block that was no longer in the pin and turned this
+      // self-test red (`no unique anchor in the pin for: the Delete step before the Plan step`; renaming the Delete step, two more). Now each step is LOCATED by its `run:` line (the one that calls the script with
+      // --apply is the Delete step, the one that calls it with no flag is the Plan step: DEL_RUN_RE, PLAN_RUN_RE), its first line is the `- ` line two columns left of that, and its env line is the one that holds
+      // INPUT_RE; every anchor and every replacement is cut from the pin's own lines. What is still literal is a line of the pin that no step owns (the triggers, `contents: write`, `required: true`, the input's
+      // description): a literal that is no longer in the pin is a FAIL line that quotes it. An anchor that cannot be found names the regexp that found nothing (below).
+      const makeOn = pin => (from, to) => (pin.split(from).length === 2 ? pin.replace(from, () => to) : null)
+      const wfMake = makeOn(WORKFLOW_PIN)
+      const DEL_RUN_RE = /^\s+run: .*delete-branches\.mjs --apply /, PLAN_RUN_RE = /^\s+run: .*delete-branches\.mjs -- /, INPUT_RE = /\$\{\{ inputs\.branches \}\}/
+      const indentOf = l => l.length - l.trimStart().length
+      const cat = (...parts) => (parts.includes(null) ? null : parts.join(''))
+      const sub = (text, from, to) => (text === null ? null : text.replace(from, () => to))
+      const anchorsOf = pinText => {
+        const lines = pinText.split('\n')
+        const find = (re, from = 0, to = lines.length) => { for (let i = from; i < to; i++) if (re.test(lines[i])) return i; return -1 }
+        const stepStart = at => { if (at < 0) return -1; for (let i = at; i >= 0; i--) if (lines[i].trimStart().startsWith('- ') && indentOf(lines[i]) === indentOf(lines[at]) - 2) return i; return -1 }
+        const delRun = find(DEL_RUN_RE), planRun = find(PLAN_RUN_RE), delFirst = stepStart(delRun), planFirst = stepStart(planRun)
+        const delEnv = delFirst < 0 ? -1 : find(INPUT_RE, delFirst, delRun), planEnv = planFirst < 0 ? -1 : find(INPUT_RE, planFirst, planRun)
+        const missing = [
+          [delRun, "the Delete step's run line (no line of the pin matches DEL_RUN_RE: a `run:` that calls delete-branches.mjs with --apply)"],
+          [planRun, "the Plan step's run line (no line of the pin matches PLAN_RUN_RE: a `run:` that calls delete-branches.mjs with no flag before the bare --)"],
+          [delFirst, "the Delete step's first line (no `- ` line two columns left of its run line)"], [planFirst, "the Plan step's first line (no `- ` line two columns left of its run line)"],
+          [delEnv, "the Delete step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"], [planEnv, "the Plan step's env line (none of its lines holds `${{ inputs.branches }}`, INPUT_RE)"],
+        ].filter(([at]) => at < 0).map(([, why]) => why)
+        const block = (x, y) => lines.slice(x, y + 1).join('\n')
+        const at = (i, f) => (i < 0 ? null : f(lines[i]))
+        return {
+          lines, delRun, planRun, delFirst, planFirst, delEnv, planEnv, missing,
+          DEL: at(delRun, l => l.trim()), PLAN: at(planRun, l => `${l.trim()}\n`), DEL_STEP: at(delFirst, l => `${l}\n`), PLAN_STEP: at(planFirst, l => `${l}\n`),
+          DEL_ENV: delEnv < 0 ? null : block(delFirst, delEnv),
+          keys: at(delFirst, l => ' '.repeat(indentOf(l) + 2)), dash: at(delFirst, l => ' '.repeat(indentOf(l))), cont: at(delRun, l => ' '.repeat(indentOf(l) + 2)),
+          // The two steps side by side, in the pin's own order, with whatever lies between them kept in place: [the text from the Plan step to the end of the Delete step, the same with the two blocks exchanged].
+          swap: planFirst < 0 || delFirst < 0 || delRun < 0 || planRun >= delFirst ? [null, null] : [block(planFirst, delRun), [block(delFirst, delRun), ...lines.slice(planRun + 1, delFirst), block(planFirst, planRun)].join('\n')],
+        }
+      }
+      // A LITERAL list of edits, each of which must be a problem. The pin comparison makes them all one mechanism; the list is how that is shown. Each is [what, the anchor in the pin, its replacement], null where the step was not found.
+      const mutantsOn = pinText => {
+        const A = anchorsOf(pinText), make = makeOn(pinText), { DEL, PLAN, DEL_STEP, PLAN_STEP, DEL_ENV, keys, dash, cont, swap } = A
+        const list = [
+          ['--apply dropped from the Delete step', DEL, sub(DEL, ' --apply', '')],
+          ['--apply on the dry run', PLAN, sub(PLAN, 'delete-branches.mjs -- ', 'delete-branches.mjs --apply -- ')],
+          ['the list not after a bare --', DEL, sub(DEL, ' -- ', ' ')],
+          ['continue-on-error on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'continue-on-error: true\n')],
+          ['continue-on-error as a quoted key', DEL_STEP, cat(DEL_STEP, keys, '"continue-on-error": true\n')],
+          ['a condition on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'if: always()\n')],
+          ['a shell: key on the Delete step', DEL_STEP, cat(DEL_STEP, keys, 'shell: bash {0}\n')],
+          ['the input inlined into the run line', DEL, sub(DEL, '"$BRANCHES"', '"${{ inputs.branches }}"')],
+          ['a schedule trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  schedule:\n    - cron: "0 * * * *"\n  workflow_dispatch:\n'],
+          ['a push trigger', 'on:\n  workflow_dispatch:\n', 'on:\n  push:\n  workflow_dispatch:\n'],
+          ['a trigger after a blank line', 'on:\n  workflow_dispatch:\n', 'on:\n  workflow_dispatch:\n\n  push:\n'],
+          ['no dry run before the Delete step', PLAN_STEP, sub(PLAN_STEP, /name: .*/, 'name: Something else')],
+          ['the Delete step before the Plan step', swap[0], swap[1]],
+          ['the token cannot write', 'contents: write', 'contents: read'],
+          ['a job-level permissions block that widens the token', 'jobs:\n  delete:\n', 'jobs:\n  delete:\n    permissions:\n      contents: write\n      actions: write\n'],
+          ['a wrapped continuation of the Delete run ending || true (B12)', DEL, cat(DEL, '\n', cont, '|| true')],
+          ['a wrapped continuation of the Delete run that deletes the default branch', DEL, cat(DEL, '\n', cont, '; git push origin :refs/heads/main')],
+          ['a block scalar for the Delete run with || true after a # line', DEL, cat('run: |\n', cont, sub(DEL, 'run: ', ''), '\n', cont, '# note\n', cont, '|| true')],
+          ['a wrapped continuation behind a comment line', DEL, cat(DEL, '\n', cont, '# note\n', cont, '|| true')],
+          ['|| true after a # on the same line', DEL, cat(DEL, ' # || true')],
+          ['|| true glued to the line by a # that is no YAML comment', DEL, cat(DEL, '#|| true')],
+          ['the input spelled inputs[...] in an extra step', DEL, cat(DEL, '\n', dash, '- run: echo "${{ inputs[\'branches\'] }}"')],
+          ['the input spelled through github.event in the Delete env', DEL_ENV, sub(DEL_ENV, INPUT_RE, '${{ github.event["inputs"]["branches"] }}')],
+          ['a hard-coded list in the Delete step', DEL_ENV, sub(DEL_ENV, INPUT_RE, 'proof-a,proof-b')],
+          ['an extra step', DEL, cat(DEL, '\n', dash, '- run: echo done')],
+          ['an extra step that is one line with a trailing comment', DEL, cat(DEL, '\n', dash, '- run: ./extra.sh # fine')],
+          ['an extra job', DEL, cat(DEL, '\n  other:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi')],
+          ['the last line removed', DEL, DEL === null ? null : ''],
+          ['the input not required', 'required: true', 'required: false'],
+          ['the input description changed', "description: 'Comma-separated", "description: 'Comma separated"],
+        ]
+        return { built: list.map(([what, from, to]) => ({ what, from, text: from === null || to === null ? null : make(from, to) })), missing: A.missing }
+      }
+      /** The failing detail of an unbuilt mutant: the literal anchors that are not in the pin once (quoted, so the pin line to edit is named), the mutants that had no step to anchor on, the step or line that was not located, and where to edit. */
+      const unbuiltMessage = ({ built, missing }) => {
+        const unbuilt = built.filter(m => m.text === null), noStep = unbuilt.filter(m => m.from === null), notOnce = unbuilt.filter(m => m.from !== null)
+        return `no unique anchor in the pin for: ${[...notOnce.map(m => `${m.what} (the anchor ${JSON.stringify(m.from.length > 80 ? `${m.from.slice(0, 80)}...` : m.from)} is not in the pin exactly once)`), ...(noStep.length ? [`no step to anchor on for ${noStep.map(m => m.what).join(', ')}`] : [])].join('; ')}.${missing.length ? ` Not located: ${missing.join('; ')}.` : ''} Each step is found in WORKFLOW_PIN by DEL_RUN_RE, PLAN_RUN_RE and INPUT_RE, and the lines no step owns are literals of the mutant list: edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs`
+      }
+      const A = anchorsOf(WORKFLOW_PIN), { DEL, DEL_STEP } = A
+      const wfBuilt = mutantsOn(WORKFLOW_PIN).built
+      check('EVERY WORKFLOW MUTANT IS BUILT: its anchor occurs exactly once in the pin (an anchor that does not is named here, not thrown)', wfBuilt.every(m => m.text !== null), unbuiltMessage({ built: wfBuilt, missing: A.missing }))
       const wfSurvivors = wfBuilt.filter(m => m.text !== null && workflowProblems(m.text).length === 0).map(m => m.what)
       check('THE PIN COMPARISON: each of thirty edits of the workflow (a wrapped || true continuation, another spelling of the input, a hard-coded list, an extra step or job, shell:, a changed key, a trigger, the token, the order) is a problem',
-        wfMutants.length === 30 && wfSurvivors.length === 0, `survived: ${wfSurvivors.join(', ')}`)
-      const wfFirst = workflowProblems(wfMake(DEL, `${DEL}\n          || true`) ?? '')
+        wfBuilt.length === 30 && wfSurvivors.length === 0, `survived: ${wfSurvivors.join(', ')}`)
+      // AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, made to the pin and to the workflow together, keeps every mutant built and caught (round 6, finding B13: `NOTE: x` after the Delete step's env line turned
+      // this self-test red, 32 of 33, and renaming the Delete step, 31 of 33). Each edit below is made to the PIN's lines, at the places `anchorsOf` located; the mutants are then built from the EDITED pin and held to it.
+      const edited = fn => { const ls = [...A.lines]; fn(ls); return ls.join('\n') }
+      const wfEdits = A.missing.length ? [] : [
+        ["a key added to the Delete step's env", edited(ls => ls.splice(A.delEnv + 1, 0, `${' '.repeat(indentOf(ls[A.delEnv]))}NOTE: x`))],
+        ["a key added to the Plan step's env", edited(ls => ls.splice(A.planEnv + 1, 0, `${' '.repeat(indentOf(ls[A.planEnv]))}NOTE: x`))],
+        ['the Delete step renamed', edited(ls => { ls[A.delFirst] = `${ls[A.delFirst]} branches` })],
+        ['the Plan step renamed', edited(ls => { ls[A.planFirst] = `${ls[A.planFirst]} first` })],
+        ['a flag added to the Delete run line', edited(ls => { ls[A.delRun] = ls[A.delRun].replace(' --apply', () => ' --apply --quiet') })],
+        ['a step added between the Plan step and the Delete step', edited(ls => ls.splice(A.delFirst, 0, `${' '.repeat(indentOf(ls[A.delFirst]))}- run: echo between`))],
+      ]
+      const wfEdited = wfEdits.map(([what, pin]) => {
+        const m = mutantsOn(pin)
+        return { what, built: m.built.filter(x => x.text !== null).length, unbuilt: m.built.filter(x => x.text === null).map(x => x.what), survived: m.built.filter(x => x.text !== null && workflowProblems(x.text, pin).length === 0).map(x => x.what), selfClean: workflowProblems(pin, pin).length === 0 && workflowProblems(WORKFLOW_PIN, pin).length === 1 }
+      })
+      check('AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, MADE TO THE PIN, KEEPS EVERY MUTANT BUILT AND CAUGHT (a key added to either env, either step renamed, a flag added to the Delete run line, a step added between them): 30 of 30 built from the edited pin, none survives, the edited pin is its own pin and the old pin is not it',
+        wfEdited.length === 6 && wfEdited.every(r => r.built === 30 && r.unbuilt.length === 0 && r.survived.length === 0 && r.selfClean), A.missing.length ? unbuiltMessage({ built: [], missing: A.missing }) : JSON.stringify(wfEdited))
+      // ...and an anchor that CANNOT be found is named, with what to edit: the Delete step given no --apply in the pin leaves no line for DEL_RUN_RE, and a pin with no `contents: write` leaves a literal of the list with nothing to find.
+      const noApply = A.missing.length ? null : mutantsOn(edited(ls => { ls[A.delRun] = ls[A.delRun].replace(' --apply', '') })), noApplyMsg = unbuiltMessage(noApply ?? { built: [], missing: A.missing })
+      const noToken = mutantsOn(WORKFLOW_PIN.replace('contents: write', () => 'contents: read')), noTokenMsg = unbuiltMessage(noToken)
+      check('AN ANCHOR THAT CANNOT BE FOUND IS NAMED WITH WHAT TO EDIT: a pin whose Delete step has no --apply names that step, DEL_RUN_RE and the mutants built on it; a pin with no `contents: write` quotes that literal; both say where the regexps and literals are',
+        noApply !== null && noApply.missing.length === 3 && noApply.built.some(m => m.text === null && m.from === null) && /the Delete step's run line \(no line of the pin matches DEL_RUN_RE/.test(noApplyMsg) && /no step to anchor on for --apply dropped from the Delete step, /.test(noApplyMsg)
+          && noToken.built.filter(m => m.text === null).length === 1 && /the token cannot write \(the anchor "contents: write" is not in the pin exactly once\)/.test(noTokenMsg) && !/Not located/.test(noTokenMsg)
+          && [noApplyMsg, noTokenMsg].every(m => /edit the regexp or the literal that no longer matches the pin, in the self-test of scripts\/delete-branches\.mjs/.test(m)), `${noApplyMsg} | ${noTokenMsg}`)
+      const wfFirst = workflowProblems(wfBuilt.find(m => m.what.startsWith('a wrapped continuation of the Delete run ending || true'))?.text ?? '')
       check('THE PROBLEM NAMES THE FIRST LINE THAT DIFFERS (expected and found) and says an intended edit also edits the pin',
         wfFirst.length === 1 && wfFirst[0].includes(`at significant line ${significant(WORKFLOW_PIN).length + 1} `) && /expected nothing \(the text ends here\), found `\s*\|\| true`/.test(wfFirst[0]) && /also edits WORKFLOW_PIN/.test(wfFirst[0]), wfFirst.join(' | '))
+      const wfMakeOr = (from, to) => (from === null || to === null ? null : wfMake(from, to))
       const wfBenign = [
         ['a comment line added', 'jobs:\n', '# a new comment\njobs:\n'],
-        ['an indented comment line added', DEL_STEP, `        # an indented comment\n${DEL_STEP}`],
+        ['an indented comment line added', DEL_STEP, cat('        # an indented comment\n', DEL_STEP)],
         ['a blank line added', 'jobs:\n', '\n\njobs:\n'],
-        ['trailing space on a line', DEL, `${DEL}   `],
-        ['CRLF line endings', null, null],
-      ].map(([what, from, to]) => ({ what, text: from === null ? WORKFLOW_PIN.replace(/\n/g, '\r\n') : wfMake(from, to) }))
+        ['trailing space on a line', DEL, cat(DEL, '   ')],
+        ['CRLF line endings', 'CRLF', 'CRLF'],
+      ].map(([what, from, to]) => ({ what, text: from === 'CRLF' ? WORKFLOW_PIN.replace(/\n/g, '\r\n') : wfMakeOr(from, to) }))
       const wfBenignBad = wfBenign.filter(m => m.text === null || workflowProblems(m.text).length > 0).map(m => m.what)
       check('COMMENT LINES, BLANK LINES, TRAILING SPACE AND CRLF ARE NOT COUNTED (five edits, none a problem), so the pin is not stricter than the file needs', wfBenign.length === 5 && wfBenignBad.length === 0, `read as a problem: ${wfBenignBad.join(', ')}`)
       // Only space, tab and CR are free: a LITERAL list of the characters that YAML keeps as content and `\s` would have stripped, each at the end of the Delete run line and alone on a line.
-      const wfOdd = ['\u00a0', '\f', '\v', '\ufeff', '\u2028'].flatMap(c => [wfMake(DEL, `${DEL}${c}`), wfMake('jobs:\n', `${c}\njobs:\n`)])
+      const wfOdd = ['\u00a0', '\f', '\v', '\ufeff', '\u2028'].flatMap(c => [wfMakeOr(DEL, cat(DEL, c)), wfMake('jobs:\n', `${c}\njobs:\n`)])
       check('ONLY SPACE, TAB AND CR ARE FREE: a no-break space, form feed, vertical tab, BOM or line separator at the end of a line, or alone on one, is a problem (10 edits, none read as blank)',
         wfOdd.length === 10 && wfOdd.every(t => t !== null && workflowProblems(t).length === 1), `${wfOdd.filter(t => t === null || workflowProblems(t).length !== 1).length} of ${wfOdd.length} not read as a problem`)
       check('A MUTANT WHOSE ANCHOR IS NOT IN THE PIN IS A FAIL LINE, NOT A STACK TRACE: the builder answers null for an anchor that is absent and for one that occurs twice',
