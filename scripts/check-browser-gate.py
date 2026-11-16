@@ -3026,7 +3026,11 @@ def self_test():
     # list checked equal to its constant, and each member has an input of its own on which its absence changes the verdict; the inputs are chosen so that no OTHER alternative also matches them.
     kept = lambda cmd: (lambda res: res[0] == [] and res[1]["opaque"] == 1)(unread(cmd))
     refused = lambda cmd: (lambda res: any_of("cannot be read", res[0]) and res[1]["opaque"] == 0)(unread(cmd))
-    row_pr = lambda body, head="", close="]", after="": (lambda d: (Path(d, "scripts").mkdir(), Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after), gate_row_problems(d, pkg, read))[2])(tempfile.mkdtemp())
+    def row_pr(body, head="", close="]", after=""):          # a temporary directory that is removed (the lambda this replaced left one behind per call: 202 per self-test run)
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + head + base_rows + body + close + "\n\nexport { rows }\n" + after)
+            return gate_row_problems(d, pkg, read)
     one_row = lambda run, name="x": f"  {{ name: '{name}', weight: 10,\n    run: {run} }},\n"
 
     # FINDING 21. The raw line of an unreadable always() step: a command on it that is not an allowed head hides a launcher, whether or not the reader could tell what it launches.
@@ -3209,14 +3213,14 @@ def self_test():
         check(f"round 5 (B7): the rows array followed by {label} is refused: it changes the array that is exported", any_of("changes the array that is exported", row_pr("", close=close)), row_pr("", close=close))
     # A25: a string that is a script's file name is a script the row runs, wherever it sits.
     def row_pr_files(body, names=("shot.mjs", "pure.mjs", "probe.py"), root_names=("pre-launch.cjs",)):
-        d = tempfile.mkdtemp()
-        Path(d, "scripts").mkdir()
-        Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + body + "]\n\nexport { rows }\n")
-        for n in names:
-            Path(d, "scripts", n).write_text("x")
-        for n in root_names:
-            Path(d, n).write_text("x")
-        return gate_row_problems(d, pkg, read)
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + body + "]\n\nexport { rows }\n")
+            for n in names:
+                Path(d, "scripts", n).write_text("x")
+            for n in root_names:
+                Path(d, n).write_text("x")
+            return gate_row_problems(d, pkg, read)
     for label, run in [("`['shot.mjs'], { cwd: 'scripts' }` (A25)", "() => cp.spawnSync(process.execPath, ['shot.mjs'], { cwd: 'scripts' }).status === 0"), ("`path.join('scripts', 'shot.mjs')` (A25)", "() => cp.spawnSync(process.execPath, [path.join('scripts', 'shot.mjs')]).status === 0"),
                        ("`['scripts/' + 'shot.mjs']` (A25)", "() => cp.spawnSync(process.execPath, ['scripts/' + 'shot.mjs']).status === 0"), ("a `.py` file (`['probe.py']`)", "() => helpers.runAll(['probe.py'])"),
                        ("a file at the repository root (`['pre-launch.cjs']`)", "() => cp.spawnSync(process.execPath, ['pre-launch.cjs'])")]:
@@ -3239,11 +3243,11 @@ def self_test():
           all(js_tokens(src) == want for src, want in PINNED_TOKENS_5), [(src, js_tokens(src), want) for src, want in PINNED_TOKENS_5 if js_tokens(src) != want])
     # A27: a file that imports `rows` from gate-checks.mjs must not change it (confidence.mjs iterates it after its inventory comparison, which sees names and weights once).
     def row_pr_importer(src, name="importer.mjs"):
-        d = tempfile.mkdtemp()
-        Path(d, "scripts").mkdir()
-        Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + "]\n\nexport { rows }\n")
-        Path(d, "scripts", name).write_text(src)
-        return gate_row_problems(d, pkg, read)
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "scripts").mkdir()
+            Path(d, "scripts", "gate-checks.mjs").write_text("// rows\nconst rows = [\n" + base_rows + "]\n\nexport { rows }\n")
+            Path(d, "scripts", name).write_text(src)
+            return gate_row_problems(d, pkg, read)
     PINNED_ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
     check("ARRAY_MUTATORS: the Array methods that change the array are exactly the nine pinned (a literal list)", set(PINNED_ARRAY_MUTATORS) == set(ARRAY_MUTATORS) and len(ARRAY_MUTATORS) == 9, ARRAY_MUTATORS)
     for m in PINNED_ARRAY_MUTATORS:

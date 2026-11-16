@@ -188,3 +188,10 @@ Red on purpose (`PASS [<id>]`; failing checks of the mutated copy):
 | `browser-gate-importer-index-assign` / `-length-assign` / `-reassign` | that alternative deleted | 1 / 1 / 1 |
 | `browser-gate-importer-non-braced` | `import * as` accepted | 1 |
 | `browser-gate-importer-shadow` | a `let rows` in a function counts as a change | 1 |
+
+## Hygiene: the self-test left a temporary directory behind per fixture (not an item of the review)
+
+Measured on this machine, whose disk is scarce: `row_pr` (the helper of the gate-rows fixtures) called `tempfile.mkdtemp()` and never removed the directory, so ONE run of
+`python3 scripts/check-browser-gate.py --self-test` left 202 directories in `/tmp` (`before=35413 after=35615` around a single run); the 35,601 left by this session's runs were 521 MB of
+`/tmp` and are removed now (identified by their content: `scripts/gate-checks.mjs` starting `// rows`; `/tmp` is 83 MB). `row_pr` and the two helpers this change added use a
+`TemporaryDirectory` now; the same run leaves 0 (`leaked_per_run=0`), the self-test is 801/801 before and after. A separate commit, because it is a separate concern.
