@@ -35,9 +35,14 @@ export const actionFor = (mode, row) =>
 
 /** How a finished gate run exits. Every exit of scripts/confidence.mjs after the record is written goes through this one function (the self-test reads its source for that), so a failing row exits 1 in
  *  every mode whatever the score: the browserless mode must not turn a failed row into a green step (review 2026-11-15, finding 8: three one-line regressions of the wiring, each exiting 0 with a failing row,
- *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score. A score that is not a number (`NaN`: a run that
- *  measured nothing) is a failure in every mode, since `NaN < bar` is false and a comparison alone read it as a pass (round 4, finding 8). */
-export const exitFor = ({ mode, failed, total, bar }) => (failed > 0 || !Number.isFinite(total) || (mode !== 'quick' && total < bar) ? 1 : 0)
+ *  passed the self-test, which then only checked that the text `process.exit(0)` existed). `quick` skipped rows, so the bar is not asked of its score.
+ *
+ *  A RUN THAT MEASURED NOTHING IS A FAILURE IN EVERY MODE, quick included (round 5, finding A8). Every row skipped or not applicable leaves `possible` at 0, and `--quick` asked neither `total < bar` (it skipped
+ *  rows) nor anything else, so it exited 0 over "0/0 points". The question is asked of `possible` as `!(possible > 0)`, so both degenerate values are one clause: 0 (nothing ran) and `NaN` (a row with no
+ *  weight; `NaN > 0` is false). A call that forgets `possible` passes `undefined`, which reads as nothing measured too, so the mistake is a loud red (a passing run exits 1) and never a green. A `total` that is
+ *  not a number stays a clause of its own (round 4, finding 8: `NaN < bar` is false, so the comparison alone read it as a pass): this function is pure, and a `total` is not always derived from its `possible`. */
+export const exitFor = ({ mode, failed, possible, total, bar }) =>
+  (failed > 0 || !(possible > 0) || !Number.isFinite(total) || (mode !== 'quick' && total < bar) ? 1 : 0)
 
 /** The closing line of a browserless run. It counts the rows that were not run FOR WANT OF A BROWSER (`why: 'browser'`), not every not-applicable row: on the weekly schedule the outbox row has no subject and is
  *  not applicable too, and is no row that needs a browser (review 2026-11-15, finding 9: it said 7 rows / 190 points where 6 / 180 were not run). */
@@ -89,9 +94,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
     recordId('browserless', 'aaaaaaaaaaaa-bbbbbbbbbbbb') === 'aaaaaaaaaaaa-bbbbbbbbbbbb-browserless' && recordId('full', 'x') === 'x' && recordId('quick', 'x') === 'x', 'the CI step that lands a ledger line skips an id already in the ledger')
   check('the declared modes are the three the gate knows', MODES.join() === 'full,quick,browserless', MODES.join())
   // THE EXIT, as a truth table: a failing row exits 1 in every mode, at any score (a weight-10 row fails and leaves 97), and a run with no failing row exits 0 unless a whole-table score is below the bar.
-  const exits = Object.fromEntries(MODES.map(m => [m, [exitFor({ mode: m, failed: 0, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, total: 40, bar: 95 }), exitFor({ mode: m, failed: 0, total: 94, bar: 95 }), exitFor({ mode: m, failed: 0, total: NaN, bar: 95 })]]))
-  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, a score under the bar exits 1 except in quick (which skipped rows), and a score that is not a number exits 1 in every mode',
-    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1, 1], quick: [0, 1, 1, 0, 1], browserless: [0, 1, 1, 1, 1] }), JSON.stringify(exits))
+  // The last three columns are a run that measured nothing (round 5, finding A8): 0 points possible, a `possible` that is NaN (a row with no weight) beside a score that is finite, and both NaN. Each is 1 in
+  // EVERY mode, quick too (a quick run is not held to the bar, so only `possible` can refuse it). The NaN column of round 4 (finding 8, a `total` that is not a number beside a possible that is) stays.
+  const P = 530
+  const exits = Object.fromEntries(MODES.map(m => [m, [
+    exitFor({ mode: m, failed: 0, possible: P, total: 100, bar: 95 }), exitFor({ mode: m, failed: 1, possible: P, total: 97, bar: 95 }), exitFor({ mode: m, failed: 3, possible: P, total: 40, bar: 95 }),
+    exitFor({ mode: m, failed: 0, possible: P, total: 94, bar: 95 }), exitFor({ mode: m, failed: 0, possible: P, total: NaN, bar: 95 }),
+    exitFor({ mode: m, failed: 0, possible: 0, total: 0, bar: 95 }), exitFor({ mode: m, failed: 0, possible: NaN, total: 100, bar: 95 }), exitFor({ mode: m, failed: 0, possible: NaN, total: NaN, bar: 95 }),
+  ]]))
+  check('THE EXIT: a failing row exits 1 in every mode at any score, an unfailing run exits 0, a score under the bar exits 1 except in quick (which skipped rows), and a run that measured nothing (0 points possible, a `possible` that is NaN, a `total` that is NaN) exits 1 in every mode, quick included',
+    JSON.stringify(exits) === JSON.stringify({ full: [0, 1, 1, 1, 1, 1, 1, 1], quick: [0, 1, 1, 0, 1, 1, 1, 1], browserless: [0, 1, 1, 1, 1, 1, 1, 1] }), JSON.stringify(exits))
+  // A call that leaves `possible` out is read as nothing measured: a green run is then a red one, never the other way round.
+  check('...and a call that does not pass `possible` exits 1 (an omission is a loud red, not a green)', MODES.every(m => exitFor({ mode: m, failed: 0, total: 100, bar: 95 }) === 1), 'a run whose caller forgot `possible` would exit 0')
   const sched = [{ state: 'PASS', weight: 20 }, { state: 'PASS', weight: 30 }, ...Array.from({ length: 6 }, () => ({ state: 'N/A', weight: 30, why: 'browser' })), { state: 'N/A', weight: 10, why: 'no-subject' }]
   check('THE CLOSING LINE of a browserless run counts the rows not run for want of a browser, and the rows that RAN: on a scheduled run the outbox row ran and found no subject, so it is one of the 3 that ran and is not one of the 6 (180 points) that were not run; without it, 2 ran',
     /among the 3 rows that ran\. 6 row\(s\) that need a browser were NOT run \(180 points\)\. This is NOT a pass\./.test(browserlessLine(sched)) && /among the 2 rows that ran\. 6 row\(s\)/.test(browserlessLine(sched.slice(0, 8))), browserlessLine(sched))
@@ -126,30 +140,53 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
   // EVERY EXIT after the usage checks is exitFor's. A `process.exit(0)` or `process.exit(BROWSERLESS ? 0 : 1)` somewhere in the failing-row path is the regression this guards: the score it
   // leaves can be 97 with a row failing, and the step is then green over it.
   const exitCalls = [...gateSource.matchAll(/process\.exit\(([^)]*\)?)\)/g)].map(m => m[1])
-  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...): six of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, total, bar: BAR \}\)$/.test(c)).length === 6 && exitCalls.length === 9,
+  check('confidence.mjs: every process.exit is a usage error (2) or exitFor(...), `possible` passed: seven of the latter, one per way a run can end', exitCalls.filter(c => c === '2').length === 3 && exitCalls.filter(c => /^exitFor\(\{ mode: MODE, failed: [^}]+, possible, total, bar: BAR \}\)$/.test(c)).length === 7 && exitCalls.length === 10,
     JSON.stringify(exitCalls))
   // THE REAL confidence.mjs, END TO END, over stand-in rows (review 2026-11-15, rounds 2 and 4). The wiring checks above pin where the exits are and that they go through exitFor, not what is
   // passed to it: `failed: failedRows.length` changed to `failed: 0`, a `&& !BROWSERLESS` on the filter or the guard of the failing-row block, an emptied `quickFailures`, each left the real gate exiting 0
-  // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the inventory, the rows, the identity,
-  // the stranded-mutation check) and run for real in each mode. The rows log their own calls (`ran.log`), so what a mode does NOT run is observable; the identity and the inventory answer from the
-  // environment, so the record's identity fields and the inventory's refusal are observable too. The real gate is never run here.
+  // over a failing row while those checks stayed green. So the file is COPIED to a scratch directory with stand-ins for everything that would run the real suite (the rows, the identity, the stranded-mutation
+  // check) and run for real in each mode. The rows log their own calls (`ran.log`), so what a mode does NOT run is observable; the identity answers from the environment, so the record's identity fields are
+  // observable too. THE INVENTORY IS NOT STOOD IN FOR (round 5, finding A13): gate-inventory.mjs reads one file and runs nothing, so a REAL copy compares the stand-in rows with a `docs/gate-rows.txt` this
+  // test writes, and its export list is the real one by construction. A stand-in that ignored its arguments left `diffAgainst(readInventory(), rows)` free to become `diffAgainst(rows, rows)`. The real gate is never run here.
   {
     const fs = await import('node:fs'), { tmpdir } = await import('node:os'), { join } = await import('node:path'), { spawnSync } = await import('node:child_process')
     const scratch = fs.mkdtempSync(join(tmpdir(), 'confidence-e2e-'))
     try {
       fs.mkdirSync(join(scratch, 'scripts')); fs.mkdirSync(join(scratch, 'docs'))
       const here = fileURLToPath(new URL('.', import.meta.url))
-      for (const f of ['confidence.mjs', 'gate-mode.mjs']) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
-      // The names confidence.mjs imports from the two modules that are stood in for, against the names the stand-ins export (a LITERAL list): a new import in confidence.mjs is then a named failure here,
-      // not a crash in every run below (round 4, finding 15).
-      const STANDIN_EXPORTS = { 'gate-inventory.mjs': ['INVENTORY_PATH', 'readInventory', 'diffAgainst'], 'checks.mjs': ['runIdentity'] }
-      const imported = mod => (new RegExp(`import \\{([^}]*)\\} from './${mod.replace('.', '\\.')}'`).exec(gateSource)?.[1] ?? '').split(',').map(x => x.trim()).filter(Boolean)
-      const missing = Object.entries(STANDIN_EXPORTS).flatMap(([mod, have]) => imported(mod).filter(n => !have.includes(n)).map(n => `${n} from ${mod}`))
-      check('THE STAND-INS COVER WHAT confidence.mjs IMPORTS from the modules they replace (gate-inventory.mjs, checks.mjs): a new import is named here, not found as a crash in every run below',
-        missing.length === 0 && imported('gate-inventory.mjs').length === 3 && imported('checks.mjs').length === 1, `no stand-in for: ${missing.join(', ')}`)
-      fs.writeFileSync(join(scratch, 'scripts', 'gate-inventory.mjs'), `export const INVENTORY_PATH = 'docs/gate-rows.txt'\nexport const readInventory = () => []\nexport const diffAgainst = () => (process.env.STANDIN_INVENTORY ? ['row good is not in docs/gate-rows.txt'] : [])\n`)
-      fs.writeFileSync(join(scratch, 'scripts', 'checks.mjs'), `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`)
-      fs.writeFileSync(join(scratch, 'scripts', 'mutation-check.mjs'), `process.exit(0)\n`)
+      // THE MODULES confidence.mjs REACHES, each either a REAL COPY (it runs nothing and imports nothing that does) or a STAND-IN written below (it would run the real suite or git). The coverage of the stand-ins
+      // is checked against what confidence.mjs imports, so a new import is a NAMED failure here, not a crash in every run below (round 4, finding 15; round 5, finding A15: gate-checks.mjs and mutation-check.mjs
+      // were stood in for with no list at all, and a name added from either was an unnamed red with a JSON detail). The lists are LITERALS, and a check below ties each to the text of its stand-in.
+      const COPIED = ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs']
+      for (const f of COPIED) fs.copyFileSync(join(here, f), join(scratch, 'scripts', f))
+      const STANDIN_EXPORTS = { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] }
+      /** The names a module's text exports, sorted (`export const|function|class NAME`, `export { a, b as c }`, `export default`). */
+      const exportNames = text => [...new Set([
+        ...[...text.matchAll(/^export\s+(?:async\s+)?(?:const|let|var|function\*?|class)\s+([\w$]+)/gm)].map(m => m[1]),
+        ...[...text.matchAll(/^export\s*\{([^}]*)\}/gm)].flatMap(m => m[1].split(',').map(x => x.trim().split(/\s+as\s+/).pop()).filter(Boolean)),
+        ...(/^export\s+default\b/m.test(text) ? ['default'] : []),
+      ])].sort()
+      /** Every relative import statement of a source: its module, and the names it takes (`{ a, b as c }` gives a and b; a default import gives `default`; `* as ns` gives `*`; a bare `import './x.mjs'` none). */
+      const importsOf = src => [...src.matchAll(/^import\s+(?:([^'"]*?)\s+from\s+)?'\.\/([^']+)'/gm)].map(m => {
+        const clause = m[1] ?? '', names = []
+        const brace = /\{([^}]*)\}/.exec(clause)
+        if (brace) names.push(...brace[1].split(',').map(x => x.trim().split(/\s+as\s+/)[0]).filter(Boolean))
+        const rest = clause.replace(/\{[^}]*\}/, '').replace(/,/g, ' ').trim()
+        if (rest.startsWith('*')) names.push('*')
+        else if (rest) names.push('default')
+        return { mod: m[2], names }
+      })
+      /** What of a source's reach the scratch directory does not cover, each as a sentence naming it: a module it imports that is neither a copy nor a stand-in, and a name it imports from a stand-in that the stand-in does
+       *  not export. With `strings`, every `'./x.mjs'` the source names counts as reached too (a dynamic import, `new URL('./x.mjs', ...)`): that is for confidence.mjs, which runs; the other copies carry a self-test
+       *  whose fixtures name modules as text, and it never runs in the scratch directory. */
+      const uncovered = (src, copied, standIns, { strings = false } = {}) => {
+        const imports = importsOf(src)
+        const named = [...new Set([...imports.map(i => i.mod), ...(strings ? [...src.matchAll(/['"]\.\/([\w.-]+\.mjs)['"]/g)].map(m => m[1]) : [])])]
+        return [
+          ...named.filter(m => !copied.includes(m) && !(m in standIns)).map(m => `no stand-in or copy for module ${m}`),
+          ...imports.flatMap(({ mod, names }) => (mod in standIns ? names.filter(n => !standIns[mod].includes(n)).map(n => `no stand-in for: ${n} from ${mod}`) : [])),
+        ]
+      }
       const ROW = {
         good: "  { name: 'good', weight: 990, run: ran('good') },\n",
         bad: "  { name: 'bad', weight: 10, run: ran('bad', false) },\n",
@@ -165,20 +202,69 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         number: "  { name: 'number', weight: 10, run: () => 1 },\n",
         object: "  { name: 'object', weight: 10, run: () => ({}) },\n",
         undef: "  { name: 'undef', weight: 10, run: () => undefined },\n",
+        noweight: "  { name: 'noweight', run: ran('noweight') },\n",
+        // The shape of the one real row whose `browser` is a FUNCTION (the mutation row: weight 20, skipQuick; it needs a browser only when the shards are not read back): `fb` is that shape, `fq` is the same
+        // without skipQuick (so `--quick` runs it), and `q20` is a plain failing row of weight 20 that quick runs. The function reads the environment, so one stand-in answers both ways.
+        fb: "  { name: 'fb', weight: 30, skipQuick: true, browser: () => process.env.STANDIN_FB_BROWSER === '1', run: ran('fb', false) },\n",
+        fq: "  { name: 'fq', weight: 30, browser: () => process.env.STANDIN_FB_BROWSER === '1', run: ran('fq', false) },\n",
+        q20: "  { name: 'q20', weight: 20, run: ran('q20', false) },\n",
       }
-      const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\n`
+      // The inventory the real gate-inventory.mjs reads: `<weight> <name>` per row, by default the stand-in table itself (a gate that matches its inventory). A test that wants a mismatch passes the lines.
+      const weightOf = n => Number(/weight: (\d+)/.exec(ROW[n])?.[1])
+      const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = c => { appendFileSync('ok.log', c + '\\n'); return true }\n`
         + `const ran = (n, v = true) => () => { appendFileSync('ran.log', n + '\\n'); return v }\nexport const rows = [\n${names.map(n => ROW[n]).join('')}]\n`
-      const go = (names, flags = [], env = {}) => {
-        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names))
-        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true })
+      const STANDIN_SRC = {
+        'checks.mjs': `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`,
+        'gate-checks.mjs': standIn(['good']), 'mutation-check.mjs': `process.exit(0)\n`,
+      }
+      for (const [f, text] of Object.entries(STANDIN_SRC)) if (f !== 'gate-checks.mjs') fs.writeFileSync(join(scratch, 'scripts', f), text)
+      const J = JSON.stringify
+      check('THE STAND-INS EXPORT WHAT THEIR LITERAL LIST SAYS: the text of each stand-in below exports exactly the names listed for it (checks.mjs, gate-checks.mjs, and none for mutation-check.mjs, which is run as a process), so a list cannot drift from what is written',
+        J(Object.fromEntries(Object.entries(STANDIN_SRC).map(([f, t]) => [f, exportNames(t)]))) === J(STANDIN_EXPORTS), J(Object.fromEntries(Object.entries(STANDIN_SRC).map(([f, t]) => [f, exportNames(t)]))))
+      const READS = { 'gate-checks.mjs': ['rows', 'ok', 'failures', 'NOT_APPLICABLE'], 'checks.mjs': ['runIdentity'] }
+      const found = Object.fromEntries(Object.keys(READS).map(m => [m, importsOf(gateSource).filter(i => i.mod === m).flatMap(i => i.names)]))
+      check('THE IMPORT READER FINDS what confidence.mjs imports from the stand-ins today (a literal list), so an empty result cannot read as full coverage',
+        Object.entries(READS).every(([m, names]) => names.every(n => found[m].includes(n))), `not found: ${Object.entries(READS).flatMap(([m, names]) => names.filter(n => !found[m].includes(n)).map(n => `${n} from ${m}`)).join(', ')}`)
+      // What the scratch directory must cover is what every REAL COPY reaches, not only confidence.mjs: gate-mode.mjs imports `rows`, `ok` and `failures` from gate-checks.mjs too, and runs, as a copy, against the stand-in.
+      const reach = (sources, copied, standIns) => Object.entries(sources).flatMap(([f, src]) => uncovered(src, copied, standIns, { strings: f === 'confidence.mjs' }).map(m => `${f}: ${m}`))
+      const copiedSources = Object.fromEntries(COPIED.map(f => [f, fs.readFileSync(join(here, f), 'utf8')]))
+      check('THE STAND-INS COVER WHAT THE COPIED MODULES REACH (confidence.mjs, gate-mode.mjs, gate-inventory.mjs): every name any of them imports from checks.mjs, gate-checks.mjs and mutation-check.mjs is exported by that stand-in, and every module any names is a stand-in or a real copy; a new import is named here, not found as a crash in every run below',
+        J(Object.keys(copiedSources)) === '["confidence.mjs","gate-mode.mjs","gate-inventory.mjs"]' && reach(copiedSources, COPIED, STANDIN_EXPORTS).length === 0, reach(copiedSources, COPIED, STANDIN_EXPORTS).join('; '))
+      // The same function over LITERAL sources (not edits of confidence.mjs, whose own import lines are what a careless edit changes: a fixture that edited them would be a crash, not a named failure, on exactly
+      // that edit). Each differs from the control in one import and has a literal expected list; the controls take a name from a REAL copy, which needs no stand-in.
+      const SRC = "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'\nimport { runIdentity } from './checks.mjs'\nimport { readInventory, diffAgainst } from './gate-inventory.mjs'\nconst spawned = new URL('./mutation-check.mjs', import.meta.url)\n"
+      const GC = "import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'", CK = "import { runIdentity } from './checks.mjs'"
+      const cases = [
+        ['control: the imports as they are', SRC, []],
+        ['a name added from gate-checks.mjs', SRC.replace(GC, GC.replace('NOT_APPLICABLE }', 'NOT_APPLICABLE, shardedSuite }')), ['confidence.mjs: no stand-in for: shardedSuite from gate-checks.mjs']],
+        ['a name imported from mutation-check.mjs, whose stand-in is process.exit(0)', `${SRC}import { thing } from './mutation-check.mjs'\n`, ['confidence.mjs: no stand-in for: thing from mutation-check.mjs']],
+        ['a name added from checks.mjs', SRC.replace(CK, "import { runIdentity, finish } from './checks.mjs'"), ['confidence.mjs: no stand-in for: finish from checks.mjs']],
+        ['a module that is neither a copy nor a stand-in', `${SRC}import { x } from './brand-new.mjs'\n`, ['confidence.mjs: no stand-in or copy for module brand-new.mjs']],
+        ['a module reached by `new URL`', `${SRC}const other = new URL('./other.mjs', import.meta.url)\n`, ['confidence.mjs: no stand-in or copy for module other.mjs']],
+        ['a multi-line import with an alias: the name before `as` is the export', SRC.replace(GC, "import {\n  rows as r,\n  ok,\n  failures,\n  NOT_APPLICABLE,\n  shardedSuite as s,\n} from './gate-checks.mjs'"), ['confidence.mjs: no stand-in for: shardedSuite from gate-checks.mjs']],
+        ['a namespace import of a stand-in cannot be compared with its list', SRC.replace(GC, "import * as gc from './gate-checks.mjs'"), ['confidence.mjs: no stand-in for: * from gate-checks.mjs']],
+        ['a default import of a stand-in', SRC.replace(GC, "import gc from './gate-checks.mjs'"), ['confidence.mjs: no stand-in for: default from gate-checks.mjs']],
+        ['control: a name added from gate-mode.mjs (a real copy)', `${SRC}import { MODES } from './gate-mode.mjs'\n`, []],
+        ['a copied module other than confidence.mjs that imports a name the stand-in lacks', { 'confidence.mjs': SRC, 'gate-mode.mjs': "import { shardedSuite } from './gate-checks.mjs'\n" }, ['gate-mode.mjs: no stand-in for: shardedSuite from gate-checks.mjs']],
+        ['a copied module other than confidence.mjs that imports a module that is neither a copy nor a stand-in', { 'confidence.mjs': SRC, 'gate-mode.mjs': "import { y } from './unknown.mjs'\n" }, ['gate-mode.mjs: no stand-in or copy for module unknown.mjs']],
+        ['a copied module whose self-test names a module as TEXT (not an import) is not a reach', { 'confidence.mjs': SRC, 'gate-mode.mjs': "const SRC = \"import { x } from './in-a-string.mjs'\"\n" }, []],
+      ]
+      const LITERAL = { copied: ['confidence.mjs', 'gate-mode.mjs', 'gate-inventory.mjs'], standIns: { 'checks.mjs': ['runIdentity'], 'gate-checks.mjs': ['NOT_APPLICABLE', 'failures', 'ok', 'rows'], 'mutation-check.mjs': [] } }
+      const results = cases.map(([what, src, want]) => [what, reach(typeof src === 'string' ? { 'confidence.mjs': src } : src, LITERAL.copied, LITERAL.standIns), want])
+      check('...each way a new reach can go uncovered is a NAMED failure, and a name from a real copy is none: a name from gate-checks.mjs, from mutation-check.mjs and from checks.mjs, an unknown module (imported, or reached by `new URL`), a copy other than confidence.mjs, an aliased multi-line import, a namespace and a default import',
+        J(LITERAL) === J({ copied: COPIED, standIns: STANDIN_EXPORTS }) && results.every(([, got, want]) => J(got) === J(want)), J(results.filter(([, got, want]) => J(got) !== J(want)).map(([what, got, want]) => ({ what, got, want }))))
+      const go = (names, flags = [], env = {}, inventory = names.map(n => `${weightOf(n)} ${n}`)) => {
+        fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names)); fs.writeFileSync(join(scratch, 'docs', 'gate-rows.txt'), `${inventory.join('\n')}\n`)
+        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true }); fs.rmSync(join(scratch, 'ok.log'), { force: true })
         const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000, env: { ...process.env, ...env } })
         let rec = null
         try { rec = JSON.parse(fs.readFileSync(join(scratch, 'docs', 'confidence-log.jsonl'), 'utf8').trim().split('\n').pop()) } catch { rec = null }
         let ran = []
         try { ran = fs.readFileSync(join(scratch, 'ran.log'), 'utf8').split('\n').filter(Boolean) } catch { ran = [] }
-        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran }
+        let oks = []
+        try { oks = fs.readFileSync(join(scratch, 'ok.log'), 'utf8').split('\n').filter(Boolean) } catch { oks = [] }
+        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran, oks }
       }
-      const J = JSON.stringify
       const FOUR = ['good', 'bad', 'build', 'browser']
       // A failing row whose weight leaves the score above the bar (a weight-10 row of 1010 points: 99): only the conjunction of failing rows can keep it red.
       const red = { full: go(FOUR), quick: go(FOUR, ['--quick']), browserless: go(FOUR, ['--browserless']) }
@@ -195,10 +281,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       check('A ROW THAT RETURNS A TRUTHY VALUE THAT IS NOT true IS A FAILING ROW: an async function (a Promise), a string, a number and an object each exit 1 and are recorded as failing, and the line says what was returned',
         Object.entries(nonBool).every(([n, r]) => r.status === 1 && J(r.rec?.failing) === J([n])) && /\(returned object, which is not true/.test(nonBool.async.out) && /\(returned string, which is not true/.test(nonBool.string.out) && /\(returned number, which is not true/.test(nonBool.number.out),
         J(Object.fromEntries(Object.entries(nonBool).map(([n, r]) => [n, [r.status, r.rec?.failing]]))))
-      // A RUN THAT MEASURED NOTHING (every row NOT_APPLICABLE: possible 0) is a failure, and says 0, not NaN (round 4, finding 8): the guard in confidence.mjs and the exit in exitFor are both pinned.
-      const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']) }
-      check('A RUN THAT MEASURED NOTHING (every row not applicable, 0 points possible) EXITS 1 in full and browserless, records a total of 0 (not NaN), prints `0/0 points = 0/100` and never says the gate passed',
-        ['full', 'browserless'].every(m => nothing[m].status === 1 && nothing[m].rec?.possible === 0 && nothing[m].rec?.total === 0 && /0\/0 points = 0\/100/.test(nothing[m].out) && !/Gate passed/.test(nothing[m].out)),
+      // A RUN THAT MEASURED NOTHING (0 points possible) is a failure in EVERY mode, says 0 and not NaN, and says why (round 4, finding 8; round 5, finding A8): the guard in confidence.mjs, the exit in exitFor and
+      // the refusal's own line are each pinned. `--quick` is the mode that exited 0 over it: it skipped rows, so the bar is not asked of it, and every row here is skipped (`build`, `browser`) or not applicable (`na`).
+      const nothing = { full: go(['na', 'na2']), browserless: go(['na', 'na2'], ['--browserless']), blBrowser: go(['browser'], ['--browserless']), quickSkipped: go(['build', 'browser'], ['--quick']), quickNa: go(['na', 'na2'], ['--quick']) }
+      check('A RUN THAT MEASURED NOTHING (every row skipped or not applicable, 0 points possible) EXITS 1 in full, in browserless and in --quick, records a total of 0 (not NaN), prints `0/0 points = 0/100` and `Nothing was measured`, and never says the gate passed or that no row failed',
+        Object.values(nothing).every(r => r.status === 1 && r.rec?.possible === 0 && r.rec?.total === 0 && /0\/0 points = 0\/100/.test(r.out) && /Nothing was measured: 0 points possible/.test(r.out) && !/Gate passed/.test(r.out) && !/No failures among/.test(r.out)),
         J(Object.fromEntries(Object.entries(nothing).map(([m, r]) => [m, [r.status, r.rec?.possible, r.rec?.total]]))))
       // A FAILING ROW IS RED WHATEVER FLAGS IT CARRIES (round 4, finding 9): `sq` is skipQuick without browser (the F# build and compiler-verified doc rows are such), `br` is skipQuick and browser.
       const sq = { full: go(['good', 'sq', 'browser']), browserless: go(['good', 'sq', 'browser'], ['--browserless']), quick: go(['good', 'sq', 'browser'], ['--quick']) }
@@ -207,6 +294,25 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         sq.full.status === 1 && J(sq.full.rec?.failing) === '["sq"]' && sq.browserless.status === 1 && J(sq.browserless.rec?.failing) === '["sq"]' && sq.quick.status === 0 && J(sq.quick.rec?.skipped) === '["sq","browser"]' && J(sq.quick.rec?.failing) === '[]'
           && br.full.status === 1 && J(br.full.rec?.failing) === '["br"]' && br.browserless.status === 0 && J(br.browserless.rec?.notApplicable) === '["br"]' && J(br.browserless.rec?.failing) === '[]' && br.quick.status === 0 && J(br.quick.rec?.skipped) === '["br"]',
         J({ sq: Object.fromEntries(Object.entries(sq).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.skipped]])), br: Object.fromEntries(Object.entries(br).map(([m, r]) => [m, [r.status, r.rec?.failing, r.rec?.notApplicable]])) }))
+      // A FAILING ROW IS RED WHATEVER SHAPE OR WEIGHT IT HAS (round 5, finding A9). The rows above fail with `browser` absent or `true`, and at weights 10 and 20; the one real row with a FUNCTION for `browser` (the
+      // mutation row) and every real row of weight 30 were in no run, so a filter on `typeof r.browser` or on `r.weight` left the gate green over them. Each cell is one run of `good` and ONE failing row, as
+      // [exit, failing, skipped, not applicable, score at or above the bar]: the last is true wherever a row failed, so only the conjunction of failing rows can be what keeps the run red.
+      const cell = (name, flags = [], env = {}) => { const r = go(['good', name], flags, env); return [r.status, r.rec?.failing, r.rec?.skipped, r.rec?.notApplicable, r.rec?.total >= 95] }
+      const SHAPES = ['bad', 'q20', 'sq', 'br', 'fb', 'fq'], FN_BROWSER = { STANDIN_FB_BROWSER: '1' }
+      const matrix = {
+        full: SHAPES.map(n => cell(n)), quick: SHAPES.map(n => cell(n, ['--quick'])), browserless: SHAPES.map(n => cell(n, ['--browserless'])),
+        'browserless, function says a browser is needed': ['fb', 'fq'].map(n => cell(n, ['--browserless'], FN_BROWSER)),
+      }
+      const F = n => [1, [n], [], [], true], K = n => [0, [], [n], [], true], N = n => [0, [], [], [n], true]
+      check('A FAILING ROW IS RED WHATEVER SHAPE OR WEIGHT IT HAS (bad 10, q20 20, sq 20, br 20, fb 30, fq 30; fb and fq have a FUNCTION for `browser`): in full each exits 1 and is named; in --quick the skipQuick ones (sq, br, fb) are skipped and bad, q20 and fq fail; in browserless sq, bad, q20 and the function rows fail, br is not applicable, and a function that says a browser is needed makes fb and fq not applicable, not failing',
+        J(matrix) === J({
+          full: SHAPES.map(F), quick: [F('bad'), F('q20'), K('sq'), K('br'), K('fb'), F('fq')], browserless: [F('bad'), F('q20'), F('sq'), N('br'), F('fb'), F('fq')],
+          'browserless, function says a browser is needed': [N('fb'), N('fq')],
+        }), J(matrix))
+      // The weights the failing stand-ins carry are the weights the real table has (a literal list): a real row of another weight is a red here, asking for a stand-in of that weight.
+      const realWeights = [...new Set(gateRows.map(r => r.weight))].sort((a, b) => a - b)
+      check('THE FAILING STAND-INS COVER EVERY WEIGHT the real table has (10, 20, 30), in the rows every mode runs (bad, q20, fq) as well as in the full table (sq, fb)',
+        J(realWeights) === '[10,20,30]' && J(['bad', 'q20', 'fq'].map(weightOf)) === J(realWeights) && J(['bad', 'q20', 'sq', 'fb'].map(weightOf).sort((a, b) => a - b)) === J([10, 20, 20, 30]), `real weights ${J(realWeights)}`)
       const green = { full: go(['good', 'build', 'browser']), quick: go(['good', 'build', 'browser'], ['--quick']), browserless: go(['good', 'build', 'browser'], ['--browserless']) }
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
         ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)
@@ -223,11 +329,38 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
           && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
           && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
         J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
-      // THE INVENTORY REFUSAL (round 4, finding 13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing recorded or run.
-      const inventory = go(['good', 'build'], [], { STANDIN_INVENTORY: '1' })
-      check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED: exit 2, the mismatch printed, `Refusing to score`, no row run and nothing recorded',
-        inventory.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(inventory.out) && /row good is not in docs\/gate-rows\.txt/.test(inventory.out) && /Refusing to score/.test(inventory.out) && inventory.rec === null && inventory.ran.length === 0,
-        `exit ${inventory.status}; ${inventory.out.slice(-300)}`)
+      // THE RENDER SERVER (round 5, finding A12). `ok` is stood in for by a function that logs the command and answers true, so the only call it gets is the gate's own probe of :8080 (`needsServer`): a full
+      // run asks whether anything listens (and, here, hears yes, so nothing is spawned), a `--quick` run, which skips every browser row, does not ask. `needsServer = true` costs `--quick` a probe and, where
+      // nothing listens, a spawned server and up to 20 s; `needsServer = false` leaves the render rows to fail for want of a server. A browserless run is left unpinned: it runs no browser row, and whether it
+      // wants the server is a question about what else listens, not about this clause.
+      const PROBE = 'curl -sf -o /dev/null http://localhost:8080/'
+      check('THE RENDER SERVER IS PROBED WHEN ROWS THAT NEED IT WILL RUN, AND NOT IN --quick: a full run asks `ok` for one curl of localhost:8080, a --quick run asks for nothing',
+        J(green.full.oks) === J([PROBE]) && J(green.quick.oks) === '[]', J({ full: green.full.oks, quick: green.quick.oks }))
+      // THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE (round 5, finding A10): the full-mode run above pins `dirty` and `sha`; a clause that dropped them in `--quick` or `--browserless` left the self-test green.
+      // Nothing reads them today (scripts/confidence-record-check.mjs refuses any citation of a run whose mode is not `full`), so this pins what a record SAYS, not what a verdict does.
+      const IDENT = { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' }
+      const ident = { quick: go(['good', 'build', 'browser'], ['--quick'], IDENT), browserless: go(['good', 'build', 'browser'], ['--browserless'], IDENT) }
+      check('THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE: on a dirty tree --quick and --browserless record `dirty: true`, the sha and the id the run had (browserless under its suffix) and say `(tree dirty)`; on a clean tree they record `dirty: false` and that sha',
+        ['quick', 'browserless'].every(m => ident[m].rec?.dirty === true && ident[m].rec?.sha === 'b'.repeat(40) && /\(tree dirty\)/.test(ident[m].out) && green[m].rec?.dirty === false && green[m].rec?.sha === 'a'.repeat(40) && !/\(tree dirty\)/.test(green[m].out))
+          && ident.quick.rec?.id === 'run-xyz' && ident.browserless.rec?.id === 'run-xyz-browserless',
+        J(Object.fromEntries(['quick', 'browserless'].map(m => [m, [ident[m].rec?.dirty, ident[m].rec?.sha, ident[m].rec?.id, green[m].rec?.dirty, green[m].rec?.sha]]))))
+      // THE INVENTORY REFUSAL, by the REAL comparison (round 4, finding 13; round 5, finding A13): a gate that does not match docs/gate-rows.txt is refused before anything is scored, with exit 2 and nothing
+      // recorded or run. The inventory is read from a file this test writes and compared by the real `diffAgainst`, so each way the two can differ is its own run, and the arguments of the call are observable:
+      // `diffAgainst(rows, rows)` finds nothing wrong anywhere, `diffAgainst(readInventory(), [])` refuses every gate, and swapped arguments name MISSING for UNDECLARED.
+      const refusal = {
+        lacks: go(['good', 'build'], [], {}, ['990 good', '5 build', '7 ghost']), extra: go(['good', 'build'], [], {}, ['990 good']), weight: go(['good', 'build'], [], {}, ['990 good', '6 build']),
+        quick: go(['good', 'build'], ['--quick'], {}, ['990 good', '5 build', '7 ghost']), browserless: go(['good', 'build'], ['--browserless'], {}, ['990 good', '5 build', '7 ghost']),
+        weightless: go(['good', 'noweight'], [], {}, ['990 good']),
+      }
+      const refused = (r, what) => r.status === 2 && /The gate does not match docs\/gate-rows\.txt/.test(r.out) && what.test(r.out) && /Refusing to score/.test(r.out) && r.rec === null && r.ran.length === 0
+      check('A GATE THAT DOES NOT MATCH ITS INVENTORY IS REFUSED, by the real comparison: a row the inventory has and the gate lacks (MISSING), a row the gate has and the inventory lacks (UNDECLARED), a weight that differs (WEIGHT changed), in every mode: each exit 2, named, `Refusing to score`, no row run, nothing recorded',
+        refused(refusal.lacks, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.extra, /UNDECLARED row "build" \(5 pts\)/) && refused(refusal.weight, /WEIGHT changed for "build": declared 6, gate has 5/)
+          && refused(refusal.quick, /MISSING row "ghost" \(7 pts\)/) && refused(refusal.browserless, /MISSING row "ghost" \(7 pts\)/),
+        J(Object.fromEntries(Object.entries(refusal).map(([k, r]) => [k, [r.status, r.out.split('\n').filter(l => /ghost|build/.test(l)).map(l => l.trim()), r.rec === null, r.ran]]))))
+      // A row with no weight is the NaN `possible` of finding A8: through the real gate it never reaches scoring, because the inventory cannot declare it (`undefined !== 5`), and the refusal is exit 2.
+      const ordered = go(['good', 'build'], [], {}, ['5 build', '990 good'])
+      check('...a row with no weight (the NaN `possible` of A8) is refused here as UNDECLARED, before anything is scored; and the same rows declared in another order are no mismatch (rows are compared by name)',
+        refused(refusal.weightless, /UNDECLARED row "noweight" \(undefined pts\)/) && ordered.status === 0 && J(ordered.ran) === '["good","build"]', `weightless: ${refusal.weightless.status} ${refusal.weightless.out.slice(-200)}; reordered: ${ordered.status}`)
       const both = go(['good'], ['--quick', '--browserless'])
       check('...and `--quick --browserless` is a usage error: exit 2, nothing run, nothing recorded', both.status === 2 && both.rec === null && both.ran.length === 0, `exit ${both.status}; ${both.out.slice(-200)}`)
     } finally { fs.rmSync(scratch, { recursive: true, force: true }) }
