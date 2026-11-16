@@ -100,3 +100,32 @@ Red on purpose (`PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>`
 | `browser-gate-final-else-fi-whole` | `else echo x` accepted | 1 |
 | `browser-gate-final-closed-form-decides` | the closed form's verdict ignored | 31 |
 | `browser-gate-final-env-strings-only` | non-string env accepted | 5 (all five B6 inputs) |
+
+## Group 3: the npm body of the required no-browser step (B5)
+
+`flagged_step_ok` refused `||`, `&&`, `;`, pipes and the rest on the step's own lines, but for `npm run gate:browserless` the commands were read from the package.json body, where
+`exit 0; node scripts/confidence.mjs --browserless`, `node scripts/confidence.mjs --browserless || true` and `...; exit 0` were accepted. `read_commands` now also returns `bodies`, every
+package script the step runs (pre/post hooks and nested `npm run`s included), and `flagged_step_ok` requires each to be ONE logical line with none of `FORBIDDEN_IN_LINE` after the
+comment is cut (`strip_comment`, group 1). A bare `npm ci` that runs a `prepare` hook is read the same way (the fixture `pkg` has one-line hooks and still passes).
+
+| body of `gate:browserless` | before | now |
+|---|---|---|
+| `exit 0; node scripts/confidence.mjs --browserless` | accepted | refused |
+| `node scripts/confidence.mjs --browserless \|\| true` | accepted | refused |
+| `node scripts/confidence.mjs --browserless; exit 0` | accepted | refused |
+| `node scripts/confidence.mjs --browserless` (the real body) | accepted | accepted |
+
+Run on both modules (the 9043fa75 file and this one) with the review's three bodies and the real one: old `True True True True`, new `False False False True`.
+
+Self-test: 744 to 748 (4 new checks: 11 refused bodies and the real one accepted, hooks and a nested script with a forbidden character refused and plain ones accepted, the comment
+cut, the real package.json read from the repository).
+
+Red on purpose (`PASS [<id>]`; failing checks of the mutated copy):
+
+| id | the break | failing |
+|---|---|---|
+| `browser-gate-npm-body-one-line` | a two-line body accepted | 1 |
+| `browser-gate-npm-body-forbidden` | the forbidden characters of a body not looked for | 3 |
+| `browser-gate-npm-body-comment-cut` | a body's trailing comment not cut first (`# a; b` refused) | 1 |
+| `browser-gate-npm-body-nested` | only the first script's body read | 1 |
+| `browser-gate-npm-body-hooks` | only the named script's body, not its hooks | 1 |

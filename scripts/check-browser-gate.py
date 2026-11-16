@@ -253,6 +253,7 @@ ARITH_EXPANSION = re.compile(r"\$\(\([\w\s$+*/%-]*\)\)")
 # its flag (`mutation-check.mjs --list-ids --no-browser`, `confidence.mjs --quick --browserless`, `... || true`), so it is a closed form now: every line is one `node`/`npm` command (no `||`, `&&`, `;`, pipe
 # or substitution) or the bare `if [ -n "$X" ]; then`, `else`, `fi`; nothing but the spawner runs; the arguments a mode that does no work would carry are refused (NOT_WORK), and the arguments real work
 # carries (WORK_ARGS) are each present in some command, so deleting one branch of the shard action's if/else is seen. The threat model is a careless edit, not a deliberate one: `if [ -n "$NEVER" ]` passes.
+# The npm scripts a step runs (`npm run gate:browserless` and its pre/post hooks and nested `npm run`s) are part of it: each body is ONE command line with none of FORBIDDEN_IN_LINE (review of 5b5a89b, B5).
 NOT_WORK = {"scripts/mutation-check.mjs": ("--self-test", "--list-ids", "--anchors", "--stranded", "--heal", "--only"), "scripts/confidence.mjs": ("--quick", "--self-test", "--help")}
 WORK_ARGS = {"scripts/mutation-check.mjs": ("--ids", "--shard", "--out"), "scripts/confidence.mjs": ()}
 FORBIDDEN_IN_LINE = re.compile(r"\|\||&&|[;|&<>`]|\$\(")
@@ -686,13 +687,14 @@ def read_npm(w, pkg, read, seen, depth, out, shown):
         elif depth >= MAX_DEPTH:
             out["unresolved"].append(f"`{shown}`: package.json scripts nested more than {MAX_DEPTH} deep")
         else:
+            out["bodies"].append((n, body))                 # every package script the step runs, pre/post hooks and nested `npm run`s included (flagged_step_ok reads their text)
             read_commands(body, pkg, read, seen | {n}, depth + 1, out)
 
 
 def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     """Everything a script starts: {entries: [(file, args)], direct: bool, unresolved: [why]}."""
     if out is None:
-        out = {"entries": [], "direct": False, "unresolved": [], "raw": []}
+        out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
     for line in logical_lines(script):
         try:
             groups = split_commands(line)
@@ -883,7 +885,13 @@ def flagged_step_ok(s, req, pkg, read):
             branch_cmds += 1
     if depth != 0:
         return False
-    entries = [(os.path.normpath(e), a) for e, a in read_commands(text, pkg, read)["entries"]]
+    ran = read_commands(text, pkg, read)
+    # THE NPM SCRIPTS THE STEP RUNS ARE PART OF THE STEP. The workflow line `npm run gate:browserless` passes the closed form above, and the body it runs is read here with the same form: ONE command line with none of
+    # FORBIDDEN_IN_LINE, so `exit 0; node scripts/confidence.mjs --browserless`, `node scripts/confidence.mjs --browserless || true` and `...; exit 0` in package.json do no work or swallow the spawner's failure
+    # exactly as they would on the step's own line (review of 5b5a89b, B5).
+    if any(len(logical_lines(body)) != 1 or FORBIDDEN_IN_LINE.search(strip_comment(logical_lines(body)[0])) for _, body in ran["bodies"]):
+        return False
+    entries = [(os.path.normpath(e), a) for e, a in ran["entries"]]
     mine = [a for e, a in entries if e == req and NO_BROWSER_FLAGS[req] in a]
     if not mine or len(mine) != len(entries):
         return False
@@ -3041,6 +3049,23 @@ def self_test():
     check("round 5: ...while a real trailing comment after an expansion (`echo ${y:-x} # note`) is still cut, and the step is the work", conf("echo ${y:-x} # note\nnpm run gate:bl") == [], conf("echo ${y:-x} # note\nnpm run gate:bl"))
     for label, run in [("`echo ${y:- #}; node scripts/shot.mjs` (B1(c))", "echo ${y:- #}; node scripts/shot.mjs"), ("`echo hi # note \\` and the launch on the next line (B1(c)'s backslash route)", "echo hi # note \\\nnode scripts/shot.mjs")]:
         check(f"round 5: a step with {label} needs a browser, and without the gate is refused", needs_browser({"run": run}, pkg, read) is True and any_of("must carry", mut(lambda s, run=run: s.insert(2, {"name": "x", "run": run}))), run)
+
+    # ROUND 5, GROUP 3 (review of 5b5a89b, B5). The npm script the required no-browser step runs is read with the same closed form as the step's own line: ONE command line, none of FORBIDDEN_IN_LINE.
+    CONF = "node scripts/confidence.mjs --browserless"
+    body_ok = lambda body, text="npm run gate:bl", **hooks: flagged_step_ok(nbv(text), "scripts/confidence.mjs", {**pkg, "gate:bl": body, **hooks}, read)
+    PINNED_BODIES_REFUSED = [("exit 0; " + CONF + " (B5)", "exit 0; " + CONF), (CONF + " || true (B5)", CONF + " || true"), (CONF + "; exit 0 (B5)", CONF + "; exit 0"), ("true && " + CONF, "true && " + CONF),
+                             (CONF + " | cat", CONF + " | cat"), (CONF + " &", CONF + " &"), (CONF + " > out.txt", CONF + " > out.txt"), ("a backtick", CONF + " `date`"), ("a `$(`", CONF + " $(date)"),
+                             ("two lines", "echo a\n" + CONF), ("an empty body", "")]
+    check(f"round 5 (B5): the three bodies of the review and {len(PINNED_BODIES_REFUSED) - 3} more shapes (`&&`, a pipe, `&`, a redirect, a backtick, `$(`, two lines, an empty body) in package.json are refused for the step `npm run gate:bl`, which is accepted with the real body",
+          all(not body_ok(b) for _, b in PINNED_BODIES_REFUSED) and body_ok(CONF), [label for label, b in PINNED_BODIES_REFUSED if body_ok(b)])
+    check("round 5 (B5): ...a hook (`pregate:bl`, `postgate:bl`) and a nested script (`npm run inner`, itself behind a second one) with a forbidden character are refused too, and a plain hook and a plain nested script are accepted",
+          not body_ok(CONF, **{"pregate:bl": "exit 0; true"}) and not body_ok(CONF, **{"postgate:bl": "true || true"}) and not body_ok("npm run inner", inner=CONF + " || true") and not body_ok("npm run inner", inner="npm run inner2", inner2=CONF + "; exit 0")
+          and body_ok(CONF, **{"pregate:bl": "echo ok"}) and body_ok(CONF, **{"postgate:bl": "echo ok"}) and body_ok("npm run inner", inner=CONF))
+    check("round 5 (B5): ...a trailing comment in the body is cut where bash cuts it (accepted), and the body's `#` inside `${ }` is not a comment (the `|| true` after it is read: refused)",
+          body_ok(CONF + " # note") and body_ok(CONF + " # a; b || c") and not body_ok(CONF + " ${y:- #}|| true"))
+    real_scripts = json.loads(Path(__file__).resolve().parent.parent.joinpath("package.json").read_text())["scripts"]
+    check("round 5 (B5): the real package.json's `gate:browserless` is one `node scripts/confidence.mjs --browserless` line and the required step `npm run gate:browserless` is accepted with it",
+          flagged_step_ok(nbv("npm run gate:browserless"), "scripts/confidence.mjs", real_scripts, read) and real_scripts["gate:browserless"] == CONF, real_scripts.get("gate:browserless"))
 
     # FINDING 25. A script path that no call this reader understands takes is a command it cannot attribute, however it is passed.
     for label, run in [("`cp.spawnSync(process.execPath, [...])`", "() => cp.spawnSync(process.execPath, ['scripts/shot.mjs']).status === 0"), ("`helpers.runAll([...])`", "() => helpers.runAll(['scripts/shot.mjs'])"),

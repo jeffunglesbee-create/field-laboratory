@@ -8726,6 +8726,47 @@ const MUTATIONS = [
     replace: "if False]",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
+  // --- scripts/check-browser-gate.py, round 5 part A, group 3 (review of 9043fa75) ---
+  {
+    id: "browser-gate-npm-body-one-line",
+    file: "scripts/check-browser-gate.py",
+    claim: "the npm script a required no-browser step runs is ONE command line",
+    find: "len(logical_lines(body)) != 1 or",
+    replace: "len(logical_lines(body)) < 1 or",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-npm-body-forbidden",
+    file: "scripts/check-browser-gate.py",
+    claim: "the npm script a required no-browser step runs has no `||`, `&&`, `;`, pipe, `&`, redirect, backtick or `$(`",
+    find: "FORBIDDEN_IN_LINE.search(strip_comment(logical_lines(body)[0]))",
+    replace: "False",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-npm-body-comment-cut",
+    file: "scripts/check-browser-gate.py",
+    claim: "a trailing comment of the npm script is cut where bash cuts it before the forbidden characters are looked for",
+    find: "FORBIDDEN_IN_LINE.search(strip_comment(logical_lines(body)[0]))",
+    replace: "FORBIDDEN_IN_LINE.search(logical_lines(body)[0])",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-npm-body-nested",
+    file: "scripts/check-browser-gate.py",
+    claim: "the npm scripts a package script runs (`npm run inner`) are read with the same form",
+    find: "out[\"bodies\"].append((n, body))",
+    replace: "out[\"bodies\"].append((n, body)) if depth == 0 else None",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-npm-body-hooks",
+    file: "scripts/check-browser-gate.py",
+    claim: "the pre and post hooks of the script the step runs are read with the same form",
+    find: "out[\"bodies\"].append((n, body))",
+    replace: "out[\"bodies\"].append((n, body)) if n == explicit else None",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
   // --- venue sourcing, docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md: scripts/venue-source.mjs ---
   {
     // Nominatim and Photon read the same data; agreeing with itself is one witness.
