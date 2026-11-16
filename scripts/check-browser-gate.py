@@ -229,13 +229,16 @@ WRAPPER_REASON = re.compile(r"^`([^`]*)`: `([^`]+)` is not a command this guard 
 # wrappers refused `timeout` and let `eval`, `flock`, `strace`, `source`, `./x.sh` and `make` through. Review of 48f504e, finding 23: the allowlist used to name EVERY `git X is not a subcommand` and every
 # `node with inline code` reason, and `git rebase -x 'node scripts/render-check.mjs'`, `git -c alias.s='!cmd' s`, `node -e "...execSync(...)"` and `node --run <package script>` each run a command; it also
 # let any two-word command that looked like `a -b` through as "arithmetic" (`make -s`, `deno -A`). Arithmetic is masked where the line is split (ARITH_EXPANSION), so it is no longer a reason to read.
-# THE TOOLS HERE ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. Review of 9043fa75, A23: the list also held tools that run another command from their arguments (`awk 'BEGIN{system("npm run x")}'`, `sed '1e cmd'`,
-# `sed 's/x/cmd/e'`, `sort --compress-program=cmd`) and tools that overwrite a file, which can replace a script this guard has already read (`tee`, `cp`, `mv`, `rm`, `sed -i`, `sort -o`, `uniq IN OUT`). Each was
-# read as "runs no other command" and kept a step opaque. Removed: sed, awk, sort, uniq, tee, rm, cp, mv. Kept, and why: mktemp (makes a NEW file or directory, never replaces one), grep/egrep/fgrep (print the
-# matching lines: no exec, no output file), read (a builtin: one line into shell variables), cat/cut/tr/head/tail/tac (print), wc (counts), date/basename/dirname/stat/ls (print), mkdir (a directory, never
-# replaces a file), sleep and wait (wait), jq (filters JSON: no exec, no write), diff/cmp (compare), touch (creates an empty file or sets a time: never changes the content of one that is there).
+# THE TOOLS HERE RUN NO OTHER COMMAND. Review of 9043fa75, A23: the list also held tools that run another command from their arguments (`awk 'BEGIN{system("npm run x")}'`, `sed '1e cmd'`,
+# `sed 's/x/cmd/e'`, `sort --compress-program=cmd`). Each was read as "runs no other command" and kept a step opaque. Removed: sed, awk, sort. Review of 4b5395e6, G-pop-1: A23 also removed the tools that only
+# WRITE a file (tee, cp, mv, rm, uniq), on the ground that they can replace a script this guard has already read. That ground holds for `>` as well, which the splitter reads and accepts (`echo x > scripts/y`), so the
+# refusal bought nothing a redirect did not give back, and it refused `| tee outbox/x.txt`, the commonest pipeline sink in the repo (35 of 402 `run:` steps). They are kept again: none runs another command, and a
+# step that writes a script and then runs it is no careless edit (the guard's stated threat model); it is one filed residual with the redirect, not two. Kept, and why: mktemp (makes a NEW file or directory),
+# grep/egrep/fgrep (print the matching lines: no exec, no output file), read (a builtin: one line into shell variables), cat/cut/tr/head/tail/tac (print), wc (counts), date/basename/dirname/stat/ls (print),
+# mkdir (a directory, never replaces a file), sleep and wait (wait), jq (filters JSON: no exec, no write), diff/cmp (compare), touch (creates an empty file or sets a time), tee/cp/mv/rm/uniq (write, copy,
+# move, delete or dedupe files: no exec).
 BENIGN_HEADS = frozenset({"mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir",
-                          "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait"})
+                          "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait", "tee", "cp", "mv", "rm", "uniq"})
 OPAQUE_REASON_OK = [re.compile(x) for x in (r": a command substitution inside a word$", r": a process substitution$", r": a heredoc$", r": unbalanced quoting")]
 # The git subcommands that only read the repository and run nothing: the ones an unreadable step may use and stay opaque (`git merge-base --is-ancestor` is the ledger's). Not GIT_SUBS: those are read by
 # read_git and are no reason at all. `-c`, `-C`, `rebase`, `bisect`, `submodule`, `filter-branch` and the aliases a config defines are not here, because each runs something.
@@ -3134,7 +3137,7 @@ def self_test():
         check(f"{family}: the members the guard knows are exactly the {len(literal)} pinned (a literal list, so a loop cannot lose a fixture with the member a change deletes)", set(literal) == set(const), sorted(const))
         broken = [m for m in literal if not job(m)]
         check(f"{family}: every member does its job on an input where its absence changes the verdict", not broken, broken)
-    PINNED_BENIGN = ("mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait")
+    PINNED_BENIGN = ("mktemp", "grep", "egrep", "fgrep", "read", "cat", "cut", "tr", "head", "tail", "wc", "date", "basename", "dirname", "mkdir", "ls", "sleep", "jq", "diff", "cmp", "tac", "touch", "stat", "wait", "tee", "cp", "mv", "rm", "uniq")
     vocab("BENIGN_HEADS", BENIGN_HEADS, PINNED_BENIGN, lambda h: not hides_a_launcher(unresolved(f"{h} x y"), f"{h} x y"))
     vocab("SAFE_HEADS", SAFE_HEADS, ("echo", "printf", "exit", "sleep", "curl", "break", "continue", "seq", "true", "false", "test", "[", "[[", "export", "unset", "set", "cat", "mkdir", "tr"), lambda h: unresolved(f"{h} x") == [])
     vocab("GIT_SUBS", GIT_SUBS, ("config", "add", "commit", "push", "pull", "fetch", "rev-parse", "status", "diff", "log", "show", "checkout", "switch", "reset", "merge", "rm", "mv", "ls-files", "ls-remote", "remote", "tag", "branch"),
@@ -3317,17 +3320,24 @@ def self_test():
     for cmd in ('echo "$(date)" 2>&1 & timeout 5 x', 'echo "$(date)" >&2 && npm run pure', 'echo "$(date)" &>/dev/null; npm run pure'):
         check(f"A22: a real `&` or `&&` still starts a command after a redirect's own `&` (`{cmd}`)", refused(cmd), cmd)
 
-    # GROUP 3, A23: THE BENIGN TOOLS ONLY PRINT, COUNT, COMPARE, LIST OR CREATE. BENIGN_HEADS held tools that run another command from their arguments (awk's system(), sed's `e` command and `s///e` flag, sort's
-    # --compress-program) and tools that overwrite a file the guard has already read (tee, cp, mv, rm, sed -i, sort -o, `uniq IN OUT`). The eight are removed; each kept tool has one line of why at BENIGN_HEADS.
+    # GROUP 3, A23: THE BENIGN TOOLS RUN NO OTHER COMMAND. BENIGN_HEADS held tools that run another command from their arguments (awk's system(), sed's `e` command and `s///e` flag, sort's --compress-program);
+    # sed, awk and sort are removed. The tools that only WRITE a file (tee, cp, mv, rm, uniq) were removed with them and are back (review of 4b5395e6, G-pop-1): the redirect that replaces a file is read clean, so
+    # refusing the tool bought nothing, and it refused `| tee outbox/x.txt`. Each kept tool has one line of why at BENIGN_HEADS.
     vocab("BENIGN_HEADS, on a raw line", BENIGN_HEADS, PINNED_BENIGN, lambda h: not raw_line_hides(f'{h} x y "$(date)"'))
-    PINNED_REMOVED_BENIGN = ("sed", "awk", "sort", "uniq", "tee", "rm", "cp", "mv")
-    check("A23: the eight tools that run a command or overwrite a file are not benign (a literal list: none is in BENIGN_HEADS)", not set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS, sorted(set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS))
+    PINNED_REMOVED_BENIGN = ("sed", "awk", "sort")
+    check("A23: the three tools that run a command from their arguments are not benign (a literal list: none is in BENIGN_HEADS)", not set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS, sorted(set(PINNED_REMOVED_BENIGN) & BENIGN_HEADS))
     for h in PINNED_REMOVED_BENIGN:
         check(f"A23: `{h}` is refused under always() as a plain step, after a pipe, and on an unreadable line: not kept as opaque", refused(f"{h} x y") and refused(f"echo x | {h} x y") and refused(f'echo "$(date)"; {h} x y'), h)
-    for cmd in ("awk 'BEGIN{system(\"npm run shot\")}'", "sed -n '1e npm run shot' /dev/null", "echo x | sed 's/x/npm run shot/e'", "sort --compress-program=./x.sh /dev/null", "sed -i 's/a/b/' scripts/render-check.mjs", "sort -o scripts/render-check.mjs a",
-                "tee scripts/render-check.mjs", "cp a scripts/render-check.mjs", "mv a scripts/render-check.mjs", "rm scripts/render-check.mjs", "uniq a scripts/render-check.mjs", "node scripts/pure.mjs | tee outbox/x.txt"):
-        check(f"A23: `{cmd}` (the review's three, and each way another tool runs a command or replaces a file) is refused under always(), not kept as opaque", refused(cmd), cmd)
-    check("A23: ...and the remedy for a step that wants a file written is a redirect, which the splitter reads: `node scripts/pure.mjs > outbox/x.txt` is read clean", unread("node scripts/pure.mjs > outbox/x.txt")[0] == [], unread("node scripts/pure.mjs > outbox/x.txt")[0])
+    for cmd in ("awk 'BEGIN{system(\"npm run shot\")}'", "sed -n '1e npm run shot' /dev/null", "echo x | sed 's/x/npm run shot/e'", "sort --compress-program=./x.sh /dev/null", "sed -i 's/a/b/' scripts/render-check.mjs", "sort -o scripts/render-check.mjs a"):
+        check(f"A23: `{cmd}` (the review's three, and each way sed, awk or sort runs a command or replaces a file) is refused under always(), not kept as opaque", refused(cmd), cmd)
+    PINNED_WRITERS = ("tee", "cp", "mv", "rm", "uniq")
+    check("G-pop-1: the five tools that only write a file are benign again (a literal list: each is in BENIGN_HEADS)", set(PINNED_WRITERS) <= BENIGN_HEADS, sorted(set(PINNED_WRITERS) - BENIGN_HEADS))
+    for h in PINNED_WRITERS:
+        check(f"G-pop-1: `{h}` is read as a tool that runs nothing: plain, after a pipe and on an unreadable line it is kept as opaque, never refused", kept(f"{h} x y") and kept(f"echo x | {h} x y") and kept(f'echo "$(date)"; {h} x y'), h)
+    for cmd in ("node scripts/pure.mjs | tee outbox/x.txt", "tee -a outbox/x.txt < /dev/null", "cp outbox/a.txt outbox/b.txt", "rm -f outbox/x.txt", "sort_out=1 uniq a b"):
+        check(f"G-pop-1: `{cmd}`, an ordinary pipeline sink or cleanup in an always() step, is not refused", not refused(cmd), unread(cmd))
+    check("G-pop-1: ...and a tool of the five does not hide a launcher on its line: `tee x; npm run shot` is still read as a browser step", unread("tee x; npm run shot")[0] != [] and not kept("tee x; npm run shot"), unread("tee x; npm run shot"))
+    check("A23: ...and the remedy for a step that wants a file written is a redirect or `tee`, which the splitter reads: `node scripts/pure.mjs > outbox/x.txt` is read clean", unread("node scripts/pure.mjs > outbox/x.txt")[0] == [], unread("node scripts/pure.mjs > outbox/x.txt")[0])
     PINNED_NEVER_BENIGN = ("find", "xargs", "env", "tar", "install", "dd", "ln", "gawk", "mawk")
     check("A23: the other tools the review names (find -exec, xargs, env, tar --to-command, install, dd, ln, gawk, mawk) are not in BENIGN_HEADS, and each is refused under always() (a literal list)",
           not set(PINNED_NEVER_BENIGN) & BENIGN_HEADS and all(refused(f"{h} x y") for h in PINNED_NEVER_BENIGN), [h for h in PINNED_NEVER_BENIGN if h in BENIGN_HEADS or not refused(f"{h} x y")])
