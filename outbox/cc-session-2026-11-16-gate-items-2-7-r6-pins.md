@@ -49,3 +49,29 @@ Mutation entries (each applied by hand, the named check went red, 42/43, restore
 - `gate-mode-pin-detail-names-no-sibling-files`: the detail does not name the other two files.
 - `gate-mode-pin-run-count-moved` and `gate-mode-pin-browserless-points-moved`: a pin off by one (or by ten points) turns the real check red: the pins can fail.
 - `gate-mode-rows-doc-omits-the-third-file` and `gate-mode-rows-doc-omits-the-pinned-table`: the paragraph of `docs/gate-rows.txt` loses the third file, or the name of the table.
+
+## F-C (B13): the workflow mutants were built from hard-coded blocks of the pin, so an intended edit inside the Plan or Delete step turned the self-test red
+
+Reproduced at the F-B head (which does not touch these files; the file is the same as at `4b5395e6`): `          NOTE: x` added after the `BRANCHES: ${{ inputs.branches }}` line of the Delete step in `.github/workflows/delete-branches.yml` AND in `WORKFLOW_PIN` of `scripts/delete-branches.mjs`, then `node scripts/delete-branches.mjs --self-test 2>&1 | grep -A2 '^FAIL'`, both files restored.
+
+BEFORE: `FAIL  EVERY WORKFLOW MUTANT IS BUILT ...` with `no unique anchor in the pin for: the Delete step before the Plan step` (32/33). Renaming the Delete step to `Delete branches` in both places: 31/33, with the same check red naming five mutants (`continue-on-error on the Delete step`, ...) and `COMMENT LINES, BLANK LINES, TRAILING SPACE AND CRLF ARE NOT COUNTED` red (`an indented comment line added`). The cause is the one named: `DEL_STEP`, `DEL_ENV`, `PLAN_BLOCK` and `DEL_BLOCK` were copies of text of the pin, and the second refusal named mutant labels and no constant.
+
+Fix: `anchorsOf(pinText)` LOCATES each step in the pin by its `run:` line (`DEL_RUN_RE`: the one that calls the script with `--apply` is the Delete step; `PLAN_RUN_RE`: the one with no flag before the bare `--` is the Plan step), takes its first line as the `- ` line two columns left of that, and its env line as the one that holds `INPUT_RE` (`${{ inputs.branches }}`). Every anchor and every replacement of a mutant is cut from the pin's own lines (the step lines, the env block, the keys' and the continuation's indentation, the two steps exchanged with whatever lies between them kept in place). The lines no step owns (the triggers, `contents: write`, `required: true`, the input's description) stay literals of the list. `mutantsOn(pinText)` builds the 30 mutants of any pin text, `workflowProblems(text, pin = WORKFLOW_PIN)` holds a text to any pin, and an anchor that cannot be found is a FAIL line that names it: the literal is quoted (`the anchor "contents: write" is not in the pin exactly once`), a step that was not located names the regexp that found nothing (`DEL_RUN_RE`, `PLAN_RUN_RE`, `INPUT_RE`) and says where to edit (the self-test of `scripts/delete-branches.mjs`). A locator that finds nothing is a FAIL line, never a throw (a first version threw `TypeError` in the control; the mutation `delete-branches-self-test-run-locator-matches-nothing` showed it, exit 1 with no FAIL line, and the control was guarded).
+
+AFTER, the same command: `35/35 checks passed` (33/33 before the two new checks). The rename of the Delete step in both places: 35/35. The controls, run with the same harness of scratch edits (each restored from a backup):
+
+- the NOTE line in the workflow ALONE: 34/35, `THE REAL .github/workflows/delete-branches.yml IS ITS PIN` red, `expected `        run: node scripts/delete-branches.mjs --apply -- "$BRANCHES"`, found `          NOTE: x``;
+- the NOTE line in the pin ALONE: 34/35, the same check red, `expected `          NOTE: x`, found `        run: ...--apply...``;
+- `--apply` removed from the real workflow alone: 34/35, the same check red (and the table entry `delete-branches-workflow-apply-dropped` still passes below).
+
+Fixtures: `AN INTENDED EDIT INSIDE THE PLAN OR DELETE STEP, MADE TO THE PIN, KEEPS EVERY MUTANT BUILT AND CAUGHT` (six edits of the pin, each held against the pin it was made to: a key added to either env, either step renamed, a flag added to the Delete run line, a step added between the Plan step and the Delete step; 30 of 30 built, none survives) and `AN ANCHOR THAT CANNOT BE FOUND IS NAMED WITH WHAT TO EDIT`.
+
+Every existing entry still passes: `node scripts/mutation-check.mjs --ids <the 61 ids of delete-branches-* (59) and workflow-* (2)>` printed 61 `PASS  [id]`, 0 FAIL, exit 0 (3 min 16 s). The entry `delete-branches-workflow-mutant-builder-throws` had its anchor moved with the builder (`pin.split(from)...` where it read `WORKFLOW_PIN.split(from)...`): same mutation, same claim.
+
+New mutation entries, each applied by hand to the real file first (the named check red, restored), all eight under `--ids` as well:
+
+- `delete-branches-self-test-run-locator-matches-nothing`: the Delete locator matches nothing (6 FAIL lines, 29/35).
+- `delete-branches-self-test-env-block-copied` and `delete-branches-self-test-step-line-copied`: the anchor is a literal copy again; the renamed-step edit goes red (34/35).
+- `delete-branches-self-test-swap-needs-adjacent-steps`: the swap drops what lies between the steps; the added-step edit goes red (34/35).
+- `delete-branches-self-test-mutants-cut-from-the-real-pin` and `delete-branches-self-test-edited-pin-held-to-the-real-one`: the mutants of an edited pin are built from, or held to, the real pin (33/35 and 34/35).
+- `delete-branches-self-test-unbuilt-message-names-no-locator` and `delete-branches-self-test-unbuilt-message-names-no-anchor`: the failure stops naming the regexp, or the literal (34/35 each).
