@@ -30,6 +30,10 @@
 // whether or not the declaration RUNS_ROWS names it, so the declaration is belt and braces and no input tells the two apart), and three FIXED by a fixture and re-run as a slice, all caught: `the required step need not wait for a
 // failed install`, `a step whose env is a string or a list is read as a mapping` (the first version of that mutant crashed every step without an env, and a crash with no FAIL line is not a catch), `a network-exempt check is read as a row runner`.
 // So 467 of 467 are caught, in two runs. SWEEP_ONLY=<regex> runs a slice and says so; a slice that matches nothing exits 1.
+// COUNTS AS OF 2026-11-16 (rounds 4 to 6 of items 2 to 7, and the independent reviews of them): 428 CODE, 57 verify.yml, 69 OTHERS = 554 mutations, all distinct (a checker that reads the three tables and asserts that every anchor occurs once
+// in its file and changes it reported `checked 554 of 554 sweep anchors ... 0 bad` after 18 CODE entries were repointed at the code that replaced what they mutated, and again after two more). `--self-test` of the guard: 954 checks.
+// The run is in `outbox/browser-gate-sweep-2026-11-16.txt`, in 8 slices of `SWEEP_SLICE=k/8` (the 8 slices together are the whole table) and 4 at a time, with what each ran on. EXCLUDED is 8: the items E1, E5, E7 to E12 above. An earlier version of this
+// constant said 10 (commit 4a5c6e83 changed 8 to 10 and added no item to this list, and nothing in that commit says which two); it is the number of items this header names.
 //   node outbox/browser-gate-sweep-2026-11-12.mjs        (from the repository root)
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
@@ -38,7 +42,7 @@ import { join } from 'node:path'
 
 const here = new URL('..', import.meta.url).pathname
 const GATE = "        if: steps.chromium.outcome == 'success'\n"
-const EXCLUDED = 10
+const EXCLUDED = 8
 
 const CODE = [
   ['a launch is only an import of playwright', "r\"\"\"from\\s+['\"]playwright(?:-core)?['\"]|", 'r"""'],

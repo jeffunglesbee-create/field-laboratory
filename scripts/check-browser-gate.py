@@ -3467,7 +3467,9 @@ def self_test():
                         ("`|| true` after a `#` inside quotes", f'{ids_line} --note " # x" || true\n{shard_line} --note " # x" || true'), ("a `;` after a `#` inside quotes", f'{ids_line} --note "a # b" ; exit 0\n{shard_line}'),
                         ("a then-branch that is only `npm ci` (the else-branch carries every argument)", f'if [ -n "$IDS" ]; then\n  npm ci\nelse\n  {both_line}\nfi'),
                         ("an else-branch that is only `npm ci`", f'if [ -n "$IDS" ]; then\n  {both_line}\nelse\n  npm ci\nfi'),
-                        ("a then-branch of the spawner without its flag and `npm ci`", f'if [ -n "$IDS" ]; then\n  node scripts/mutation-check.mjs --ids "$IDS" --out x.json\nelse\n  {shard_line}\nfi')]:
+                        ("a then-branch of the spawner without its flag and `npm ci`", f'if [ -n "$IDS" ]; then\n  node scripts/mutation-check.mjs --ids "$IDS" --out x.json\nelse\n  {shard_line}\nfi'),
+                        ("an `if` that never closes (the `fi` is missing; the sweep, 2026-11-16: the mutant that dropped this refusal was NOT CAUGHT, and was not at 9043fa75 or 4b5395e6 either)", f'if [ -n "$IDS" ]; then\n  {ids_line}\nelse\n  {shard_line}'),
+                        ("an `if` that never closes and has no `else` either", f'if [ -n "$IDS" ]; then\n  {ids_line}')]:
         res = run_req_np(w_nb(nbv(text)))
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
