@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Questions 1 and 2 (the owner's standard ET windows), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; weekend morning windows added the same day; open: the shared 11:00 edge, games in no window, and 3 to 4. Not to be built until they are answered. Filing is not permission to build.
+**Status:** HELD for exploration. Questions 1 and 2 (the owner's standard ET windows), 5 (its own section) and 6 (Deep Cuts) answered 2026-11-15; weekend morning windows added the same day, 7pm moved to 7:30pm 2026-11-16; open: the shared 11:00 edge, games in no window, and 3 to 4. Not to be built until they are answered. Filing is not permission to build.
 
 ---
 
@@ -58,6 +58,9 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
    - Still outside, by ET kickoff: 20:30 27 (16 weekday, 11 weekend: NBA, NHL, MLS, CFB), 17:00 14 (weekend: CFB, MLB, MLS, NBA, NHL), 16:05/16:15/16:25/16:30 25 (weekend NFL late games, CFB, MLS, CFL), 13:30 12 (7 weekend: CFB, MLS, La Liga, EPL, Bundesliga; 5 weekday Serie A), 20:15/20:20 12 (NFL night), 17:30 3, 10:30 2 (weekday Europa / Conference), 00:00 4 (PGA Tour), 16:05 1 (weekday Ligue 1).
    - **The 10am window ends at 11:00, where the 12pm window begins**, so a weekend 11:00 kickoff is in two windows: 5 such games in the 30 days. Which one it belongs to is open.
    Still open: the 11:00 edge, and the 100 games in no window.
+   CHANGED 2026-11-16 by the owner: **the 7pm window moves to 7:30pm**, i.e. 18:30-20:30 ET. Measured on the same 30 days before the change was agreed: it gains 39 games (20:30 27 NBA, NHL, MLS, CFB; 20:15 8 and 20:20 4 NFL night games) and loses 17 (18:00 15 NHL, CFB, NBA; 18:15 2 CFB): **1,176 of 1,254 in a window (93.8%), 78 in none.** It still ends before the 10pm window begins (21:00), so it shares no edge.
+
+   **The windows, as they now stand (ET):** every day 11:00-13:00, 14:00-16:00, 18:30-20:30, 21:00-23:00; Saturdays and Sundays also 06:30-08:30 and 09:00-11:00.
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
 3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
 4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
