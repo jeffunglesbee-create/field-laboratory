@@ -129,3 +129,44 @@ and that PASS alone means nothing. Each mutation was therefore applied BY HAND t
 | `no-launch-check-verdict-offender-sentence-copied` | the same check: different for `an offender alone; both, as a reworded listed line is` |
 
 `node scripts/mutation-check.mjs --only <id>` for each of the eight printed `FAIL  the unmutated tree passes every expectation` (the build/ check) and `PASS  [id] ...`, and `--anchors` reads 0 stale.
+
+## Evidence at the branch head, and what was left
+
+Final numbers on the head of `proof-r6b-pins` (verbatim): `node scripts/delete-branches.mjs --self-test` 38/38; `node scripts/no-launch-check.mjs --self-test` 54/55 (the one failure is `the axis-check mutation
+needs build/`, as at the base); `python3 scripts/check-browser-gate.py` ends `verdict: gated`; `npm run --silent check:citations` ends `bare citations do not grow (budget 0)`; `node scripts/mutation-check.mjs --self-test`
+221/221; `node scripts/mutation-lib.mjs --self-test` alone 81/81; `node scripts/mutation-check.mjs --anchors` `checked 1973 of 1976 mutation anchors; 0 stale`; `--stranded` 0 markers before each commit.
+
+Both-files edits, `delete-branches.mjs --self-test` on the final head: no edit, variable renamed, `"${BRANCHES}"`, run line wrapped, `- id: plan` before the Plan `name:`, `- id: del` before the Delete `name:`, a flag after the
+bare -- on either line, `NOTE: x` after the Delete env line: each 38/38. All of the Plan `- id:` edit, the Delete variable renamed AND braced AND wrapped AND given an `id:` key and a `NOTE:` key, together: 38/38.
+Controls still red (37/38, `THE REAL .github/workflows/delete-branches.yml IS ITS PIN` naming significant line 26): `NOTE: x` in the workflow alone, `NOTE: x` in the pin alone, `--apply` removed from the workflow alone.
+
+`node scripts/mutation-check.mjs --only <id>` for the delete-branches entries added or re-anchored, verbatim (the line is cut at 110 characters here), each `PASS [id]` beside `PASS  the unmutated tree passes every expectation`:
+
+```
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-input-reference-literal] the mutant that inlines the input into the run line 
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-bare-dashdash-literal] the mutant that drops the bare -- finds it where the p
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-run-line-only] the Delete run is the whole of its run: value, a wrapped conti
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-noop-edit-survives] a mutant whose edit matches nothing in its anchor is unbu
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-miss-names-no-pattern] an unbuilt mutant whose edit found nothing names the p
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-plan-name-on-first-line] the mutant that renames the Plan step finds its name
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-plan-name-missing-unlisted] a Plan step with no name line is named as not loc
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-empty-anchor-list-printed] the failure detail prints a sentence only when it 
+PASS  the unmutated tree passes every expectation
+PASS  [delete-branches-self-test-unbuilt-message-names-no-locator] an anchor that cannot be found names the re
+```
+
+For the eight no-launch-check entries the unmutated expectation fails here (no build/), so their `--only` prints `FAIL  the unmutated tree passes every expectation` beside each `PASS  [id]`; the by-hand runs above are their evidence.
+
+Left, and why:
+- A wrap of the Delete run line directly after `--apply` (no trailing space) or of the Plan run line directly after its bare `--` leaves DEL_RUN_RE or PLAN_RUN_RE (each needs the space after the flag) with no line: a named FAIL
+  (the step, the regexp, where to edit), not a survivor. Widening the two regexps to accept a line end is a different change from the findings and was not made.
+- The four clauses also survive in the inline condition at the base's parent, which is history and was not touched.
+- Not run here: the full `--self-test` of no-launch-check with build/ present (it is absent in this sandbox), so the 55th check, the real `axis-check.mjs` mutation, is as at the base: red for want of build/. The runner has build/.
