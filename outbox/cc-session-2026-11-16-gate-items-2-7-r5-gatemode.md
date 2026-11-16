@@ -110,3 +110,15 @@ Before (copy of 9043fa75, review's mutants 10h `dirty: BROWSERLESS ? false : tre
 Red on purpose, all `PASS` under `--only`: `gate-mode-confidence-record-dirty-quick-false`, `gate-mode-confidence-record-dirty-browserless-false`, `gate-mode-confidence-record-sha-quick-dropped`, `gate-mode-confidence-record-sha-browserless-dropped` (the review's 10i, `MODE === 'full' ? treeDirty : false`, is the union of the first two and is red too: 39/40). The older `...record-dirty-false` and `...record-sha-dropped` still pass.
 
 After: `node scripts/gate-mode.mjs --self-test` printed `40/40 checks passed` (39 before this commit).
+
+## A12: `needsServer` unobserved   lost time or a loud red, never a green; FIXED (a few lines, so added)
+
+Classification: the review's own: `needsServer = true` costs `--quick` a probe and, where nothing listens on :8080, a spawned `scripts/serve.mjs` and up to 20 s of waiting; `needsServer = false` leaves the render rows to fail for want of a server, loudly. Neither is a green. Reachable as an edit (it is one line); the cost is the reason it was only noted.
+
+What changed: the stand-in `ok` of `gate-checks.mjs` now appends its command to `ok.log` and answers true (it still answers true, so no server is spawned), and `go()` returns the lines. The only call `confidence.mjs` makes to `ok` is its own probe of `http://localhost:8080/`, so one check pins it: a full run asks for exactly one `curl -sf -o /dev/null http://localhost:8080/`, a `--quick` run asks for nothing. A browserless run is deliberately left unpinned: it runs no browser row, and whether it wants the server is a question about what else listens on :8080, which is not this clause's job; a later `needsServer = !QUICK && !BROWSERLESS` would be a saving, not a regression (nothing in the gate depends on it being either).
+
+Before (copy of 9043fa75, the review's 12f/12g): `needsServer = true` and `needsServer = false` each `32/32 checks passed`, exit 0. After: each `40/41`, exit 1, the new check the one failing.
+
+Red on purpose, both `PASS` under `--only`: `gate-mode-confidence-server-wanted-in-quick` (`needsServer = true`), `gate-mode-confidence-server-never-wanted` (`needsServer = false`).
+
+After: `node scripts/gate-mode.mjs --self-test` printed `41/41 checks passed` (40 before this commit).

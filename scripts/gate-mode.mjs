@@ -206,7 +206,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       }
       // The inventory the real gate-inventory.mjs reads: `<weight> <name>` per row, by default the stand-in table itself (a gate that matches its inventory). A test that wants a mismatch passes the lines.
       const weightOf = n => Number(/weight: (\d+)/.exec(ROW[n])?.[1])
-      const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = () => true\n`
+      const standIn = names => `import { appendFileSync } from 'node:fs'\nexport const NOT_APPLICABLE = Symbol('n/a')\nexport const failures = []\nexport const ok = c => { appendFileSync('ok.log', c + '\\n'); return true }\n`
         + `const ran = (n, v = true) => () => { appendFileSync('ran.log', n + '\\n'); return v }\nexport const rows = [\n${names.map(n => ROW[n]).join('')}]\n`
       const STANDIN_SRC = {
         'checks.mjs': `export const runIdentity = () => ({ sha: process.env.STANDIN_SHA ?? 'a'.repeat(40), dirty: process.env.STANDIN_DIRTY === '1', id: process.env.STANDIN_ID ?? 'standin' })\n`,
@@ -244,13 +244,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
         J(LITERAL) === J({ copied: COPIED, standIns: STANDIN_EXPORTS }) && results.every(([, got, want]) => J(got) === J(want)), J(results.filter(([, got, want]) => J(got) !== J(want)).map(([what, got, want]) => ({ what, got, want }))))
       const go = (names, flags = [], env = {}, inventory = names.map(n => `${weightOf(n)} ${n}`)) => {
         fs.writeFileSync(join(scratch, 'scripts', 'gate-checks.mjs'), standIn(names)); fs.writeFileSync(join(scratch, 'docs', 'gate-rows.txt'), `${inventory.join('\n')}\n`)
-        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true })
+        fs.rmSync(join(scratch, 'docs', 'confidence-log.jsonl'), { force: true }); fs.rmSync(join(scratch, 'ran.log'), { force: true }); fs.rmSync(join(scratch, 'ok.log'), { force: true })
         const r = spawnSync(process.execPath, ['scripts/confidence.mjs', ...flags], { cwd: scratch, encoding: 'utf8', timeout: 60000, env: { ...process.env, ...env } })
         let rec = null
         try { rec = JSON.parse(fs.readFileSync(join(scratch, 'docs', 'confidence-log.jsonl'), 'utf8').trim().split('\n').pop()) } catch { rec = null }
         let ran = []
         try { ran = fs.readFileSync(join(scratch, 'ran.log'), 'utf8').split('\n').filter(Boolean) } catch { ran = [] }
-        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran }
+        let oks = []
+        try { oks = fs.readFileSync(join(scratch, 'ok.log'), 'utf8').split('\n').filter(Boolean) } catch { oks = [] }
+        return { status: r.status, out: `${r.stdout}${r.stderr}`, rec, ran, oks }
       }
       const FOUR = ['good', 'bad', 'build', 'browser']
       // A failing row whose weight leaves the score above the bar (a weight-10 row of 1010 points: 99): only the conjunction of failing rows can keep it red.
@@ -316,6 +318,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
           && dirty.rec?.dirty === true && dirty.rec?.sha === 'b'.repeat(40) && dirty.rec?.id === 'run-xyz' && /\(tree dirty\)/.test(dirty.out) && !/\(tree dirty\)/.test(green.full.out) && dirtyBl.rec?.id === 'run-xyz-browserless'
           && typeof green.full.rec?.seconds === 'number' && J(Object.keys(green.full.rec?.rowSeconds ?? {}).sort()) === '["browser","build","good"]' && J(Object.keys(green.quick.rec?.rowSeconds ?? {})) === '["good"]',
         J({ full: green.full.rec, dirty: dirty.rec?.dirty, sha: dirty.rec?.sha, id: dirty.rec?.id, bl: dirtyBl.rec?.id }))
+      // THE RENDER SERVER (round 5, finding A12). `ok` is stood in for by a function that logs the command and answers true, so the only call it gets is the gate's own probe of :8080 (`needsServer`): a full
+      // run asks whether anything listens (and, here, hears yes, so nothing is spawned), a `--quick` run, which skips every browser row, does not ask. `needsServer = true` costs `--quick` a probe and, where
+      // nothing listens, a spawned server and up to 20 s; `needsServer = false` leaves the render rows to fail for want of a server. A browserless run is left unpinned: it runs no browser row, and whether it
+      // wants the server is a question about what else listens, not about this clause.
+      const PROBE = 'curl -sf -o /dev/null http://localhost:8080/'
+      check('THE RENDER SERVER IS PROBED WHEN ROWS THAT NEED IT WILL RUN, AND NOT IN --quick: a full run asks `ok` for one curl of localhost:8080, a --quick run asks for nothing',
+        J(green.full.oks) === J([PROBE]) && J(green.quick.oks) === '[]', J({ full: green.full.oks, quick: green.quick.oks }))
       // THE RECORD NAMES THE TREE IT MEASURED IN EVERY MODE (round 5, finding A10): the full-mode run above pins `dirty` and `sha`; a clause that dropped them in `--quick` or `--browserless` left the self-test green.
       // Nothing reads them today (scripts/confidence-record-check.mjs refuses any citation of a run whose mode is not `full`), so this pins what a record SAYS, not what a verdict does.
       const IDENT = { STANDIN_SHA: 'b'.repeat(40), STANDIN_DIRTY: '1', STANDIN_ID: 'run-xyz' }

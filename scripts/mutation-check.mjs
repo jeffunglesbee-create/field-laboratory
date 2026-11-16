@@ -14508,6 +14508,22 @@ const MUTATIONS = [
     expect: "node scripts/gate-mode.mjs --self-test",
   },
   {
+    id: "gate-mode-confidence-server-wanted-in-quick",
+    file: "scripts/confidence.mjs",
+    claim: "--quick, which skips every browser row, does not probe or start the render server",
+    find: "const needsServer = !QUICK",
+    replace: "const needsServer = true",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
+    id: "gate-mode-confidence-server-never-wanted",
+    file: "scripts/confidence.mjs",
+    claim: "a full run probes for the render server (and starts one when nothing listens)",
+    find: "const needsServer = !QUICK",
+    replace: "const needsServer = false",
+    expect: "node scripts/gate-mode.mjs --self-test",
+  },
+  {
     id: "gate-mode-confidence-skipped-row-runs",
     file: "scripts/confidence.mjs",
     claim: "a row the mode skips is not called",
