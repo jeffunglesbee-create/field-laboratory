@@ -350,7 +350,7 @@ Skeptic 2 (upheld): Reproduced. Last step run `if [ * != x ]; then echo "::error
 
 ### B5 [guard-final] major: The closed form binds only the workflow line: the npm script it runs may skip or swallow the spawner and still counts as real work
 
-File: `scripts/check-browser-gate.py:820`
+File: scripts/check-browser-gate.py (line 820 at 5b5a89b, `def flagged_step_ok`)
 
 Claim: flagged_step_ok forbids `||`, `&&`, `;` and pipes on the step's own lines, but for `npm run gate:browserless` the commands are read from the package.json body with read_commands, which treats `exit`/`true` as safe heads and records the `node scripts/confidence.mjs --browserless` entry whatever surrounds it. A body of `exit 0; node scripts/confidence.mjs --browserless` (no work), `node scripts/confidence.mjs --browserless || true` or `...; exit 0` (failure swallowed) is accepted, while the identical text written in the workflow step is refused.
 
@@ -521,7 +521,7 @@ Skeptic 2 (upheld): Reproduced in my copy. workflowProblems (extracted by sed, l
 
 ### B13 [delete] minor: Four of the five delete-branches-workflow-* table entries are killed by an uncaught Error in the self-test's own mutant builder, not by the workflowProblems check, and the diagnostic is lost
 
-File: `scripts/mutation-check.mjs:13967`
+File: scripts/mutation-check.mjs (line 13967 at 5b5a89b, the table entry `delete-branches-workflow-apply-dropped`)
 
 Claim: Entries delete-branches-workflow-apply-dropped, -plan-applies, -input-inlined and -no-dashdash edit the text that the self-test's own `wfMutant()` uses as its anchor (DELETE_RUN, PLAN_RUN). `wfMutant` then throws 'workflow mutation anchor is not unique' while the wfMutants list is being built, before `workflowProblems(wfText).length === 0` is ever evaluated. The self-test exits 1 with a stack trace and zero FAIL lines, and the harness reports PASS. These entries therefore cannot show that workflowProblems detects the edit. With the guard's Delete-run clause disabled, the real workflow without --apply still reads red. A person who drops `--apply` gets a stack trace instead of the problem text 'the Delete step must run exactly ...'. Only the continue-on-error entry reaches a real FAIL line.
 
@@ -537,7 +537,7 @@ Skeptic 2 (upheld): Reproduced. `node scripts/mutation-check.mjs --only delete-b
 
 ### B14 [delete] minor: Three clauses of workflowProblems can be disabled with the self-test and mutation table staying green (never failed on purpose)
 
-File: `scripts/delete-branches.mjs:135`
+File: scripts/delete-branches.mjs (line 135 at 5b5a89b, the clause on the input of `workflowProblems`)
 
 Claim: The table has no entry that mutates workflowProblems itself. The self-test's ten wfMutants cover most clauses, but I switched clauses off one at a time (12 single edits to the function, each run through --self-test in a scratch copy). Four were killed: the triggers, permissions, continue-on-error and if clauses. Three more were killed: the plan-run clause, the delete-run clause and the comment filter. Five survived with 23/23 checks passed and exit 0. (1) the `inputs.branches`-only-in-env clause (line 135): the inlined-input wfMutant is also caught by the exact `run:` comparison, so nothing exercises it. (2) the `dry > del` half of the ordering test (line 139): no wfMutant reorders the steps. (3) `del < 0` in the same test (redundant with the run comparison). (4) `refs.length === 0` (same reason). (5) the blank-line alternative `|\n` in the `on:` block regex (a trigger after a blank line is untested). Each clause does work on a real edit, so these are untested rather than wrong. Rule 90 says an assertion that has only ever passed is unproven.
 

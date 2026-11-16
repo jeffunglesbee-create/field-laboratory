@@ -1442,6 +1442,22 @@ ROWS_ANY_IMPORT = re.compile(r"""(?:\bfrom|\bimport\s*\(|\brequire\s*\()\s*['"][
 ARRAY_MUTATORS = ("push", "pop", "shift", "unshift", "splice", "sort", "reverse", "fill", "copyWithin")
 
 
+# A STRING THAT HOLDS AN IMPORT IS NO IMPORT. scripts/gate-mode.mjs writes `import * as gc from './gate-checks.mjs'` inside a string, as the input of a fixture for its own stand-in check; read as code, that string was an
+# `import * as` the reader "cannot attribute", and the real tree went red the moment the two chains that wrote the two files were merged (round 5 merge). The only string an import has in it is its module specifier, a
+# path (`./gate-checks.mjs`); every other string and template literal is blanked before an import is looked for, and the specifier stays.
+SPECIFIER_BODY = re.compile(r"[\w./@-]+")
+
+
+def _blank_prose_strings(src):
+    """Like _blank_strings, but a string or a regular expression that is only a module specifier (`'./gate-checks.mjs'`) keeps its content: a string with anything else in it (spaces, `*`, braces: text, not an import) is blanked."""
+    out, last = [], 0
+    for s, e, literal in js_tokens(src):
+        if literal and not (src[s] in "'\"" and SPECIFIER_BODY.fullmatch(src[s + 1:e - 1])):
+            out += [src[last:s], src[s] + "\0" * (e - s - 2) + src[e - 1]]
+            last = e
+    return "".join(out) + src[last:]
+
+
 def importer_rows_problems(root):
     """[problem] for the files under scripts/ that import `rows` from gate-checks.mjs and change it."""
     bad = []
@@ -1451,7 +1467,7 @@ def importer_rows_problems(root):
         raw = f.read_text(errors="replace")
         if "gate-checks.mjs" not in raw or not ROWS_ANY_IMPORT.search(raw):
             continue
-        blanked = _blank_comments(raw)
+        blanked = _blank_prose_strings(_blank_comments(raw))
         braced = list(ROWS_IMPORT.finditer(blanked))
         if len(braced) < len(ROWS_ANY_IMPORT.findall(blanked)):
             bad.append(f"scripts/{f.name} imports scripts/gate-checks.mjs other than as `{{ names }}` (`import * as`, a default, an `import()` that is not destructured): this reader cannot tell what it does to `rows`")
@@ -3463,6 +3479,16 @@ def self_test():
                                                      "import { rows } from './gate-checks.mjs'\n// rows.push(1)\nconst t = 'rows.push(1)'\nconst o = { rows: 1 }\no.rows.push(2)\nx.rows = 3\n",
                                                      "import { ok } from './gate-checks.mjs'\nconst rows = []\nrows.push(1)\n", "import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n")),
           [row_pr_importer(src) for src in ("import { rows } from './gate-checks.mjs'\nfunction f() { let rows = 1; rows = 2 }\n",)])
+    # Round 5 merge: scripts/gate-mode.mjs holds `import * as gc from './gate-checks.mjs'` in a string (a fixture of its own stand-in check); the importer scan read it as an import and the real tree went red.
+    STRING_IMPORTS = ("const f = \"import * as gc from './gate-checks.mjs'\"\n", "const f = 'import gc from \\'./gate-checks.mjs\\''\n", "const f = `import gc from './gate-checks.mjs'\nimport * as g from './gate-checks.mjs'`\n",
+                      "const f = \"const { rows } = await import('./gate-checks.mjs')\\nrows.push(1)\"\n", "import { ok } from './gate-checks.mjs'\nconst f = \"import * as gc from './gate-checks.mjs'\"\n")
+    check("round 5 merge (A27): ...an import written inside a string or a template literal (the input of another reader's fixture) is no import, whatever its form (`import * as`, a default, a destructured `await import`) and wherever it sits beside a real one",
+          all(row_pr_importer(src) == [] for src in STRING_IMPORTS), [row_pr_importer(src) for src in STRING_IMPORTS])
+    check("round 5 merge (A27): ...while a real import beside such a string is still read: the string hides neither a real `rows.push` nor a real `import * as`",
+          any_of("changes `rows`", row_pr_importer("const t = \"import * as gc from './gate-checks.mjs'\"\nimport { rows } from './gate-checks.mjs'\nrows.push(1)\n")) and
+          any_of("other than as `{ names }`", row_pr_importer("const t = \"import { rows } from './gate-checks.mjs'\"\nimport * as g from './gate-checks.mjs'\n")))
+    check("round 5 merge (A27): the strings that keep their content are the module specifiers (a path of letters, digits, `.`, `/`, `@`, `-`): `./gate-checks.mjs` is kept, `import * as g from './x.mjs'` and a template are blanked",
+          _blank_prose_strings("a('./gate-checks.mjs', \"import * as g from './x.mjs'\", `t`)") == "a('./gate-checks.mjs', \"" + "\0" * len("import * as g from './x.mjs'") + "\", `\0`)", _blank_prose_strings("a('./gate-checks.mjs', \"import * as g from './x.mjs'\", `t`)"))
 
     # FINDING 28. The final step's tests read only what the step's own `env:` defines.
     for label, test in [("`$GITHUB_ACTIONS` (set on every runner, unset in the guard's run)", '[ "$GITHUB_ACTIONS" != true ]'), ("`$PATH`", '[ "$PATH" != x ]'), ("`$?`", '[ "$?" != 0 ]'), ("`$$`", '[ "$$" != 0 ]'), ("`$0`", '[ "$0" != bash ]'),

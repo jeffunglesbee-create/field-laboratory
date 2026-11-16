@@ -135,6 +135,8 @@ export const KNOWN_NODE_OPTIONS_LINES = {
     "claim: \"a child of proof-check's self-test keeps the trap's NODE_OPTIONS\",",
     "find: \"go({ NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --require ${join(dir, 'other-run.cjs')}`.trim() })\",",
     "replace: \"go({ NODE_OPTIONS: `--require ${join(dir, 'other-run.cjs')}` })\",",
+    "claim: \"every name dangerous_var knows (not only NODE_OPTIONS) written to `$GITHUB_ENV` is refused\",",
+    "replace: \"if n == \\\"NODE_OPTIONS\\\"})\",",
   ],
   "scripts/network-exempt-check.mjs": [
     "env: { ...process.env, ...env, NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import ${PRELOAD}`.trim(), NO_NETWORK_MARK: mark, NO_NETWORK_MODE: mode },",

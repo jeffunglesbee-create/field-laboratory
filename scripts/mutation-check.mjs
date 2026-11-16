@@ -8900,8 +8900,8 @@ const MUTATIONS = [
     id: "browser-gate-importer-copywithin",
     file: "scripts/check-browser-gate.py",
     claim: "`rows.copyWithin(...)` in a file that imports rows is refused",
-    find: ", \"copyWithin\")\n\n\ndef importer_rows_problems",
-    replace: ")\n\n\ndef importer_rows_problems",
+    find: ", \"copyWithin\")\n\n\n# A STRING THAT HOLDS AN IMPORT IS NO IMPORT.",
+    replace: ")\n\n\n# A STRING THAT HOLDS AN IMPORT IS NO IMPORT.",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
@@ -8950,6 +8950,22 @@ const MUTATIONS = [
     claim: "a `const`/`let`/`var rows` in a function is a new variable, not a change to the import",
     find: "endswith((\"const \", \"let \", \"var \"))",
     replace: "endswith((\"zz \",))",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-importer-string-is-an-import",
+    file: "scripts/check-browser-gate.py",
+    claim: "an import written inside a string (a fixture of another reader) is no import: scripts/gate-mode.mjs holds a namespace import of gate-checks.mjs inside a string, and read as code it turned the real tree red",
+    find: "        blanked = _blank_prose_strings(_blank_comments(raw))\n",
+    replace: "        blanked = _blank_comments(raw)\n",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-importer-specifier-blanked",
+    file: "scripts/check-browser-gate.py",
+    claim: "the module specifier of a real import stays readable when the other strings are blanked, so a real `rows.push` beside a string fixture is still refused",
+    find: "        if literal and not (src[s] in \"'\\\"\" and SPECIFIER_BODY.fullmatch(src[s + 1:e - 1])):\n",
+    replace: "        if literal:\n",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   // --- scripts/check-browser-gate.py, round 5 part A, group 5 (review of 9043fa75) ---
