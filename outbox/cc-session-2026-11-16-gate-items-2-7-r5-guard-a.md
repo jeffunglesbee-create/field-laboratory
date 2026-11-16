@@ -55,3 +55,48 @@ Red on purpose (`node scripts/mutation-check.mjs --only <id>`, each `PASS [<id>]
 | `browser-gate-logical-lines-comment-ends-continuation` | a backslash ends a comment's line like any other | 3 (the B1 backslash route among them) |
 | `browser-gate-logical-lines-odd-backslashes` | `endswith("\\")` instead of an odd run | 1 |
 | `browser-gate-logical-lines-comment-line-after-continuation` | a comment line after a continuation is dropped, as before | 2 |
+
+## Group 2: the final step is a closed form (B2, B3, B4, B6, A28)
+
+`final_script_problems` tokenised each line and refused what looked foreign; each missed spelling was a hole (a `#` that was no comment, an assignment line, an unquoted glob, `~`, YAML
+`true` stringified as `True`). It is replaced by a WHITELIST: every logical line of the final step's script must be, whole and with nothing after it (a whole-line comment is dropped
+first), one of `if [ "$NAME" OP WORD ]; then`, `elif [ "$NAME" OP WORD ]; then`, `else`, `fi`, `exit N` (a literal integer 1 to 255) and `echo ARG...` (`FINAL_IF`, `FINAL_EXIT`,
+`FINAL_ARG`, `FINAL_ECHO`, `FINAL_REF`, `FINAL_SHAPES`, `final_line_problem`). NAME is a variable of the step's own `env:`; OP is `=`, `!=`, `==`; WORD is a bare run of `A-Za-z0-9_.:-`
+or the same in double quotes (an empty `""` too: an outcome can be empty); an ARG is a bare run of `A-Za-z0-9_.:,=/@%+-` or a double-quoted string with no backtick and no backslash whose
+`$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`. One departure from the task's text, measured: DEFAULT is also free of `'`, because bash 5.2.21 here reads the `'` of
+`echo "${x:-it's}"` as the start of a quoted string and stops with `unexpected EOF while looking for matching` (so the guard's run and a runner on another bash could differ).
+Every other punctuation character I probed inside a quoted DEFAULT (`~ * ? [a] {a ! # (a) a;b a&b a|b <a> a:b ~root`) printed literally, with HOME set or not.
+`final_step_problems` now refuses an env key or value that is not a Python `str` (YAML bool, int, float, null, list) with the advice to quote it, before the closed form and before any run;
+the run-it-for-4-outcomes check is unchanged and still follows. Narrower than before, on purpose: `test`, `[[`, `${NAME}` inside a test, `[ a = b ]`, two variables in one test, and an echo
+that prints a variable the step's env lacks are refused now (they were accepted). The four real final steps (verify.yml, verify-full.yml, live-check.yml, the mutation-shard action)
+are inside the form untouched: `python3 scripts/check-browser-gate.py` prints `exits non-zero with ::error:: for 4 of 4` for each of the four jobs, and a self-test check parses the
+four files and asserts it (4 of 4).
+
+| input (the final step's script) | before (9043fa75) | now |
+|---|---|---|
+| `echo "::error::..." ${y:- #}; if [ "$GITHUB_ACTIONS" != true ]; then exit 1; fi` (B2) and its backslash route | accepted: `4 of 4`, `verdict: gated` | refused (`echo takes only words ...`; the next line's test refused for its variable) |
+| `X=$GITHUB_ACTIONS` then `if [ "$X" != true ]; then ...` with env `X: a` (B3) | accepted | refused (`is not echo, exit or a test`) |
+| `if [ * != x ]; then ...` (B4); `if [ * = "*" ]; then` (A28 a); `if [ ~ != /home/runner ]; then` (A28 b) | accepted | refused (`must be exactly if [ "$NAME" = WORD ]; then`) |
+| env `STRICT: true` (a YAML boolean) with `if [ "$STRICT" != true ]; then ...; exit 1; fi` (B6) | accepted (the run saw `True`) | refused: `which YAML reads as bool ... Quote the value`; `STRICT: "true"` is accepted |
+
+Self-test: 727 to 744 (17 new checks, one of them over a literal list of 14 accepted lines, one over 71 near-misses, one over the characters of each class).
+
+Red on purpose (`PASS [<id>]` from `node scripts/mutation-check.mjs --only <id>`; failing checks of the mutated copy in the second column):
+
+| id | the break | failing |
+|---|---|---|
+| `browser-gate-final-name-in-env` | a test may read any NAME | 3 |
+| `browser-gate-final-exit-range` | `exit 256` accepted | 1 (the near-miss list) |
+| `browser-gate-final-exit-nonzero` | `exit 0` accepted | 2 |
+| `browser-gate-final-echo-env-names` | an echo may print any variable | 3 |
+| `browser-gate-final-echo-dollar` | a stray `$` in an echo accepted | 1 |
+| `browser-gate-final-echo-whole-line` | text after an echo accepted (`.match`) | 4 (B2 among them) |
+| `browser-gate-final-if-whole-line` | text after `then` accepted | 1 |
+| `browser-gate-final-default-no-apostrophe` | `'` allowed in DEFAULT | 1 |
+| `browser-gate-final-dq-no-backslash` / `-dq-no-backtick` | a backslash / a backtick allowed in a quoted string | 2 / 2 |
+| `browser-gate-final-word-bare-charset` / `-word-quoted-charset` | `*` allowed in a bare WORD / anything allowed in a quoted WORD | 2 / 3 |
+| `browser-gate-final-echo-bare-charset` | `*` allowed in a bare echo word | 2 |
+| `browser-gate-final-test-operators` | `>` allowed as OP | 1 |
+| `browser-gate-final-else-fi-whole` | `else echo x` accepted | 1 |
+| `browser-gate-final-closed-form-decides` | the closed form's verdict ignored | 31 |
+| `browser-gate-final-env-strings-only` | non-string env accepted | 5 (all five B6 inputs) |

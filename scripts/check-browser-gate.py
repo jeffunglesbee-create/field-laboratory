@@ -51,10 +51,13 @@ WHAT THIS CHECKS, on each target job (rules 1 to 8) and on every other install (
      empty), exits non-zero and prints `::error::`. The effect is tested, not the text: a comment that says `exit 1`, an
      echo that mentions it, an `exit 0` before it or an `if false; then exit 1; fi` all contain the characters and none of
      them reddens the job. Because the guard's run and the runner's differ in everything but the script (files, variables
-     the runner sets, the shell's options), the script is a CLOSED GRAMMAR: only echo, `exit N` (a literal non-zero
-     integer) and `[ ]`/`test` comparisons, in if/elif/else/fi, with no pipe and no redirect, and a comparison reads only a
-     variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more: `[ "$GITHUB_ACTIONS" != true ]`
-     fails here and passes there); anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
+     the runner sets, the shell's options, a YAML scalar's spelling), the script is a CLOSED FORM: every logical line is, whole,
+     one of `if [ "$NAME" OP WORD ]; then`, `elif [ ... ]; then`, `else`, `fi`, `exit N` (a literal integer 1 to 255) and
+     `echo ARG...` (FINAL_SHAPES: plain words and double-quoted strings whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`),
+     NAME a variable the step's own `env:` defines (the guard's run sets PATH, LC_ALL and that env, a runner sets many more:
+     `[ "$GITHUB_ACTIONS" != true ]` fails here and passes there), and an `env:` value is a YAML string (`true` unquoted is a
+     boolean a runner passes as `true` and a Python run would pass as `True`); nothing after a command, not even a comment, and
+     anything else is refused, because what it does here would say nothing about what it does there. It is last because a step after it that has no
      `always()` is skipped by the failure it makes.
   5. every `steps.<id>` an `if` mentions is the id of an earlier step (a renamed id evaluates to null and skips every
      browser step without a word)
@@ -492,7 +495,6 @@ def dangerous_var(name):
 
 
 INSTALL_LINE = re.compile(r"^(?:timeout(?: --kill-after=\d+)? \d+ )?npx playwright install(?: [\w-]+)*$")
-FINAL_HEADS = frozenset({"echo", "exit", "[", "test"})
 PY_FLAGS = {"-I", "-B", "-u", "-E", "-s", "-S", "-O", "-q"}
 NPM_FLAGS = {"-s", "--silent", "-q", "--quiet", "--no-audit", "--no-fund", "--no-update-notifier", "--if-present"}
 SCRIPT_FILE = re.compile(r"^[\w./\-]+\.(?:mjs|cjs|js)$")
@@ -975,59 +977,67 @@ def run_final(step, outcome, timeout=FINAL_TIMEOUT, others=None):
                               capture_output=True, text=True, timeout=timeout)
 
 
-# A `$` in a word of a `[ ]` or `test`: `$NAME` or `${NAME}`, and nothing else (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}` all differ between the guard's run and the runner's, or hide a lookup).
+# THE FINAL STEP IS A CLOSED FORM. The guard RUNS the step under bash, for each outcome the install can have, and can only know the runner does the same if the two runs read nothing that differs: a file (the
+# guard's directory is empty), a variable the runner sets (the guard's run has PATH, LC_ALL and the step's own `env:`), a glob, `~`, a pipe (the runner's shell has no pipefail), a stringified YAML value. Tokenising
+# the lines and refusing what looked foreign left a hole each time a spelling was missed (review of 48f504e, finding 28, then B2, B3, B4 and B6 of the review of 5b5a89b: a `#` that was no comment, an assignment line,
+# an unquoted `*`, `~`, `true` read as `True`), so no line is judged by what is in it: each logical line must BE one of these shapes, whole, with nothing after it (a whole-line comment is dropped before this).
+#   if [ "$NAME" OP WORD ]; then      elif [ "$NAME" OP WORD ]; then      else      fi      exit N      echo ARG...
+# NAME is a variable of the step's own `env:`; OP is `=`, `!=` or `==`; WORD is a bare run of `A-Za-z0-9_.:-` or the same in double quotes; N is a literal integer from 1 to 255; each ARG is a bare run of
+# `A-Za-z0-9_.:,=/@%+-` or a double-quoted string with no backtick and no backslash whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}` (NAME a variable of the step's `env:`, DEFAULT free of `$`, a backtick,
+# a backslash, `"`, `'` and `}`: bash 5.2 reads a `'` inside `"${x:-it's}"` as the start of a quoted string and stops with `unexpected EOF`). The four real final steps (verify.yml, verify-full.yml, live-check.yml and the
+# mutation-shard action) are exactly these.
+FINAL_NAME = r"[A-Za-z_][A-Za-z0-9_]*"
+FINAL_IF = re.compile(r'(?:if|elif)[ \t]+\[[ \t]+"\$(' + FINAL_NAME + r')"[ \t]+(?:=|!=|==)[ \t]+(?:[A-Za-z0-9_.:-]+|"[A-Za-z0-9_.:-]*")[ \t]+\];[ \t]+then')
+FINAL_EXIT = re.compile(r"exit[ \t]+([1-9][0-9]{0,2})")
+FINAL_ARG = r'(?:[A-Za-z0-9_.:,=/@%+-]+|"[^"`\\]*")'
+FINAL_ECHO = re.compile(r"echo(?:[ \t]+" + FINAL_ARG + r")+")
+FINAL_REF = re.compile(r"\$(?:(" + FINAL_NAME + r")|\{(" + FINAL_NAME + r")(?::-([^$`\\\"'}]*))?\})")
+FINAL_SHAPES = ('`if [ "$NAME" = WORD ]; then`, `elif [ "$NAME" != WORD ]; then`, `else`, `fi`, `exit N` (N from 1 to 255) and `echo ARG...` (an ARG is letters, digits and `_.:,=/@%+-`, or a double-quoted string with no backtick or backslash '
+                'whose `$` is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`; NAME is a variable of the step\'s own `env:`); nothing after the command, not even a comment')
+# A `$` in a test that is no `$NAME` of the step's env, named so that the refusal says which it is (`$?`, `$$`, `$0`, `$-`, `$1`, `${X:-y}`, `${!X}`): only a diagnostic, the shapes above are what decides.
 VAR_REF = re.compile(r"\$(?:\{([^}]*)\}|([A-Za-z_]\w*)|(.?))")
 
 
+def final_line_problem(line, env_names):
+    """None when `line` is one of the lines a final step may consist of (see FINAL_SHAPES), else why not."""
+    if line in ("else", "fi"):
+        return None
+    head = line.split(None, 1)[0] if line.split() else ""
+    m = FINAL_IF.fullmatch(line)
+    if m:
+        return None if m.group(1) in env_names else (f"a test reads ${m.group(1)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                                                     f"compare only a variable the step's `env:` defines")
+    if head == "exit":
+        n = FINAL_EXIT.fullmatch(line)
+        return None if n and int(n.group(1)) <= 255 else "exit must be followed by a literal non-zero integer, 1 to 255, and nothing else"
+    if head == "echo":
+        if not FINAL_ECHO.fullmatch(line):
+            return "echo takes only words of letters, digits and `_.:,=/@%+-` and double-quoted strings with no backtick or backslash: no redirect, pipe, `;`, glob, `~` or comment"
+        for arg in re.findall(r"[ \t](" + FINAL_ARG + ")", line):
+            body = arg[1:-1] if arg.startswith('"') else ""
+            if "$" in FINAL_REF.sub("", body):
+                return "a `$` in an echo is only `$NAME`, `${NAME}` or `${NAME:-DEFAULT}`"
+            foreign = sorted({a or b for a, b, _ in FINAL_REF.findall(body)} - set(env_names))
+            if foreign:
+                return f"echo reads ${', $'.join(foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`)"
+        return None
+    if head in ("if", "elif", "[", "test"):
+        refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for m in VAR_REF.finditer(line)}
+        foreign = sorted(refs - set(env_names))
+        if foreign:
+            return (f"a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
+                    f"compare only a variable the step's `env:` defines")
+        return 'an `if` or `elif` must be exactly `if [ "$NAME" = WORD ]; then` (a variable of the step\'s `env:` against a plain word): no `test`, no `[[`, no file or string operator, no glob, no second statement on the line'
+    return f"`{head}` is not echo, exit or a test"
+
+
 def final_script_problems(script, env_names=()):
-    """The final step's script may use ONLY echo, `exit N` (N a literal non-zero integer) and `[ ]`/`test` comparisons, in
-    if/elif/else/fi. The guard runs it to see that it fails, and can only know that it fails the same way on the runner if it
-    touches nothing the two places differ in: a file (the guard's cwd is empty), a variable the runner sets, a pipe (the
-    runner has no pipefail), a redirect, a command that is not one of these. A comparison may read only a variable the step's
-    own `env:` defines (`env_names`): the guard's run gives the script PATH, LC_ALL and that env, so `[ "$GITHUB_ACTIONS" != true ]`
-    fails here and passes on every runner (review of 48f504e, finding 28). Returns [why]."""
+    """Every logical line of the final step's script must be one of FINAL_SHAPES (final_line_problem). Returns [why], one per line that is not."""
     bad = []
     for line in logical_lines(script):
-        try:
-            lex = shlex.shlex(strip_comment(line), posix=True, punctuation_chars=True)
-            lex.whitespace_split = True
-            lex.commenters = ""
-            toks = list(lex)
-        except ValueError as e:
-            bad.append(f"`{line[:60]}`: unbalanced quoting ({e}); each line must be complete")
-            continue
-        flat = []
-        for tok in toks:          # a command substitution is refused by read_step() for EVERY step after the install, this one included
-            if tok and all(c in "();<>|&" for c in tok):
-                flat.extend(OPERATORS.findall(tok))
-            else:
-                flat.append(tok)
-        stray = [o for o in flat if o in SEPARATORS | REDIRECTS | {"<<"} and o != ";"]
-        if stray:
-            bad.append(f"`{line[:60]}`: {stray[0]!r} (a pipe, a redirect or a list operator is not reproducible here)")
-            continue
-        group = []
-        for tok in flat + [";"]:
-            if tok != ";":
-                group.append(tok)
-                continue
-            w = command_words(group)
-            group = []
-            if not w:
-                continue
-            head = w[0]
-            if head not in FINAL_HEADS:
-                bad.append(f"`{' '.join(w)[:60]}`: `{head}` is not echo, exit or a test")
-            elif head == "exit" and not (len(w) == 2 and re.fullmatch(r"[1-9][0-9]*", w[1])):
-                bad.append(f"`{' '.join(w)[:60]}`: exit must be followed by a literal non-zero integer")
-            elif head in ("[", "test") and any(x.startswith("-") for x in w[1:]):
-                bad.append(f"`{' '.join(w)[:60]}`: a file or string operator in a test; compare the outcome with = or !=")
-            elif head in ("[", "test"):
-                refs = {("$" + m.group(3) if m.lastindex == 3 else m.group(m.lastindex)) for x in w[1:] for m in VAR_REF.finditer(x)}
-                foreign = sorted(refs - set(env_names))
-                if foreign:
-                    bad.append(f"`{' '.join(w)[:60]}`: a test reads {', '.join(f if f.startswith('$') else '$' + f for f in foreign)}, which this guard's run does not set (it gives the script PATH, LC_ALL and the step's own `env:`): "
-                               f"compare only a variable the step's `env:` defines")
+        why = final_line_problem(line, set(env_names))
+        if why:
+            bad.append(f"`{line[:60]}`: {why}")
     return bad
 
 
@@ -1039,9 +1049,15 @@ def final_step_problems(step, name, timeout=FINAL_TIMEOUT):
     if not run_text(step).strip():
         bad.append(f"the final step {name} has no script to fail with")
         return bad
-    grammar = final_script_problems(run_text(step), {str(k) for k in env_map(step)})
+    notstr = [(k, v) for k, v in env_map(step).items() if not (isinstance(k, str) and isinstance(v, str))]
+    if notstr:         # `STRICT: true` is the YAML boolean: a runner hands the step `true`, and a run that stringified it as Python does would hand it `True` (review of 5b5a89b, B6)
+        k, v = notstr[0]
+        bad.append(f"the final step {name}: env {k!r} is {v!r}, which YAML reads as {'null' if v is None else type(v).__name__} and not as a string: a runner passes it as its YAML text and this guard's run would pass Python's, so the two runs differ. "
+                   f"Quote the value so that both see the same text")
+        return bad
+    grammar = final_script_problems(run_text(step), set(env_map(step)))
     if grammar:
-        bad.append(f"the final step {name} must use only echo, `exit N` and `[ ]` comparisons in if/elif/else/fi, so that running it here shows what the runner does: " + "; ".join(grammar[:3]))
+        bad.append(f"the final step {name} must be made only of these lines, so that running it here shows what the runner does: {FINAL_SHAPES}. Refused: " + "; ".join(grammar[:3]))
         return bad
     failed = []
     keys = other_outcome_keys(step)
@@ -2032,9 +2048,9 @@ def self_test():
     check("the final step with `# exit 1` and then `true` is refused (`true` is not echo, exit or a test)", any_of("is not echo, exit or a test", mut(final_run(ERR + "# exit 1\ntrue"))))
     check("the final step that only ECHOES `exit 1` is refused", any_of("GREEN", mut(final_run('echo "::error::would exit 1 but does not"'))))
     check("the final step with `exit 0` before `exit 1` is refused (exit takes a literal non-zero integer)", any_of("literal non-zero integer", mut(final_run(ERR + "exit 0\nexit 1"))))
-    check("the final step with `if false; then exit 1; fi` is refused (`false` is not a test)", any_of("is not echo, exit or a test", mut(final_run(ERR + "if false; then exit 1; fi"))))
-    check("a final step whose `if` tests the outcome with `test` instead of `[ ]` is accepted",
-          mut(final_run('if test "$INSTALL_OUTCOME" = skipped; then echo "::error::s"; else echo "::error::o"; fi\nexit 1')) == [])
+    check("the final step with `if false; then exit 1; fi` is refused (`false` is not a test, and a one-line `if` is not one of the shapes)", any_of("must be exactly `if [", mut(final_run(ERR + "if false; then exit 1; fi"))))
+    check("a final step whose `if` tests the outcome with `test` instead of `[ ]` is refused (round 5: the closed form has one spelling of a test, `[ \"$NAME\" OP WORD ]`)",
+          any_of("must be exactly `if [", mut(final_run('if test "$INSTALL_OUTCOME" = skipped; then\n  echo "::error::s"\nelse\n  echo "::error::o"\nfi\nexit 1'))))
     check("the final step with `exit 1` commented out and nothing else is refused", any_of("GREEN", mut(final_run(ERR + "# exit 1"))))
     check("the final step with `exit 10` is accepted (any non-zero reddens the job)", mut(final_run(ERR + "exit 10")) == [], mut(final_run(ERR + "exit 10")))
     check("the final step with `continue-on-error: true` is refused (its failure becomes success)",
@@ -2046,9 +2062,9 @@ def self_test():
     check("a command that fails (`false`) is refused: it is not echo, exit or a test, and what it does is the runner's business, not this run's",
           any_of("is not echo, exit or a test", mut(final_run(ERR + "false\nexit 0"))))
     check("a pipe in the final step is refused (the runner's default shell has no pipefail, so `false | true` exits 0 there)",
-          any_of("a pipe, a redirect", mut(final_run(ERR + "false | true\nexit 0"))))
+          any_of("`false` is not echo, exit or a test", mut(final_run(ERR + "false | true\nexit 0"))))
     check("a write to a runner file (`>> \"$GITHUB_STEP_SUMMARY\"`, unset here, set there) is refused",
-          any_of("a pipe, a redirect", mut(final_run(ERR + 'echo x >> "$GITHUB_STEP_SUMMARY"\nexit 1'))))
+          any_of("echo takes only words", mut(final_run(ERR + 'echo x >> "$GITHUB_STEP_SUMMARY"\nexit 1'))))
     check("a command that reads the checkout (`cat outbox/INDEX.md`, absent from this run's empty directory) is refused",
           any_of("is not echo, exit or a test", mut(final_run(ERR + "cat outbox/INDEX.md\nexit 1"))))
     check("a command substitution in the final step is refused (by the reader, which reads every step, and the script is not run)", any_of("a command substitution", mut(final_run(ERR + 'echo "$(touch x)"\nexit 1'))))
@@ -2067,7 +2083,7 @@ def self_test():
           sum(1 for b in mut(lambda s: s.append({"name": "appended", "run": "npm run pure"})) if "LAST step" in b) == 1)
     check("the final step is run for all four outcomes, not one: a script that fails only for `failure` is refused for the other three",
           any_of("did not for: 'skipped': exit 0, so the job would be GREEN; 'cancelled': exit 0, so the job would be GREEN; '': exit 0",
-                 mut(final_run('if [ "$INSTALL_OUTCOME" = failure ]; then echo "::error::f"; exit 1; fi'))))
+                 mut(final_run('if [ "$INSTALL_OUTCOME" = failure ]; then\n  echo "::error::f"\n  exit 1\nfi'))))
 
     # ---- A STRAY continue-on-error ELSEWHERE swallows a red step
     check("`continue-on-error` on a plain step is refused", any_of("only the install may", mut(lambda s: s[3].update({"continue-on-error": True}))))
@@ -3094,10 +3110,65 @@ def self_test():
                         ("`${}`", '[ "${}" != x ]'), ("a variable of the second operand", '[ "$INSTALL_OUTCOME" != "$GITHUB_REF" ]'), ("a variable inside `test`", 'test "$GITHUB_ACTIONS" != true')]:
         res = mut(final_run(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
         check(f"finding 28: a test that reads {label} is refused (the guard's run does not set it)", any_of("which this guard's run does not set", res), res)
-    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME`, `${INSTALL_OUTCOME}`, a literal env value of its own, and a variable-free comparison",
+    check("finding 28: ...a test that reads only the step's own env is accepted: `$INSTALL_OUTCOME` and a literal env value of its own, against a bare word, a quoted word, with `=`, `==` and `!=`",
           all(mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})) == []
-              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "${INSTALL_OUTCOME}" = skipped ]', '[ "$MODE" = strict ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"')))
-    check("finding 28: ...and the variable of a test in the grammar's `echo` is not a test (`echo \"$GITHUB_ACTIONS\"` prints, it decides nothing)", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1')) == [])
+              for t in ('[ "$INSTALL_OUTCOME" = skipped ]', '[ "$MODE" = strict ]', '[ "$MODE" != "strict" ]', '[ "$MODE" == strict ]')))
+    check("round 5 (A28): ...and every other spelling of a test is refused, whatever it reads: `${NAME}`, `[ a = b ]`, `test`, `[[ ]]`, two variables, an unquoted NAME, an unquoted `*` or `~` (A28 a and b, B4), `-n`",
+          all(any_of("must be exactly `if [", mut(lambda s, t=t: s[-1].update({"env": {"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", "MODE": "strict"}, "run": f'echo "::error::x $INSTALL_OUTCOME"\nif {t}; then\n  echo y\nfi\nexit 1'})))
+              for t in ('[ "${INSTALL_OUTCOME}" = skipped ]', '[ a = b ]', 'test "$MODE" != "$INSTALL_OUTCOME"', '[[ "$MODE" = strict ]]', '[ "$MODE" = "$INSTALL_OUTCOME" ]', '[ $MODE = strict ]', '[ * = "*" ]', '[ ~ != /home/runner ]', '[ * != x ]', '[ -n "$MODE" ]')))
+    check("finding 28: ...and a variable of the runner in an `echo` is refused too (round 5: the closed form lets an echo print only a variable of the step's `env:`)",
+          any_of("echo reads $GITHUB_ACTIONS, which this guard's run does not set", mut(final_run('echo "::error::x $GITHUB_ACTIONS $INSTALL_OUTCOME"\nexit 1'))))
+
+    # ROUND 5, GROUP 2 (review of 5b5a89b, B2, B3, B4, B6 and A28). The final step is a CLOSED FORM: each logical line is one of FINAL_SHAPES, whole, and a line that is anything else is refused whatever it holds.
+    final_with = lambda run, **env: mut(final_run(run, env={"INSTALL_OUTCOME": "${{ steps.chromium.outcome }}", **env}))
+    refused_final = lambda run, **env: any_of("must be made only of these lines", final_with(run, **env))
+    b2 = 'echo "::error::The Chromium install did not succeed" ${y:- #}; if [ "$GITHUB_ACTIONS" != true ]; then exit 1; fi'
+    check("round 5 (B2): a hidden test of a runner-only variable behind `${y:- #}` on the echo's own line is refused: the line is not an echo, whole", refused_final(b2) and any_of("echo takes only words", final_with(b2)), final_with(b2))
+    check("round 5 (B2): ...and behind a comment that ends in a backslash, with the test on the next line", refused_final('echo "::error::x" # \\\nif [ "$GITHUB_ACTIONS" != true ]; then\n  exit 1\nfi'))
+    b3 = 'X=$GITHUB_ACTIONS\nif [ "$X" != true ]; then\n  echo "::error::The Chromium install did not succeed"\n  exit 1\nfi'
+    check("round 5 (B3): an assignment line (`X=$GITHUB_ACTIONS`) that carries a runner variable into a test of the step's own env is refused", any_of("is not echo, exit or a test", final_with(b3, X="a")), final_with(b3, X="a"))
+    for label, test in [("`[ * != x ]` (B4)", '[ * != x ]'), ("`[ * = \"*\" ]` (A28 a)", '[ * = "*" ]'), ("`[ ~ != /home/runner ]` (A28 b)", '[ ~ != /home/runner ]')]:
+        check(f"round 5: the final step with {label} is refused (a glob reads the runner's directory, `~` its HOME)", refused_final(f'if {test}; then\n  echo "::error::x"\n  exit 1\nfi\nexit 1'))
+    b6 = 'if [ "$STRICT" != true ]; then\n  echo "::error::x"\n  exit 1\nfi\necho "::error::y"\nexit 1'
+    for label, val in [("a YAML boolean (`STRICT: true`)", True), ("a YAML integer", 1), ("a YAML float", 1.5), ("a YAML null", None), ("a YAML list", ["a"])]:
+        check(f"round 5 (B6): a final step whose env holds {label} is refused, with the advice to quote it", any_of("Quote the value", final_with(b6, STRICT=val)), final_with(b6, STRICT=val))
+    check("round 5 (B6): ...and the same value written as a string (`STRICT: \"true\"`) is run with `true`, not `True`, and accepted", final_with(b6, STRICT="true") == [], final_with(b6, STRICT="true"))
+    REAL_FINALS = [(".github/workflows/verify.yml", "verify"), (".github/workflows/verify-full.yml", "full"), (".github/workflows/live-check.yml", "live"), (".github/actions/mutation-shard/action.yml", None)]
+    real_finals = [(rel, job_steps(yaml.safe_load(Path(__file__).resolve().parent.parent.joinpath(rel).read_text()), job)[-1]) for rel, job in REAL_FINALS]
+    check(f"round 5: the {len(REAL_FINALS)} real final steps (verify.yml, verify-full.yml, live-check.yml, the mutation-shard action) are the last step by their `if` and inside the closed form, untouched",
+          all(is_final_if(if_text(st)) and final_script_problems(run_text(st), set(env_map(st))) == [] for _, st in real_finals), [(rel, final_script_problems(run_text(st), set(env_map(st)))) for rel, st in real_finals])
+    PINNED_FINAL_OK = [
+        'if [ "$INSTALL_OUTCOME" = skipped ]; then', 'elif [ "$MODE" != "strict" ]; then', 'if [ "$MODE" == a.b:c_d-e ]; then', 'if [ "$MODE" = "" ]; then', 'else', 'fi', 'exit 1',
+        'exit 255', 'echo x', 'echo -n x', 'echo ::error::x', 'echo a=b c:d e/f g@h i%j k+l',
+        'echo "::error::a b, c (d)? $INSTALL_OUTCOME ${INSTALL_OUTCOME} ${INSTALL_OUTCOME:-none, is it?} $MODE"', 'echo "it\'s" "a # b" "{x}" "~" "*"',
+    ]
+    PINNED_FINAL_NEAR_MISS = [
+        'if [ "$INSTALL_OUTCOME" = skipped ]; then # c', 'if [ "$INSTALL_OUTCOME" = skipped ]; then echo x', 'if [ "$INSTALL_OUTCOME" = skipped ] && [ a = b ]; then',
+        'if [ "$INSTALL_OUTCOME" -eq 1 ]; then', 'if [ "$INSTALL_OUTCOME" = skipped* ]; then', 'if [ "$INSTALL_OUTCOME" = ~ ]; then', 'if [ "$INSTALL_OUTCOME" = $MODE ]; then',
+        'if [ "$INSTALL_OUTCOME" = "a b" ]; then', 'if [ "$INSTALL_OUTCOME" = a/b ]; then', 'if [ "$INSTALL_OUTCOME" = a=b ]; then', 'if [ "$MISSING" = x ]; then',
+        'if [ "${INSTALL_OUTCOME}" = x ]; then', "if [ '$INSTALL_OUTCOME' = x ]; then", 'if [ $INSTALL_OUTCOME = x ]; then', 'if ! [ "$INSTALL_OUTCOME" = x ]; then',
+        'if [ "$INSTALL_OUTCOME" = x ];then', 'if [ "$INSTALL_OUTCOME" = x ] ; then', 'if [ "$INSTALL_OUTCOME" > x ]; then', 'if [[ "$INSTALL_OUTCOME" = x ]]; then',
+        'if test "$INSTALL_OUTCOME" = x; then', 'if [ "$INSTALL_OUTCOME" = x ]', 'elif [ "$INSTALL_OUTCOME" -n ]; then', 'then', 'else # c', 'else echo x', 'fi;', 'fi # c', 'done', 'exit',
+        'exit 0', 'exit 256', 'exit 01', 'exit -1', 'exit 1000', 'exit 1 # c', 'exit 1;', 'exit "1"', 'exit $?', 'exit 1 2', 'echo', 'echo x > f', 'echo x | cat', 'echo x; exit 0',
+        'echo $MODE', 'echo "$(date)"', 'echo "`date`"', 'echo "a\\b"', 'echo "$GITHUB_ACTIONS"', 'echo "${GITHUB_ACTIONS:-x}"', 'echo "${INSTALL_OUTCOME:-a$b}"',
+        'echo "${INSTALL_OUTCOME:-it\'s}"', 'echo "${INSTALL_OUTCOME#x}"', 'echo "$?"', 'echo "$"', 'echo ~', 'echo *', 'echo {a,b}', 'echo a b # c', 'echo "a" b"c"', "echo 'a'", 'echo "a',
+        'echo a&b', "echo $'a'", 'X=$GITHUB_ACTIONS', 'X=a', 'true', 'false', 'cat f', '[ "$MODE" = x ]', ':', 'exit 1 && echo x',
+    ]
+    FIN_ENV = {"INSTALL_OUTCOME", "MODE"}
+    check(f"round 5: each of these {len(PINNED_FINAL_OK)} lines is one of the shapes (each of `if`, `elif`, `else`, `fi`, `exit N`, `echo ARG...` with a bare run, a quoted string and all three `$` forms) and is accepted",
+          all(final_script_problems(l, FIN_ENV) == [] for l in PINNED_FINAL_OK), [(l, final_script_problems(l, FIN_ENV)) for l in PINNED_FINAL_OK if final_script_problems(l, FIN_ENV)])
+    check(f"round 5: each of these {len(PINNED_FINAL_NEAR_MISS)} near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${{NAME}}` and an unquoted NAME in a test, a variable the env lacks, `exit 0`, `exit 256`, a redirect, a pipe, a command substitution, "
+          "a backslash, a bare `$`, `~`, `*`, `{{a,b}}`, single quotes, an assignment, `true`) is refused", all(final_script_problems(l, FIN_ENV) != [] for l in PINNED_FINAL_NEAR_MISS), [l for l in PINNED_FINAL_NEAR_MISS if final_script_problems(l, FIN_ENV) == []])
+    PINNED_ECHO_BARE, PINNED_ECHO_NOT_BARE, PINNED_WORD_BARE, PINNED_WORD_NOT_BARE = "aZ09_.:,=/@%+-", "!#$&'()*;<>?[\\]^`{|}~\"", "aZ09_.:-", ",=/@%+!#$&'()*;<>?[\\]^`{|}~\""
+    PINNED_DQ_OK, PINNED_DQ_NOT = " !#%&'()*+,-./:;<=>?@[]^_{|}~", "`\\$"
+    check(f"round 5: the characters of a bare echo word are exactly these {len(PINNED_ECHO_BARE)} (and each of these {len(PINNED_ECHO_NOT_BARE)} others is refused inside one), a bare WORD of a test exactly these {len(PINNED_WORD_BARE)} (and each of {len(PINNED_WORD_NOT_BARE)} others refused), "
+          f"a double-quoted echo string takes each of these {len(PINNED_DQ_OK)} punctuation characters and refuses a backtick, a backslash and a lone `$`",
+          all(final_script_problems(f"echo a{c}b", FIN_ENV) == [] for c in PINNED_ECHO_BARE) and all(final_script_problems(f"echo a{c}b", FIN_ENV) != [] for c in PINNED_ECHO_NOT_BARE)
+          and all(final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV) == [] for c in PINNED_WORD_BARE) and all(final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV) != [] for c in PINNED_WORD_NOT_BARE)
+          and all(final_script_problems(f'echo "a{c}b"', FIN_ENV) == [] for c in PINNED_DQ_OK) and all(final_script_problems(f'echo "a{c}b"', FIN_ENV) != [] for c in PINNED_DQ_NOT),
+          [c for c in PINNED_ECHO_BARE if final_script_problems(f"echo a{c}b", FIN_ENV)] + [c for c in PINNED_ECHO_NOT_BARE if not final_script_problems(f"echo a{c}b", FIN_ENV)] +
+          [c for c in PINNED_WORD_BARE if final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV)] + [c for c in PINNED_WORD_NOT_BARE if not final_script_problems(f'if [ "$MODE" = a{c}b ]; then', FIN_ENV)] +
+          [c for c in PINNED_DQ_OK if final_script_problems(f'echo "a{c}b"', FIN_ENV)] + [c for c in PINNED_DQ_NOT if not final_script_problems(f'echo "a{c}b"', FIN_ENV)])
 
     # FINDING 29. npm's own spelling of the variables that change what a script runs.
     unresolved_env = lambda k: read_step({"run": "npm run pure", "env": {k: "x"}}, pkg, read)["unresolved"]
