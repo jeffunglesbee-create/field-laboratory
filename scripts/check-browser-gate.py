@@ -918,6 +918,17 @@ def command_heads(line):
     return [(m.group(1), line[m.end():]) for m in COMMAND_HEAD.finditer(line)]
 
 
+def _runs_inline_code(head, words):
+    """Whether a `node` / `python` head runs code other than the script FILE named on its line: `node -e`, `node --eval=`, `node --run`, `python -c`, `python -m`, or a first word that is no script file. read_step has
+    scanned the file; it has not read what a flag makes the interpreter run instead (review of the merge, G-new-1; the half of round 4's A23 that the BENIGN_HEADS fix did not reach)."""
+    if head == "node":
+        return any(w in NODE_INLINE or w.startswith(NODE_INLINE_EQ) for w in words)
+    i = 0
+    while i < len(words) and words[i] in PY_FLAGS:
+        i += 1
+    return i >= len(words) or not SCRIPT_NAME.fullmatch(words[i])
+
+
 def raw_line_hides(line):
     """Whether a RAW line (one the splitter could not split: a quoted command substitution, a heredoc) may hide a launcher. Every command on it must be an allowed head: the benign tools, the safe heads and the
     words of a shell construct (RAW_WORDS), an assignment, a `git` that is read or only reads, or `node`/`python` with a script file on the line (read_step has scanned that file for a launch). Anything else
@@ -929,7 +940,7 @@ def raw_line_hides(line):
             continue
         if head == "git" and words and words[0] in GIT_SUBS | GIT_READONLY:
             continue
-        if head in ("node", "python", "python3") and SCRIPT_NAME.search(line):
+        if head in ("node", "python", "python3") and SCRIPT_NAME.search(line) and not _runs_inline_code(head, words):
             continue
         return True
     return False
@@ -3176,6 +3187,16 @@ def self_test():
     check("finding 21: ...while the ledger kind (text tools, a git that only reads, a node with a script file the scan has seen, an assignment of a substitution, arithmetic) stays opaque",
           all(kept(c) for c in ('echo "at $(date)" && git merge-base --is-ancestor HEAD x', 'echo "at $(date)" && node scripts/pure.mjs', 'D=$(mktemp -d); echo "$D/$(basename x)"', 'echo "n $(date)"; sleep $((attempt * 3))',
                                 'git diff -- x | grep y > "$(basename z)"', 'echo "${SAVED}/$(basename x)"')))
+    # Review of the merge, G-new-1 (the half of A23 left open): on an unreadable line a `node` or `python` head is read as running its script FILE, so a flag that makes it run other code is a launcher. The old guard refused
+    # `node -e "..."` there only by accident (it read the `(` inside the quoted code as a head); blanking quoted text for B0 and B8 removed the accident.
+    INLINE_ON_RAW = ('node -e "x" scripts/pure.mjs', "node --eval 'x' scripts/pure.mjs", 'node -p "x" scripts/pure.mjs', "node --print 'x' scripts/pure.mjs", 'node --run check:peak scripts/pure.mjs',
+                     'node --run=check:peak scripts/pure.mjs', 'node --eval="x" scripts/pure.mjs', 'node --print="x" scripts/pure.mjs', 'node -i scripts/pure.mjs', 'python3 -c "x" scripts/prose.py',
+                     'python3 -m pytest scripts/prose.py', 'python3 -B -c "x" scripts/prose.py', 'python3 -I -m x scripts/prose.py', 'python3 "$S" scripts/prose.py', 'python3 -B')
+    check("round 5 merge (G-new-1): on an unreadable line a `node` or `python` head that runs inline code, a package script or a module is refused although a script file is named on the line (15 forms)",
+          all(refused(f'echo "at $(date)"; {c}') for c in INLINE_ON_RAW), [c for c in INLINE_ON_RAW if not refused(f'echo "at $(date)"; {c}')])
+    check("...and the ledger kind stays opaque: a node or python head whose first word is its script file, with flags before it",
+          all(kept(f'echo "at $(date)"; {c}') for c in ("node scripts/pure.mjs", "node --max-old-space-size=100 scripts/pure.mjs", "node scripts/pure.mjs --out x", "python3 scripts/prose.py", "python3 -B -u scripts/prose.py --x")),
+          [c for c in ("node scripts/pure.mjs", "node --max-old-space-size=100 scripts/pure.mjs", "node scripts/pure.mjs --out x", "python3 scripts/prose.py", "python3 -B -u scripts/prose.py --x") if not kept(f'echo "at $(date)"; {c}')])
     PINNED_RAW_WORDS = ("for", "select", "case", "esac", "fi", "done", "in", "}", ":")
     vocab("RAW_WORDS", RAW_WORDS, PINNED_RAW_WORDS, lambda w: not raw_line_hides(f'{w} x "$(date)"'))
 
