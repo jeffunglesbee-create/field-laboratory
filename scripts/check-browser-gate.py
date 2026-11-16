@@ -531,16 +531,18 @@ NPMRC_REF = re.compile(r"\.npmrc\b")
 
 
 def later_step_effects(text):
-    """[why] the command text (its comment already cut) changes what the steps after it run, in a way this reader cannot follow."""
+    """[(trigger, why)] the command text (its comment already cut) changes what the steps after it run, in a way this reader cannot follow. `trigger` is the pattern that finds the line the reason is about
+    (the `$GITHUB_PATH` reference, the line that names the variable, the `.npmrc`), so that a refusal quotes that line and not the first line that matches any of the three (review of 945daddf, F1 and F4)."""
     out = []
     if GITHUB_PATH_REF.search(text):
-        out.append("it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step")
+        out.append((GITHUB_PATH_REF, "it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step"))
     if GITHUB_ENV_REF.search(text):
         names = sorted({n for n in ASSIGNED_NAME.findall(text) if dangerous_var(n)})
         if names:
-            out.append(f"it writes {', '.join(names)} to $GITHUB_ENV, which changes what the commands of every later step run")
+            out.append((re.compile(r"(?<![\w$])(?:" + "|".join(re.escape(n) for n in names) + r")(?:=|<<)"),
+                        f"it writes {', '.join(names)} to $GITHUB_ENV, which changes what the commands of every later step run (or it names `{names[0]}=` in a step that writes to $GITHUB_ENV: put a message that only mentions the name in a step of its own)"))
     if NPMRC_REF.search(text):
-        out.append("it names a .npmrc file, which sets npm's own config (script-shell, node-options...) for every later `npm run`")
+        out.append((NPMRC_REF, "it names a .npmrc file, which sets npm's own config (script-shell, node-options...) for every later `npm run`"))
     return out
 
 
@@ -746,10 +748,9 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
         out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
     lines = logical_lines(script)
     cut = [strip_comment(l) for l in lines]
-    whole = later_step_effects("\n".join(cut))                          # the whole step: a write and the name it writes are not always on one line
-    if whole:
-        shown = next((l for l, c in zip(lines, cut) if GITHUB_PATH_REF.search(c) or GITHUB_ENV_REF.search(c) or NPMRC_REF.search(c)), lines[0])
-        out["unresolved"] += [f"`{shown[:80]}`: {why}" for why in whole]
+    for trigger, why in later_step_effects("\n".join(cut)):               # the whole step: a write and the name it writes are not always on one line
+        shown = next((l for l, c in zip(lines, cut) if trigger.search(c)), lines[0])
+        out["unresolved"].append(f"`{shown[:80]}`: {why}")
     for line in lines:
         try:
             groups = split_commands(line)
@@ -3359,6 +3360,9 @@ def self_test():
     for cmd in ("node scripts/pure.mjs | tee outbox/x.txt", "tee -a outbox/x.txt < /dev/null", "cp outbox/a.txt outbox/b.txt", "rm -f outbox/x.txt", "sort_out=1 uniq a b"):
         check(f"G-pop-1: `{cmd}`, an ordinary pipeline sink or cleanup in an always() step, is not refused", not refused(cmd), unread(cmd))
     check("G-pop-1: ...and a tool of the five does not hide a launcher on its line: `tee x; npm run shot` is still read as a browser step", unread("tee x; npm run shot")[0] != [] and not kept("tee x; npm run shot"), unread("tee x; npm run shot"))
+    PINNED_BENIGN_THEN_WRAPPER = ('tee x; xvfb-run -a ./x.sh', 'grep x y; timeout 5 ./x.sh', 'tee x; ./x.sh', 'rm x; make shot', "head -1 x; bash -c 'npm run check:spark'", 'cp a b; env X=1 ./x.sh', 'uniq a; sudo ./x.sh')
+    check(f"round 6 (review of 945daddf, F2): a benign tool before a wrapper or an unknown head on an unreadable line does not end the scan: each of these {len(PINNED_BENIGN_THEN_WRAPPER)} is refused, on a readable line (the benign tool gives a reason of its own) and on one a `$( )` makes unreadable",
+          all(refused(c) and refused(f'echo "$(date)"; {c}') for c in PINNED_BENIGN_THEN_WRAPPER), [c for c in PINNED_BENIGN_THEN_WRAPPER if not (refused(c) and refused(f'echo "$(date)"; {c}'))])
     check("A23: ...and the remedy for a step that wants a file written is a redirect or `tee`, which the splitter reads: `node scripts/pure.mjs > outbox/x.txt` is read clean", unread("node scripts/pure.mjs > outbox/x.txt")[0] == [], unread("node scripts/pure.mjs > outbox/x.txt")[0])
     PINNED_NEVER_BENIGN = ("find", "xargs", "env", "tar", "install", "dd", "ln", "gawk", "mawk")
     check("A23: the other tools the review names (find -exec, xargs, env, tar --to-command, install, dd, ln, gawk, mawk) are not in BENIGN_HEADS, and each is refused under always() (a literal list)",
@@ -3381,7 +3385,7 @@ def self_test():
     # ROUND 6 (review of 4b5395e6, hunt-guard-5). An `echo` line of the required no-browser step is read with its QUOTED text blanked: a `;` `|` `&` `<` `>` inside a message starts nothing, so a notice with an arrow or a
     # semicolon is no refusal of the whole step. What runs inside a quote stays refused: a `$( )` or a backtick pair in a double-quoted string (blank_quoted keeps both), and every one of those characters outside quotes.
     PINNED_ECHO_TEXT = ['echo "no browser; running the browser-free rows"', 'echo "::notice::chromium install failed -> the gate runs --browserless"', "echo 'a | b & c > d'", 'echo "a && b || c"', 'echo "a < b"', 'echo "a; b" "c | d"']
-    PINNED_ECHO_RUNS = ['echo "$(npm run shot)"', 'echo "x `date`"', 'echo x; npm run shot', 'echo x > scripts/pure.mjs', 'echo x | tee y', 'echo x && true', 'echo x || true', 'echo "unterminated; npm run shot', "echo 'a' ; exit 0",
+    PINNED_ECHO_RUNS = ['echo x < f', 'echo\tx', 'echo "$(npm run shot)"', 'echo "x `date`"', 'echo x; npm run shot', 'echo x > scripts/pure.mjs', 'echo x | tee y', 'echo x && true', 'echo x || true', 'echo "unterminated; npm run shot', "echo 'a' ; exit 0",
                         'echo "a" > f', 'echo x &', 'echo "a" "$(date)"', 'echo "a" >> f', 'echo "it\'s" ; npm run shot']
     check(f"round 6 (hunt-guard-5): the required no-browser step with an echo whose quoted message holds `;` `|` `&` `<` or `>` (one of these {len(PINNED_ECHO_TEXT)}) is the work, and is not refused",
           all(conf(f"{e}\nnpm run gate:bl") == [] for e in PINNED_ECHO_TEXT), [(e, conf(f"{e}\nnpm run gate:bl")) for e in PINNED_ECHO_TEXT if conf(f"{e}\nnpm run gate:bl")])
@@ -3676,10 +3680,17 @@ def self_test():
                          ("the pair written by `printf` with `<<`", 'printf "%s\\n" "NODE_OPTIONS<<EOF" "--require /tmp/x.cjs" "EOF" >> "$GITHUB_ENV"'),
                          ("the pair held in a variable on an earlier line", 'V="NODE_OPTIONS=--require /tmp/x.cjs"\necho "$V" >> "$GITHUB_ENV"'),
                          ("the file held in a variable", 'F="$GITHUB_ENV"\necho "NODE_OPTIONS=--require /tmp/x.cjs" >> "$F"'),
-                         ("a `PATH` write after a harmless one", 'echo "A=1" >> "$GITHUB_ENV"\necho "PATH=/tmp/shadow:$PATH" >> "$GITHUB_ENV"')]
+                         ("a `PATH` write after a harmless one", 'echo "A=1" >> "$GITHUB_ENV"\necho "PATH=/tmp/shadow:$PATH" >> "$GITHUB_ENV"'),
+                         ("a heredoc of assignments written to the file (a line ends in a word and the next starts with the name)", 'cat >> "$GITHUB_ENV" <<EOF\nA=1\nNODE_OPTIONS=--require /tmp/x.cjs\nEOF')]
     PINNED_LATER_STEP_CLEAN = ['{\n  echo "A=1"\n  echo "B=2"\n} >> "$GITHUB_ENV"', 'echo "DOTNET_NOLOGO<<EOF" >> "$GITHUB_ENV"', 'echo "NODE_OPTIONS is set"\necho "A=1" >> "$GITHUB_ENV"', 'echo "NODE_OPTIONS=x" > /tmp/note.txt\necho "A=1" >> "$GITHUB_OUTPUT"']
     check(f"round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on another line, in a group, in `NAME<<DELIM` or in a variable (one of these {len(PINNED_LATER_STEP)})",
           all(any_of("to $GITHUB_ENV", unresolved(c)) for _, c in PINNED_LATER_STEP), [(l, unresolved(c)) for l, c in PINNED_LATER_STEP if not any_of("to $GITHUB_ENV", unresolved(c))])
+    SHOWN = [('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\ncat .npmrc', "`cat .npmrc`:"), ('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\necho "PATH=$PATH"', '`echo "PATH=$PATH"`:'),
+             ('echo hi\necho "/tmp/shadow" >> "$GITHUB_PATH"\ncat .npmrc', '`echo "/tmp/shadow" >> "$GITHUB_PATH"`:'), ('echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"\ncat .npmrc', '`echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"`: it writes')]
+    check(f"round 6 (review of 945daddf, F1, F4): each reason quotes the line it is about, not the first line that matches any of the three references (one of these {len(SHOWN)} steps)",
+          all(any(r.startswith(frag) for r in unresolved(c)) for c, frag in SHOWN), [(c, unresolved(c)) for c, frag in SHOWN if not any(r.startswith(frag) for r in unresolved(c))])
+    check("round 6 (review of 945daddf, F1): the refusal of a harmless `$GITHUB_ENV` write beside a message that names `PATH=` says what to do (a step of its own for the message)",
+          any_of("put a message that only mentions the name in a step of its own", unresolved('echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"\necho "PATH=$PATH"')))
     check(f"round 6 (hunt-guard-1): ...while a group of harmless writes, a harmless `NAME<<`, a mention of the name with no write and a write elsewhere (one of these {len(PINNED_LATER_STEP_CLEAN)}) say nothing about `$GITHUB_ENV`",
           all(not any_of("$GITHUB_ENV", unresolved(c)) for c in PINNED_LATER_STEP_CLEAN), [(c, unresolved(c)) for c in PINNED_LATER_STEP_CLEAN if any_of("$GITHUB_ENV", unresolved(c))])
     check("round 5 (A29): ...and a browser-free step in the target job that writes `NODE_OPTIONS` to `$GITHUB_ENV` is refused by the audit, not called browser-free",
