@@ -519,11 +519,13 @@ def dangerous_var(name):
 
 # WHAT A COMMAND WRITES FOR THE STEPS AFTER IT. The reader drops a redirect's target, so `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` read as `echo`: a step that was then called browser-free had
 # changed what every LATER step runs (a preload into each node, a directory first on the PATH, npm's own config), which is what an `env:` key of the same names is refused for. A write to `$GITHUB_PATH` of anything, to
-# `$GITHUB_ENV` of a name dangerous_var knows (`NAME=` on the same line), or a file named `.npmrc`, makes the step unresolved. Other `$GITHUB_ENV` writes (`RELAY_SHA=$sha`) and `$GITHUB_OUTPUT` are not refused. A name
-# built at run time (`echo "$V" >> "$GITHUB_ENV"` after `V="NODE_OPTIONS=..."` on another line) is not seen: a residual, filed. Review of 5b5a89b, A29.
+# `$GITHUB_ENV` of a name dangerous_var knows (`NAME=` or `NAME<<` ANYWHERE in the step's text), or a file named `.npmrc`, makes the step unresolved. The text is the whole step, not one line: a group
+# written over several lines (`{ echo "NODE_OPTIONS=..."; } >> "$GITHUB_ENV"`, the idiom GitHub documents), a value held in a variable on an earlier line and GitHub's own `NAME<<DELIMITER` form each put the write and
+# the name on different lines (review of 4b5395e6, hunt-guard-1 and hunt-guard-2). Other `$GITHUB_ENV` writes (`RELAY_SHA=$sha`) and `$GITHUB_OUTPUT` are not refused. A name built from pieces
+# (`N=NODE_OPTIONS`, then `echo "$N=x" >> "$GITHUB_ENV"`) is not seen: a residual, filed. Review of 5b5a89b, A29.
 GITHUB_PATH_REF = re.compile(r"\$\{?GITHUB_PATH\b")
 GITHUB_ENV_REF = re.compile(r"\$\{?GITHUB_ENV\b")
-ASSIGNED_NAME = re.compile(r"(?<![\w$])([A-Za-z_]\w*)=")
+ASSIGNED_NAME = re.compile(r"(?<![\w$])([A-Za-z_]\w*)(?:=|<<)")
 NPMRC_REF = re.compile(r"\.npmrc\b")
 
 
@@ -741,8 +743,13 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     """Everything a script starts: {entries: [(file, args)], direct: bool, unresolved: [why]}."""
     if out is None:
         out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
-    for line in logical_lines(script):
-        out["unresolved"] += [f"`{line[:80]}`: {why}" for why in later_step_effects(strip_comment(line))]
+    lines = logical_lines(script)
+    cut = [strip_comment(l) for l in lines]
+    whole = later_step_effects("\n".join(cut))                          # the whole step: a write and the name it writes are not always on one line
+    if whole:
+        shown = next((l for l, c in zip(lines, cut) if GITHUB_PATH_REF.search(c) or GITHUB_ENV_REF.search(c) or NPMRC_REF.search(c)), lines[0])
+        out["unresolved"] += [f"`{shown[:80]}`: {why}" for why in whole]
+    for line in lines:
         try:
             groups = split_commands(line)
         except Unreadable as e:
@@ -3640,6 +3647,19 @@ def self_test():
                           'echo hi # echo "/tmp/shadow" >> "$GITHUB_PATH"', 'echo hi # a .npmrc', 'echo "NODE_OPTIONS=x"']
     check(f"round 5 (A29): ...while these {len(PINNED_LATER_CLEAN)} are read as before (a `$GITHUB_ENV` write of a name that changes no command, `$GITHUB_OUTPUT`, the step summary, an npm key that changes none, a mention in a comment, a `NODE_OPTIONS=` text that goes nowhere)",
           all(unresolved(c) == [] for c in PINNED_LATER_CLEAN), [(c, unresolved(c)) for c in PINNED_LATER_CLEAN if unresolved(c)])
+    # ROUND 6 (review of 4b5395e6, hunt-guard-1 and hunt-guard-2). The write and the name it writes are read from the WHOLE step: a group over several lines, a value held in a variable and GitHub's `NAME<<DELIM` form.
+    PINNED_LATER_STEP = [("a group written over several lines, the idiom GitHub documents for several writes (hunt-guard-1)", '{\n  echo "NODE_OPTIONS=--require /tmp/x.cjs"\n} >> "$GITHUB_ENV"'),
+                         ("a group with a harmless write first", '{\n  echo "A=1"\n  echo "NODE_OPTIONS=--require /tmp/x.cjs"\n} >> "$GITHUB_ENV"'),
+                         ("GitHub's multi-line `NAME<<DELIM` form (hunt-guard-2)", 'echo "NODE_OPTIONS<<EOF" >> "$GITHUB_ENV"'),
+                         ("the pair written by `printf` with `<<`", 'printf "%s\\n" "NODE_OPTIONS<<EOF" "--require /tmp/x.cjs" "EOF" >> "$GITHUB_ENV"'),
+                         ("the pair held in a variable on an earlier line", 'V="NODE_OPTIONS=--require /tmp/x.cjs"\necho "$V" >> "$GITHUB_ENV"'),
+                         ("the file held in a variable", 'F="$GITHUB_ENV"\necho "NODE_OPTIONS=--require /tmp/x.cjs" >> "$F"'),
+                         ("a `PATH` write after a harmless one", 'echo "A=1" >> "$GITHUB_ENV"\necho "PATH=/tmp/shadow:$PATH" >> "$GITHUB_ENV"')]
+    PINNED_LATER_STEP_CLEAN = ['{\n  echo "A=1"\n  echo "B=2"\n} >> "$GITHUB_ENV"', 'echo "DOTNET_NOLOGO<<EOF" >> "$GITHUB_ENV"', 'echo "NODE_OPTIONS is set"\necho "A=1" >> "$GITHUB_ENV"', 'echo "NODE_OPTIONS=x" > /tmp/note.txt\necho "A=1" >> "$GITHUB_OUTPUT"']
+    check(f"round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on another line, in a group, in `NAME<<DELIM` or in a variable (one of these {len(PINNED_LATER_STEP)})",
+          all(any_of("to $GITHUB_ENV", unresolved(c)) for _, c in PINNED_LATER_STEP), [(l, unresolved(c)) for l, c in PINNED_LATER_STEP if not any_of("to $GITHUB_ENV", unresolved(c))])
+    check(f"round 6 (hunt-guard-1): ...while a group of harmless writes, a harmless `NAME<<`, a mention of the name with no write and a write elsewhere (one of these {len(PINNED_LATER_STEP_CLEAN)}) say nothing about `$GITHUB_ENV`",
+          all(not any_of("$GITHUB_ENV", unresolved(c)) for c in PINNED_LATER_STEP_CLEAN), [(c, unresolved(c)) for c in PINNED_LATER_STEP_CLEAN if any_of("$GITHUB_ENV", unresolved(c))])
     check("round 5 (A29): ...and a browser-free step in the target job that writes `NODE_OPTIONS` to `$GITHUB_ENV` is refused by the audit, not called browser-free",
           any_of("cannot be read, so it cannot be called browser-free", mut(lambda s: s.insert(2, {"name": "writes env", "run": 'echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"'}))))
 

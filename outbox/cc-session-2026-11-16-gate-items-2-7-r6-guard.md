@@ -27,3 +27,15 @@ Fixtures: `BENIGN_HEADS` pinned to the 29 names (`PINNED_BENIGN`, five added); t
 | the same with `echo x; npm run shot` | rc 1 | rc 1 (2 problems) |
 
 `flagged_step_ok` tested FORBIDDEN_IN_LINE on the raw echo line, quotes and all, so a notice with an arrow or a semicolon refused the whole step. It now tests the line with its quoted strings blanked (`blank_quoted` keeps a `$( )` and a backtick pair inside double quotes, which run). The refusal says an `echo` line is allowed and where its characters may sit. Fixtures: six messages are the work; fourteen shapes that run something or put one of the characters outside quotes are still refused. Table: `browser-gate-nb-echo-quoted-text`, `browser-gate-nb-echo-quoted-code` (a naive blanking that also erases `$( )` inside double quotes: caught by `echo "$(npm run shot)"`), `browser-gate-nb-echo-message`; each `PASS`.
+
+## hunt-guard-1 and hunt-guard-2 (the A29 residuals; one UPHELD as REACHABLE and one REFUTED, both UPHELD as CONTRIVED): the write and the name it writes on different lines
+
+| input, one step added before the final step of `.github/workflows/verify-full.yml` | at `7144cdc2` | after |
+|---|---|---|
+| `{` / `  echo "NODE_OPTIONS=--require /tmp/x.cjs"` / `} >> "$GITHUB_ENV"` (a group written over several lines, the idiom GitHub documents) | rc 0 `verdict: gated` | rc 1 |
+| `echo "NODE_OPTIONS<<EOF" >> "$GITHUB_ENV"` and the two lines GitHub's multi-line syntax then needs | rc 0 | rc 1 |
+| `V="NODE_OPTIONS=--require /tmp/x.cjs"` then `echo "$V" >> "$GITHUB_ENV"` (the residual round 5 filed) | rc 0 | rc 1 |
+| the same group with harmless names (`A=1`, `B=2`) | rc 0 | rc 0 |
+| `echo "NODE_OPTIONS=--require /tmp/x.cjs" >> "$GITHUB_ENV"` on one line (control) | rc 1 | rc 1 |
+
+`later_step_effects` was asked about one logical line at a time, so a write and the name it writes met only when they shared a line. It is now asked about the text of the whole step (`read_commands`), with the line that holds the `$GITHUB_ENV`, `$GITHUB_PATH` or `.npmrc` reference shown in the refusal; `ASSIGNED_NAME` also reads `NAME<<`. One construction closes the three. Not closed, filed: a name built from pieces (`N=NODE_OPTIONS`, then `echo "$N=x" >> "$GITHUB_ENV"`), and a step BEFORE the install (hunt-guard-3: the check is only made for the steps after it). Fixtures: seven shapes refused, four controls say nothing about `$GITHUB_ENV`. Table: `browser-gate-later-step-is-per-line`, `browser-gate-later-step-name-heredoc-form` (new, each `PASS`), and `browser-gate-later-steps-wired` and `-comment-cut` repointed to the new lines (each `PASS`; their anchors had gone stale: `--anchors` reported them). The whole `browser-gate-later-step*` family was re-run after the change.

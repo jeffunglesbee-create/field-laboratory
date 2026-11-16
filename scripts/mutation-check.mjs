@@ -9053,8 +9053,8 @@ const MUTATIONS = [
     id: "browser-gate-later-steps-comment-cut",
     file: "scripts/check-browser-gate.py",
     claim: "a mention in a trailing comment is no write",
-    find: "for why in later_step_effects(strip_comment(line))]",
-    replace: "for why in later_step_effects(line)]",
+    find: "    cut = [strip_comment(l) for l in lines]",
+    replace: "    cut = list(lines)",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
@@ -9068,9 +9068,9 @@ const MUTATIONS = [
   {
     id: "browser-gate-later-steps-wired",
     file: "scripts/check-browser-gate.py",
-    claim: "read_commands asks every command line what it writes for the steps after it",
-    find: "        out[\"unresolved\"] += [f\"`{line[:80]}`: {why}\" for why in later_step_effects(strip_comment(line))]\n",
-    replace: "        pass\n",
+    claim: "read_commands asks the text of the whole step what it writes for the steps after it (a step that writes a dangerous name to $GITHUB_ENV, to $GITHUB_PATH or names a .npmrc is no longer unresolved)",
+    find: "    whole = later_step_effects(\"\\n\".join(cut))",
+    replace: "    whole = []",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   // --- scripts/check-browser-gate.py, round 5 part B (review of 9043fa75: B0 B8 B9 A21 A22 A23) ---
@@ -9384,6 +9384,22 @@ const MUTATIONS = [
     claim: "the refusal of the required no-browser step no longer says an `echo` line is allowed and where its characters may sit",
     find: "f\"in the closed form (one `node`/`npm` command per line, or an `echo` line, with no `||` `&&` `;` `<` `>` or pipe outside quotes and no `$( )` or backtick anywhere, only that spawner,",
     replace: "f\"in the closed form (one `node`/`npm` command per line, no `||` `&&` `;` or pipe, only that spawner,",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-step-is-per-line",
+    file: "scripts/check-browser-gate.py",
+    claim: "a write to `$GITHUB_ENV` of a dangerous name is read one line at a time again: a group written over several lines, a value held in a variable and the file held in a variable read as clean",
+    find: "whole = later_step_effects(\"\\n\".join(cut))",
+    replace: "whole = [w for c in cut for w in later_step_effects(c)]",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
+    id: "browser-gate-later-step-name-heredoc-form",
+    file: "scripts/check-browser-gate.py",
+    claim: "GitHub's multi-line `NAME<<DELIM` write to `$GITHUB_ENV` is not read as a write of NAME",
+    find: "([A-Za-z_]\\w*)(?:=|<<)\")",
+    replace: "([A-Za-z_]\\w*)(?:=)\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
