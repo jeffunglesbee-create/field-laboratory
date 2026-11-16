@@ -60,33 +60,69 @@ export const recordId = (mode, id) => (mode === 'browserless' ? `${id}-browserle
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes('--self-test')) {
   const { createChecks, finish } = await import('./checks.mjs')
   const { check, summarize } = createChecks()
-  const named = (mode, what) => gateRows.filter(r => actionFor(mode, r) === what)
+  const named = (mode, what, rows = gateRows) => rows.filter(r => actionFor(mode, r) === what)
   const BROWSER_ROWS = [
     'render checks pass on both captures', 'grouping and date navigation pass', 'games on a panel are separated from each other',
     'tabs work and the pick score never renders', "pick'em grades only finished games", 'the sparkline shows the value, not a silhouette',
   ]
   const MUTATION_ROW = 'breaking each invariant makes a check fail'
+  // THE PINNED DENOMINATORS (Rule 91: a visible denominator is the point, so they stay literal, here and nowhere else; the labels below are written from them). A row added to the gate or removed from it moves every one of
+  // them, and a check that failed with only the names of the unchanged rows left a person to find which number moved and which file held it (round 6, O-new-2: a new 30-point row that needs no browser turned two checks red, and
+  // nothing named this file as the third to edit beside docs/gate-rows.txt and scripts/gate-checks.mjs). The failing checks print what they READ beside what is PINNED, and say which three files change together.
+  // browserlessNaPoints and the names in BROWSER_ROWS describe the rows that need a browser; the other five are what a row of any kind adds to or takes from.
+  const PINNED = { rows: 23, quickSkip: 10, quickRun: 13, browserlessNaPoints: 180, browserlessRun: 17, browserlessRunPoints: 350 }
+  const TO_CHANGE = 'A row added to the gate or removed from it moves these counts: change PINNED (the first lines of this self-test in scripts/gate-mode.mjs) in the same commit as docs/gate-rows.txt and scripts/gate-checks.mjs'
+  const vs = (what, read, pinned) => `${what} ${read} (pinned ${pinned}${read === pinned ? '' : ', DIFFERS'})`
+  const points = rs => rs.reduce((a, r) => a + r.weight, 0)
+  /** The two checks that pin the table's size, over `rows` (the real table, or one with a row added in the fixture below): each is `[passed, detail]`. The shards variable is set for the one read that needs it and put back. */
+  const pinsOf = rows => {
+    const was = process.env.GATE_MUTATION_SHARDS
+    process.env.GATE_MUTATION_SHARDS = '8'
+    try {
+      const na = named('browserless', 'na', rows), run = named('browserless', 'run', rows)
+      const shards = [JSON.stringify(na.map(r => r.name).sort()) === JSON.stringify([...BROWSER_ROWS].sort()) && points(na) === PINNED.browserlessNaPoints && run.length === PINNED.browserlessRun && points(run) === PINNED.browserlessRunPoints,
+        `not applicable: ${na.map(r => r.name).join(' | ')}. Read beside pinned: ${[vs('not applicable points', points(na), PINNED.browserlessNaPoints), vs('rows run', run.length, PINNED.browserlessRun), vs('points run', points(run), PINNED.browserlessRunPoints)].join('; ')}. ${TO_CHANGE}`]
+      const skip = named('quick', 'skip', rows), quick = named('quick', 'run', rows), full = named('full', 'run', rows)
+      const modes = [skip.length === PINNED.quickSkip && quick.length === PINNED.quickRun && rows.length === PINNED.rows && full.length === PINNED.rows && named('full', 'na', rows).length === 0 && named('full', 'skip', rows).length === 0,
+        `Read beside pinned: ${[vs('rows', rows.length, PINNED.rows), vs('skipped in quick', skip.length, PINNED.quickSkip), vs('run in quick', quick.length, PINNED.quickRun), vs('run in full', full.length, PINNED.rows)].join('; ')}; not applicable in full ${named('full', 'na', rows).length}, skipped in full ${named('full', 'skip', rows).length} (both pinned 0). ${TO_CHANGE}`]
+      return { shards, modes, read: { rows: rows.length, skip: skip.length, quick: quick.length, run: run.length, runPoints: points(run), naPoints: points(na) } }
+    } finally {
+      if (was === undefined) delete process.env.GATE_MUTATION_SHARDS
+      else process.env.GATE_MUTATION_SHARDS = was
+    }
+  }
   const saved = process.env.GATE_MUTATION_SHARDS
   try {
-    process.env.GATE_MUTATION_SHARDS = '8'
-    const withShards = named('browserless', 'na').map(r => r.name)
-    check('BROWSERLESS WITH THE SHARDS READ BACK: exactly the six rows that drive a browser are not applicable (180 points), and the other 17 run (350)',
-      JSON.stringify([...withShards].sort()) === JSON.stringify([...BROWSER_ROWS].sort()) && named('browserless', 'na').reduce((a, r) => a + r.weight, 0) === 180
-        && named('browserless', 'run').length === 17 && named('browserless', 'run').reduce((a, r) => a + r.weight, 0) === 350,
-      `not applicable: ${withShards.join(' | ')}`)
+    const pins = pinsOf(gateRows)
+    check(`BROWSERLESS WITH THE SHARDS READ BACK: exactly the six rows that drive a browser are not applicable (${PINNED.browserlessNaPoints} points), and the other ${PINNED.browserlessRun} run (${PINNED.browserlessRunPoints})`, ...pins.shards)
     delete process.env.GATE_MUTATION_SHARDS
     const inProcess = named('browserless', 'na').map(r => r.name)
     check('...and when the mutation row runs the whole suite in this process (no shards), it drives every browser script and is not applicable too',
       inProcess.length === 7 && inProcess.includes(MUTATION_ROW), inProcess.join(' | '))
+    // A ROW ADDED TO THE GATE (round 6, O-new-2): a 30-point row that needs no browser, written like the existing ones, is the edit that turned these checks red with nothing to say which number moved. Everything is read
+    // RELATIVE to the real table's own counts (pins.read), so this check does not go red with the real ones when a row is added on purpose: it asserts what a ROW ADDED does, not what the table holds.
+    const grown = pinsOf([...gateRows, { name: 'zz new row', weight: 30, run: () => true }]), was = pins.read, now = grown.read
+    const printed = (what, read, pinned) => `${what} ${read} (pinned ${pinned}`
+    check('A ROW ADDED TO THE GATE MOVES EVERY COUNT A PINNED CHECK READS (a 30-point row that needs no browser: +1 row, +1 run in quick, +1 and +30 points run in browserless, nothing else), and when the pins held, both checks are red and each says what it READ beside what is PINNED and names the three files that change together',
+      now.rows === was.rows + 1 && now.quick === was.quick + 1 && now.skip === was.skip && now.run === was.run + 1 && now.runPoints === was.runPoints + 30 && now.naPoints === was.naPoints
+        && (pins.shards[0] !== true || grown.shards[0] === false) && (pins.modes[0] !== true || grown.modes[0] === false)
+        && grown.shards[1].includes(printed('rows run', now.run, PINNED.browserlessRun)) && grown.shards[1].includes(printed('points run', now.runPoints, PINNED.browserlessRunPoints)) && grown.shards[1].includes(printed('not applicable points', now.naPoints, PINNED.browserlessNaPoints))
+        && grown.modes[1].includes(printed('rows', now.rows, PINNED.rows)) && grown.modes[1].includes(printed('skipped in quick', now.skip, PINNED.quickSkip)) && grown.modes[1].includes(printed('run in quick', now.quick, PINNED.quickRun)) && grown.modes[1].includes(printed('run in full', now.rows, PINNED.rows))
+        && [grown.shards[1], grown.modes[1]].every(d => /scripts\/gate-mode\.mjs/.test(d) && /docs\/gate-rows\.txt/.test(d) && /scripts\/gate-checks\.mjs/.test(d) && /PINNED/.test(d)),
+      JSON.stringify({ was, now, grown }))
+    // THE FILE THAT SAYS WHAT TO EDIT says it: the paragraph of docs/gate-rows.txt that tells a person how to change the gate names this file and PINNED too, or the detail above is the only place that does.
+    const gateRowsDoc = (await import('node:fs')).readFileSync(new URL('../docs/gate-rows.txt', import.meta.url), 'utf8')
+    const toChange = /# TO CHANGE THE GATE:[^\n]*(?:\n#[^\n]*)*/.exec(gateRowsDoc)?.[0] ?? '', toChangeFlat = toChange.replace(/\n# ?/g, ' ')
+    const toEdit = toChangeFlat.split(' together.')[0]
+    check('docs/gate-rows.txt: the TO CHANGE THE GATE paragraph says in its first sentence to edit all three files (this file, scripts/gate-checks.mjs and scripts/gate-mode.mjs), and names the PINNED table, so the third file is not found by a red self-test',
+      toChange !== '' && /this file/.test(toEdit) && /scripts\/gate-checks\.mjs/.test(toEdit) && /scripts\/gate-mode\.mjs/.test(toEdit) && /\bPINNED\b/.test(toChangeFlat), toChange || 'no TO CHANGE THE GATE paragraph in docs/gate-rows.txt')
   } finally {
     if (saved === undefined) delete process.env.GATE_MUTATION_SHARDS
     else process.env.GATE_MUTATION_SHARDS = saved
   }
   check('A BROWSER ROW IS ONE QUICK MODE SKIPS TOO: every row flagged `browser` is also `skipQuick`, so the two modes never disagree about what needs a browser',
     gateRows.filter(r => r.browser === true).every(r => r.skipQuick === true), gateRows.filter(r => r.browser === true && !r.skipQuick).map(r => r.name).join(' | '))
-  check('quick still skips exactly the ten rows it did, and runs the rest; full runs all 23',
-    named('quick', 'skip').length === 10 && named('quick', 'run').length === 13 && gateRows.length === 23 && named('full', 'run').length === 23 && named('full', 'na').length === 0 && named('full', 'skip').length === 0,
-    `skip ${named('quick', 'skip').length}, run ${named('quick', 'run').length}, rows ${gateRows.length}`)
+  check(`quick still skips exactly the ${PINNED.quickSkip} rows it did, and runs the rest; full runs all ${PINNED.rows}`, ...pinsOf(gateRows).modes)
   check('the modes: no flag is full, each flag is its own, and both together is refused by name',
     modeOf([]) === 'full' && modeOf(['--quick']) === 'quick' && modeOf(['--browserless']) === 'browserless'
       && (() => { try { modeOf(['--quick', '--browserless']); return false } catch (e) { return /give one of them/.test(e.message) } })(), 'a run with two modes would not say which rows it skipped')
@@ -312,7 +348,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes(
       // The weights the failing stand-ins carry are the weights the real table has (a literal list): a real row of another weight is a red here, asking for a stand-in of that weight.
       const realWeights = [...new Set(gateRows.map(r => r.weight))].sort((a, b) => a - b)
       check('THE FAILING STAND-INS COVER EVERY WEIGHT the real table has (10, 20, 30), in the rows every mode runs (bad, q20, fq) as well as in the full table (sq, fb)',
-        J(realWeights) === '[10,20,30]' && J(['bad', 'q20', 'fq'].map(weightOf)) === J(realWeights) && J(['bad', 'q20', 'sq', 'fb'].map(weightOf).sort((a, b) => a - b)) === J([10, 20, 20, 30]), `real weights ${J(realWeights)}`)
+        J(realWeights) === '[10,20,30]' && J(['bad', 'q20', 'fq'].map(weightOf)) === J(realWeights) && J(['bad', 'q20', 'sq', 'fb'].map(weightOf).sort((a, b) => a - b)) === J([10, 20, 20, 30]),
+        `real weights ${J(realWeights)} (pinned [10,20,30]); the stand-ins bad, q20 and fq weigh ${J(['bad', 'q20', 'fq'].map(weightOf))}. A row of a weight that is not on the list needs a failing stand-in of that weight in the ROW table of this self-test, and the list here changed with it`)
       const green = { full: go(['good', 'build', 'browser']), quick: go(['good', 'build', 'browser'], ['--quick']), browserless: go(['good', 'build', 'browser'], ['--browserless']) }
       check('...with every row passing it exits 0 in every mode; `--quick` and `--browserless` say it is NOT a pass, and the browserless record names the row it did not run',
         ['full', 'quick', 'browserless'].every(m => green[m].status === 0) && /Gate passed/.test(green.full.out) && /NOT a pass/.test(green.quick.out) && /NOT a pass/.test(green.browserless.out)

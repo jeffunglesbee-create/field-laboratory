@@ -26,10 +26,16 @@
 # Most rows are 30, and that is the honest reading: this suite mostly defends
 # against telling the user something false.
 #
-# TO CHANGE THE GATE: edit this file and scripts/gate-checks.mjs together. The
-# gate refuses to run unless its rows match this file exactly — same names, same
-# weights, no extras. Order is not compared. Not tamper-proof; it makes a shrink
-# a docs/ change beside a scripts/ change.
+# TO CHANGE THE GATE: edit this file, scripts/gate-checks.mjs and scripts/gate-mode.mjs
+# together. The gate refuses to run unless its rows match this file exactly — same names,
+# same weights, no extras. Order is not compared. The third file is the one that refusal
+# does not name: the self-test of scripts/gate-mode.mjs pins how many rows each mode runs
+# and how many points, in a table called PINNED at the top of that self-test (the row
+# count, the rows quick skips and runs, the rows and points browserless runs). A row added
+# or removed turns it red until that table says the new counts, and its failing checks
+# print the counts they read beside the pinned ones. A row of a weight other than 10, 20
+# or 30 also needs a failing stand-in of that weight, in the same self-test. Not
+# tamper-proof; it makes a shrink a docs/ change beside a scripts/ change.
 
 20  build is clean, zero F#/NuGet warnings
 30  decoders accept both real captures
