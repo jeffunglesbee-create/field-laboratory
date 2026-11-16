@@ -476,6 +476,31 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
         && /scripts\/x\.mjs is listed with a line that is no longer in it: `\/\/ the old line/.test(reworded) && /delete it from KNOWN_NODE_OPTIONS_LINES/.test(reworded) && /the reworded line is refused above: add that one on purpose and delete this one/.test(reworded)
         && cleanPass === true && cleanDetail === '' && scanCheckOf(scanOk)[0] === false && /the scan read 5 script\(s\) and 3 line\(s\) that name the node options, fewer than the 50 and 10/.test(scanCheckOf(scanOk)[1]),
       reworded)
+    // THE PASS CONDITION OF THE REAL-SCAN CHECK, ONE CLAUSE AT A TIME (round 6b, F-A-1). Every scan handed to scanCheckOf above is wrong in two ways at once (an offender AND a stale entry; too few scripts AND too few lines), so the
+    // condition could lose any ONE of its four clauses (the offenders, the stale entries, the floor on scripts, the floor on lines) and every one of them still failed, for the other reason: all four deletions left the self-test
+    // unchanged. A LITERAL table of [offenders, stale, lines, files] and the pass each must give; each row differs from the clean one in exactly one thing, and one row sits exactly AT both floors (they are >=).
+    const scanRow = ([o, s, lines, files]) => ({ files, lines, offenders: Array.from({ length: o }, (_, i) => ({ at: `scripts/o${i}.mjs:1`, text: 'go({ a: 1 })' })), stale: Array.from({ length: s }, (_, i) => ({ file: `scripts/s${i}.mjs`, text: 'a line that is gone' })) })
+    const PASS_ROWS = [
+      ['clean, above both floors', [0, 0, 12, 60], true],
+      ['clean, exactly AT both floors (50 scripts, 10 lines)', [0, 0, 10, 50], true],
+      ['one offender, nothing else wrong', [1, 0, 12, 60], false],
+      ['one stale entry, nothing else wrong', [0, 1, 12, 60], false],
+      ['one script under the floor, nothing else wrong (49 of 50)', [0, 0, 12, 49], false],
+      ['one line under the floor, nothing else wrong (9 of 10)', [0, 0, 9, 60], false],
+    ]
+    const rowsWrong = PASS_ROWS.filter(([, row, want]) => scanCheckOf(scanRow(row))[0] !== want).map(([what]) => what)
+    check('THE REAL-SCAN CHECK PASSES ONLY ON A CLEAN SCAN THAT READ ENOUGH, ONE CLAUSE AT A TIME: six literal rows of [offenders, stale, lines, files] (clean; clean exactly at the floors; and an offender, a stale entry, 49 scripts, 9 lines, each alone) give the pass they should, so none of the four clauses can be dropped and neither floor loosened to > with the check unchanged',
+      PASS_ROWS.length === 6 && rowsWrong.length === 0, `the wrong pass for: ${rowsWrong.join('; ')}`)
+    // ONE SENTENCE FOR EACH PROBLEM, WHEREVER IT IS PRINTED (round 6b, F-A-1). verdictOf speaks in the no-argument run and the real-scan check in the self-test, and `--self-test && node scripts/no-launch-check.mjs` reads the second and never
+    // the first: they must say the same words (the remedy included). Read from both, over a stale entry alone, an offender alone and the pair a reworded listed line makes. verdictOf's problems are the scan's, one each and in this order.
+    const SAME_ROWS = [
+      ['a stale entry alone', { files: 60, lines: 12, offenders: [], stale: [{ file: 'scripts/x.mjs', text: '// the old line' }] }],
+      ['an offender alone', { files: 60, lines: 12, offenders: [{ at: 'scripts/x.mjs:7', text: '// the new line' }], stale: [] }],
+      ['both, as a reworded listed line is', { files: 60, lines: 12, offenders: [{ at: 'scripts/x.mjs:7', text: '// the new line' }], stale: [{ file: 'scripts/x.mjs', text: '// the old line' }] }],
+    ]
+    const sayDifferent = SAME_ROWS.filter(([, sc]) => { const v = verdictOf(mk(30), okControls, 20, sc); return v.ok || v.problems.length !== sc.offenders.length + sc.stale.length || v.problems.join('\n      → ') !== scanCheckOf(sc)[1] }).map(([what]) => what)
+    check('THE VERDICT AND THE REAL-SCAN CHECK SAY THE SAME WORDS: for a stale entry alone, an offender alone and a reworded line (both), the problems verdictOf prints, joined as the check joins them, are the text the check prints, so a copy of either sentence that loses its remedy is a difference',
+      SAME_ROWS.length === 3 && sayDifferent.length === 0, `different for: ${sayDifferent.join('; ')}`)
 
     // THE NODE VERSION GUARD: reachable. A named import of registerHooks is a link error on a Node without it, before any message.
     check('A NODE WITHOUT registerHooks IS REPORTED, not a link error: the test is `typeof` on the namespace', trapSupported({}) === false && trapSupported({ registerHooks() {} }) === true && trapSupported() === true, `this Node ${process.version}`)

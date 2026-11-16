@@ -89,3 +89,43 @@ New check `THE FAILURE DETAIL PRINTS ONLY THE SENTENCES THAT HAVE SOMETHING TO S
 |---|---|---|
 | `delete-branches-self-test-empty-anchor-list-printed` | the unconditional `no unique anchor in the pin for: .` sentence | `THE FAILURE DETAIL PRINTS ONLY THE SENTENCES THAT HAVE SOMETHING TO SAY` (detail: `no unique anchor in the pin for: . Not located: ...`) |
 | `delete-branches-self-test-unbuilt-message-names-no-locator` (re-anchored) | no `Not located` sentence | the check that names an anchor that cannot be found, the no-name check and the new detail check |
+
+## F-A-1 (no-launch-check, Rule 90 survivors): four clauses of `scanCheckOf`'s pass condition, and verdictOf's stale sentence
+
+REPRODUCED at base `2aa79ba2`, in a scratch copy of the base (`scripts/`, `.github/`, `package.json`, `node_modules` linked), each mutation applied alone, `node scripts/no-launch-check.mjs --self-test`.
+Baseline there: 52/53 (the one failure is `the axis-check mutation needs build/`, build/ is absent here). BEFORE, every row below is also 52/53 with the same single failure, i.e. the self-test is unchanged:
+
+| mutation applied to the base | result at `2aa79ba2` |
+|---|---|
+| the offenders clause removed from `scanCheckOf` | 52/53 |
+| the stale clause removed | 52/53 |
+| the floor on scripts (`scan.files >= minFiles`) removed | 52/53 |
+| the floor on lines (`scan.lines >= minLines`) removed | 52/53 |
+| the floor on scripts loosened to `>` (not asked; the same shape) | 52/53 |
+| the floor on lines loosened to `>` (not asked; the same shape) | 52/53 |
+| `verdictOf`'s stale sentence replaced by its own copy without the remedy | 52/53 |
+
+Cause: every scan the self-test hands `scanCheckOf` is wrong in two ways at once (an offender plus a stale entry; too few scripts plus too few lines), so dropping one clause leaves the other to fail it, and the
+check that says verdictOf and the real-scan check print the same sentences (the title of the reworded-line check) read only one of them.
+
+Fix (scripts/no-launch-check.mjs, self-test only):
+- `PASS_ROWS`, a literal table of `[offenders, stale, lines, files]` and the pass each gives, six rows: clean above both floors (true); clean exactly AT both floors, 50 scripts and 10 lines (true); an offender
+  alone, a stale entry alone, 49 scripts alone, 9 lines alone (each false). Each row differs from the clean one in exactly one thing.
+- `SAME_ROWS`: for a stale entry alone, an offender alone and a reworded line (both), `verdictOf(...).problems` joined as the check joins them is the text `scanCheckOf` hands the check, and there is one problem per entry.
+
+Mutation entries. These expect `node scripts/no-launch-check.mjs --self-test`, whose unmutated run fails here (no build/), so `--only` prints `FAIL the unmutated tree passes every expectation` beside `PASS [id]`
+and that PASS alone means nothing. Each mutation was therefore applied BY HAND to the real `scripts/no-launch-check.mjs` of this worktree (the find and replace read out of the table), the self-test run, the file restored
+(compared byte for byte afterwards) and the checks that went red read. Baseline of the new head there: 54/55 (only the build/ check). With each mutation applied: 53/55, the build/ check plus exactly one new check:
+
+| id | by hand, the new check that goes red and why |
+|---|---|
+| `no-launch-check-scan-pass-ignores-offenders` | `THE REAL-SCAN CHECK PASSES ONLY ON A CLEAN SCAN ...`: the wrong pass for `one offender, nothing else wrong` |
+| `no-launch-check-scan-pass-ignores-stale` | the same check: `one stale entry, nothing else wrong` |
+| `no-launch-check-scan-pass-drops-the-script-floor` | the same check: `one script under the floor, nothing else wrong (49 of 50)` |
+| `no-launch-check-scan-pass-drops-the-line-floor` | the same check: `one line under the floor, nothing else wrong (9 of 10)` |
+| `no-launch-check-scan-pass-script-floor-strict` | the same check: `clean, exactly AT both floors (50 scripts, 10 lines)` |
+| `no-launch-check-scan-pass-line-floor-strict` | the same check: `clean, exactly AT both floors (50 scripts, 10 lines)` |
+| `no-launch-check-verdict-stale-sentence-copied` | `THE VERDICT AND THE REAL-SCAN CHECK SAY THE SAME WORDS`: different for `a stale entry alone; both, as a reworded listed line is` |
+| `no-launch-check-verdict-offender-sentence-copied` | the same check: different for `an offender alone; both, as a reworded listed line is` |
+
+`node scripts/mutation-check.mjs --only <id>` for each of the eight printed `FAIL  the unmutated tree passes every expectation` (the build/ check) and `PASS  [id] ...`, and `--anchors` reads 0 stale.
