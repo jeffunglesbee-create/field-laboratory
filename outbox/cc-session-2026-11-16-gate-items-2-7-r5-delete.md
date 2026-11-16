@@ -2,7 +2,7 @@
 
 Date: 2026-11-16. Branch `proof-r5-delete` (worktree of `gate-items-2-7` at 9043fa75). Files: `scripts/delete-branches.mjs`, `.github/workflows/delete-branches.yml` (a header comment only; every non-comment line is unchanged), the `delete-branches-*` entries of `scripts/mutation-check.mjs`. Findings: `outbox/review-round-5-findings-2026-11-16.md`.
 
-Session doc for Rule 67. HEAD progression: 9043fa75 -> 1e0b07a6 (the pin: B13, B12, B14, A19) -> 04d0c735 (A16, A20 near variant) -> 9076fa44 (A18 observation) -> commit 4 (the pin's whitespace is a closed list; sha in the final report). Pushed to `origin/proof-r5-delete` after each.
+Session doc for Rule 67. HEAD progression: 9043fa75 -> 1e0b07a6 (the pin: B13, B12, B14, A19) -> 04d0c735 (A16, A20 near variant) -> 9076fa44 (A18 observation) -> 2f3d5cc2 (the pin's whitespace is a closed list). Pushed to `origin/proof-r5-delete` after each.
 
 ## Threat model and classification (Rule 77)
 
@@ -144,6 +144,8 @@ Class: REACHABLE (a stray no-break space from a pasted line is an ordinary edit)
 | | at 9043fa75 | at the last commit |
 |---|---|---|
 | `node scripts/delete-branches.mjs --self-test` | 23/23 | 33/33 |
+| untouched baselines re-run on this branch: `python3 scripts/check-browser-gate.py --self-test` | 715 | 715/715, real-tree `verdict: gated` |
+| `node scripts/no-launch-check.mjs --self-test`, `node scripts/gate-mode.mjs --self-test`, `node scripts/mutation-lib.mjs --self-test` | 35/36, 32, 81 | 35/36 (the known build/ one), 32/32, 81/81 |
 | `delete-branches-*` entries of `scripts/mutation-check.mjs` | 32 | 51 (19 new, 5 of the 32 narrowed to the real file against the pin) |
 | each of the 51 run alone, `node scripts/mutation-check.mjs --only <id>` | | 51 of 51 `PASS` (2/2 checks) |
 | `node scripts/mutation-check.mjs --anchors` | | `checked 1684 of 1687 mutation anchors; 0 stale` |
