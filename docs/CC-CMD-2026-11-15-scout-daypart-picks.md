@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** HELD for exploration. Answered by the owner 2026-11-15 and 2026-11-16: the windows and every shared edge, games outside a window (nearest, halfway to the later), its own section (5), the name Deep Cuts (6). Still open: 3 (an empty window: said, or left out) and 4 (a game still playing into a later window). Not to be built until those two are answered.
+**Status:** SPECIFIED 2026-11-16: every design question is answered by the owner (windows and edges, out-of-window games, empty windows shown, a game in its kickoff window only, its own section, the name Deep Cuts). Ready to build on the owner's word. Golf stays out until field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md` gives it a real start.
 
 ---
 
@@ -68,8 +68,8 @@ One Saturday in CFB season. Slot boundaries drawn from it would be drawn from on
 
    The 26 in no window, read row by row the same day: 4 are PGA Tour rows whose `start_time` is local midnight ET with no `home` or `away` (a tournament dated, not a tee time; two of them carry a start the day before their `date`). They have no sides and no moneyline, so no gate can qualify them and they never reach Deep Cuts. The other 22 are each 30 minutes or less from a window: 17:30 (3) is 30 min after the 4pm window; 18:00 (15) and 18:15 (2) are 30 and 15 min before the 7:30pm window; weekday 10:30 (2) is 30 min before the 12pm window. No kickoff in the 30 days sits equidistant between two windows (17:45 would). ANSWERED 2026-11-16 by the owner: **a game in no window joins the nearest window, and a kickoff exactly halfway between two goes to the later one.** So every game with a kickoff time has exactly one window.
 2. **Whose clock?** ANSWERED by the standard format: ET, the same windows every day. FIELD's ET day (what `fieldDayAt` uses) or the viewer's local time.
-3. **Empty dayparts:** said, or left out? On the slate above, most hours have no qualifier.
-4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in?
+3. **Empty dayparts:** said, or left out? ANSWERED 2026-11-16 by the owner: **shown** ("Empty window: yes"): a window with no qualifier is listed and says so. On the slate above, most hours have no qualifier.
+4. **A game across a boundary:** assigned by start time only, or eligible in every daypart it is still playing in? ANSWERED 2026-11-16 by the owner: **no** ("Later window, no"): a game belongs only to the window it kicks off in (by the window rules above).
 5. **Relation to the single pick:** ANSWERED 2026-11-15 by the owner: "option c, should not replace any section of picks; it's its own thing." It is a separate section; Field's Pick, Scout's Pick and Pick'em stay as they are.
 6. **Its name.** ANSWERED 2026-11-15 by the owner: **Deep Cuts**. The working name had been "What to Watch", set aside because that exact string is already a bold section header in the client's series-preview prompt (`jubilant-bassoon/src/legacy/field.js` 35199, `**What to Watch** — 2 sentences ...`), and "watch" is the word ADR-002's summary of the patent claim uses for element 4 ("Displays a **recommendation** (watch/skip/switch)"). The name is not the claim test (all four elements are, `docs/ADR-002-CONTEXT.md`), and no legal verdict is made here (Rule 45).
 
