@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `63ffd55` | 2026-11-16 | [deep-cuts-2026-11-16.md](deep-cuts-2026-11-16.md) | feat: Deep Cuts, a new tab: one hidden game per window of the day, by Scout's rules |
 | `51c4d02` | 2026-11-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-16 [skip ci] |
 | `51c4d02` | 2026-11-16 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
 | `51c4d02` | 2026-11-16 | [sport-vocabulary-2026-11-16T21-53-19-050Z.json](sport-vocabulary-2026-11-16T21-53-19-050Z.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
