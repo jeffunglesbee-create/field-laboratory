@@ -64,3 +64,28 @@ AFTER (same edits, both files): `- id: plan` before `name:` 37/37; `- id: del` b
 |---|---|---|
 | `delete-branches-self-test-plan-name-on-first-line` | the mutant anchored on the Plan step's first line | the name-key row (29 of 30 built, `no dry run before the Delete step` unbuilt) and the no-name check |
 | `delete-branches-self-test-plan-name-missing-unlisted` | the `missing` entry for the name line, removed | the no-name check (`missing.length` 0, the detail is a bare `no step to anchor on`) |
+
+## F-C-3 (delete-branches, cosmetic): an empty list before a full stop, and which flags the locators tolerate
+
+REPRODUCED. BEFORE: a pin whose Plan run line reads `delete-branches.mjs --quiet -- "$BRANCHES"` (edit in both files) leaves only locators failed; the detail of the wfEdits check read
+`no unique anchor in the pin for: . Not located: the Plan step's run line (no line of the pin matches PLAN_RUN_RE: ...`. Measured at the F-C-2 head, edits in both files, `--self-test`:
+
+| edit | result |
+|---|---|
+| a flag after the bare --, Plan line (`-- "$BRANCHES" --quiet`) | 37/37 (tolerated) |
+| a flag after the bare --, Delete line | 37/37 (tolerated) |
+| a flag between `--apply` and the bare --, Delete line | tolerated (the existing fixture `a flag added to the Delete run line`) |
+| a flag before the bare --, Plan line (`mjs --quiet -- ...`) | red, named FAIL lines (Plan step run line, first line, env line not located) |
+| a flag before `--apply`, Delete line (`mjs --quiet --apply -- ...`) | red, named FAIL lines (the same three for the Delete step) |
+
+So the review's sentence is right in substance: a flag after `--apply` is tolerated by the Delete locator and a flag between the script and the Plan line's bare -- is not (nor one before `--apply`).
+The self-test's comment above `DEL_RUN_RE` now says which, exactly as measured (no behaviour change).
+
+Fix: `unbuiltMessage` prints only the sentences that have something to say (`no unique anchor in the pin for: ...` only when a mutant is unbuilt, `Not located: ...` only when a locator failed, always the closing
+`Each step is found in ... edit the regexp or the literal ...`). AFTER: the same edit reads `Not located: the Plan step's run line (no line of the pin matches PLAN_RUN_RE: ...` with no empty list before it.
+New check `THE FAILURE DETAIL PRINTS ONLY THE SENTENCES THAT HAVE SOMETHING TO SAY` (38/38 on this head); the entry `delete-branches-self-test-unbuilt-message-names-no-locator` is re-anchored on the new expression.
+
+| id | what it puts back | the check that goes red |
+|---|---|---|
+| `delete-branches-self-test-empty-anchor-list-printed` | the unconditional `no unique anchor in the pin for: .` sentence | `THE FAILURE DETAIL PRINTS ONLY THE SENTENCES THAT HAVE SOMETHING TO SAY` (detail: `no unique anchor in the pin for: . Not located: ...`) |
+| `delete-branches-self-test-unbuilt-message-names-no-locator` (re-anchored) | no `Not located` sentence | the check that names an anchor that cannot be found, the no-name check and the new detail check |

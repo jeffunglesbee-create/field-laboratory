@@ -348,6 +348,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       // EDIT finds nothing to change (its pattern matches nothing in its anchor) is unbuilt and named, with the pattern, as a literal anchor that is not in the pin is: it is never a `survived`.
       const makeOn = pin => (from, to) => (pin.split(from).length === 2 ? pin.replace(from, () => to) : null)
       const wfMake = makeOn(WORKFLOW_PIN)
+      // WHAT EACH LOCATOR TOLERATES (round 6b, F-C-3; measured, no behaviour change). The Delete run is found by `delete-branches.mjs --apply ` and the Plan run by `delete-branches.mjs -- `, each read from the start of
+      // the script's arguments. A flag AFTER the bare -- (`-- "$BRANCHES" --quiet`) is tolerated on either line, and a flag between `--apply` and the bare -- on the Delete line (`--apply --quiet -- ...`, a fixture below)
+      // is too. A flag between the script and the first of those is not: `delete-branches.mjs --quiet -- ...` on the Plan line and `delete-branches.mjs --quiet --apply -- ...` on the Delete line each leave their locator
+      // with no line, and the self-test says so with FAIL lines that name the step and the regexp to edit (in the pin's step, with the workflow's).
       const DEL_RUN_RE = /^\s+run: .*delete-branches\.mjs --apply /, PLAN_RUN_RE = /^\s+run: .*delete-branches\.mjs -- /, INPUT_RE = /\$\{\{ inputs\.branches \}\}/
       const indentOf = l => l.length - l.trimStart().length
       // A MUTANT'S EDIT THAT FINDS NOTHING TO EDIT IS NOT A MUTANT (round 6b, F-C-1). `sub` used to leave the text as it was when its pattern matched nothing, the mutant was then the pin itself, and the pin comparison
@@ -434,7 +438,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const unbuiltMessage = ({ built, missing }) => {
         const unbuilt = built.filter(m => m.text === null), noStep = unbuilt.filter(m => m.kind === 'step'), notOnce = unbuilt.filter(m => m.kind === 'once'), missed = unbuilt.filter(m => m.kind === 'miss')
         const quoted = s => JSON.stringify(s.length > 80 ? `${s.slice(0, 80)}...` : s)
-        return `no unique anchor in the pin for: ${[...notOnce.map(m => `${m.what} (the anchor ${JSON.stringify(m.from.length > 80 ? `${m.from.slice(0, 80)}...` : m.from)} is not in the pin exactly once)`), ...missed.map(m => `${m.what} (its edit ${m.miss} matches nothing in its anchor ${quoted(m.from)})`), ...(noStep.length ? [`no step to anchor on for ${noStep.map(m => m.what).join(', ')}`] : [])].join('; ')}.${missing.length ? ` Not located: ${missing.join('; ')}.` : ''} Each step is found in WORKFLOW_PIN by DEL_RUN_RE, PLAN_RUN_RE and INPUT_RE, and the lines no step owns are literals of the mutant list: edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs`
+        const parts = [...notOnce.map(m => `${m.what} (the anchor ${JSON.stringify(m.from.length > 80 ? `${m.from.slice(0, 80)}...` : m.from)} is not in the pin exactly once)`), ...missed.map(m => `${m.what} (its edit ${m.miss} matches nothing in its anchor ${quoted(m.from)})`), ...(noStep.length ? [`no step to anchor on for ${noStep.map(m => m.what).join(', ')}`] : [])]
+        // Only the sentences that have something to say are printed (round 6b, F-C-3: with only locators failed, the first one read `no unique anchor in the pin for: .`, an empty list before its full stop).
+        return [parts.length ? `no unique anchor in the pin for: ${parts.join('; ')}.` : '', missing.length ? `Not located: ${missing.join('; ')}.` : '', 'Each step is found in WORKFLOW_PIN by DEL_RUN_RE, PLAN_RUN_RE and INPUT_RE, and the lines no step owns are literals of the mutant list: edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs'].filter(Boolean).join(' ')
       }
       const A = anchorsOf(WORKFLOW_PIN), { DEL, DEL_STEP } = A
       const wfBuilt = mutantsOn(WORKFLOW_PIN).built
@@ -495,6 +501,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       check('A MUTANT WHOSE EDIT FINDS NOTHING TO CHANGE IS A FAIL LINE, NOT A SURVIVOR: a pin whose Delete run line has no reference to the input leaves `the input inlined into the run line` unbuilt (the other 29 are built and none survives), and the message names the mutant, the pattern that matched nothing and where to edit',
         noRef !== null && noRef.built.length === 30 && noRef.built.filter(m => m.text === null).map(m => m.what).join() === 'the input inlined into the run line' && noRef.built.every(m => m.text === null || workflowProblems(m.text, noRefPin).length > 0)
           && noRefMsg.includes('the input inlined into the run line (its edit ') && noRefMsg.includes(String(A.REF)) && /edit the regexp or the literal that no longer matches the pin, in the self-test of scripts\/delete-branches\.mjs/.test(noRefMsg), noRefMsg)
+      // ...and the detail prints only the sentences that have something to say (round 6b, F-C-3): locators that failed with no mutant unbuilt print `Not located: ...` and no empty `no unique anchor in the pin for: .`.
+      const onlyLocators = unbuiltMessage({ built: [], missing: ["the Plan step's run line (PLAN_RUN_RE)"] }), onlyMutant = unbuiltMessage({ built: [{ what: 'a mutant', from: 'x', text: null, kind: 'once', miss: null }], missing: [] })
+      check('THE FAILURE DETAIL PRINTS ONLY THE SENTENCES THAT HAVE SOMETHING TO SAY: locators that failed and no mutant unbuilt print `Not located: ...` with no empty `no unique anchor in the pin for: .` before it, an unbuilt mutant and no locator failed prints no `Not located`, and both end with where to edit',
+        onlyLocators.startsWith("Not located: the Plan step's run line (PLAN_RUN_RE). Each step is found in WORKFLOW_PIN") && !/for: \./.test(onlyLocators) && /^no unique anchor in the pin for: a mutant \(the anchor "x" is not in the pin exactly once\)\. Each step is found in WORKFLOW_PIN/.test(onlyMutant) && !/Not located/.test(onlyMutant)
+          && [onlyLocators, onlyMutant].every(m => m.endsWith('edit the regexp or the literal that no longer matches the pin, in the self-test of scripts/delete-branches.mjs')), `${onlyLocators} | ${onlyMutant}`)
       const wfFirst = workflowProblems(wfBuilt.find(m => m.what.startsWith('a wrapped continuation of the Delete run ending || true'))?.text ?? '')
       check('THE PROBLEM NAMES THE FIRST LINE THAT DIFFERS (expected and found) and says an intended edit also edits the pin',
         wfFirst.length === 1 && wfFirst[0].includes(`at significant line ${significant(WORKFLOW_PIN).length + 1} `) && /expected nothing \(the text ends here\), found `\s*\|\| true`/.test(wfFirst[0]) && /also edits WORKFLOW_PIN/.test(wfFirst[0]), wfFirst.join(' | '))

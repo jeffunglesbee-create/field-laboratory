@@ -15190,8 +15190,16 @@ const MUTATIONS = [
     id: "delete-branches-self-test-unbuilt-message-names-no-locator",
     file: "scripts/delete-branches.mjs",
     claim: "an anchor that cannot be found names the regexp or the step that found nothing",
-    find: "${missing.length ? ` Not located: ${missing.join('; ')}.` : ''}",
-    replace: "",
+    find: "missing.length ? `Not located: ${missing.join('; ')}.` : ''",
+    replace: "''",
+    expect: "node scripts/delete-branches.mjs --self-test",
+  },
+  {
+    id: "delete-branches-self-test-empty-anchor-list-printed",
+    file: "scripts/delete-branches.mjs",
+    claim: "the failure detail prints a sentence only when it has something to say: locators that failed with no mutant unbuilt print `Not located: ...`, not an empty `no unique anchor in the pin for: .` before it",
+    find: "parts.length ? `no unique anchor in the pin for: ${parts.join('; ')}.` : ''",
+    replace: "`no unique anchor in the pin for: ${parts.join('; ')}.`",
     expect: "node scripts/delete-branches.mjs --self-test",
   },
   {
