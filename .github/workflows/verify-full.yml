@@ -322,7 +322,7 @@ jobs:
           for LEDGER in docs/confidence-log.jsonl docs/scale-log.jsonl; do
             : > "$SAVED/$(basename "$LEDGER")"
             if ! git diff --quiet -- "$LEDGER"; then
-              git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | sed 's/^+//' > "$SAVED/$(basename "$LEDGER")"
+              git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | cut -c2- > "$SAVED/$(basename "$LEDGER")"
               git checkout -- "$LEDGER"
             fi
           done
@@ -381,7 +381,7 @@ jobs:
           PENDING=""
           for LEDGER in $LEDGERS; do
             git diff --quiet -- "$LEDGER" && continue
-            LINE=$(git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | sed 's/^+//')
+            LINE=$(git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | cut -c2-)
             if [ "$(printf '%s\n' "$LINE" | grep -c .)" -ne 1 ]; then
               echo "expected exactly one new record in $LEDGER, got:"
               printf '%s\n' "$LINE"
