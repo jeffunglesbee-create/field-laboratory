@@ -344,16 +344,19 @@ def env_map(step):
 
 
 def logical_lines(script):
-    """A script's command lines: continuations joined, whole-line comments dropped."""
+    """A script's command lines, as bash reads them: a backslash at the end of a line joins the next one, unless that backslash is inside a comment (a comment ends at the newline, whatever it ends
+    with), and whole-line comments are dropped. A trailing comment stays on the line; strip_comment cuts it where bash does. Review of 5b5a89b, finding 1: `echo hi # note \\` joined the line
+    after it, whose commands (`exit 0`, a browser launch) were then never read."""
     out, cur = [], ""
     for raw in script.splitlines():
         line = raw.rstrip()
-        if line.lstrip().startswith("#"):
+        if not cur and line.lstrip().startswith("#"):
             continue
-        if line.endswith("\\"):
-            cur += line[:-1] + " "
+        text = cur + line
+        if (len(line) - len(line.rstrip("\\"))) % 2 == 1 and comment_start(text) is None:       # an odd run of backslashes: the last one escapes the newline
+            cur = text[:-1] + " "
             continue
-        out.append((cur + line).strip())
+        out.append(text.strip())
         cur = ""
     if cur:
         out.append(cur.strip())
@@ -364,32 +367,62 @@ class Unreadable(Exception):
     pass
 
 
-def strip_comment(line):
-    """Bash starts a comment only at a `#` that BEGINS a word, outside quotes: `$#`, `${x##*/}` and `/#top` are not comments
-    (shlex's commenters would drop the rest of the line at each of them, and a command after it would go unread)."""
-    out, q, i = [], None, 0
-    while i < len(line):
-        c = line[i]
-        if q:
-            out.append(c)
-            if q == '"' and c == "\\" and i + 1 < len(line):
-                i += 1
-                out.append(line[i])
-            elif c == q:
-                q = None
-        elif c == "\\" and i + 1 < len(line):
-            out.append(c)
-            i += 1
-            out.append(line[i])
-        elif c in "'\"":
-            q = c
-            out.append(c)
-        elif c == "#" and (not out or out[-1].isspace() or out[-1] in ";&|()"):
-            break
+def comment_start(line):
+    """The index of the `#` where bash starts a comment on this line, or None. A `#` starts one only where a WORD begins (the start of the line, whitespace, or one of `; & | ( )` before it) and only
+    at the top level: not inside single or double quotes, `$'...'` (a backslash escapes the next character there, so `$'it\\'s # x'` is one string; `$"..."` is a double-quoted string), `${ ... }` (`${y:- #}`, `${x/ #/z}`),
+    `$( ... )` (parentheses counted) or a backtick pair. The scanner keeps a stack of what is open; inside `${ }` and `$( )` the quotes and the other openers nest. `$#`, `${x##*/}`, `/#top`,
+    `a\\ #b` and `"a"#b` are not comments (shlex's commenters would drop the rest of the line at each, and a command after it would go unread). Where this reads MORE than bash runs (a `#` in
+    `$( ... )` is a comment in bash) the classifier has more text to read, the safe direction. Review of 5b5a89b, finding 1 and finding 24 of the review before: a quote-aware cutter that did not
+    know `${ }` or `$'...'` cut at a `#` that bash does not, and everything after it (a `; exit 0`, `|| true`, a browser launch) went unread."""
+    stack, parens, boundary, i, n = [], [], True, 0, len(line)
+    while i < n:
+        c, top, was_top = line[i], (stack[-1] if stack else ""), not stack
+        if top == "'":
+            if c == "'":
+                stack.pop()
+        elif c == "\\":
+            i += 1                                                   # the next character belongs to this one
+        elif top == "$'" or top == "`":
+            if c == top[-1]:
+                stack.pop()
+        elif c == '"' and top == '"':
+            stack.pop()
+        elif c == "}" and top == "${":
+            stack.pop()
+        elif top == "$(" and c in "()":
+            parens[-1] += 1 if c == "(" else -1
+            if parens[-1] == 0:
+                stack.pop()
+                parens.pop()
         else:
-            out.append(c)
+            nxt, in_dq = line[i + 1:i + 2], top == '"'
+            if c == "'" and not in_dq:
+                stack.append("'")
+            elif c == '"':
+                stack.append('"')
+            elif c == "`":
+                stack.append("`")
+            elif c == "$" and nxt == "'" and not in_dq:
+                stack.append("$'")
+                i += 1
+            elif c == "$" and nxt == "{":
+                stack.append("${")
+                i += 1
+            elif c == "$" and nxt == "(":
+                stack.append("$(")
+                parens.append(1)
+                i += 1
+            elif c == "#" and was_top and boundary:
+                return i
+        boundary = was_top and not stack and (c.isspace() or c in ";&|()")
         i += 1
-    return "".join(out)
+    return None
+
+
+def strip_comment(line):
+    """The line without its trailing comment, cut where bash starts it (comment_start)."""
+    at = comment_start(line)
+    return line if at is None else line[:at]
 
 
 SEPARATORS = {"&&", "||", "|&", ";;", ";", "|", "&", "(", ")"}
@@ -2966,6 +2999,32 @@ def self_test():
         check(f"finding 24: {label} is not the real work and is refused", any_of("must run `scripts/mutation-check.mjs --no-browser`", res), res)
     res = run_req(w_nb(nbv(full_form.replace(ids_line, ids_line + ' # the "ids" # again').replace(shard_line, shard_line + ' --out "x#y.json" # note'))))
     check("finding 24: ...while a real trailing comment (one that begins a word outside quotes), after a quoted `#`, is still cut", res == [], res)
+
+    # ROUND 5, GROUP 1 (review of 5b5a89b, B1 and A24). The comment cutter is bash's: a `#` is a comment only where a word begins and nothing is open (quotes, `${ }`, `$( )`, a backtick pair, `$'...'`).
+    PINNED_COMMENT_STARTS = [
+        ('echo hi # note', 8), ('echo hi', None), ('# whole', 0), ('a;# c', 2), ('a|#c', 2), ('a&#c', 2), ('(#c', 1), ('(a)#c', 3), ('echo $(a)#c', None), ('echo ${x}#c', None),
+        ('echo ${x} #c', 10), ('echo ${y:- #}; exit 0', None), ('echo ${x/ #/z}; exit 0', None), ('echo ${y:-"}"} z # c', 17), ('echo ${y:-a${z:- #}} # c', 21),
+        ("echo $'it\\'s # x' ; exit 0", None), ("echo $'a # b' # c", 14), ('echo $"a # b" # c', 14), ('echo "a # b" # c', 13), ("echo 'a # b' # c", 13), ('echo "a \\" # b" # c', 16),
+        ('echo a\\ #b # c', 11), ('echo "a"#b # c', 11), ('echo $(echo a # b) ; exit 0', None), ('echo $(echo a) # c', 15), ('echo $( (a) # b ) ; exit 0', None), ('echo $((1+2)) # c', 14),
+        ('echo $(f $(g) # x) ; exit 0', None), ('echo `a # b` ; exit 0', None), ('echo `a` # c', 9), ('echo `a \\` # b` ; exit 0', None), ('echo $# # c', 8), ('echo ${x##*/} # c', 14),
+        ('echo ${#x} # c', 11), ('echo a#b # c', 9), ('x=#a # c', 5), ('echo "$(echo "a # b")" # c', 23), ("echo 'a' # c", 9),
+    ]
+    check(f"comment_start: the index of the comment's `#` is exactly this on each of these {len(PINNED_COMMENT_STARTS)} lines (text in `${{ }}`, `${{x/ #/z}}`, `$'a\\'b # c'`, `$( )` with nested parentheses, a backtick pair, quotes and after an escaped space; "
+          "a comment after `;`, `|`, `&`, `(`, `)` and a space; none in `$#`, `${{#x}}`, `${{x##*/}}`, `a#b`, `x=#a`, `\"a\"#b`, `$(a)#c`, `${{x}}#c`)",
+          all(comment_start(src) == want for src, want in PINNED_COMMENT_STARTS), [(src, comment_start(src), want) for src, want in PINNED_COMMENT_STARTS if comment_start(src) != want])
+    check("strip_comment cuts at that index and leaves a line with none as it is", strip_comment("echo hi # note") == "echo hi " and strip_comment("echo ${y:- #}; exit 0") == "echo ${y:- #}; exit 0")
+    PINNED_LOGICAL = [("echo hi # note \\\nexit 0", ["echo hi # note \\", "exit 0"]), ("echo a \\\n# c\nexit 0", ["echo a  # c", "exit 0"]), ("echo a \\\n  b", ["echo a    b"]), ("echo a \\\\\nexit 0", ["echo a \\\\", "exit 0"]),
+                      ("# whole\necho a", ["echo a"]), ("echo a \\\nb \\\nc", ["echo a  b  c"])]
+    check(f"logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after a comment line that follows a continuation, or as the second of two (`\\\\`), on each of these {len(PINNED_LOGICAL)} scripts",
+          all(logical_lines(src) == want for src, want in PINNED_LOGICAL), [(src, logical_lines(src), want) for src, want in PINNED_LOGICAL if logical_lines(src) != want])
+    for label, text in [("(a) `echo ${y:- #}; exit 0` before the spawner (B1)", "echo ${y:- #}; exit 0\nnpm run gate:bl"), ("(b) `|| true` after a `${y:- #}` (B1)", "node scripts/confidence.mjs --browserless ${y:- #}|| true"),
+                        ("a trailing comment that ends in a backslash, then `exit 0` (B1's backslash route)", "echo skipping # note \\\nexit 0\nnpm run gate:bl"),
+                        ("a comment line after a continuation, then `exit 0`", "echo skipping \\\n# note\nexit 0\nnpm run gate:bl"), ("`echo $'it\\'s # x' ; exit 0` (A24)", "echo $'it\\'s # x' ; exit 0\nnpm run gate:bl"),
+                        ("`${x/ #/z}` before `; exit 0`", "echo ${x/ #/z}; exit 0\nnpm run gate:bl")]:
+        check(f"round 5: the required no-browser step with {label} does no work and is refused", any_of("must run `scripts/confidence.mjs --browserless`", conf(text)), conf(text))
+    check("round 5: ...while a real trailing comment after an expansion (`echo ${y:-x} # note`) is still cut, and the step is the work", conf("echo ${y:-x} # note\nnpm run gate:bl") == [], conf("echo ${y:-x} # note\nnpm run gate:bl"))
+    for label, run in [("`echo ${y:- #}; node scripts/shot.mjs` (B1(c))", "echo ${y:- #}; node scripts/shot.mjs"), ("`echo hi # note \\` and the launch on the next line (B1(c)'s backslash route)", "echo hi # note \\\nnode scripts/shot.mjs")]:
+        check(f"round 5: a step with {label} needs a browser, and without the gate is refused", needs_browser({"run": run}, pkg, read) is True and any_of("must carry", mut(lambda s, run=run: s.insert(2, {"name": "x", "run": run}))), run)
 
     # FINDING 25. A script path that no call this reader understands takes is a command it cannot attribute, however it is passed.
     for label, run in [("`cp.spawnSync(process.execPath, [...])`", "() => cp.spawnSync(process.execPath, ['scripts/shot.mjs']).status === 0"), ("`helpers.runAll([...])`", "() => helpers.runAll(['scripts/shot.mjs'])"),
