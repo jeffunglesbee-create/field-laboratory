@@ -71,7 +71,7 @@ Self-test: 812 to 839 (`python3 scripts/check-browser-gate.py --self-test`; 27 n
 lines of drift-sentinel.yml, 12 still-refused). Against 674c5f99's `command_heads` 12 of the 27 are red (the others are the controls, which the old scan refused by accident, and the
 `blank_quoted` unit table, which tests the new function).
 
-Population (every `run` step of `.github/**` with `if: always()` and an unresolved reason in either guard; `python3 /dev/shm/r5b-scratch/population.py`, not committed): 34 steps at
+Population (every `run` step of `.github/**` with `if: always()` and an unresolved reason in either guard; `python3 -B outbox/browser-gate-always-population-2026-11-16.py OLD.py NEW.py`): 34 steps at
 48f504e against this branch (32 against 674c5f99: part A removed two from the unresolved set). Kept to refused since 48f504e: 2 before this commit, 1 after. `drift-sentinel.yml`
 `Append to the drift log` is kept again. `font-dependence-probe.yml` `Commit` stays refused, for a reason unrelated to quotes: it runs `git rebase --abort`, which the guard cannot tell
 from `git rebase -x` (a policy choice the review names; `GIT_READONLY` is not widened here). Neither job is audited, the real tree is unchanged: `python3 scripts/check-browser-gate.py`
@@ -94,7 +94,7 @@ Red on purpose, each `PASS [<id>]` from `node scripts/mutation-check.mjs --only 
 | `browser-gate-heads-arithmetic-masked` | arithmetic is not masked before the scan | 3 |
 
 A twelfth mutant I tried, "mask arithmetic AFTER blanking", is equivalent (the mask only matches text that blanking leaves alone) and is not in the table: an equivalent mutant is no check.
-Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): no CODE entry's find text changed (`node /dev/shm/r5b-scratch/sweep_anchors.mjs`: 13 of 428 entries are not exactly once before
+Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): no CODE entry's find text changed (`node outbox/browser-gate-sweep-anchor-count-2026-11-16.mjs scripts/check-browser-gate.py`: 13 of 428 entries are not exactly once before
 and after this commit, the same 13, all from earlier rounds).
 
 ## Commit 3: where a command starts: after a case pattern's `)` and after leading redirections (A21, A22)
@@ -201,3 +201,50 @@ Sweep (`outbox/browser-gate-sweep-2026-11-12.mjs`, not edited): four CODE entrie
 `` `mktemp` is not an ordinary head ``, `` `grep` is not an ordinary head ``, `` `sed` is not an ordinary head `` and `` `read` is not an ordinary head `` (13 of 428 not exactly once before, 17
 after). `sed` is no longer a member, so its entry has nothing to remove and should be dropped; the other three need the new literal as their anchor. No entry for `COMMAND_HEAD`, `command_heads`,
 `raw_line_hides` or `hides_a_launcher` changed its find text.
+
+## Commit 5: the fixture that pinned nothing now pins (B9)
+
+The fixture list `finding 23: \`X\` is no arithmetic` ended with `xargs -r`. `xargs` is a `WRAPPER_HEAD`, so the step was refused on the wrapper path whatever the arithmetic rule said, and putting
+the exemption back left that entry green (the review's measurement: the mutation turned `make -s`, `deno -A`, `foo * 3`, `bun -x` red and not `xargs -r`; 11 of 12 sampled checks went red). `xargs -r` is
+replaced by `ninja -v`: neither a wrapper nor benign, a command with a single-dash flag, the same shape as `make -s`. The review's mutation is now a table entry,
+`browser-gate-arithmetic-is-no-exemption` (add `or re.fullmatch(r"\w+\s*[-+*/%]\s*[\w$]+", m.group(1))` after `m.group(2) in BENIGN_HEADS` in `hides_a_launcher`), and the mutated copy fails EVERY entry of
+the list: `make -s`, `deno -A`, `foo * 3`, `bun -x`, `ninja -v`, 5 of 5 FAIL lines (and no other: 901/906 checks passed), `PASS [browser-gate-arithmetic-is-no-exemption]` from
+`node scripts/mutation-check.mjs --only browser-gate-arithmetic-is-no-exemption`. Self-test 906 (no check added or removed: one entry replaced).
+
+## Totals (Rule 91: every number with its denominator)
+
+- Self-test, `python3 scripts/check-browser-gate.py --self-test`: 812/812 at the start of this branch (674c5f99), 906/906 at the end (94 checks added, none removed; 715 at 9043fa75, before part A).
+- Real tree, `python3 scripts/check-browser-gate.py`: `verdict: gated`, the output byte-identical to the output at 674c5f99 (`diff` empty, run after commits 2, 3 and 4); `--plain-commands` 70 commands.
+- Mutation table: 38 entries added (11 + 16 + 10 + 1), 38 of 38 run through `node scripts/mutation-check.mjs --only <id>` and each printed `PASS [<id>]` (the line precedes each table above);
+  `node scripts/mutation-check.mjs --anchors`: `checked 1765 of 1768 mutation anchors; 0 stale`; `--stranded`: 0 of 3 marker files hold a marker.
+- Local baselines run at the end: `node scripts/no-launch-check.mjs --self-test` 35/36 (the one known failure needs build/), `node scripts/gate-mode.mjs --self-test` 32/32, `node scripts/delete-branches.mjs --self-test`
+  23/23, `node scripts/mutation-lib.mjs --self-test` 81/81 (run alone), `node scripts/gate-ledger-step-check.mjs` 6/6.
+- Population, `python3 -B outbox/browser-gate-always-population-2026-11-16.py OLD.py NEW.py` (the old guard from `git show 48f504e:scripts/check-browser-gate.py > /tmp/old.py`): 34 always() run steps with an unresolved
+  reason against 48f504e, 32 against 674c5f99; against 48f504e 29 were kept, now 25 (the 4 that flipped: three `| tee` steps in non-audited jobs and `font-dependence-probe.yml` `Commit`, for `git rebase --abort`;
+  `drift-sentinel.yml` `Append to the drift log` is kept again). Audited jobs: 2 of the 34, both `verify-full.yml` `full`, both kept before and after (commit 1).
+
+## Sweep CODE entries whose find text changed or was removed
+
+`outbox/browser-gate-sweep-2026-11-12.mjs` is not edited. Counted with `node outbox/browser-gate-sweep-anchor-count-2026-11-16.mjs scripts/check-browser-gate.py` (428 CODE entries; the find text of 17 is not
+exactly once now, 13 before this branch). The four this branch broke, all by the new `BENIGN_HEADS` literal: `` `mktemp` is not an ordinary head ``, `` `grep` is not an ordinary head ``,
+`` `sed` is not an ordinary head `` (drop it: `sed` is no member), `` `read` is not an ordinary head ``. None for `COMMAND_HEAD`, `command_heads`, `raw_line_hides` or `hides_a_launcher`.
+
+## Residual: inputs that still pass (each CONTRIVED: only an input written to evade does it; filed here for Rule 87.4)
+
+All three were run through `read_step` and `hides_a_launcher` (the path `audit` takes for an always() step), not only the raw scan.
+
+| input | result | why it is not an ordinary edit, and why no construction here closes it |
+|---|---|---|
+| `A="$(npm run shot)" echo x` and `A="$(timeout 5 x)" echo x` | KEPT as opaque (heads: `echo` only) | a launcher INSIDE the quoted value of an assignment that is followed by a command on the same line. The assignment prefix consumes the quoted string and the search does not overlap, so the head inside it is never seen. Needs a launcher captured in an env-prefix of another command. Not the same as `A="$(date)" npm run shot` (refused). Pre-existing, at 674c5f99 too. |
+| `<<true npm run shot` then `echo hi` then `true` | KEPT as opaque | a launcher after a HEREDOC redirection (`<<`), whose delimiter is itself a benign word (any other delimiter is an unknown head on its own line and is refused). `<<` is not in `COMMAND_REDIRECTS`: `<<WORD cmd` is a redirection with a delimiter, not `OP TARGET`. |
+| `echo "$(date)"; printf 'process.exit(0)' > scripts/pure.mjs` (a redirect writes a script an earlier step is read to run) and `echo "$(date)"; read -r NODE_OPTIONS < /tmp/o; node scripts/pure.mjs` (`read` into a variable that changes what node runs) | KEPT as opaque | the reader drops a redirect's target by design (part A's `later_step_effects` covers `$GITHUB_ENV`, `$GITHUB_PATH` and `.npmrc`, not an arbitrary file), and `read` puts a line into any shell variable. Removing `tee`, `cp`, `mv`, `rm` from the benign list closes the TOOLS that write; it does not make the guard follow what a redirect writes. |
+
+Adjacent, not a residual of these items (Rule 69: documented, not changed here): a head that starts with `-` after a `!` that is an argument of `[` is read as a command, so `echo "$(date)"; [ ! -f x ] && echo y`
+and `if [ ! -f "$(date)" ]; then echo x; fi` are refused on an unreadable line (a false red, at 674c5f99 too). Writing `[ ! -f x ]` as `test ! -f x` does not help (`!`). A guard-side fix is one line
+(a word that starts with `-` is an option, not a command) and belongs to its own commit and CC-CMD.
+
+## How the work was checked, in order
+
+Every clause above was shown red before it was kept: (1) the new fixtures were run against the code as it stood (12 of the 27 of commit 2 red against 674c5f99's `command_heads`; the four inputs of commit 3
+shown `kept` by 811fc754's guard and `refused` by this one); (2) each clause was broken once in a copy of the guard and the copy's own FAIL lines counted, none crashed; (3) the same break was run through the
+harness as `--only <id>`. The scratch copies were removed.

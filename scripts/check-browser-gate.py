@@ -3188,7 +3188,9 @@ def self_test():
     vocab("INLINE_PROPS", INLINE_PROPS, PINNED_INLINE_PROPS, lambda q: inline_code_is_pure(f"console.{q}(1)") is True and inline_code_is_pure(f"console.{q}x(1)") is False)
     check("finding 23: the closed grammar has no `[`, template literal, `=`, `;`, `{` or a word of its own (each is refused) and a parameter is the one name before `=>`",
           not any(inline_code_is_pure(c) for c in ("console['log'](1)", "console.log(`x`)", "x=1", "console.log(1);", "{}", "console.log(this)", "console.log(d=>d.x(e))", "d=>x", "")) and inline_code_is_pure("process.on('x', d=>console.log(d))"))
-    for cmd in ("make -s", "deno -A", "foo * 3", "bun -x", "xargs -r"):
+    # Review of 9043fa75, B9: the list used to end with `xargs -r`, a WRAPPER_HEAD, refused on the wrapper path whatever the arithmetic rule says, so putting the exemption back left it green and it pinned nothing.
+    # Every entry is now a command that is neither a wrapper nor benign (`ninja -v` replaced it), with a single-dash or operator second word; the mutant that puts the exemption back turns all five red.
+    for cmd in ("make -s", "deno -A", "foo * 3", "bun -x", "ninja -v"):
         check(f"finding 23: `{cmd}` is no arithmetic (it is a command and a flag): refused under always(), not kept", refused(cmd), cmd)
     check("finding 23: ...arithmetic is masked where the line is split: `sleep $((attempt * 3))` is `sleep 0`, and one that holds a substitution is still unreadable",
           split_commands("sleep $((attempt * 3))") == [["sleep", "0"]] and split_commands('echo "$((a+1))" b') == [["echo", "0", "b"]] and unresolved("sleep $(( $(date) + 1 ))") != [])

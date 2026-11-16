@@ -9306,6 +9306,14 @@ const MUTATIONS = [
     replace: "if head in SAFE_HEADS or head in RAW_WORDS or re.match(r\"[A-Za-z_]\\w*=\", head):",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
+  {
+    id: "browser-gate-arithmetic-is-no-exemption",
+    file: "scripts/check-browser-gate.py",
+    claim: "a two-word unknown command that looks like `a -b` (`make -s`, `deno -A`, `ninja -v`) is no arithmetic: an unreadable always() step that uses one is refused, not kept",
+    find: "            if m.group(2) in BENIGN_HEADS:\n                continue\n            return True",
+    replace: "            if m.group(2) in BENIGN_HEADS or re.fullmatch(r\"\\w+\\s*[-+*/%]\\s*[\\w$]+\", m.group(1)):\n                continue\n            return True",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
   // --- venue sourcing, docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md: scripts/venue-source.mjs ---
   {
     // Nominatim and Photon read the same data; agreeing with itself is one witness.
