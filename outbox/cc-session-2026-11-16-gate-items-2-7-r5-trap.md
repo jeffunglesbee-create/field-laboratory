@@ -33,3 +33,17 @@ Red on purpose:
 - the two existing entries still red, now by checks that read both heavy commands: `no-launch-check-heavy-in-the-pool` 36/39 (`THE HARNESS'S COMMAND IS MEASURED FIRST AND ALONE`, and the new check), `no-launch-check-heavy-misses-lib` 36/39. `PASS  [no-launch-check-heavy-in-the-pool] ...`, `PASS  [no-launch-check-heavy-misses-lib] ...`
 
 Self-test after: 38/39 (build/ check the one failure). Anchors: `checked 1669 of 1672 mutation anchors; 0 stale`.
+
+## Commit 3, B11 and A3: every member of the stub through the default import; A7 named
+
+Classes. B11 and A3's remaining variant are the same input: `import pw from 'playwright'` (the usual way to import a CJS package) read the ESM stub's `export default {...}`, which lists the six names a second time and had no check; `export default {}` left the self-test at 35/36 and a swallowed `pw.chromium.launch()` then read as 0 launches (`Cannot read properties of undefined (reading 'launch')`). REACHABLE: the member list is written twice in the stub, so drift between the two copies is an ordinary edit. A7 (a vendored COPY of the library outside `node_modules/playwright(-core)/`) is CONTRIVED, see below.
+
+Change: checks only, plus the header. (1) The same 19 trap calls the namespace and require checks make, made through `import pw from 'playwright'`; each must leave its own line. (2) A LITERAL list of the six names (`_android`, `_electron`, `chromium`, `devices`, `firefox`, `webkit`): `Object.keys` of the namespace (the six and `default`), of the default export and of `require('playwright')` must each equal it, so `devices` (not a trap, an empty object) is pinned too. (3) The header's "not covered" list names A7: `require('<repo>/vendor/pwcore')` loads the real library, the hook stubs only the two package names and paths that land inside `node_modules/playwright(-core)/`.
+
+Red on purpose:
+- the reviewer's exact B11 mutation, `export default {}` (scratch copy, not a table entry): 38/41, red by `EVERY MEMBER OF THE STUB IS A TRAP THROUGH THE DEFAULT IMPORT too` and `THE STUB OFFERS EXACTLY THE SIX NAMES`.
+- `no-launch-check-stub-esm-default-lacks-members` (default export `{ chromium, devices, _electron }`, the reviewer's 3g to 3i together): 38/41, red by both. `PASS  [no-launch-check-stub-esm-default-lacks-members] every member of the ESM stub is a trap through the default import too: the default export names the same six as the named exports`
+- `no-launch-check-stub-esm-default-lacks-android` (only `_android` missing from the default export): 38/41, red by both. `PASS  [no-launch-check-stub-esm-default-lacks-android] the default export of the ESM stub has _android`
+- the existing stub entries still red, and now also by the new checks: `no-launch-check-stub-connect-missing` 38/41, `no-launch-check-stub-cjs-webkit-missing` 38/41, `no-launch-check-stub-esm-firefox-missing` 21/41. `PASS  [no-launch-check-stub-connect-missing] ...`, `PASS  [no-launch-check-stub-cjs-webkit-missing] ...`, `PASS  [no-launch-check-stub-esm-firefox-missing] ...`
+
+Self-test after: 40/41 (build/ check the one failure). Anchors: `checked 1671 of 1674 mutation anchors; 0 stale`.

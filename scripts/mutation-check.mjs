@@ -14132,6 +14132,22 @@ const MUTATIONS = [
     expect: "node scripts/no-launch-check.mjs --self-test",
   },
   {
+    id: "no-launch-check-stub-esm-default-lacks-members",
+    file: "scripts/no-launch-check.mjs",
+    claim: "every member of the ESM stub is a trap through the default import too: the default export names the same six as the named exports",
+    find: "export default { chromium, firefox, webkit, devices, _electron, _android }",
+    replace: "export default { chromium, devices, _electron }",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
+    id: "no-launch-check-stub-esm-default-lacks-android",
+    file: "scripts/no-launch-check.mjs",
+    claim: "the default export of the ESM stub has _android",
+    find: "export default { chromium, firefox, webkit, devices, _electron, _android }",
+    replace: "export default { chromium, firefox, webkit, devices, _electron }",
+    expect: "node scripts/no-launch-check.mjs --self-test",
+  },
+  {
     id: "gate-mode-confidence-row-throw-uncaught",
     file: "scripts/confidence.mjs",
     claim: "a row that throws is a failing row, not a crash of the gate",

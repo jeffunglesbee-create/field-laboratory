@@ -21,7 +21,10 @@
 // NOT covered: a python script that launches (the guard reads those by text), a launch through a browser binary run directly (no playwright), a launch through a Playwright API the stub
 // does not define (`errors`, `selectors`, `request`: importing one fails at link time, a false red, never a missed launch), a command that fails before it reaches a launch (reported as not
 // established, and fails the check), and a child whose whole environment is built without the variable (`env -i`, an env object that never names it): the trap is a text scan plus the runtime
-// controls there, not a measurement. The trap reaches a child through NODE_OPTIONS, so a child started with a NODE_OPTIONS that does not build on the inherited one runs outside it:
+// controls there, not a measurement.
+// ALSO NOT covered (round 5, A7): a launch through a VENDORED COPY of the library outside node_modules/playwright(-core)/ (`require('<repo>/vendor/pwcore')`: the hook stubs the two package
+// names and any path that lands inside those directories, so a copy elsewhere loads the real library). No script does it, and it is a deliberate evasion, not an edit.
+// The trap reaches a child through NODE_OPTIONS, so a child started with a NODE_OPTIONS that does not build on the inherited one runs outside it:
 // scripts/ (every .mjs, .cjs and .js under it, fixtures included; not .py or .sh, which start no Node child with an environment of their own, and not this file) is scanned for that
 // (nodeOptionsReplacers, printed as `scanned N scripts`), and the scan is DEFAULT-DENY: a line that names the variable is clean only in the one form the scripts use, the inherited value first
 // and flags of our own after it. scripts/proof-check.mjs, whose self-test replaced it for two of its children, now appends (review 2026-11-15, finding 14).
@@ -277,6 +280,19 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const sameSet = (got, want) => JSON.stringify([...got].sort()) === JSON.stringify([...want].sort())
     check('EVERY MEMBER OF THE STUB IS A TRAP in both module systems: the three browsers\' five launching calls and the two apps\' two (19), each leaving its own line',
       sameSet(allEsm.launches, ALL_TRAPS) && sameSet(allCjs.launches, ALL_TRAPS), `esm: ${JSON.stringify(allEsm.launches)}; cjs: ${JSON.stringify(allCjs.launches)}`)
+    // ...and through the DEFAULT import, the usual way to import a CJS package (round 5, B11 and A3: the named exports and the default export of the ESM stub list the members twice, `export default {}` kept the self-test
+    // green, and `import pw from 'playwright'` then read a swallowed launch as 0 launches). The six names are a LITERAL list, and each form must offer exactly them.
+    const allDefault = await run(put('all-default.mjs', `import pw from 'playwright'\n${callAll}`))
+    check('EVERY MEMBER OF THE STUB IS A TRAP THROUGH THE DEFAULT IMPORT too (`import pw from \'playwright\'`): the same 19 lines, none lost to a default export that names fewer members than the named ones',
+      sameSet(allDefault.launches, ALL_TRAPS), `default: ${JSON.stringify(allDefault.launches)}`)
+    const SIX = ['_android', '_electron', 'chromium', 'devices', 'firefox', 'webkit']
+    const keysOf = async (name, src) => { const r = await run(put(name, src)); try { return JSON.parse(r.last) } catch { return r.last } }
+    const keysNs = await keysOf('keys-ns.mjs', `import * as pw from 'playwright'\nconsole.log(JSON.stringify(Object.keys(pw).sort()))\n`)
+    const keysDefault = await keysOf('keys-default.mjs', `import pw from 'playwright'\nconsole.log(JSON.stringify(Object.keys(pw).sort()))\n`)
+    const keysCjs = await keysOf('keys-cjs.cjs', `console.log(JSON.stringify(Object.keys(require('playwright')).sort()))\n`)
+    check('THE STUB OFFERS EXACTLY THE SIX NAMES (_android, _electron, chromium, devices, firefox, webkit) as named exports (and `default`), as the default export and through require: a member missing from any one of them is a TypeError a script can swallow',
+      JSON.stringify(keysNs) === JSON.stringify([...SIX, 'default'].sort()) && JSON.stringify(keysDefault) === JSON.stringify(SIX) && JSON.stringify(keysCjs) === JSON.stringify(SIX) && SIX.length === 6,
+      JSON.stringify({ keysNs, keysDefault, keysCjs }))
     const envLine = await run(put('env.cjs', `const fs = require('fs'); const p = process.env.PLAYWRIGHT_BROWSERS_PATH, c = process.env.PW_CHROMIUM\nconsole.log(JSON.stringify([p, c, fs.existsSync(String(p)), fs.existsSync(String(c))]))\n`))
     const envSeen = (() => { try { return JSON.parse(envLine.last) } catch { return [] } })()
     check('NO BROWSER IS ON DISK FOR A COMMAND: PLAYWRIGHT_BROWSERS_PATH and PW_CHROMIUM reach it, point under the trap directory, and name nothing that exists',
