@@ -1,0 +1,413 @@
+{
+ "_provenance": "ARCHIVE_DB (cc49101c) regular_season_games, date 2026-10-18 to 2026-11-17, `streams` split on ', ' with a recursive CTE, grouped by outlet, read 2026-11-17 via the Cloudflare D1 MCP. Every distinct outlet string with its appearance count, verbatim.",
+ "outlets": [
+  {
+   "outlet": "ESPN+",
+   "appearances": 247
+  },
+  {
+   "outlet": "Paramount+",
+   "appearances": 162
+  },
+  {
+   "outlet": "NBA League Pass",
+   "appearances": 83
+  },
+  {
+   "outlet": "Apple TV",
+   "appearances": 60
+  },
+  {
+   "outlet": "Fox",
+   "appearances": 46
+  },
+  {
+   "outlet": "ESPN",
+   "appearances": 45
+  },
+  {
+   "outlet": "Prime Video (Local)",
+   "appearances": 32
+  },
+  {
+   "outlet": "CBSSN",
+   "appearances": 32
+  },
+  {
+   "outlet": "USA Net",
+   "appearances": 30
+  },
+  {
+   "outlet": "Scripps Sports",
+   "appearances": 30
+  },
+  {
+   "outlet": "CBS",
+   "appearances": 30
+  },
+  {
+   "outlet": "ESPN Deportes",
+   "appearances": 28
+  },
+  {
+   "outlet": "beIn Sports",
+   "appearances": 26
+  },
+  {
+   "outlet": "Fandango",
+   "appearances": 26
+  },
+  {
+   "outlet": "ESPN2",
+   "appearances": 26
+  },
+  {
+   "outlet": "Peacock",
+   "appearances": 25
+  },
+  {
+   "outlet": "MNMT",
+   "appearances": 23
+  },
+  {
+   "outlet": "NBC",
+   "appearances": 20
+  },
+  {
+   "outlet": "Disney+",
+   "appearances": 20
+  },
+  {
+   "outlet": "MSGSN",
+   "appearances": 18
+  },
+  {
+   "outlet": "NHL Net",
+   "appearances": 17
+  },
+  {
+   "outlet": "ABC",
+   "appearances": 17
+  },
+  {
+   "outlet": "ESPNU",
+   "appearances": 15
+  },
+  {
+   "outlet": "Pelicans.com",
+   "appearances": 14
+  },
+  {
+   "outlet": "NBA TV",
+   "appearances": 14
+  },
+  {
+   "outlet": "MINNHL",
+   "appearances": 14
+  },
+  {
+   "outlet": "GCSEN",
+   "appearances": 14
+  },
+  {
+   "outlet": "TNT",
+   "appearances": 13
+  },
+  {
+   "outlet": "NBC Sports BA",
+   "appearances": 13
+  },
+  {
+   "outlet": "MyMi",
+   "appearances": 13
+  },
+  {
+   "outlet": "KJZZ-TV",
+   "appearances": 13
+  },
+  {
+   "outlet": "Jazz+",
+   "appearances": 13
+  },
+  {
+   "outlet": "FS1",
+   "appearances": 13
+  },
+  {
+   "outlet": "Bucks App",
+   "appearances": 13
+  },
+  {
+   "outlet": "Suns Live",
+   "appearances": 12
+  },
+  {
+   "outlet": "Spectrum Sports Net +",
+   "appearances": 12
+  },
+  {
+   "outlet": "Spectrum Sports Net",
+   "appearances": 12
+  },
+  {
+   "outlet": "Prime Video",
+   "appearances": 12
+  },
+  {
+   "outlet": "MavsTV",
+   "appearances": 12
+  },
+  {
+   "outlet": "KFAA-TV",
+   "appearances": 12
+  },
+  {
+   "outlet": "DAZN (YES)",
+   "appearances": 12
+  },
+  {
+   "outlet": "CW",
+   "appearances": 12
+  },
+  {
+   "outlet": "Utah 16",
+   "appearances": 11
+  },
+  {
+   "outlet": "Thunder App",
+   "appearances": 11
+  },
+  {
+   "outlet": "NBC Sports Phil",
+   "appearances": 11
+  },
+  {
+   "outlet": "MSG",
+   "appearances": 11
+  },
+  {
+   "outlet": "Hulu",
+   "appearances": 11
+  },
+  {
+   "outlet": "DAZN IND",
+   "appearances": 11
+  },
+  {
+   "outlet": "ClipperVision",
+   "appearances": 11
+  },
+  {
+   "outlet": "CBJNHL",
+   "appearances": 11
+  },
+  {
+   "outlet": "Blues App",
+   "appearances": 11
+  },
+  {
+   "outlet": "BN+",
+   "appearances": 11
+  },
+  {
+   "outlet": "Arizona's Family 3TV",
+   "appearances": 11
+  },
+  {
+   "outlet": "Altitude Sports",
+   "appearances": 11
+  },
+  {
+   "outlet": "ACC Network",
+   "appearances": 11
+  },
+  {
+   "outlet": "truTV",
+   "appearances": 10
+  },
+  {
+   "outlet": "The Spot - MTN",
+   "appearances": 10
+  },
+  {
+   "outlet": "SEC Network",
+   "appearances": 10
+  },
+  {
+   "outlet": "KSBI",
+   "appearances": 10
+  },
+  {
+   "outlet": "DSN",
+   "appearances": 10
+  },
+  {
+   "outlet": "CARNHL",
+   "appearances": 10
+  },
+  {
+   "outlet": "Universo",
+   "appearances": 9
+  },
+  {
+   "outlet": "Tele",
+   "appearances": 9
+  },
+  {
+   "outlet": "NESN",
+   "appearances": 9
+  },
+  {
+   "outlet": "KUNP 16",
+   "appearances": 9
+  },
+  {
+   "outlet": "DAZN SAS",
+   "appearances": 9
+  },
+  {
+   "outlet": "DAZN MIN",
+   "appearances": 9
+  },
+  {
+   "outlet": "DAZN MEM",
+   "appearances": 9
+  },
+  {
+   "outlet": "BlazerVision",
+   "appearances": 9
+  },
+  {
+   "outlet": "BTN",
+   "appearances": 9
+  },
+  {
+   "outlet": "KONG",
+   "appearances": 8
+  },
+  {
+   "outlet": "KCOP",
+   "appearances": 8
+  },
+  {
+   "outlet": "DAZN CLE",
+   "appearances": 8
+  },
+  {
+   "outlet": "CHSN",
+   "appearances": 8
+  },
+  {
+   "outlet": "ABTV",
+   "appearances": 8
+  },
+  {
+   "outlet": "NBCSN",
+   "appearances": 7
+  },
+  {
+   "outlet": "MW+",
+   "appearances": 7
+  },
+  {
+   "outlet": "MSGB",
+   "appearances": 7
+  },
+  {
+   "outlet": "CNBC",
+   "appearances": 5
+  },
+  {
+   "outlet": "Mammoth+",
+   "appearances": 4
+  },
+  {
+   "outlet": "MSG2",
+   "appearances": 4
+  },
+  {
+   "outlet": "KHN",
+   "appearances": 4
+  },
+  {
+   "outlet": "NFL Net",
+   "appearances": 3
+  },
+  {
+   "outlet": "KTLA",
+   "appearances": 3
+  },
+  {
+   "outlet": "TBS",
+   "appearances": 2
+  },
+  {
+   "outlet": "KTVD-TV (My20)",
+   "appearances": 2
+  },
+  {
+   "outlet": "E!",
+   "appearances": 2
+  },
+  {
+   "outlet": "ALT2/KTVD",
+   "appearances": 2
+  },
+  {
+   "outlet": "WWHO",
+   "appearances": 1
+  },
+  {
+   "outlet": "SYFY",
+   "appearances": 1
+  },
+  {
+   "outlet": "NBC Sports Phil +",
+   "appearances": 1
+  },
+  {
+   "outlet": "KUSA-TV (9NEWS)",
+   "appearances": 1
+  },
+  {
+   "outlet": "KTTV",
+   "appearances": 1
+  },
+  {
+   "outlet": "KSTP",
+   "appearances": 1
+  },
+  {
+   "outlet": "KING 5",
+   "appearances": 1
+  },
+  {
+   "outlet": "KDFW 4",
+   "appearances": 1
+  },
+  {
+   "outlet": "KDFI",
+   "appearances": 1
+  },
+  {
+   "outlet": "Fox 11 Plus",
+   "appearances": 1
+  },
+  {
+   "outlet": "FOX Deportes",
+   "appearances": 1
+  },
+  {
+   "outlet": "CHSN+",
+   "appearances": 1
+  },
+  {
+   "outlet": "Arizona's Family CBS5",
+   "appearances": 1
+  },
+  {
+   "outlet": "Altitude 2 Sports",
+   "appearances": 1
+  }
+ ]
+}

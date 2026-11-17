@@ -52,6 +52,25 @@ const TABLE = [
 for (const [streams, expect] of TABLE)
   check(`${JSON.stringify(streams)} -> ${expect}`, kindOf(streams) === expect, `got ${kindOf(streams)}`)
 
+// The 30-day census (2026-10-18 to 2026-11-17): every distinct outlet string the
+// archive carried, 102 of them. Before the owner's "Full scope" of 2026-11-17, 47 were
+// unknown (645 appearances); now none may be.
+const census = JSON.parse(readFileSync('data/outlets-2026-10-18-to-11-17.json', 'utf8')).outlets
+const censusUnknown = census.filter(o => Array.from(unmodelledOutlets(o.outlet)).length > 0)
+check(`every outlet of the 30-day census is in the registry (${census.length - censusUnknown.length} of ${census.length})`,
+  census.length === 102 && censusUnknown.length === 0, `unknown: ${censusUnknown.map(o => o.outlet).join(' | ')}`)
+for (const [streams, expect] of [
+  // verified 2026-11-17
+  ['NBCSN', 'NationalOnly'],                    // Celtics v Magic, 2026-11-16, served exactly so
+  ['Apple TV', 'NationalOnly'],                 // the rename of Apple TV+, exact match
+  ['Fandango', 'NationalOnly'],
+  ['DAZN CLE', 'LocalAvailable'],
+  ['KUNP 16, BlazerVision, DAZN MIN', 'LocalAvailable'],
+  ['Suns Live, Arizona\'s Family 3TV', 'LocalAvailable'],
+  ['NBA League Pass', 'LocalAvailable'],        // league-wide out-of-market, as MLB.TV
+  ['Paramount+', 'NationalOnly'],
+]) check(`census: ${JSON.stringify(streams)} -> ${expect}`, kindOf(streams) === expect, `got ${kindOf(streams)}`)
+
 const split = {}
 for (const [, s] of rows) split[kindOf(s)] = (split[kindOf(s)] || 0) + 1
 console.log(`\n  Gate 0 over the 11-14 slate (${rows.length} games): ${KIND.map(k => `${k} ${split[k] || 0}`).join(', ')}\n`)

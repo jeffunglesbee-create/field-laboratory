@@ -114,7 +114,14 @@ type Broadcast =
 let private nationalOutlets =
     [ "ESPN"; "ESPN2"; "ABC"; "FOX"; "FS1"; "TBS"; "TNT"; "NBC"; "Peacock"
       "Apple TV+"; "Netflix"; "MLB Network"; "Prime Video"; "truTV"
-      "Fox"; "CBS"; "CW"; "NBA TV"; "NHL Net"; "ESPNU"; "CBSSN"; "USA Net"; "Disney+" ]
+      "Fox"; "CBS"; "CW"; "NBA TV"; "NHL Net"; "ESPNU"; "CBSSN"; "USA Net"; "Disney+"
+      // 2026-11-17, owner's "Full scope". Verified that day: NBCSN, NBCUniversal's
+      // national cable channel relaunched November 2025, carrying Monday NBA games;
+      // "Apple TV", the 2025 rename of Apple TV+, where MLS moved (exact match, as
+      // "Fox" above); Fandango, the free national stream of the Bundesliga under
+      // Versant's USA Sports deal. The rest classified by name and precedent.
+      "NBCSN"; "Apple TV"; "Fandango"; "Paramount+"; "ESPN Deportes"; "beIn Sports"
+      "Universo"; "Tele"; "CNBC"; "E!"; "SYFY"; "FOX Deportes"; "NFL Net"; "Hulu" ]
 
 /// Team-owned, regional, or streaming-only. "MLB.TV" is deliberately here: it is
 /// a league-wide out-of-market product, not a national broadcast, and treating
@@ -135,7 +142,21 @@ let private localOutlets =
       "Altitude 2 Sports"; "MNMT"; "MSGB"; "MSGSN"; "NBC Sports Phil"; "NBC Sports BA"
       "GCSEN"; "DSN"; "The Spot - MTN"; "Scripps Sports"
       "KFAA-TV"; "KTVD-TV (My20)"; "KCOP"; "KONG"; "Utah 16"
-      "Pelicans.com"; "MavsTV"; "CARNHL"; "MINNHL"; "CBJNHL"; "Blues App"; "BN+"; "Mammoth+"; "ABTV" ]
+      "Pelicans.com"; "MavsTV"; "CARNHL"; "MINNHL"; "CBJNHL"; "Blues App"; "BN+"; "Mammoth+"; "ABTV"
+      // 2026-11-17, owner's "Full scope". Verified that day: DAZN is the exclusive
+      // local broadcaster of the Cavaliers, Pacers and Spurs (as of the Grizzlies and
+      // Timberwolves above); KUNP 16 and BlazerVision are the Trail Blazers' local
+      // station and team stream; Suns Live and Arizona's Family (KTVK 3TV, and CBS5)
+      // are the Suns' team stream and local partner.
+      "DAZN CLE"; "DAZN IND"; "DAZN SAS"; "KUNP 16"; "BlazerVision"
+      "Suns Live"; "Arizona's Family 3TV"; "Arizona's Family CBS5"
+      // League-wide out-of-market, like MLB.TV above, by the owner's ruling.
+      "NBA League Pass"
+      // Team feeds, regional networks and local stations, classified by name.
+      "MyMi"; "Bucks App"; "KJZZ-TV"; "Jazz+"; "Spectrum Sports Net"; "Spectrum Sports Net +"
+      "KSBI"; "Thunder App"; "ClipperVision"; "Altitude Sports"; "MSG2"; "NBC Sports Phil +"
+      "CHSN+"; "KHN"; "Fox 11 Plus"; "ALT2/KTVD"; "KTLA"; "KTTV"; "KSTP"; "KING 5"
+      "KDFW 4"; "KDFI"; "WWHO"; "KUSA-TV (9NEWS)" ]
 
 let private splitOutlets (raw: string) =
     raw.Split(',') |> Array.map (fun s -> s.Trim()) |> Array.filter (fun s -> s <> "") |> List.ofArray
