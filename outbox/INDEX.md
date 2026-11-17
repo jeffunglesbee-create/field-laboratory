@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d362bde` | 2026-11-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-17 [skip ci] |
+| `1a27eba` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `be657e7` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f7cb09c` | 2026-11-17 | [outlet-registry-full-2026-11-17.md](outlet-registry-full-2026-11-17.md) | feat: ESPN's national NHL package reads as national-only: ESPN+ beside only Disney+ and Hulu, by the owner's ruling |
 | `8eb6c0b` | 2026-11-17 | [outlet-registry-full-2026-11-17.md](outlet-registry-full-2026-11-17.md) | docs: the 37 registry outlets classified by name, verified: 31 confirmed by a source, 6 not confirmed, none moved; ESPN+ on national NHL games flagged |
