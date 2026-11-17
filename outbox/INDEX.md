@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6ff538f` | 2026-11-17 | [scout-broadcast-unknown-2026-11-17.md](scout-broadcast-unknown-2026-11-17.md) | feat: a game whose broadcast cannot be told is never Scout's or Deep Cuts' pick, by the owner's ruling |
 | `d362bde` | 2026-11-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-17 [skip ci] |
 | `1a27eba` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `be657e7` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
