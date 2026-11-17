@@ -69,6 +69,14 @@ for (const [streams, expect] of [
   ['Suns Live, Arizona\'s Family 3TV', 'LocalAvailable'],
   ['NBA League Pass', 'LocalAvailable'],        // league-wide out-of-market, as MLB.TV
   ['Paramount+', 'NationalOnly'],
+  // The owner's ruling of 2026-11-17: ESPN's national package. The archive's only
+  // shape with ESPN+ beside Disney+ or Hulu (15 NHL games since 2026-08-01).
+  ['Disney+, ESPN+, Hulu', 'NationalOnly'],
+  ['ESPN+, Hulu', 'NationalOnly'],
+  // and what the ruling leaves as it was: ESPN+ alone, or beside a team outlet
+  ['ESPN+', 'LocalAvailable'],
+  ['ESPN+, CHSN', 'LocalAvailable'],
+  ['Disney+, ESPN+, Hulu, NESN', 'LocalAvailable'],
 ]) check(`census: ${JSON.stringify(streams)} -> ${expect}`, kindOf(streams) === expect, `got ${kindOf(streams)}`)
 
 const split = {}

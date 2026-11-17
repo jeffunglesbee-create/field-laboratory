@@ -161,9 +161,25 @@ let private localOutlets =
 let private splitOutlets (raw: string) =
     raw.Split(',') |> Array.map (fun s -> s.Trim()) |> Array.filter (fun s -> s <> "") |> List.ofArray
 
+/// ESPN's national package, by the owner's ruling of 2026-11-17: "ESPN+ national when
+/// only with Disney+ and Hulu". ESPN+ is on the local side (the 2026-11-15 ruling), but
+/// ESPN's national NHL games stream on ESPN+, Disney+ and Hulu together (the Ducks'
+/// 2026-27 national schedule names exactly that trio), and the archive serves them as
+/// "Disney+, ESPN+, Hulu": 15 games from 2026-08-01 to 2026-11-17, and no other shape
+/// with ESPN+ beside either. So when every listed outlet is one of the three and ESPN+
+/// is there with at least one of the others, the game is national-only. ESPN+ alone, or
+/// beside any team or regional outlet, stays local.
+let private espnNationalPackage = [ "ESPN+"; "Disney+"; "Hulu" ]
+
+let private isEspnNationalPackage (outlets: string list) =
+    outlets |> List.contains "ESPN+"
+    && List.length outlets > 1
+    && outlets |> List.forall (fun o -> espnNationalPackage |> List.contains o)
+
 let broadcastOf (streams: string option) : Broadcast =
     match streams |> Option.map splitOutlets with
     | None | Some [] -> NoBroadcastListed
+    | Some outlets when isEspnNationalPackage outlets -> NationalOnly "ESPN+"
     | Some outlets ->
         let isNational o = nationalOutlets |> List.exists (fun n -> n = o)
         let isLocal o = localOutlets |> List.exists (fun l -> l = o)
