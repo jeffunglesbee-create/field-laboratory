@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `357b856` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Full time note is seen on the deployed page, and a second sample of the feed-final to archive-final gap |
+| `f73ee3e` | 2026-11-17 | [live-score-2026-11-17-20261117-2059Z.png](live-score-2026-11-17-20261117-2059Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `f73ee3e` | 2026-11-17 | [live-score-manifest-2026-11-17-20261117-2059Z.json](live-score-manifest-2026-11-17-20261117-2059Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `58a29d1` | 2026-11-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-17 [skip ci] |
 | `58a29d1` | 2026-11-17 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-17 [skip ci] |
 | `19d6bbd` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Half time note returns to the minute clock on the deployed page (Task 10, slot 2, second half) |
