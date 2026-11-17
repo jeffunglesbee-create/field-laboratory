@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `bb2c515` | 2026-11-17 | [outlet-registry-full-2026-11-17.md](outlet-registry-full-2026-11-17.md) | feat: Scout's broadcast registry knows every outlet of the last 30 days, by the owner's "Full scope" |
+| `e6331c5` | 2026-11-17 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-17T02:05 [skip ci] |
+| `f6b22eb` | 2026-11-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `63ffd55` | 2026-11-16 | [deep-cuts-2026-11-16.md](deep-cuts-2026-11-16.md) | feat: Deep Cuts, a new tab: one hidden game per window of the day, by Scout's rules |
 | `51c4d02` | 2026-11-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-16 [skip ci] |
 | `51c4d02` | 2026-11-16 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-16 [skip ci] |
