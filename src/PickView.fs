@@ -156,6 +156,11 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
             child leader (el "div" "pick-chaser__reasons"
                             (sprintf "%d qualifier%s already finished, so the pick has moved on."
                                      choice.Finished (if choice.Finished = 1 then "" else "s"))) |> ignore
+    | AllHeldOnBroadcast held ->
+        child panel (el "p" "pick-empty"
+                        (sprintf "No pick: %d game%s would qualify, but %s broadcast cannot be told from this payload, "
+                                 held (if held = 1 then "" else "s") (if held = 1 then "its" else "their")
+                         + "so whether it is on national TV is not known.")) |> ignore
     | NoneQualify ->
         // The honest result on this payload, and the whole point of the
         // exercise. Production's gates are JS booleans, so a gate with no input
@@ -239,6 +244,10 @@ let renderDeepCuts (mount: HTMLElement) (slateDate: string) (games: Game list) (
         | AllFinished qualified ->
             child section (el "p" "pick-empty"
                               (sprintf "Every game that qualified in this window has finished (%d)." qualified)) |> ignore
+        | AllHeldOnBroadcast held ->
+            child section (el "p" "pick-empty"
+                              (sprintf "No deep cut in this window: %d game%s would qualify, but %s broadcast cannot be told."
+                                       held (if held = 1 then "" else "s") (if held = 1 then "its" else "their"))) |> ignore
         | NoneQualify ->
             child section (el "p" "pick-empty"
                               (if n = 0 then "No games kick off in this window."

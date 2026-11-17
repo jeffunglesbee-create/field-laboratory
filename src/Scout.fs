@@ -313,6 +313,10 @@ type ScoutVerdict =
     /// Carries how many gates were asked, so the summary counts rather than
     /// hard-coding a total that changes when a gate is added.
     | Indeterminate of unanswered: Gate list * asked: int
+    /// Another gate qualifies it, but Gate 0 cannot tell whether it is national, so it
+    /// may not be chosen (owner's ruling, 2026-11-17: "Block picks when broadcast is
+    /// cannot tell"). Kept apart from `Indeterminate`, which means nothing qualified.
+    | BroadcastUnknown of qualifying: Gate list * missing: string
 
 let verdictOf (gates: Gate list) : ScoutVerdict =
     // Gate 0 is a veto and is checked first, matching the architecture doc's
@@ -331,7 +335,19 @@ let verdictOf (gates: Gate list) : ScoutVerdict =
                 match g.Answer with
                 | Qualifies _ -> not (g.Name.StartsWith "Gate 0")
                 | _ -> false)
-        if not qualifying.IsEmpty then Qualifying qualifying
+        // Gate 0 unanswered is no veto, and it is no pass either. Measured 2026-11-16:
+        // Rockets @ Heat was Deep Cuts' 7:30pm pick on the coin-flip gate with no outlet
+        // listed at all, and its US channel could not be found. A game whose broadcast
+        // cannot be told is held back, by the owner's ruling of 2026-11-17.
+        let broadcastUnknown =
+            gates |> List.tryPick (fun g ->
+                match g.Answer with
+                | Unanswerable missing when g.Name.StartsWith "Gate 0" -> Some missing
+                | _ -> None)
+        if not qualifying.IsEmpty then
+            match broadcastUnknown with
+            | Some missing -> BroadcastUnknown(qualifying, missing)
+            | None -> Qualifying qualifying
         else
             let unanswered =
                 gates |> List.filter (fun g ->
@@ -408,6 +424,9 @@ type ScoutOutcome =
     /// Games qualified, and every one of them has finished.
     | AllFinished of qualified: int
     | NoneQualify
+    /// Nothing could be chosen, and this many games that a gate qualifies were held back
+    /// only because their broadcast cannot be told (the 2026-11-17 ruling).
+    | AllHeldOnBroadcast of held: int
 
 /// Chooses among the slate's qualifiers that have not finished, at `now`.
 ///
@@ -429,11 +448,22 @@ let chooseScoutAt (now: DateTimeOffset) (games: Game list) (seriesEntries: int) 
                 let best = gates |> List.map (precedenceOf order) |> List.min
                 let bestIsCoinFlip = (List.item best order).Name = (gateCoinFlip g).Name
                 Some(g, gates, best, (if bestIsCoinFlip then distanceFromEven g else None))
-            | Disqualified _ | NotQualifying _ | Indeterminate _ -> None)
+            | Disqualified _ | NotQualifying _ | Indeterminate _ | BroadcastUnknown _ -> None)
     let qualifiers = allQualifiers |> List.filter (fun (g, _, _, _) -> not (isFinished g))
     let finished = List.length allQualifiers - List.length qualifiers
+    let held =
+        games
+        |> List.filter (fun g ->
+            not (isFinished g)
+            && (match scoutVerdict g seriesEntries with
+                | BroadcastUnknown _ -> true
+                | Qualifying _ | Disqualified _ | NotQualifying _ | Indeterminate _ -> false))
+        |> List.length
     match qualifiers with
-    | [] -> if finished > 0 then AllFinished finished else NoneQualify
+    | [] ->
+        if held > 0 then AllHeldOnBroadcast held
+        elif finished > 0 then AllFinished finished
+        else NoneQualify
     | _ ->
         let topGate = qualifiers |> List.map (fun (_, _, best, _) -> best) |> List.min
         let atTop = qualifiers |> List.filter (fun (_, _, best, _) -> best = topGate)
@@ -472,5 +502,7 @@ let verdictSummary (verdict: ScoutVerdict) =
                               | DoesNotQualify _ | Unanswerable _ -> g.Name)
         |> String.concat "; "
     | NotQualifying _ -> "No gate qualified this game"
+    | BroadcastUnknown(_, missing) ->
+        sprintf "Held back: its broadcast cannot be told from this payload (needs %s)" missing
     | Indeterminate(unanswered, asked) ->
         sprintf "Cannot tell from this payload — %d of %d gates have no data here" (List.length unanswered) asked

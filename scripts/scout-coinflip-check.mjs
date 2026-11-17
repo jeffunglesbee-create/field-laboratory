@@ -35,7 +35,7 @@ import { ofArray } from '../build/fable_modules/fable-library-js.5.13.0/List.js'
 
 const { check, summarize } = createChecks()
 const ANSWER = ['Qualifies', 'DoesNotQualify', 'Unanswerable']
-const VERDICT = ['Disqualified', 'Qualifying', 'NotQualifying', 'Indeterminate']
+const VERDICT = ['Disqualified', 'Qualifying', 'NotQualifying', 'Indeterminate', 'BroadcastUnknown']
 
 const { rows } = JSON.parse(readFileSync('data/scout-coinflip-2026-11-14.json', 'utf8'))
 const odds = ml => (ml ? JSON.stringify({ source: 'draftkings', moneyline: { home: ml[0], away: ml[1] } }) : null)
@@ -94,7 +94,7 @@ const names = gs => gs.map(g => g.Home).sort().join(', ')
 // `chooseScoutAt` takes an F# list; a JS array is not one. A fixed instant,
 // before every fixture game's 00:00Z start, never the wall clock.
 const AT = new Date('2026-11-14T20:00:00Z')
-const OUTCOME = ['Chosen', 'AllFinished', 'NoneQualify']
+const OUTCOME = ['Chosen', 'AllFinished', 'NoneQualify', 'AllHeldOnBroadcast']
 const outcomeOf = slate => chooseScoutAt(AT, ofArray(slate), 0)
 const pickOf = slate => { const o = outcomeOf(slate); return OUTCOME[o.tag] === 'Chosen' ? o.fields[0] : null }
 const asList = o => o
@@ -182,5 +182,29 @@ check('the under-way fixture really is InProgress at the instant (so the next ch
 const withLive = pickOf([liveCopy])
 check('a qualifier under way stays in the running', withLive != null && withLive.Choice.Home === 'Ducks' && withLive.Finished === 0,
   `got ${withLive && `${withLive.Choice.Home}, finished ${withLive.Finished}`}`)
+
+// --- a broadcast that cannot be told blocks the pick (owner, 2026-11-17) ------
+// The real row: Rockets @ Heat, 2026-11-16, ARCHIVE_DB, streams null, closing
+// -120 / +101 (Heat 47.7% de-vigged, by hand). It was Deep Cuts' 7:30pm pick.
+const oneRow = r => {
+  const p = decodePayload(JSON.stringify({ ok: true, date: '2026-11-14', briefs: [], series: [], standings: [],
+    games: { regular: [asGame(r, 70)], postseason: [] } }))
+  return Array.from(p.fields[0].Regular)[0]
+}
+const heat = oneRow({ sport: 'NBA', home: 'Heat', away: 'Rockets', streams: null, closing: [101, -120], opening: [110, -130] })
+const heatV = scoutVerdict(heat, 0)
+check('a level game with no outlet listed is held back, not qualifying (Rockets @ Heat, 11-16)',
+  VERDICT[heatV.tag] === 'BroadcastUnknown' && /broadcast cannot be told/.test(verdictSummary(heatV)),
+  `verdict ${VERDICT[heatV.tag]}: ${verdictSummary(heatV)}`)
+const unknownOutlet = oneRow({ sport: 'NBA', home: 'Heat', away: 'Rockets', streams: 'Some New Network', closing: [101, -120], opening: null })
+check('an outlet the registry does not know holds it back too',
+  VERDICT[scoutVerdict(unknownOutlet, 0).tag] === 'BroadcastUnknown', VERDICT[scoutVerdict(unknownOutlet, 0).tag])
+const heldOnly = outcomeOf([heat, byHome('Bruins')])
+check('a window whose only would-be pick is held says so (AllHeldOnBroadcast 1), not "none qualifies"',
+  OUTCOME[heldOnly.tag] === 'AllHeldOnBroadcast' && heldOnly.fields[0] === 1, `${OUTCOME[heldOnly.tag]} ${heldOnly.fields?.[0]}`)
+const besideDucks = pickOf([heat, byHome('Ducks')])
+check('a held game does not block another qualifier: Ducks is chosen alone',
+  besideDucks != null && besideDucks.Choice.Home === 'Ducks' && Array.from(besideDucks.Level).length === 0,
+  besideDucks ? `${besideDucks.Choice.Home}, level ${Array.from(besideDucks.Level).length}` : 'nothing chosen')
 
 finish(summarize())
