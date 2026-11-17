@@ -24,3 +24,7 @@ National: NBCSN, Apple TV, Fandango (verified); Paramount+, ESPN Deportes, beIn 
 ## Not changed
 
 A game whose Gate 0 answers "cannot tell" (no outlet listed) can still be Scout's or Deep Cuts' choice. That is the open question put to the owner on 2026-11-16, not decided here.
+
+## NBA TV, verified after the fact (owner asked, 2026-11-17)
+
+NBA TV entered the registry as national on 2026-11-15 from the owner's pasted list, without a source. Verified now: for 2026-27 the NBA announces NBA TV's 60-game regular-season slate as the piece that "completes the national television schedule" (pr.nba.com, "NBA TV unveils game schedule for 2026-27 regular season"), and it also "will continue to televise select games ... simulcast from regional broadcasters". The classification stands: national. A simulcast is served with the regional outlet beside it ("NBA TV, DAZN IND" on 2026-11-07, "NBA TV, GCSEN, Pelicans.com" on 2026-11-09), which Gate 0 already reads as local available; "NBA TV" alone (e.g. Heat v Pistons, 2026-11-14) is national-only.
