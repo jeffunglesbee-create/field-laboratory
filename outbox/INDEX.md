@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `58a29d1` | 2026-11-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-17 [skip ci] |
+| `58a29d1` | 2026-11-17 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-17 [skip ci] |
+| `19d6bbd` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Half time note returns to the minute clock on the deployed page (Task 10, slot 2, second half) |
+| `9ec0535` | 2026-11-17 | [live-score-2026-11-17-20261117-2017Z.png](live-score-2026-11-17-20261117-2017Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `9ec0535` | 2026-11-17 | [live-score-manifest-2026-11-17-20261117-2017Z.json](live-score-manifest-2026-11-17-20261117-2017Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `029f20e` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Half time note is seen on the deployed page (an extra Task 10 run, inside the break) |
+| `9c53fdf` | 2026-11-17 | [live-score-2026-11-17-20261117-1955Z.png](live-score-2026-11-17-20261117-1955Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `9c53fdf` | 2026-11-17 | [live-score-manifest-2026-11-17-20261117-1955Z.json](live-score-manifest-2026-11-17-20261117-1955Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `ff17391` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the soccer live-scores Done condition is met: the first real in-play manifest from the deployed page (Task 10, slot 1) |
+| `df1f1dc` | 2026-11-17 | [live-score-2026-11-17-20261117-1938Z.png](live-score-2026-11-17-20261117-1938Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `df1f1dc` | 2026-11-17 | [live-score-manifest-2026-11-17-20261117-1938Z.json](live-score-manifest-2026-11-17-20261117-1938Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `cdd9ae2` | 2026-11-17 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-17T16:28 [skip ci] |
 | `364903d` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `157fe24` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `6ff538f` | 2026-11-17 | [scout-broadcast-unknown-2026-11-17.md](scout-broadcast-unknown-2026-11-17.md) | feat: a game whose broadcast cannot be told is never Scout's or Deep Cuts' pick, by the owner's ruling |
