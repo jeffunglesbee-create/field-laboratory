@@ -1,0 +1,72 @@
+{
+  "deployed": "157fe24aff992c667c3d6256a1709758a183a63d",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-17",
+  "probedAt": "2026-11-17T20:16:07.503Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "efltrophy"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 21 game(s) for 2026-11-17"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 21,
+  "pageOutcomes": [
+    {
+      "key": "efltrophy",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "efltrophy",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    }
+  ],
+  "runnerFeeds": {
+    "efltrophy": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [
+    "401906326"
+  ],
+  "verdict": "PASS",
+  "reasons": [],
+  "cardState": "In progress",
+  "scoreMatchesFeed": true,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "halfTimeMarker": false,
+  "requestsToV2Games": 2,
+  "checked": "checked 1 of 1 soccer cards against the page's own last /v2/games answer (0 with no ESPN id, 0 outside their window, 0 with no reading yet); 1 live",
+  "rows": [
+    {
+      "gameId": "EFL Trophy_2026-11-17_e401906326",
+      "teams": "Luton v Peterborough",
+      "sport": "EFL Trophy",
+      "score": "2–0",
+      "status": "In progress",
+      "live": "52'",
+      "forecast": null,
+      "espnId": "401906326",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": true,
+  "screenshot": "outbox/live-score-2026-11-17-20261117-2017Z.png"
+}
