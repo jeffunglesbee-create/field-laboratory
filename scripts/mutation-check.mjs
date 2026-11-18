@@ -852,6 +852,64 @@ const MUTATIONS = [
     replace: 'const observableVenues = vs => realVenues(vs).filter(v => true)',
     expect: "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
   },
+  // docs/CC-CMD-2026-11-18-split-live-weather-check.md, Task 4: every recorded-weather check, broken on
+  // purpose, against a committed slate (a live slate with one known location cannot exercise the refusal).
+  {
+    id: "recorded-weather-route-removed",
+    file: "scripts/render-check.mjs",
+    claim: "the recorded-weather checks are answered from the recording, never the live host",
+    find: "await page.route('https://api.open-meteo.com/v1/forecast**', async route",
+    replace: "void ('https://api.open-meteo.com/v1/forecast**', async route",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "recorded-weather-every-location-refused",
+    file: "scripts/render-check.mjs",
+    claim: "a refused body costs its own location the chip and no other",
+    find: "if (k === refusedKey) { body",
+    replace: "if (true) { body",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "recorded-weather-refusal-not-served",
+    file: "scripts/render-check.mjs",
+    claim: "the decoder refusal is exercised on every recorded run",
+    find: "if (k === refusedKey) { body",
+    replace: "if (false) { body",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "recorded-weather-wrong-temperature",
+    file: "scripts/render-check.mjs",
+    claim: "each chip shows the temperature its own recorded body gives",
+    find: "else { body = RECORDED.bodies[RECORDED.default].body;",
+    replace: "else { body = RECORDED.bodies[RECORDED.default].body.replace(/(\"temperature_2m\":)(-?[\\d.]+)(,)/, (m, a, t, c) => a + (Number(t) + 3) + c);",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "recorded-weather-live-count-blind",
+    file: "scripts/render-check.mjs",
+    claim: "a request the recording did not answer is counted as live",
+    find: "    liveCount--   // this one",
+    replace: "    // this one",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "weather-decoder-rule-off",
+    file: "src/Weather.fs",
+    claim: "rain above precipitation is refused by the decoder, and the page shows no chip for it",
+    find: "elif rain > total + 0.001<mm> then None",
+    replace: "elif false then None",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
+  {
+    id: "weather-refusal-reason-dropped",
+    file: "src/Weather.fs",
+    claim: "the page names a refused reading in the words of the decoder",
+    find: "Error(sprintf \"rain %g exceeds precipitation %g\" rain total)",
+    replace: "Error(sprintf \"refused %g %g\" rain total)",
+    expect: "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
+  },
   {
     // Reported 2026-10-21: Metrics "non-selectable" on a phone, wholly off the
     // right edge of a strip whose scrollbar is hidden. A link to ?tab=metrics

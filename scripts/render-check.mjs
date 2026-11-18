@@ -6,7 +6,7 @@
 // a blank section with no console error is the hardest failure mode to diagnose
 // in this project, so silence is treated as suspicious rather than fine.
 
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { all as weatherVenues, isIndoorArena } from '../build/Venues.js'
 import { forecastUrl, coordinates } from '../build/Weather.js'
@@ -26,6 +26,36 @@ const URL = process.env.URL || 'http://localhost:8080/'
 // verify.yml's live render step and by no other job, so a broken chip while
 // Open-Meteo IS reachable stays a hard failure everywhere.
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
+
+// `--recorded-weather <file>`: the page's Open-Meteo requests are answered from
+// recorded bodies, so the chips are judged for CORRECTNESS with no third party in
+// the loop, strictly, with no tolerance branch. Whether the live host answers is a
+// separate question, reported by verify's availability step and never gating.
+// docs/CC-CMD-2026-11-18-split-live-weather-check.md, Task 1.
+//
+// One location on the slate is answered with a REFUSED body (rain above
+// precipitation), so the decoder's refusal is exercised on every run: that
+// location's cards must carry no chip while every other known card does.
+const recordedAt = process.argv.indexOf('--recorded-weather')
+const RECORDED_FILE = recordedAt === -1 ? null : process.argv[recordedAt + 1]
+if (recordedAt !== -1 && (!RECORDED_FILE || RECORDED_FILE.startsWith('--'))) {
+  console.error('--recorded-weather needs a file'); process.exit(2)
+}
+if (RECORDED_FILE && TOLERATE) {
+  console.error('--recorded-weather and --tolerate-unreachable together: the recorded mode is strict'); process.exit(2)
+}
+const RECORDED = RECORDED_FILE ? JSON.parse(readFileSync(RECORDED_FILE, 'utf8')) : null
+
+// `--recorded-slate <file>`: the relay's slate answered from a committed capture,
+// for the mutation gate, which must judge the recorded-weather checks on a slate
+// that does not change under it (a live slate with one known location cannot
+// exercise the refusal). Recorded weather only; verify and live-check use the
+// live slate. The same route forecast-render-check uses for its slate.
+const slateAt = process.argv.indexOf('--recorded-slate')
+const SLATE_FILE = slateAt === -1 ? null : process.argv[slateAt + 1]
+if (slateAt !== -1 && (!SLATE_FILE || SLATE_FILE.startsWith('--') || !RECORDED)) {
+  console.error('--recorded-slate needs a file, and --recorded-weather with it'); process.exit(2)
+}
 
 const errors = []
 // Chromium lives in two different places depending on where this runs. The
@@ -77,6 +107,62 @@ try {
   if (r.ok) builtFrom = (await r.text()).trim().slice(0, 7)
   else builtFrom = `version.txt -> HTTP ${r.status}`
 } catch (e) { builtFrom = `version.txt unreachable — ${e.message}` }
+
+// The recorded route. Keyed by the request's own `latitude,longitude`, the key
+// the fixture was built with from the same `forecastUrl`. A location the fixture
+// lacks gets its default body, and the run says how many did.
+//
+// The refused location is chosen when the first request arrives, from the cards
+// already on the page (the page renders them before it asks for weather): the
+// first card, in page order, whose venue the table knows. Chosen only when the
+// slate has at least two known locations, so a refusal never leaves the page with
+// nothing to check; with one, the run says so as a warning.
+const routed = new Map()      // key -> 'recorded' | 'default' | 'refused'
+let routedCount = 0
+let liveCount = 0             // Open-Meteo requests the route did NOT answer
+let refusedKey = null
+let refusedVenue = null
+let refusalNote = ''
+const keyOf = url => {
+  const q = new global.URL(url).searchParams
+  return `${q.get('latitude')},${q.get('longitude')}`
+}
+let choosing = null
+const byNameR = new Map(Array.from(weatherVenues).map(v => [v.Name, v]))
+const chooseRefused = () => choosing ??= page.$$eval('.desk-card[data-venue]',
+      ns => ns.map(n => n.getAttribute('data-venue'))).then(vs => {
+    const keys = []
+    for (const v of vs) {
+      const rec = byNameR.get(v)
+      if (!rec || isIndoorArena(v)) continue
+      const k = keyOf(forecastUrl(rec.Where))
+      if (!keys.some(x => x.k === k)) keys.push({ k, v })
+    }
+    if (keys.length >= 2) { refusedKey = keys[0].k; refusedVenue = keys[0].v }
+    else refusalNote = `${keys.length} known location(s) on this slate, so no location was refused`
+  })
+if (RECORDED) {
+  if (SLATE_FILE) {
+    const slate = readFileSync(SLATE_FILE, 'utf8')
+    await page.route('https://field-relay-nba.jeffunglesbee.workers.dev/context/date/**',
+      route => route.fulfill({ status: 200, contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' }, body: slate }))
+    console.log(`recorded slate: ${SLATE_FILE}`)
+  }
+  page.on('request', r => { if (r.url().includes('open-meteo')) liveCount++ })
+  await page.route('https://api.open-meteo.com/v1/forecast**', async route => {
+    liveCount--   // this one is answered here, not by the host
+    routedCount++
+    await chooseRefused()
+    const k = keyOf(route.request().url())
+    let body
+    if (k === refusedKey) { body = RECORDED.refused.body; routed.set(k, 'refused') }
+    else if (RECORDED.bodies[k]) { body = RECORDED.bodies[k].body; routed.set(k, 'recorded') }
+    else { body = RECORDED.bodies[RECORDED.default].body; routed.set(k, 'default') }
+    await route.fulfill({ status: 200, contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' }, body })
+  })
+}
 
 await page.goto(URL, { waitUntil: 'domcontentloaded' })
 // Wait for the status line to be filled, NOT for a card. A card may legitimately
@@ -170,6 +256,8 @@ let waitErr = null
 let pageAccount = ''
 let wxTiming = ''
 let wxRequests = []
+let expectedEmpty = 0
+let cardChips = []
 
 // Relay values that occupy the `venue` column without naming a venue.
 //
@@ -299,13 +387,28 @@ if (!pinned) {
   cardVenues = await page.$$eval('.desk-card[data-venue]',
     ns => ns.map(n => n.getAttribute('data-venue')))
   expected = cardVenues.filter(v => known.has(v)).length
+  // Recorded mode: the cards at the refused location must stay empty, so the wait
+  // is for every OTHER known card. Live mode: expectedFilled === expected.
+  if (RECORDED) {
+    await chooseRefused()
+    expectedEmpty = cardVenues.filter(v => known.has(v) && refusedKey !== null &&
+      keyOf(forecastUrl(byNameR.get(v).Where)) === refusedKey).length
+  }
+  const expectedFilled = expected - expectedEmpty
 
   // The wait is UNCONDITIONAL and its failure is NAMED. A swallowed timeout is
   // a check that cannot fail, and `.catch(() => {})` is how one is written.
   await page.waitForFunction(
     n => [...document.querySelectorAll('.desk-card__wx')]
            .filter(e => (e.textContent || '').trim() !== '').length === n,
-    expected, { timeout: 20_000 }).catch(e => { waitErr = e.message })
+    expectedFilled, { timeout: 20_000 }).catch(e => { waitErr = e.message })
+
+  // Per card, with its venue, so a chip can be judged against the body its own
+  // location was answered with.
+  if (RECORDED) cardChips = await page.$$eval('.desk-card[data-venue]', ns => ns.map(n => {
+    const w = n.querySelector('.desk-card__wx')
+    return { v: n.getAttribute('data-venue'), t: (w?.textContent || '').trim(), title: w?.getAttribute('title') }
+  }))
 
   chips = await page.$$eval('.desk-card__wx',
     ns => ns.map(n => ({ t: (n.textContent || '').trim(), title: n.getAttribute('title') })))
@@ -378,7 +481,8 @@ let probeSaw = 'not probed'
 // is "fetch failed" whatever happened and the code is in `e.cause` (docs/CC-CMD-2026-11-14-weather-failure-cause.md).
 let probeErr = null
 let pathSaw = 'not probed'
-if (!pinned && (waitErr !== null || filled.length < expected)) {
+// Never in recorded mode: it would consult the live host, which that mode exists not to.
+if (!pinned && !RECORDED && (waitErr !== null || filled.length < expected)) {
   const probe = coordinates(42.3467, -71.0972)
   try {
     const r = await fetch(forecastUrl(probe), { signal: AbortSignal.timeout(15_000) })
@@ -674,8 +778,9 @@ if (!pinned) {
   } else {
     check('the chips all filled within the wait', waitErr === null, waitErr)
     check('every card whose venue the table knows carries a live chip',
-      expected > 0 && filled.length === expected,
-      `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
+      expected > 0 && filled.length === expected - expectedEmpty,
+      `${expected} known venue(s) on this slate, ${expectedEmpty} of them at the refused location, ` +
+      `${filled.length} chip(s) filled. ` +
       `Attribution from the page's own window: ${attribution.verdict} — ${attribution.why}. ` +
       `A late node probe saw: ${probeSaw} (a later moment, not evidence about the page's window). ` +
       `${pathSaw} (Node's own network stack at that later moment, not Chromium's). ` +
@@ -693,7 +798,56 @@ if (!pinned) {
       filled.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
       JSON.stringify(filled.slice(0, 3)))
   }
+  if (RECORDED) recordedChecks()
   } // end: this slate names at least one real venue
+}
+
+// The recorded-weather checks. Each chip is judged against the body ITS location
+// was answered with, recomputed here from the fixture rather than read back from
+// the route's own record, and the rounding is written out independently of the
+// page's (Fable's `round`, half to even, as .NET's Math.Round).
+function recordedChecks() {
+  const kinds = [...routed.values()]
+  const n = kind => kinds.filter(x => x === kind).length
+  console.log(`recorded weather: ${RECORDED_FILE} (built ${RECORDED.built}) — ${routedCount} request(s) ` +
+    `answered from it (${n('recorded')} recorded, ${n('default')} default, ${n('refused')} refused); ` +
+    `live Open-Meteo requests: ${liveCount}`)
+  console.log(`refused location: ${refusedKey ? `${refusedKey} (${refusedVenue})` : `none — ${refusalNote}`}\n`)
+
+  check('no weather request reached the live Open-Meteo host', routedCount > 0 && liveCount === 0,
+    `${routedCount} answered from the recording, ${liveCount} not`)
+
+  const halfEven = x => {
+    const f = Math.floor(x)
+    if (Math.abs(x - f - 0.5) < 1e-9) return f % 2 === 0 ? f : f + 1
+    return Math.round(x)
+  }
+  const bodyFor = k => k === refusedKey ? RECORDED.refused.body
+    : (RECORDED.bodies[k] ?? RECORDED.bodies[RECORDED.default]).body
+  const knownCards = cardChips.filter(c => known.has(c.v))
+  const withKey = knownCards.map(c => ({ ...c, k: keyOf(forecastUrl(byNameR.get(c.v).Where)) }))
+  const wrong = withKey.filter(c => c.k !== refusedKey).flatMap(c => {
+    const want = halfEven(JSON.parse(bodyFor(c.k)).current.temperature_2m)
+    const got = /^(-?\d+)°F/.exec(c.t)
+    return got && Number(got[1]) === want ? [] : [`${c.v}: chip "${c.t}", recorded body gives ${want}°F`]
+  })
+  check('every chip shows the temperature its recorded body gives',
+    withKey.some(c => c.k !== refusedKey) && wrong.length === 0, wrong.slice(0, 3).join('; '))
+
+  if (refusedKey === null) {
+    console.log(`::warning::the refused-body check is not exercised on this slate: ${refusalNote}`)
+  } else {
+    const atRefused = withKey.filter(c => c.k === refusedKey)
+    check('the location answered with a refused body carries no chip',
+      atRefused.length > 0 && atRefused.every(c => c.t === ''),
+      `${refusedVenue}: ${JSON.stringify(atRefused.map(c => c.t))}`)
+    // The page says WHY, in the decoder's own words (src/Weather.fs, "rain %g
+    // exceeds precipitation %g"), naming the venue: an empty chip with no reason
+    // is the silent shape this repo keeps finding.
+    check('the page names the refusal and its venue',
+      /rain [\d.]+ exceeds precipitation [\d.]+/.test(pageAccount) && pageAccount.includes(refusedVenue),
+      `the page reported: ${pageAccount || '(nothing)'}`)
+  }
 }
 
 finish(summarize())

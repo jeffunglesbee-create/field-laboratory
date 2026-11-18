@@ -1369,6 +1369,12 @@ jobs:
       #
       # Safe on an empty day: the card assertion compares against the decoded
       # game count rather than requiring at least one.
+      #
+      # LIVE SLATE, RECORDED WEATHER (docs/CC-CMD-2026-11-18-split-live-weather-check.md).
+      # The page's Open-Meteo requests are answered from test/open-meteo-recorded.json, so
+      # the chip checks are strict, with no tolerance branch, and one location is answered
+      # with a refused body every run. Whether the live host answers this runner is the
+      # availability step's question below, reported and never gating.
       - name: Render check against the LIVE slate
         # Runs even if a SIBLING report failed — see the block above
         # `Every gate row has teeth`.
@@ -1378,7 +1384,7 @@ jobs:
             curl -sf -o /dev/null http://localhost:8080/ && break
             sleep 1
           done
-          npm run check:live -- --tolerate-unreachable
+          npm run check:live -- --recorded-weather test/open-meteo-recorded.json
 
       # data/pick-2026-07-07.json was TRANSCRIBED from a Drive document rather
       # than fetched — the dev sandbox has no route to the relay. This is where
@@ -1415,11 +1421,39 @@ jobs:
       # consecutive commits whose only fault was existing at the time. verify
       # answers "is this commit correct"; drift-sentinel runs the SAME check
       # without the flag, daily, and there an outage is the finding.
-      - name: Weather against the LIVE Open-Meteo API
+      #
+      # AVAILABILITY, REPORTED, NEVER GATING (docs/CC-CMD-2026-11-18-split-live-weather-check.md,
+      # Task 3). The live check above now has no part in "is this commit correct": the page's
+      # weather is gated on recorded bodies, and weather-live-check runs strict, daily, in
+      # drift-sentinel. This step asks every table location once, the page's way, and writes
+      # one record (answered, refused with the decoder's message, not answered by cause, the
+      # runner's region and its address to the host). It exits 0 on any network outcome and
+      # fails only when the record cannot be written. The record is committed to
+      # outbox/weather-availability.jsonl by the `weather-availability` job below.
+      - name: Weather against the LIVE Open-Meteo API (availability, reported)
+        id: weather_availability
         # Runs even if a SIBLING report failed — see the block above
         # `Every gate row has teeth`.
         if: "!cancelled() && steps.build.outcome == 'success'"
-        run: node scripts/weather-live-check.mjs --self-test && node scripts/weather-live-check.mjs --tolerate-unreachable
+        run: |
+          node scripts/weather-live-check.mjs --self-test
+          node scripts/weather-availability.mjs --out weather-availability-record.jsonl
+
+      # The reporter's own checks, which DO gate: no network, and each mutation must be red by its
+      # named self-test check (scripts/mutate-weather-availability.mjs, Rule 90).
+      - name: The availability reporter's own checks
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: |
+          node scripts/weather-availability.mjs --self-test
+          node scripts/mutate-weather-availability.mjs
+
+      - name: Keep the availability record
+        if: "!cancelled() && steps.weather_availability.outcome == 'success'"
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-availability-record
+          path: weather-availability-record.jsonl
+          if-no-files-found: error
 
       - name: Status read against the LIVE GitHub API
         # Runs even if a SIBLING report failed — see the block above
@@ -1452,3 +1486,42 @@ jobs:
             echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The steps that need a browser were skipped. This commit is NOT verified."
           fi
           exit 1
+
+  # The availability record, committed. Its own job because it is the only part of verify that
+  # writes: the `verify` job keeps `contents: read`. Main only (a pull request or a branch run is
+  # not the ledger's subject), and only when verify wrote a record. outbox/** is in this
+  # workflow's paths-ignore, so the commit does not start another verify.
+  weather-availability:
+    needs: verify
+    if: "!cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - id: record
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: weather-availability-record
+      - name: No record to append
+        if: steps.record.outcome != 'success'
+        run: echo "::warning::verify wrote no availability record on this run (its weather step did not succeed or did not run), so outbox/weather-availability.jsonl has no line for run ${GITHUB_RUN_ID}"
+      - name: Append the record to outbox/weather-availability.jsonl
+        if: steps.record.outcome == 'success'
+        run: |
+          test -s weather-availability-record.jsonl || { echo "::error::the availability record is empty"; exit 1; }
+          cat weather-availability-record.jsonl >> outbox/weather-availability.jsonl
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/weather-availability.jsonl
+          git commit -m "outbox: Open-Meteo availability, verify run ${GITHUB_RUN_ID}"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main \
+            || { echo "FAIL: push did not land after retries"; exit 1; }

@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-18 by CC, on the owner's word ("Split the check", 2026-11-18), after a Rule 42 analysis and the per-round egress run
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED 2026-11-18. Approved in direction by the owner ("Split the check"); being built in this session.
+**Status:** BUILT 2026-11-18, on branch `split-live-weather`; Tasks 0 to 4 done here, Task 5 (scored gate, landing, done conditions) in progress. Approved in direction by the owner ("Split the check"). The option-3 interpretation below awaits the owner's confirmation.
 
 ---
 
@@ -83,3 +83,22 @@ Not changed: render-check's default live mode (`npm run check:live` with no flag
 3. Removing the route (a mutation) makes the recorded-weather checks fail by name; routing a wrong temperature fails
    the temperature check; routing every venue to the refused body fails the chip-count check.
 4. `outbox/weather-availability.jsonl` holds one record per `verify` run from the landing on.
+
+## Built (2026-11-18)
+
+- Task 0: `test/open-meteo-recorded.json`, 60 locations from `outbox/rain-precip-pair-*.jsonl` (page URL, HTTP 200), a default,
+  and one refused body (precipitation 0.3, rain 0.6, the second refusal of verify 42863538303). Built by
+  `outbox/open-meteo-fixture-build-2026-11-18.mjs`.
+- Task 1: `scripts/render-check.mjs --recorded-weather <file>` (and `--recorded-slate <file>`, for the mutation gate only).
+  Four new checks: no request reached the live host; each chip shows its recorded body's temperature (half to even,
+  written independently of Fable's `round`); the refused location carries no chip; the page names the refusal and its venue
+  in the decoder's words. The refused location is the first known card in page order, chosen only when the slate has two or
+  more known locations; with one, a `::warning::` says the refusal was not exercised. The late node probe never runs in this
+  mode. Default live mode unchanged.
+- Task 2: `verify.yml` live-slate step and `live-check.yml` render step pass `--recorded-weather test/open-meteo-recorded.json`;
+  `--tolerate-unreachable` is gone from the live-slate step.
+- Task 3: `scripts/weather-availability.mjs`, reported, never gating; a `weather-availability` job in `verify.yml` (main only,
+  `contents: write`) appends the record to `outbox/weather-availability.jsonl`. The `verify` job keeps `contents: read`.
+- Task 4: seven `mutation-check.mjs` entries against `?date=2026-05-15` with `data/context-2026-05-15.json` (two known
+  locations, S.C.G. and Marrara Oval), each run here first and red by its named check; `scripts/mutate-weather-availability.mjs`,
+  11 of 11.

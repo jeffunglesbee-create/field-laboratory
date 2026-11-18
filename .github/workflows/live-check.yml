@@ -174,7 +174,10 @@ jobs:
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.
         if: "!cancelled() && steps.landed.outcome == 'success' && steps.chromium.outcome == 'success'"
-        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs
+        # Recorded weather: the deployed page's chips are judged against test/open-meteo-recorded.json,
+        # strictly. The live host's availability is verify's reported step, not this gate
+        # (docs/CC-CMD-2026-11-18-split-live-weather-check.md).
+        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json
 
       # THE TINTS, ON THE PAGE THAT IS ACTUALLY SERVED.
       #
