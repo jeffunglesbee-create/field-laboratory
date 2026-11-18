@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `a3aacb6` at "The deploy landed (published is the newest deployable commit)" — 9 of 17 steps did not run behind it — [run 44321551674](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/44321551674)
+`live-check` (post-deploy, against the deployed page): **running** on `0db9467`
 
 ## Is it published?
 
