@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a2b4ef3` | 2026-11-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-18 [skip ci] |
+| `a2b4ef3` | 2026-11-18 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
+| `a2b4ef3` | 2026-11-18 | [sport-vocabulary-2026-11-18T20-18-28-702Z.json](sport-vocabulary-2026-11-18T20-18-28-702Z.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
+| `b7de7af` | 2026-11-18 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-18T15:58 [skip ci] |
 | `5fff53f` | 2026-11-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-18 [skip ci] |
 | `5fff53f` | 2026-11-18 | [sport-vocabulary-2026-11-18T08-43-03-805Z.json](sport-vocabulary-2026-11-18T08-43-03-805Z.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
 | `fd59b6a` | 2026-11-18 | [cc-session-2026-11-18-egress-per-round.md](cc-session-2026-11-18-egress-per-round.md) | docs: a half hour of per-minute egress facts: TLS to WEST stalled for two rounds, every unanswered request was in them |
