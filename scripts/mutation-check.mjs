@@ -14911,8 +14911,8 @@ const MUTATIONS = [
     id: "no-launch-check-pin-constant-stale",
     file: "scripts/no-launch-check.mjs",
     claim: "the pinned count is the guard's count",
-    find: "export const EXPECTED_COMMANDS = 70",
-    replace: "export const EXPECTED_COMMANDS = 69",
+    find: "export const EXPECTED_COMMANDS = 71",
+    replace: "export const EXPECTED_COMMANDS = 70",
     expect: "node scripts/no-launch-check.mjs --self-test",
   },
   {

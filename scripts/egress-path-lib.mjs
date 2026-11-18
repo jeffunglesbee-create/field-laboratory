@@ -1019,7 +1019,7 @@ summarize()`
 
   // ── the wiring in render-check, asserted on its source (the page-side half is the Task 3 run) ──
   const rc = fs.readFileSync(path.join(here, 'render-check.mjs'), 'utf8')
-  const probeBlockStart = rc.indexOf('if (!pinned && (waitErr !== null || filled.length < expected)) {')
+  const probeBlockStart = rc.indexOf('if (!pinned && !RECORDED && (waitErr !== null || filled.length < expected)) {')
   const probeBlock = probeBlockStart < 0 ? '' : rc.slice(probeBlockStart, rc.indexOf('await browser.close()', probeBlockStart))
   const chipCheckStart = rc.indexOf("check('every card whose venue the table knows carries a live chip'")
   const chipCheck = chipCheckStart < 0 ? '' : rc.slice(chipCheckStart, chipCheckStart + 2500)

@@ -49,3 +49,20 @@ in `outbox/weather-availability.jsonl`.
 
 The owner is asked one thing: a live refusal is now counted in the availability ledger instead of the 11-10 CC-CMD's re-runs
 table. That is my reading of option 3, and it needs confirming.
+
+## The first gate went red on my own commit (verify-full 44393366037, cancelled)
+
+Five mutation shards stopped at their baseline: `2 of 54 distinct expectation(s) already failing`, namely
+`egress-path-lib.mjs --self-test` and `no-launch-check.mjs --self-test`. Both read files this branch changed, and neither is in
+the pre-commit hook, which is why the commit passed locally:
+
+- `egress-path-lib.mjs` finds render-check's late-probe block by its exact text, and that line gained `!RECORDED`. The anchor
+  now names the new line; 148/148.
+- `no-launch-check.mjs` pins the browser guard's command count at 70. `weather-availability.mjs --self-test` is a 71st, and
+  the pin says to change it with the step that adds one: `EXPECTED_COMMANDS = 71`, the self-test's literals tied to the
+  constant moved with it (58/58), and the pin's own mutation (`no-launch-check-pin-constant-stale`) moved 70 to 71 / 69 to 70.
+  The real check: `checked 71 of 71 commands`.
+
+The run was cancelled once five shards had failed, to stop spending Actions minutes. Before the next dispatch, every one of the
+113 distinct expectations in `mutation-check.mjs` is run here on this branch, and any that fails is rerun on main to tell a
+regression of mine from this sandbox's network.
