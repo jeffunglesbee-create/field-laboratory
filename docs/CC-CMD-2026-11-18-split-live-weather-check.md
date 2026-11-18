@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-18 by CC, on the owner's word ("Split the check", 2026-11-18), after a Rule 42 analysis and the per-round egress run
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** BUILT 2026-11-18, on branch `split-live-weather`; Tasks 0 to 4 done here, Task 5 (scored gate, landing, done conditions) in progress. Approved in direction by the owner ("Split the check"). The option-3 interpretation below awaits the owner's confirmation.
+**Status:** BUILT 2026-11-18, on branch `split-live-weather`; Tasks 0 to 4 done here, Task 5 (scored gate, landing, done conditions) in progress. Approved in direction by the owner ("Split the check").
 
 ---
 
@@ -42,10 +42,14 @@ Not changed: render-check's default live mode (`npm run check:live` with no flag
   on the live slate.
 - `docs/CC-CMD-2026-11-10-live-chip-refused-payload.md` option 4 was fenced as "needs the owner's explicit ruling"; the
   owner's "Split the check" is that ruling for `scripts/render-check.mjs`, recorded here.
-- The same CC-CMD's option 3 ruling ("keep the rule and count the re-runs"): the decoder rule (`src/Weather.fs`,
-  `rain > total + 0.001<mm>`) is unchanged and is now exercised on every run by a recorded refused body (below). A live
-  refusal no longer reds the gate, so there are no re-runs to count; it is counted in the availability ledger instead,
-  and that CC-CMD's table points there. **This is the one interpretation the owner is asked to confirm.**
+- The same CC-CMD's option 3 ruling ("keep the rule and count the re-runs"): unchanged, and nothing here asks to change it.
+  The decoder rule (`src/Weather.fs`, `rain > total + 0.001<mm>`) is untouched and is now also exercised on every run by a
+  recorded refused body. A live refusal still reds the two jobs that run the live check strictly, `drift-sentinel.yml`
+  (`check:weather-live`, daily) and `venue-source.yml`, through `the transcribed decoder reads the REAL response`
+  (`scripts/weather-live-check.mjs`); those are re-run and counted in that CC-CMD's table as the ruling says. In verify a
+  live refusal no longer reds anything, so there is no re-run there; its count is the `refused` field of
+  `outbox/weather-availability.jsonl`. (Corrected 2026-11-18: an earlier draft said a live refusal reds nothing any more
+  and asked the owner to confirm moving the count; `drift-sentinel.yml:114` and `venue-source.yml:112` refute that.)
 - `src/Weather.fs`, `src/WeatherView.fs`, `attributeWeather`, `requestCapMs`, `slateDeadlineMs`: not touched.
 
 ## Premises, and the one command that tests each (Rule 100)

@@ -150,11 +150,11 @@ ever caught with the probe running), so re-opening starts with a probe run on th
 |---|---|---|---|---|
 | 2026-11-10 | verify 42863538303 attempt 1 | Render check against the LIVE slate | The Kassam Stadium (`rain 0.1 exceeds precipitation 0`), Broadfield Stadium (`rain 0.6 exceeds precipitation 0.3`) | attempt 2 green |
 
-From the landing of `docs/CC-CMD-2026-11-18-split-live-weather-check.md` (the owner's "Split the check", 2026-11-18) a live
-refusal no longer reds verify: the page's chips are judged against recorded bodies, and the decoder's rule is exercised on
-every run by a recorded refused body. A live refusal is counted instead in `outbox/weather-availability.jsonl` (its
-`refused` field, with the decoder's message), one record per verify run on main, so this table gains no further rows. The
-rule itself is unchanged. That reading of option 3 is the one the 11-18 CC-CMD asks the owner to confirm.
+From the landing of `docs/CC-CMD-2026-11-18-split-live-weather-check.md` (the owner's "Split the check", 2026-11-18),
+verify no longer reds on a live refusal: its chips are judged against recorded bodies, and a live refusal there is counted
+in `outbox/weather-availability.jsonl` (the `refused` field, with the decoder's message). The jobs that still run the live
+check strictly, `drift-sentinel.yml` (daily) and `venue-source.yml`, still red on one, and those are re-run and recorded in
+this table as before. The rule is unchanged.
 
 ## Not in scope
 

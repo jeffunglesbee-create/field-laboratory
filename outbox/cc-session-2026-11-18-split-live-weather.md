@@ -47,8 +47,11 @@ The scored `verify-full` on this branch, the fast-forward to main, then the done
 `live-check` with the recorded-weather lines, a fault-injected run (Open-Meteo resolved to 192.0.2.1), and the first record
 in `outbox/weather-availability.jsonl`.
 
-The owner is asked one thing: a live refusal is now counted in the availability ledger instead of the 11-10 CC-CMD's re-runs
-table. That is my reading of option 3, and it needs confirming.
+The question I put to the owner nine times (does a live refusal's count move from the 11-10 re-runs table to the
+ledger?) rested on a false premise, found by a Rule 42 pass at the owner's request: that a live refusal no longer reds
+anything. `drift-sentinel.yml:114` and `venue-source.yml:112` still run `weather-live-check.mjs` strictly, and its
+`the transcribed decoder reads the REAL response` fails on a refused body. So option 3 applies unchanged there, verify's
+refusals are counted in the ledger, and there was never a decision to put to the owner. The two CC-CMDs are corrected.
 
 ## The first gate went red on my own commit (verify-full 44393366037, cancelled)
 
