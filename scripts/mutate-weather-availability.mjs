@@ -33,8 +33,11 @@ const MUTATIONS = [
   ['A6 a record that cannot be written passes', '  appendFileSync(file, line + \'\\n\')', '  try { appendFileSync(file, line + \'\\n\') } catch { return }', 'W2'],
   ['A7 the ledger is overwritten, not appended', '  appendFileSync(file, line + \'\\n\')', '  writeFileSync(file, line + \'\\n\')', 'W1'],
   ['A8 the region is read from the wrong field', "const m = /runner=image \\S+ region (.+?) cloud /.exec(line ?? '')", "const m = /runner=image (\\S+) /.exec(line ?? '')", 'R3'],
-  ['A9 a refusal is not a warning', 'const warning = rec.refused.length + notAnswered > 0', 'const warning = notAnswered > 0', 'O5'],
+  ['A9 a refusal is not a warning', 'const warning = rec.refused.length + notAnswered + rec.notAsked > 0', 'const warning = notAnswered + rec.notAsked > 0', 'O5'],
   ['A10 the coverage line is not first', '  const lines = [\n    `asked', '  const lines = [\n    `region: first`,\n    `asked', 'O1'],
+  ['A12 the budget is ignored', '    if (clock() - started >= budgetMs) {', '    if (false) {', 'B1'],
+  ['A13 the locations not asked are not counted', "notAsked: results.filter(r => r.kind === 'not-asked').length,", 'notAsked: 0,', 'B1'],
+  ['A14 the coverage line hides what was not asked', "      (rec.notAsked ? `; ${rec.notAsked} not asked, the ${rec.budgetMs}ms budget spent` : ''),", "      '',", 'B2'],
   ['A11 the cap drifts from the page\'s', 'export const run = async ({ fetchImpl, venues, capMs = requestCapMs,', 'export const run = async ({ fetchImpl, venues, capMs = 15000,', 'K1'],
 ]
 

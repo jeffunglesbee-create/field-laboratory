@@ -69,3 +69,26 @@ the pre-commit hook, which is why the commit passed locally:
 The run was cancelled once five shards had failed, to stop spending Actions minutes. Before the next dispatch, every one of the
 113 distinct expectations in `mutation-check.mjs` is run here on this branch, and any that fails is rerun on main to tell a
 regression of mine from this sandbox's network.
+
+## Landed, and the done conditions read (2026-11-18)
+
+verify-full 44405492528 scored 530/530 on `11759510`; main fast-forwarded to `7d46564c` (the branch gained only docs and CI
+records after the gate, main one STATUS.md refresh).
+
+- Done condition 1, verify 44415866628 on `7d46564c`: `recorded weather: test/open-meteo-recorded.json ... live Open-Meteo
+  requests: 0`, refused location Warren McGuirk Alumni Stadium, the four new checks PASS.
+- Done condition 4: the first record in `outbox/weather-availability.jsonl`, run 44415866628, southcentralus, asked 552,
+  answered 552, refused 0, not answered 0, system address 167.114.211.86 (EAST), TLS ok.
+- Done condition 2, open-meteo-egress-probe 44415881767 (Open-Meteo resolved to 192.0.2.1): the recorded-weather checks
+  stayed GREEN under the fault (0 live requests, all four new checks PASS). The reporter then hit the step's 10-minute
+  timeout. My defect: 552 locations, 4 at a time, 8 s each with nothing answering, is about 18 minutes, which an outage
+  would also have cost verify. A healthy run takes about 8 s (23:03:23 to 23:03:32 in verify 44415866628).
+
+## The reporter gets a budget
+
+`weather-availability.mjs` is now bounded at 60 s for the whole run (BUDGET_MS, about seven times a healthy run), as the
+page bounds its slate with `slateDeadlineMs`. Past it no new wave starts; the locations not reached are recorded as
+`notAsked`, the record carries `locations` and `budgetMs`, and the first line reads `asked X of Y location(s)` (Rule 91).
+Not asked is a warning. Self-test 21/21 (B1 to B3, on an injected clock); 14 of 14 mutations, three new (the budget ignored,
+the unasked not counted, the coverage line hiding them). The probe's fault step prints the not-asked count beside its
+assertion, which is unchanged: everything asked went unanswered.
