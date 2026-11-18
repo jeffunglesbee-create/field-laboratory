@@ -228,3 +228,11 @@ Found while filing field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md`. S
 ARCHIVE_DB, read 2026-11-16, `sport='PGA Tour'` since 2026-10-16: `PGA Tour_2026-10-22_e401850917` (start `2026-10-22T04:00Z`), `..._2026-10-29_e401850978` (`2026-10-29T04:00Z`), `..._2026-11-06_e401850979` (`2026-11-05T05:00Z`), `..._2026-11-13_e401850980` (`2026-11-12T05:00Z`); `home`, `away` and `streams` null, no odds. So the done condition ("no `sport='PGA Tour'` row on a tournament day") does not hold, by a path step 2 did not reach. Whether `cc-cmd-followup.mjs` reported `false` on those dates was not read in this pass. The yesterday sweep (~8835-8880) shows no `individual` check either in its first lines; not read in full.
 
 Not fixed here: the fix is the same one-line gate on the seed write, and it belongs to this CC-CMD's step 2. Step 4 (deleting historical rows) still needs human approval.
+
+## 2026-11-18: CORRECTION to the 2026-11-16 note above, and the fix
+
+The 2026-11-16 note named the wrong writer. The pre-game seed cannot write a golf row: it iterates `gameMeta`, which the slate walk builds after `if (individual) continue;`, so no golf event ever enters it (this CC-CMD's own guard asserts that gate). The note was published from reading the seed's loop without checking what fills it (field-relay-nba Rule 100).
+
+The writer is the **yesterday catch-up**, which walks `LEAGUES` on its own with no `individual` check. The rows say so: every `sport='PGA Tour'` row since 2026-10-08 was created the day after its `date` and finalized at the same instant, carrying the top two players' scores (ARCHIVE_DB read 2026-11-18). Fixed in field-relay-nba `20eb710` (2026-11-18): `individual` destructured in that loop's head and the event skipped before its ESPN call. `scripts/check-individual-sports-not-archived.mjs` now holds it with a scoped `yesterdayGateState`: the old `gated` regex matched the final-score loop's gate for every loop and could not see this one. Red on the pre-fix source, green on the fix; the self-test's two new mutants caught.
+
+Done condition for this path: no `sport='PGA Tour'` row created after the deploy of `20eb710`. First readable after the RSM Classic's first completed round (2026-11-19 onward).
