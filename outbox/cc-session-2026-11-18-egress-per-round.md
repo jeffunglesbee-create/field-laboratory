@@ -41,3 +41,12 @@ requests grouped by that round's TLS state (`ok`, `stall`, `other`, `unread`). `
 It runs on whatever runner GitHub assigns, so the region is not chosen; the job log's `Region:` line is read after.
 It is Node's view, at the start of each round, not Chromium's. Rounds whose address stalls and rounds whose address
 answers, with their unanswered counts side by side, is the result; a cause is not claimed from one runner.
+
+## The run (2026-11-18 05:00Z to 05:31Z, westus2)
+
+Probe run 44241127086 on main `dffa3b98` (landed after verify-full 44233265188, 530/530). The system resolver gave WEST
+`51.81.167.44` in all 30 rounds. In rounds 0 and 1 TLS to WEST stalled (`no-tls-in-3000ms`, TCP 10 to 11 ms) while EAST
+`167.114.211.86` completed a handshake in about 134 ms from the same runner and egress address (`4.155.149.103`); from
+round 2 (05:04:18Z) WEST handshook in about 13 ms. Unanswered requests: 75 of 110 in the two stalled rounds, 0 of 1,540
+in the other 28, all `UND_ERR_CONNECT_TIMEOUT`. Recorded as an Observed section of
+`docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md`, with what one runner cannot show.

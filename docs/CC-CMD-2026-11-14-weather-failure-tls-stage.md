@@ -130,6 +130,27 @@ Differences from the plan.
 
 The first weather red after the landing is the test of the first bullet under "What this does not establish". Scheduled task `trig_01P3CmptrPTdomzfyKBwv7JV` reads it on Monday 2026-11-16 at 08:00 ET and writes `outbox/tls-first-red-<date>.md`. The session record is `outbox/cc-session-2026-11-14-tls-stage.md`.
 
+## Observed 2026-11-18: the same facts every minute for half an hour, on one runner (premises, not findings)
+
+Added under BUILD-ON-A by session `01CggeNb` (owner: "Run the DNS test"). `scripts/probe-rain-precip-pair.mjs` now calls
+`describeEgressFacts` at the start of each of its 30 rounds and groups that round's unanswered requests by TLS to the
+system's address (landed `dffa3b98` after verify-full 44233265188, 530 of 530). One run: `rain-precip-pair-probe.yml`
+44241127086, runner `westus2`, egress `4.155.149.103` throughout, 55 grounds, 05:00:48Z to 05:31:20Z,
+`outbox/rain-precip-pair-2026-11-14-2026-11-18T05-00-48.txt` and its `.jsonl` (every `egress-path:` line kept).
+
+| rounds | system address | TLS to it | TLS to the other address | unanswered |
+|---|---|---|---|---|
+| 0 (05:00:51Z) and 1 (05:03:21Z) | WEST `51.81.167.44` | `no-tls-in-3000ms` (tcp 10 to 11 ms) | EAST `167.114.211.86` ok, handshake 133 to 135 ms | 75 of 110 |
+| 2 to 29 (05:04:18Z on) | WEST `51.81.167.44` | ok, handshake about 12 to 14 ms | EAST ok | 0 of 1,540 |
+
+What it adds to the premises above, on this one runner: (a) "the address decides the outcome" does not hold as stated:
+the system gave WEST in all 30 rounds and the outcome changed. (b) TCP completing and TLS stalling does hold, and only
+for WEST, while EAST completed TLS from the same runner and egress address: so the runner's own TLS was working, and the
+stall was particular to WEST (the host behind it, or the path to it) for a window of a few minutes. Every unanswered
+request of the run fell inside that window. Not shown: why WEST stalled, how often such windows come, whether they come
+mostly at a runner's start (this one did; the pair probe's 2026-11-14 run on another westus2 runner lost requests in
+waves across its whole half hour, with no address recorded), and anything about Chromium.
+
 ## What this does not establish (said before it is built)
 
 The line describes Node's stack at a moment later than the page's window, as before. It can show, from the failing runner, that one address completes TCP and not a handshake while the other answers. It does not show that a given red was that stall: the premise runs were not the reds, and the first red after this lands is the test. It does not say why WEST advertises window 0, whether anything left the runner after the 90 printed capture lines, or what Chromium does.
