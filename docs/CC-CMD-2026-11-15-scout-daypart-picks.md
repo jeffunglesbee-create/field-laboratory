@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: the computation lives here; nothing in the client or the relay)
 **Filed:** 2026-11-15 by CC. The owner's word, the same day, choosing option B for the single pick: "B, and keep C for later, Opus has had a good idea with that and it deserves to be explored later."
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** SPECIFIED 2026-11-16: every design question is answered by the owner (windows and edges, out-of-window games, empty windows shown, a game in its kickoff window only, its own section, the name Deep Cuts). Ready to build on the owner's word. Golf stays out until field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md` gives it a real start.
+**Status:** BUILT 2026-11-16 (`63ffd556`, account `outbox/deep-cuts-2026-11-16.md`: `check:deep-cuts` 28/28 on the real 10-10 capture against a hand table, five mutations each red, a browser read of the tab). Status word set 2026-11-18 on the owner's choice ("A"): it read SPECIFIED, outside `scripts/cc-cmd-status-check.mjs`'s vocabulary, which kept `guards` red on main from 2026-11-16. Before the build it read: specified 2026-11-16: every design question is answered by the owner (windows and edges, out-of-window games, empty windows shown, a game in its kickoff window only, its own section, the name Deep Cuts). Ready to build on the owner's word. Golf stays out until field-relay-nba `docs/CC-CMD-2026-11-16-golf-tee-times.md` gives it a real start.
 
 ---
 
