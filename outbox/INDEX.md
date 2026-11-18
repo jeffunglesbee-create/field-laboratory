@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `430d93e` | 2026-11-18 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-18T01:18 [skip ci] |
+| `1ef384f` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `357b856` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Full time note is seen on the deployed page, and a second sample of the feed-final to archive-final gap |
 | `f73ee3e` | 2026-11-17 | [live-score-2026-11-17-20261117-2059Z.png](live-score-2026-11-17-20261117-2059Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `f73ee3e` | 2026-11-17 | [live-score-manifest-2026-11-17-20261117-2059Z.json](live-score-manifest-2026-11-17-20261117-2059Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
