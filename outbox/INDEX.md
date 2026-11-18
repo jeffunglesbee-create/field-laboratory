@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5fff53f` | 2026-11-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-18 [skip ci] |
+| `5fff53f` | 2026-11-18 | [sport-vocabulary-2026-11-18T08-43-03-805Z.json](sport-vocabulary-2026-11-18T08-43-03-805Z.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
+| `fd59b6a` | 2026-11-18 | [cc-session-2026-11-18-egress-per-round.md](cc-session-2026-11-18-egress-per-round.md) | docs: a half hour of per-minute egress facts: TLS to WEST stalled for two rounds, every unanswered request was in them |
+| `d36fd2f` | 2026-11-18 | [rain-precip-pair-2026-11-14-2026-11-18T05-00-48.jsonl](rain-precip-pair-2026-11-14-2026-11-18T05-00-48.jsonl) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `d36fd2f` | 2026-11-18 | [rain-precip-pair-2026-11-14-2026-11-18T05-00-48.txt](rain-precip-pair-2026-11-14-2026-11-18T05-00-48.txt) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `361fb78` | 2026-11-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8306ce5 [skip ci] |
+| `4967df7` | 2026-11-18 | [cc-session-2026-11-18-egress-per-round.md](cc-session-2026-11-18-egress-per-round.md) | feat: the rain-precip probe records the runner's address to Open-Meteo and TLS to it every round |
+| `f2247a8` | 2026-11-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `430d93e` | 2026-11-18 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-18T01:18 [skip ci] |
 | `1ef384f` | 2026-11-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `357b856` | 2026-11-17 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the Full time note is seen on the deployed page, and a second sample of the feed-final to archive-final gap |
