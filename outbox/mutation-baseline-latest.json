@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-18T04:58:56.054Z",
+  "at": "2026-11-18T22:52:40.772Z",
   "scope": "full",
-  "ran": 111,
-  "from_mutations": 1982,
+  "ran": 112,
+  "from_mutations": 1989,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -100,6 +100,10 @@
     },
     {
       "cmd": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?date=2026-05-15' node scripts/render-check.mjs --recorded-weather test/open-meteo-recorded.json --recorded-slate data/context-2026-05-15.json",
       "passed": true
     },
     {
@@ -455,16 +459,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      3507849,
-      3504507,
-      3982403,
-      3143689,
-      3924802,
-      3272480,
-      2811708,
-      2849957
+      3202340,
+      3447125,
+      3689664,
+      3105864,
+      3323401,
+      3392850,
+      2860147,
+      3525745
     ],
-    "longestMs": 3982403,
-    "sumMs": 26997395
+    "longestMs": 3689664,
+    "sumMs": 26547136
   }
 }
