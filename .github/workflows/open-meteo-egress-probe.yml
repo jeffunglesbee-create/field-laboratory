@@ -145,6 +145,32 @@ jobs:
           tail -n 40 "$RAW"
           node scripts/egress-path-lib.mjs --judge "$RAW" "$RC" "$OUT" "api.open-meteo.com resolves to ${FAULT:-nothing}"
 
+      # The split, under the same fault (docs/CC-CMD-2026-11-18-split-live-weather-check.md, done condition 2). With
+      # api.open-meteo.com resolving to 192.0.2.1, the recorded-weather render-check must stay GREEN (it never asks the host),
+      # and the availability reporter must exit 0 with a record in which nothing was answered and every location has a cause.
+      - name: Recorded weather and the availability record, under the fault
+        if: always()
+        timeout-minutes: 10
+        run: |
+          STAMP="${STAMP:-$(date -u +%Y%m%dT%H%M%SZ)}"
+          curl -sf -o /dev/null http://localhost:8080/ || { node scripts/serve.mjs & }
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+          trap 'sudo sed -i "/^192\.0\.2\.1 api\.open-meteo\.com$/d" /etc/hosts' EXIT
+          sudo tee -a /etc/hosts <<< "192.0.2.1 api.open-meteo.com"
+          echo "the name now resolves to: $(getent ahostsv4 api.open-meteo.com | head -1)"
+          npm run check:live -- --recorded-weather test/open-meteo-recorded.json
+          REC="outbox/weather-availability-fault-$STAMP.jsonl"
+          node scripts/weather-availability.mjs --out "$REC"
+          node -e '
+            const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8").trim().split("\n").at(-1))
+            const unanswered = Object.values(r.notAnswered).reduce((a, b) => a + b, 0)
+            console.log(`fault record: asked ${r.asked}, answered ${r.answered}, refused ${r.refused.length}, not answered ${unanswered} ${JSON.stringify(r.notAnswered)}`)
+            if (!(r.asked > 0 && r.answered === 0 && r.refused.length === 0 && unanswered === r.asked)) { console.log("FAIL: the fault record does not show every location unanswered"); process.exit(1) }
+          ' "$REC"
+
       # Only on main, and the check is in the script, not in `if:`. `git push origin HEAD:main` below pushes whatever this checkout's HEAD is, so a dispatch from a
       # branch would put that branch's commits on main unreviewed. On a branch the readings are in the log instead: every step above prints the artifact it wrote.
       # It is not an `if:` because this step has to run after a failed install too (it commits the verdict that says so), and scripts/check-browser-gate.py counts a
