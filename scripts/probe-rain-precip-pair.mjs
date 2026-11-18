@@ -102,6 +102,35 @@ export const causeKey = (err) =>
   err.causeCodes?.length ? `${err.cause ?? 'cause'}[${[...new Set(err.causeCodes)].sort().join(',')}]`
     : err.cause ?? (err.causeMessage ? `cause: ${err.causeMessage}` : err.name ?? 'unknown')
 
+/**
+ * The parts of an `egress-path:` line (scripts/egress-path-lib.mjs, describeEgressFacts) that say which
+ * address the system resolver gave and whether a TLS handshake to each address completed. Pure. Unreadable
+ * parts are null, never guessed. Added so one run shows, round by round, whether the requests that got no
+ * answer line up with the system's address stalling at TLS (docs/CC-CMD-2026-11-14-weather-failure-tls-stage.md).
+ */
+export const egressSummary = (line) => {
+  const sys = /\| dns-v4=ok (\S+) /.exec(line)
+  const tlsPart = /\| tls=(.*?) \| egress-v4=/.exec(line)
+  const tls = !tlsPart ? null : tlsPart[1].split(' ; ').map(t => {
+    const m = /^(\S+):\d+ (.+?) from (\S+)$/.exec(t.trim())
+    return m ? { addr: m[1], ok: /^ok /.test(m[2]), stall: /^no-tls/.test(m[2]), verdict: m[2], from: m[3] } : null
+  }).filter(Boolean)
+  const mine = sys && tls ? tls.find(t => t.addr === sys[1]) : undefined
+  return { system: sys ? sys[1] : null, tls, systemTls: mine ? (mine.ok ? 'ok' : mine.stall ? 'stall' : 'other') : null }
+}
+
+/** Requests with no answer, grouped by what TLS to the system's address did in that round. rounds: [{ round, systemTls }] */
+export const byEgress = (samples, rounds) => {
+  const out = {}
+  for (const r of rounds) {
+    const k = r.systemTls ?? 'unread'
+    const inRound = samples.filter(s => s.round === r.round)
+    const e = out[k] ||= { rounds: 0, requests: 0, unanswered: 0 }
+    e.rounds++; e.requests += inRound.length; e.unanswered += inRound.filter(s => s.failure).length
+  }
+  return out
+}
+
 /** samples: [{ round, ground, ok, precipitation, rain, violation, attribution?, failure? }] */
 export const summarize = ({ samples, grounds, rounds }) => {
   const expected = grounds.length * rounds
@@ -123,7 +152,7 @@ export const summarize = ({ samples, grounds, rounds }) => {
   return { expected, checked: read.length, violations: violations.length, wetAtStart, wetSamples: read.filter(s => s.precipitation > 0 || s.rain > 0).length, byGround, verdict, violationSamples: violations, unanswered: unanswered.length, byCause }
 }
 
-export const render = ({ date, summary, startedAt, finishedAt, rounds, everyS }) => {
+export const render = ({ date, summary, startedAt, finishedAt, rounds, everyS, egress = null }) => {
   const s = summary
   const rate = s.checked ? `${s.violations} of ${s.checked} read responses (${(100 * s.violations / s.checked).toFixed(2)}%)` : 'no response read'
   const lines = [
@@ -137,6 +166,12 @@ export const render = ({ date, summary, startedAt, finishedAt, rounds, everyS })
     'ground                                   read  violations  flips',
     ...Object.entries(s.byGround).map(([g, v]) => `${g.padEnd(40)} ${String(v.read).padStart(4)}  ${String(v.violations).padStart(10)}  ${String(v.flips).padStart(5)}`),
   ]
+  if (egress) {
+    lines.push('', 'the system resolver\'s address and TLS to it, per round (egress-path-lib, Node, at the start of each round):')
+    for (const r of egress.rounds) lines.push(`  round ${String(r.round).padStart(2)}  ${String(r.system ?? 'unread').padEnd(16)} tls ${String(r.systemTls ?? 'unread').padEnd(6)} ${r.unanswered}/${r.requests} unanswered`)
+    lines.push('requests with no answer, by TLS to the system\'s address that round:')
+    for (const [k, v] of Object.entries(egress.grouped)) lines.push(`  ${k}: ${v.unanswered} of ${v.requests} requests in ${v.rounds} round(s)`)
+  }
   if (s.violationSamples.length) {
     lines.push('', 'each violation, with the single models whose values equal it (a match, not a proof):')
     for (const v of s.violationSamples) {
@@ -179,9 +214,15 @@ async function live () {
   const startedAt = new Date().toISOString()
   console.log(`slate ${date}: ${grounds.length} ground(s): ${grounds.join(', ')}; ${rounds} round(s) every ${everyS}s`)
 
+  const { describeEgressFacts } = await import('./egress-path-lib.mjs')
+  const egressRounds = []
   const samples = []
   for (let round = 0; round < rounds; round++) {
     const t0 = Date.now()
+    const snap = await describeEgressFacts({ host: 'api.open-meteo.com' })
+    const es = egressSummary(snap.line)
+    egressRounds.push({ round, ...es })
+    appendFileSync(`${base}.jsonl`, JSON.stringify({ kind: 'egress', round, at: new Date().toISOString(), line: snap.line }) + '\n')
     for (let i = 0; i < grounds.length; i += WAVE) {
       const wave = grounds.slice(i, i + WAVE)
       const answers = await Promise.all(wave.map(g => get(forecastUrl(table.get(g).Where))))
@@ -214,7 +255,11 @@ async function live () {
   }
 
   const summary = summarize({ samples, grounds, rounds })
-  const text = render({ date, summary, startedAt, finishedAt: new Date().toISOString(), rounds, everyS })
+  const egress = {
+    rounds: egressRounds.map(r => ({ ...r, requests: samples.filter(x => x.round === r.round).length, unanswered: samples.filter(x => x.round === r.round && x.failure).length })),
+    grouped: byEgress(samples, egressRounds),
+  }
+  const text = render({ date, summary, startedAt, finishedAt: new Date().toISOString(), rounds, everyS, egress })
   writeFileSync(`${base}.txt`, text)
   console.log(text)
   console.log(`written: ${base}.txt and ${base}.jsonl`)
@@ -283,6 +328,19 @@ function selfTest () {
   check('E5 a non-200 that answered is not an unanswered request', summarize({ samples: [{ round: 0, ground: 'A', ok: false, status: 429, violation: false }], grounds: ['A'], rounds: 1 }).unanswered === 0)
   check('O5 the causes are printed, most frequent first',
     /^requests with no answer: 3, by cause: ECONNRESET 2, TimeoutError 1$/m.test(render({ date: 'd', summary: failed, startedAt: 's', finishedAt: 'f', rounds: 2, everyS: 60 })))
+
+  // Verbatim from the one readable red: live-check 43862583632, job 133282924627 (outbox/tls-first-red-2026-11-16.md), read from its job log 2026-11-18.
+  const RED = "egress-path: probe-error=TypeError \"fetch failed\" < ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT \"Connect Timeout Error (attempted address: api.open-meteo.com:443, timeout: 10000ms)\" | cause=UND_ERR_CONNECT_TIMEOUT stage=connect-budget | node=v22.23.4 autoSelectFamily=true attemptTimeout=250ms resultOrder=verbatim resolvers=127.0.0.100,127.0.0.53,168.63.129.16 | dns-v4=ok 51.81.167.44 2ms | dns-v6=ENOTFOUND 36ms | public-v4=doh 8.8.8.8 ok 51.81.167.44 51ms | view-west-v4=doh 8.8.8.8 ecs 20.80.173.0/24 ok 51.81.167.44 65ms | view-east-v4=doh 8.8.8.8 ecs 68.220.172.0/24 ok 167.114.211.86 48ms | connect-v4=51.81.167.44:443 ok 11ms | connect-v6=not attempted (no v6 address: ENOTFOUND) | tls=51.81.167.44:443 no-tls-in-3000ms (tcp 11ms) from system,public,west ; 167.114.211.86:443 ok (tcp 67ms, handshake 135ms) from east | egress-v4=4.155.244.132 | egress-v6=unreadable (ENETUNREACH) | runner=image ubuntu26@20261111.196.1 region westus2 cloud Azure (Node's own network stack at that later moment, not Chromium's). The page reported: Weather is unavailable: all 1 venue requests failed. | Reported: M&T Bank Stadium: signal timed out after 8000ms. Request timings (start+duration): 949+8001ms 8949+5999ms. Page built from: 231dde7"
+  const er = egressSummary(RED)
+  check('X1 the system address and a TLS stall to it are read from a real red\'s fields', er.system === '51.81.167.44' && er.systemTls === 'stall' && er.tls.length === 2 && er.tls[1].ok)
+  check('X2 a line with the system address answering reads ok', egressSummary(RED.replace('dns-v4=ok 51.81.167.44', 'dns-v4=ok 167.114.211.86')).systemTls === 'ok')
+  check('X3 an unreadable line is null, not guessed', egressSummary('egress-path: nothing here').system === null && egressSummary('egress-path: nothing here').systemTls === null)
+  const gs = [{ round: 0, ground: 'A', failure: 'UND_ERR_CONNECT_TIMEOUT' }, { round: 0, ground: 'B', failure: 'UND_ERR_CONNECT_TIMEOUT' }, { round: 1, ground: 'A', ok: true }, { round: 1, ground: 'B', ok: true }]
+  const ge = byEgress(gs, [{ round: 0, systemTls: 'stall' }, { round: 1, systemTls: 'ok' }])
+  check('X4 unanswered requests are grouped by that round\'s TLS to the system address', ge.stall.unanswered === 2 && ge.stall.requests === 2 && ge.ok.unanswered === 0 && ge.ok.rounds === 1)
+  const etxt = render({ date: 'd', summary: summarize({ samples: gs, grounds: ['A', 'B'], rounds: 2 }), startedAt: 's', finishedAt: 'f', rounds: 2, everyS: 60,
+    egress: { rounds: [{ round: 0, system: '51.81.167.44', systemTls: 'stall', requests: 2, unanswered: 2 }], grouped: ge } })
+  check('O6 the per-round address, its TLS, and the grouping are printed', /round  0  51\.81\.167\.44 +tls stall +2\/2 unanswered/.test(etxt) && /^  stall: 2 of 2 requests in 1 round\(s\)$/m.test(etxt))
 
   const txt = render({ date: '2026-11-14', summary: wet, startedAt: 's', finishedAt: 'f', rounds: 3, everyS: 60 })
   check('O1 the first line is the coverage (Rule 91)', txt.split('\n')[0] === 'checked 5 of 6 expected samples')

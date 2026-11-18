@@ -43,6 +43,10 @@ const MUTATIONS = [
   ['P15 a code-less cause is labelled by name only', "err.cause ?? (err.causeMessage ? `cause: ${err.causeMessage}` : err.name ?? 'unknown')", "err.cause ?? err.name ?? 'unknown'", 'E6'],
   ['P16 unanswered requests are not counted', 'const unanswered = samples.filter(s => s.failure)', 'const unanswered = []', 'E4'],
   ['P17 the cause line is not printed', '    `requests with no answer: ${s.unanswered}`', '    void `requests with no answer: ${s.unanswered}`', 'O5'],
+  ['P18 the system address is read from the wrong source', "const sys = /\\| dns-v4=ok (\\S+) /.exec(line)", "const sys = /\\| public-v4=doh \\S+ ok (\\S+) /.exec(line)", 'X2'],
+  ['P19 a stall is not told from an answer', "stall: /^no-tls/.test(m[2])", "stall: false", 'X1'],
+  ['P20 failures are not grouped by round', 'const inRound = samples.filter(s => s.round === r.round)', 'const inRound = samples', 'X4'],
+  ['P21 the per-round table is not printed', "    for (const r of egress.rounds) lines.push(", "    for (const r of []) lines.push(", 'O6'],
 ]
 
 // Resolved: a copy reached through a symlinked $TMPDIR is not the entry point of its own file, so its
