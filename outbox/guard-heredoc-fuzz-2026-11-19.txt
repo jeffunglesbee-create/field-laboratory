@@ -1,5 +1,5 @@
-head 016b0c9a, GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)
-=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 1000000 1   (GUARD = the head guard, OLD = the guard of c95eebcf, the carried-state reader)
+head 652b23e7, GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 1000000 1   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
 generator: gen alphabet: see the lists at the top of this file
 {
  "scripts": 100000,
@@ -9,182 +9,149 @@ generator: gen alphabet: see the lists at the top of this file
  "new_errors": 0,
  "new_VIOLATIONS(accepted & ran)": 0,
  "new_VIOLATIONS_plain": 0,
- "old_accepts_opaque_ok": 15182,
- "old_accepts_plain": 13337,
+ "old_accepts_opaque_ok": 14387,
+ "old_accepts_plain": 12650,
  "old_errors": 0,
  "old_VIOLATIONS(accepted & ran)": 0,
  "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 14387,
+ "REACHED: ...of them with a heredoc read as data": 3944,
+ "REACHED: ...of them with a string joined over lines": 6593,
  "accepted_by_new_not_old": 0,
- "accepted_by_old_not_new": 795
+ "accepted_by_old_not_new": 0
 }
-=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 2000000 2   (GUARD = the head guard, OLD = the guard of c95eebcf, the carried-state reader)
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 2000000 2   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
 generator: gen2 alphabet: {"operator contexts": 24, "readers": 11, "terminators": 10, "body lines": 38, "string units": 20, "tail lines": 14, "line separators": ["\n", "\r", "\u2028", "\u000b", "\f", "\u0085"]}
 {
  "scripts": 100000,
  "marker_ran": 26353,
- "new_accepts_opaque_ok": 11052,
- "new_accepts_plain": 3933,
+ "new_accepts_opaque_ok": 11014,
+ "new_accepts_plain": 3924,
  "new_errors": 0,
  "new_VIOLATIONS(accepted & ran)": 0,
  "new_VIOLATIONS_plain": 0,
- "old_accepts_opaque_ok": 11939,
- "old_accepts_plain": 4358,
+ "old_accepts_opaque_ok": 11052,
+ "old_accepts_plain": 3933,
  "old_errors": 0,
  "old_VIOLATIONS(accepted & ran)": 0,
  "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 11014,
+ "REACHED: ...of them with a heredoc read as data": 702,
+ "REACHED: ...of them with a string joined over lines": 1522,
  "accepted_by_new_not_old": 9,
- "accepted_by_old_not_new": 896
+ "accepted_by_old_not_new": 47
 }
-=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 3000000 3   (GUARD = the head guard, OLD = the guard of c95eebcf, the carried-state reader)
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 3000000 3   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
 generator: gen3 alphabet: {"openers": 18, "lines before the operator": 9, "operator prefixes": 7, "operator suffixes": 10, "closers": 5, "readers": 11, "terminators": 10, "body lines": 38, "tail lines": 14}
 {
  "scripts": 100000,
- "marker_ran": 10515,
- "new_accepts_opaque_ok": 7275,
- "new_accepts_plain": 2779,
+ "marker_ran": 10516,
+ "new_accepts_opaque_ok": 7288,
+ "new_accepts_plain": 2784,
  "new_errors": 0,
  "new_VIOLATIONS(accepted & ran)": 0,
  "new_VIOLATIONS_plain": 0,
- "old_accepts_opaque_ok": 7657,
- "old_accepts_plain": 3009,
+ "old_accepts_opaque_ok": 7275,
+ "old_accepts_plain": 2779,
  "old_errors": 0,
  "old_VIOLATIONS(accepted & ran)": 0,
  "old_VIOLATIONS_plain": 0,
- "accepted_by_new_not_old": 2,
- "accepted_by_old_not_new": 384
+ "REACHED: scripts the new guard accepts": 7288,
+ "REACHED: ...of them with a heredoc read as data": 117,
+ "REACHED: ...of them with a string joined over lines": 778,
+ "accepted_by_new_not_old": 23,
+ "accepted_by_old_not_new": 10
 }
-
-CONTROLS (Rule 91: the test must be able to fail). Each runs gen3, 30000 scripts, seeds 3000000 to 3029999, with the guard under test as GUARD and the head guard as OLD.
-=== GUARD = the carried-state reader of 7e31228a, a known-wrong guard
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 100000 4000000 4   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
+generator: gen4 alphabet: {"ordinary and contested lines": 24, "operator lines": 12, "body lines": 18, "string units": 9}
 {
- "scripts": 30000,
- "marker_ran": 3162,
- "new_accepts_opaque_ok": 2572,
- "new_accepts_plain": 980,
- "new_errors": 0,
- "new_VIOLATIONS(accepted & ran)": 11,
- "new_VIOLATIONS_plain": 3,
- "old_accepts_opaque_ok": 2193,
- "old_accepts_plain": 818,
- "old_errors": 0,
- "old_VIOLATIONS(accepted & ran)": 0,
- "old_VIOLATIONS_plain": 0,
- "accepted_by_new_not_old": 408,
- "accepted_by_old_not_new": 29
-}
------ 3003957 None 
-tr -d '"' < /dev/null
-tr -d '"' < /dev/null
-echo $(echo $(
-echo \) \) ; grep -c x <<"_E1" $(
-mark_ran # '
-mark_ran)
-that's
-_E1
-
-))
------ 3006650 None 
-((
-# c
-echo ) ; cat >/dev/null <<\EOF >$(echo f
-plain text here
-plain text here
-${x:-$(mark_ran)}
-EOF
-))
------ 3008952 None 
-((
-true
-echo ) ; cat <<\EOF >$(echo f
-mark_ran # '
-(mark_ran)
-EOF
-
-))
-TS=$(date)
------ 3009509 None 
-x=`
-echo a
-echo '(' ; wc -l <<"EOF" # (x
-"q"
-EOF);
-` mark_ran
-echo "z
-{
-a) true ;;
-true ${x:-))}; bash <<-E_1 ; V=$(
-$(cat <<X)
-it's
-mark_ran)
-E_1X
-}
-TS=$(date)
-x="$(
-mark_ran
-echo ) ; cat >/dev/null <<\EOF ; ( 
-EOF
-)"
------ 3012151 None 
-echo $(echo $(
-true
-echo '(' ; cat >/dev/null <<\_E1 >$(echo f
-mark_ran)
-`mark_ran
-_E1
-))
-echo "z
------ 3013875 None 
-x=$(
-echo ]
-echo \) \) ; tr a b <<'EOF' $(echo
-$(mark_ran)
-EOF)
-EOF
-)
-)
-echo "z
-=== GUARD = the head guard with the dirty stop's 'st.stack or st.brk' removed
-{
- "scripts": 30000,
- "marker_ran": 3162,
- "new_accepts_opaque_ok": 2260,
- "new_accepts_plain": 842,
- "new_errors": 0,
- "new_VIOLATIONS(accepted & ran)": 1,
- "new_VIOLATIONS_plain": 1,
- "old_accepts_opaque_ok": 2193,
- "old_accepts_plain": 818,
- "old_errors": 0,
- "old_VIOLATIONS(accepted & ran)": 0,
- "old_VIOLATIONS_plain": 0,
- "accepted_by_new_not_old": 67,
- "accepted_by_old_not_new": 0
-}
------ 3014379 None 
-echo ${x:-a
-# c
-echo '(' ; cat >/dev/null <<"EOF"
-X
-mark_ran
-${x:-$(mark_ran)}
-EOF
-}
-=== GUARD = the head guard with the operator context check 'sc.stack or sc.brk' removed
-{
- "scripts": 30000,
- "marker_ran": 3163,
- "new_accepts_opaque_ok": 2193,
- "new_accepts_plain": 818,
+ "scripts": 100000,
+ "marker_ran": 44738,
+ "new_accepts_opaque_ok": 6522,
+ "new_accepts_plain": 3490,
  "new_errors": 0,
  "new_VIOLATIONS(accepted & ran)": 0,
  "new_VIOLATIONS_plain": 0,
- "old_accepts_opaque_ok": 2193,
- "old_accepts_plain": 818,
+ "old_accepts_opaque_ok": 20138,
+ "old_accepts_plain": 5138,
  "old_errors": 0,
- "old_VIOLATIONS(accepted & ran)": 0,
- "old_VIOLATIONS_plain": 0,
+ "old_VIOLATIONS(accepted & ran)": 7478,
+ "old_VIOLATIONS_plain": 91,
+ "REACHED: scripts the new guard accepts": 6522,
+ "REACHED: ...of them with a heredoc read as data": 1663,
+ "REACHED: ...of them with a string joined over lines": 3429,
  "accepted_by_new_not_old": 0,
- "accepted_by_old_not_new": 0
+ "accepted_by_old_not_new": 13616
 }
 
-Reading of the controls: the first two guards show false greens (11 and 1 of 30000), so the harness can fail. The third shows none: gen3 draws no script in which the operator context check decides the verdict (an operator inside a quote or a substitution of its own line mostly has no reader the splitter can find, so it is code with or without the clause); the clause is pinned by the self-test rows and the mutation entries, not by this fuzz.
+CONTROLS (Rule 91: the test must be able to fail). Each runs gen4, 30000 scripts, seeds 4000000 to 4029999, with the guard under test as GUARD and the head guard as OLD.
+=== GUARD = 0ba7f399 (the strict reader before the narrowing), a known-wrong guard
+generator: gen4 alphabet: {"ordinary and contested lines": 24, "operator lines": 12, "body lines": 18, "string units": 9}
+{
+ "scripts": 30000,
+ "marker_ran": 13335,
+ "new_accepts_opaque_ok": 6038,
+ "new_accepts_plain": 1510,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 2236,
+ "new_VIOLATIONS_plain": 29,
+ "old_accepts_opaque_ok": 1910,
+ "old_accepts_plain": 1010,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 6038,
+ "REACHED: ...of them with a heredoc read as data": 2458,
+ "REACHED: ...of them with a string joined over lines": 4353,
+ "accepted_by_new_not_old": 4128,
+ "accepted_by_old_not_new": 0
+}
+----- 4000006 None 
+echo "a
+=== GUARD = the head with the exotic-form stop removed
+generator: gen4 alphabet: {"ordinary and contested lines": 24, "operator lines": 12, "body lines": 18, "string units": 9}
+{
+ "scripts": 30000,
+ "marker_ran": 13335,
+ "new_accepts_opaque_ok": 2945,
+ "new_accepts_plain": 1455,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 55,
+ "new_VIOLATIONS_plain": 36,
+ "old_accepts_opaque_ok": 1910,
+ "old_accepts_plain": 1010,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 2945,
+ "REACHED: ...of them with a heredoc read as data": 1009,
+ "REACHED: ...of them with a string joined over lines": 1592,
+ "accepted_by_new_not_old": 1035,
+ "accepted_by_old_not_new": 0
+}
+----- 4000041 None 
+(( (true) cat <<EOF )) || true
+=== GUARD = the head with the closing-line check off
+generator: gen4 alphabet: {"ordinary and contested lines": 24, "operator lines": 12, "body lines": 18, "string units": 9}
+{
+ "scripts": 30000,
+ "marker_ran": 13335,
+ "new_accepts_opaque_ok": 2349,
+ "new_accepts_plain": 1010,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 372,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 1910,
+ "old_accepts_plain": 1010,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 2349,
+ "REACHED: ...of them with a heredoc read as data": 518,
+ "REACHED: ...of them with a string joined over lines": 1463,
+ "accepted_by_new_not_old": 439,
+ "accepted_by_old_not_new": 0
+}
+----- 4000020 None 
+echo "a
+FUZZDONE
