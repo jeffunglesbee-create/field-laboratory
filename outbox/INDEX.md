@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7de8fbc` | 2026-11-18 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44415866628 |
+| `5e1508e` | 2026-11-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 1175951 [skip ci] |
+| `92b07fe` | 2026-11-18 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | docs: option 3 still holds where the live check is strict; the question put to the owner rested on a false premise |
+| `9481a3f` | 2026-11-18 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | fix: two self-tests that read what the split changed, the late-probe anchor and the guard's pinned count |
+| `684e55e` | 2026-11-18 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | feat: split the live weather check, recorded bodies gate the chips, live availability is reported |
+| `684e55e` | 2026-11-18 | [open-meteo-fixture-build-2026-11-18.mjs](open-meteo-fixture-build-2026-11-18.mjs) | feat: split the live weather check, recorded bodies gate the chips, live availability is reported |
 | `a2b4ef3` | 2026-11-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-18 [skip ci] |
 | `a2b4ef3` | 2026-11-18 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
 | `a2b4ef3` | 2026-11-18 | [sport-vocabulary-2026-11-18T20-18-28-702Z.json](sport-vocabulary-2026-11-18T20-18-28-702Z.json) | drift-sentinel: ok on 2026-11-18 [skip ci] |
