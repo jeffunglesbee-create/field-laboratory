@@ -92,3 +92,13 @@ page bounds its slate with `slateDeadlineMs`. Past it no new wave starts; the lo
 Not asked is a warning. Self-test 21/21 (B1 to B3, on an injected clock); 14 of 14 mutations, three new (the budget ignored,
 the unasked not counted, the coverage line hiding them). The probe's fault step prints the not-asked count beside its
 assertion, which is unchanged: everything asked went unanswered.
+
+## Closed (2026-11-19)
+
+The budget landed on main as `cfa9b7f8` after verify-full 44418656458 scored 530/530. Done condition 2, re-run as
+open-meteo-egress-probe 44428435103: recorded weather green under the fault, the reporter done in 70 s, 32 asked, 32 not
+answered (`TimeoutError`), 520 not asked past the 60 s budget. verify 44428423540 wrote the ledger's second record (552 of
+552 answered, southcentralus). The CC-CMD is DONE, with all four done conditions and their run ids in it.
+
+Also on main this session: `da297010`, the Deep Cuts CC-CMD's status word set to BUILT on the owner's "A", which ended a
+`guards` red that had held on main since 2026-11-16 (green on 44417455975 and 44428423341).

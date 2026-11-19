@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-18 by CC, on the owner's word ("Split the check", 2026-11-18), after a Rule 42 analysis and the per-round egress run
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** BUILT 2026-11-18, on branch `split-live-weather`; Tasks 0 to 4 done here, Task 5 (scored gate, landing, done conditions) in progress. Approved in direction by the owner ("Split the check").
+**Status:** DONE 2026-11-19. Landed on main `7d46564c` (verify-full 44405492528, 530/530) and `cfa9b7f8` (the reporter's budget, verify-full 44418656458, 530/530); all four done conditions read on main, below. Approved by the owner ("Split the check").
 
 ---
 
@@ -106,3 +106,20 @@ Not changed: render-check's default live mode (`npm run check:live` with no flag
 - Task 4: seven `mutation-check.mjs` entries against `?date=2026-05-15` with `data/context-2026-05-15.json` (two known
   locations, S.C.G. and Marrara Oval), each run here first and red by its named check; `scripts/mutate-weather-availability.mjs`,
   11 of 11.
+
+## Done conditions, read on main (2026-11-19)
+
+1. verify 44415866628 (`7d46564c`) and 44428423540 (`cfa9b7f8`), live-slate step: `recorded weather:
+   test/open-meteo-recorded.json ... live Open-Meteo requests: 0`, the four new checks PASS. MET.
+2. open-meteo-egress-probe 44428435103 (`cfa9b7f8`, api.open-meteo.com resolved to 192.0.2.1): recorded-weather checks
+   GREEN (0 live requests); the reporter, bounded, wrote `asked 32 of 552 ... 32 not answered; 520 not asked, the 60000ms
+   budget spent`, cause `TimeoutError 32` (`outbox/weather-availability-fault-20261119T002309Z.jsonl`); the step took 70 s.
+   MET. The first attempt, 44415881767 on `7d46564c`, kept the recorded checks green but the unbounded reporter hit the
+   step's 10-minute timeout; that was a defect of this build, fixed by the budget.
+3. Mutations: the seven `mutation-check.mjs` entries are scored in both gates; `mutate-weather-availability.mjs` 14 of 14.
+   MET.
+4. `outbox/weather-availability.jsonl`: one record per verify run on main from the landing, two so far (44415866628,
+   44428423540), both southcentralus, 552 of 552 answered. MET, and it accrues by construction.
+
+Observed, not concluded: in 44428423540 all 552 requests were answered, yet the egress read after them recorded TLS to the
+system address (EAST, 167.114.211.86) as `stall`. One reading; the ledger will show whether it recurs.
