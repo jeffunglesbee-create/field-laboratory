@@ -10625,6 +10625,16 @@ const MUTATIONS = [
   },
 
   {
+    id: "browser-gate-close-line-physical",
+    file: "scripts/check-browser-gate.py",
+    claim: "the closing line of a string is judged with what a backslash joined to it, not only its last physical piece (review 4, T4-2)",
+    find: "        if joining and seg and not _flat_subs(blank_quoted(seg + text[text.rfind(\"\\n\") + 1:])):",
+    replace: "        if joining and seg and not _flat_subs(blank_quoted(seg + line)):",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+
+  {
     id: "browser-gate-exotic-dbl-bracket",
     file: "scripts/check-browser-gate.py",
     claim: "a `[[` test with a parenthesis after it is a form the reader does not follow (a regex group or an extglob pattern holds `<<EOF` as text; review 4, EC-1)",
