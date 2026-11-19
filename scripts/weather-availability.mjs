@@ -14,6 +14,11 @@
 // and not answered, by cause (the code in `e.cause`, never "fetch failed": errorOf/causeKey from
 // probe-rain-precip-pair.mjs), plus Node's path to the host after the requests (egress-path-lib).
 //
+// BUDGET: the whole run is bounded, as the page bounds its slate (`slateDeadlineMs`). A healthy run asks all 552 locations in
+// about 8 s (verify 44415866628); with nothing answering, 4 at a time at 8 s each would take 18 minutes, which the
+// fault-injected run 44415881767 measured by hitting its 10-minute step timeout. Past the budget no new wave starts, and
+// the locations not reached are counted as not asked, beside the ones asked: the coverage line says "asked X of Y".
+//
 // EXIT: 0 on any network outcome, including every request unanswered. NOT 0 when the reporter is
 // broken: it cannot write its record, or the record it wrote does not read back. A reporter that
 // cannot report must not pass as a quiet host.
@@ -60,11 +65,15 @@ export const classify = outcome => {
   return d.tag === 0 ? { kind: 'answered' } : { kind: 'refused', message: String(d.fields?.[0] ?? 'decode failed') }
 }
 
+export const BUDGET_MS = 60_000
+
 export const tally = results => {
   const notAnswered = {}
   for (const r of results.filter(r => r.kind === 'not-answered')) notAnswered[r.cause] = (notAnswered[r.cause] ?? 0) + 1
   return {
-    asked: results.length,
+    locations: results.length,
+    asked: results.filter(r => r.kind !== 'not-asked').length,
+    notAsked: results.filter(r => r.kind === 'not-asked').length,
     answered: results.filter(r => r.kind === 'answered').length,
     refused: results.filter(r => r.kind === 'refused').map(r => ({ venue: r.venue, message: r.message })),
     notAnswered,
@@ -79,11 +88,16 @@ export const regionOf = line => {
 }
 
 /** The measurement. Never rejects on a network outcome: `ask` resolves, the egress read is bounded. */
-export const run = async ({ fetchImpl, venues, capMs = requestCapMs, wave = WAVE, egress, env = process.env, now = () => new Date() }) => {
+export const run = async ({ fetchImpl, venues, capMs = requestCapMs, wave = WAVE, budgetMs = BUDGET_MS, clock = () => Date.now(), egress, env = process.env, now = () => new Date() }) => {
   const at = now().toISOString()
   const locs = locations(venues)
   const results = []
+  const started = clock()
   for (let i = 0; i < locs.length; i += wave) {
+    if (clock() - started >= budgetMs) {
+      for (const l of locs.slice(i)) results.push({ venue: l.venue, kind: 'not-asked' })
+      break
+    }
     const batch = locs.slice(i, i + wave)
     const outs = await Promise.all(batch.map(l => ask(fetchImpl, l.url, capMs)))
     batch.forEach((l, j) => results.push({ venue: l.venue, ...classify(outs[j]) }))
@@ -93,7 +107,7 @@ export const run = async ({ fetchImpl, venues, capMs = requestCapMs, wave = WAVE
   const e = egressSummary(line)
   return {
     at, sha: env.GITHUB_SHA ?? null, run: env.GITHUB_RUN_ID ?? null, attempt: env.GITHUB_RUN_ATTEMPT ?? null,
-    event: env.GITHUB_EVENT_NAME ?? null, region: regionOf(line), capMs, wave,
+    event: env.GITHUB_EVENT_NAME ?? null, region: regionOf(line), capMs, wave, budgetMs,
     ...tally(results),
     egress: { system: e.system, systemTls: e.systemTls, line },
   }
@@ -112,12 +126,13 @@ export const render = rec => {
   const causes = Object.entries(rec.notAnswered).map(([k, n]) => `${k} ${n}`).join(', ')
   const notAnswered = rec.asked - rec.answered - rec.refused.length
   const lines = [
-    `asked ${rec.asked} location(s): ${rec.answered} answered, ${rec.refused.length} refused by the decoder, ${notAnswered} not answered`,
+    `asked ${rec.asked} of ${rec.locations} location(s): ${rec.answered} answered, ${rec.refused.length} refused by the decoder, ${notAnswered} not answered` +
+      (rec.notAsked ? `; ${rec.notAsked} not asked, the ${rec.budgetMs}ms budget spent` : ''),
     `not answered, by cause: ${causes || 'none'}`,
     ...rec.refused.map(r => `refused: ${r.venue} — ${r.message}`),
     `region: ${rec.region ?? 'unread'}; system address ${rec.egress.system ?? 'unread'}, TLS to it ${rec.egress.systemTls ?? 'unread'}`,
   ]
-  const warning = rec.refused.length + notAnswered > 0
+  const warning = rec.refused.length + notAnswered + rec.notAsked > 0
     ? `::warning::Open-Meteo from this runner: ${notAnswered} of ${rec.asked} not answered (${causes || 'none'}), ` +
       `${rec.refused.length} refused. Reported to outbox/weather-availability.jsonl; not a gate (the page's weather is gated on recorded bodies).`
     : null
@@ -176,13 +191,25 @@ const selfTest = async () => {
     rec.egress.system === '51.81.167.44' && rec.egress.systemTls === 'stall', JSON.stringify({ region: rec.region, e: rec.egress.system, t: rec.egress.systemTls }))
 
   const { lines, warning } = render(rec)
-  check('O1 the coverage line is first', lines[0] === `asked ${locs.length} location(s): ${locs.length - 3} answered, 1 refused by the decoder, 2 not answered`, lines[0])
+  check('O1 the coverage line is first', lines[0] === `asked ${locs.length} of ${locs.length} location(s): ${locs.length - 3} answered, 1 refused by the decoder, 2 not answered`, lines[0])
   check('O2 the causes and the refusal are printed', lines.some(l => l.includes('UND_ERR_CONNECT_TIMEOUT 1')) && lines.some(l => l.startsWith(`refused: ${locs[0].venue}`)))
   check('O3 anything not answered or refused is a warning', warning !== null && warning.startsWith('::warning::'))
   const clean = await run({ fetchImpl: async () => reply(200, good), venues, egress, env: {} })
   check('O4 a clean run is not a warning', render(clean).warning === null)
   const onlyRefused = await run({ fetchImpl: async url => reply(200, url === locs[0].url ? refused : good), venues, egress, env: {} })
   check('O5 a refusal alone is a warning', onlyRefused.refused.length === 1 && render(onlyRefused).warning !== null)
+
+  // The budget, on a clock that advances 10 s per wave: with a 25 s budget, three waves start and the rest are not asked.
+  let tick = 0, asked = 0
+  const slow = await run({ fetchImpl: async () => { asked++; tick += 10_000 / WAVE; throw coded('UND_ERR_CONNECT_TIMEOUT') },
+    venues, egress, env: {}, budgetMs: 25_000, clock: () => tick })
+  check('B1 past the budget no new wave starts, and the rest are counted as not asked', asked === 3 * WAVE &&
+    slow.asked === 3 * WAVE && slow.notAsked === locs.length - 3 * WAVE && slow.locations === locs.length &&
+    slow.notAnswered.UND_ERR_CONNECT_TIMEOUT === 3 * WAVE, JSON.stringify({ asked, a: slow.asked, n: slow.notAsked, u: slow.notAnswered }))
+  const sl = render(slow)
+  check('B2 the coverage line says how many were not asked, and it is a warning', sl.lines[0].startsWith(`asked ${3 * WAVE} of ${locs.length} location(s)`) &&
+    sl.lines[0].endsWith(`; ${locs.length - 3 * WAVE} not asked, the 25000ms budget spent`) && sl.warning !== null, sl.lines[0])
+  check('B3 the budget is a minute, about seven times a healthy run', BUDGET_MS === 60_000 && rec.budgetMs === BUDGET_MS)
 
   const dir = mkdtempSync(join(tmpdir(), 'weather-availability-'))
   try {

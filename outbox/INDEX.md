@@ -12,6 +12,27 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `74ff24d` | 2026-11-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-19 [skip ci] |
+| `74ff24d` | 2026-11-19 | [sport-vocabulary-2026-11-19T08-58-19-647Z.json](sport-vocabulary-2026-11-19T08-58-19-647Z.json) | drift-sentinel: ok on 2026-11-19 [skip ci] |
+| `4e2faff` | 2026-11-19 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-19T00:43 [skip ci] |
+| `e0e4af8` | 2026-11-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `5a6733b` | 2026-11-19 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | docs: the split of the live weather check is DONE, all four done conditions read on main |
+| `3677660` | 2026-11-19 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44428423540 |
+| `cccac8d` | 2026-11-19 | [egress-path-e2e-20261119T002309Z.txt](egress-path-e2e-20261119T002309Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `cccac8d` | 2026-11-19 | [egress-path-live-20261119T002309Z.txt](egress-path-live-20261119T002309Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `cccac8d` | 2026-11-19 | [egress-path-survey-20261119T002309Z.txt](egress-path-survey-20261119T002309Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `cccac8d` | 2026-11-19 | [open-meteo-egress-2026-11-19T00-23-04-276Z.json](open-meteo-egress-2026-11-19T00-23-04-276Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `cccac8d` | 2026-11-19 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `cccac8d` | 2026-11-19 | [weather-availability-fault-20261119T002309Z.jsonl](weather-availability-fault-20261119T002309Z.jsonl) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `f273ad4` | 2026-11-19 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of e980ce5 [skip ci] |
+| `e980ce5` | 2026-11-18 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | fix: the availability reporter is bounded at a minute, and says how many it did not ask |
+| `6a6c38b` | 2026-11-18 | [egress-path-e2e-20261118T225441Z.txt](egress-path-e2e-20261118T225441Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `6a6c38b` | 2026-11-18 | [egress-path-live-20261118T225441Z.txt](egress-path-live-20261118T225441Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `6a6c38b` | 2026-11-18 | [egress-path-survey-20261118T225441Z.txt](egress-path-survey-20261118T225441Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `6a6c38b` | 2026-11-18 | [open-meteo-egress-2026-11-18T22-54-36-069Z.json](open-meteo-egress-2026-11-18T22-54-36-069Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `6a6c38b` | 2026-11-18 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `c7d30c0` | 2026-11-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `39459bd` | 2026-11-18 | [cc-session-2026-11-16-gate-items-2-7-final-state.md](cc-session-2026-11-16-gate-items-2-7-final-state.md) | docs: the owner's rulings of 2026-11-18 and the proof branches' deletion are recorded |
 | `7de8fbc` | 2026-11-18 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44415866628 |
 | `5e1508e` | 2026-11-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 1175951 [skip ci] |
 | `92b07fe` | 2026-11-18 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | docs: option 3 still holds where the live check is strict; the question put to the owner rested on a false premise |

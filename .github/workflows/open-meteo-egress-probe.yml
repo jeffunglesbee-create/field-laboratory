@@ -167,7 +167,7 @@ jobs:
           node -e '
             const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8").trim().split("\n").at(-1))
             const unanswered = Object.values(r.notAnswered).reduce((a, b) => a + b, 0)
-            console.log(`fault record: asked ${r.asked}, answered ${r.answered}, refused ${r.refused.length}, not answered ${unanswered} ${JSON.stringify(r.notAnswered)}`)
+            console.log(`fault record: asked ${r.asked} of ${r.locations} (${r.notAsked} not asked, budget ${r.budgetMs}ms), answered ${r.answered}, refused ${r.refused.length}, not answered ${unanswered} ${JSON.stringify(r.notAnswered)}`)
             if (!(r.asked > 0 && r.answered === 0 && r.refused.length === 0 && unanswered === r.asked)) { console.log("FAIL: the fault record does not show every location unanswered"); process.exit(1) }
           ' "$REC"
 
