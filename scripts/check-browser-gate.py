@@ -4067,6 +4067,7 @@ def self_test():
         ("...and a heredoc after it is no heredoc: it is text in the body of the first, which an unquoted delimiter expands", "cat <<EOF\ncat <<'Q'\n$(npm run pure)\nQ", ["cat <<EOF", "cat <<'Q'", "$(npm run pure)", "Q"], []),
         ("a delimiter with a space: nothing is joined after it", 'cat <<"A B"\nit\'s\nnpm run y\nthat\'s\nA B', ['cat <<"A B"', "it's", "npm run y", "that's", "A B"], []),
         ("...and a delimiter this reader cannot parse reads no heredoc after it", "cat <<[\ncat <<'Q'\n$(npm run pure)\nQ\n[", ["cat <<[", "cat <<'Q'", "$(npm run pure)", "Q", "["], []),
+        ("...a delimiter that is a variable (`<<$X`), which bash does not expand, is one this reader cannot parse either: no heredoc is read after it (the unquoted body runs its `$( )`, which is what is hidden in the text of the second)", "cat <<$X\ncat <<'Q'\n$(npm run pure)\nQ\n$X", ["cat <<$X", "cat <<'Q'", "$(npm run pure)", "Q", "$X"], []),
         ("a delimiter with a quoted part (`E\"OF\"`) is not parsed (it ends at `E`, and bash's is `EOF`)", 'cat <<E"OF"\nE\nnpm run y\nEOF', ['cat <<E"OF"', "E", "npm run y", "EOF"], []),
         ("the `<<` of an arithmetic shift is not a heredoc, and nothing is joined after it", 'echo $((1<<2))\necho "a\nnpm run y\nb"', ['echo $((1<<2))', 'echo "a', "npm run y", 'b"'], []),
         ("a string that spans lines is ONE line, its newline kept", 'echo "line one\nline two $(date)"', ['echo "line one\nline two $(date)"'], []),
