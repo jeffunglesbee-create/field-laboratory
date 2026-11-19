@@ -26,7 +26,7 @@ operator; a `#` in a `$( )` on the operator's line; a stray `]` or `)` before a 
 `$((`, a backtick, `<(`, `{`, `(`, `case x in`...), a line or two before the operator (a command, a comment that holds a `)`), the operator line (a prefix with a stray closer, a reader, the operator, a
 suffix that opens a `$(` or holds a comment), a body, a terminator, the closer on its own line or on the terminator line, and a tail.
 """
-import sys, os, random, subprocess, importlib.util, json
+import sys, os, random, subprocess, importlib.util, json, signal
 from multiprocessing import Pool
 def load(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -114,7 +114,29 @@ def gen3(seed):
         else: units.append(rng.choice(TAIL2))
         if rng.random() < 0.6: units.append(rng.choice(TAIL2))
     return "\n".join(units)
-ALPHABET = {"gen2": {"operator contexts": len(set(CTX)), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "string units": len(set(STR2)), "tail lines": len(set(TAIL2)), "line separators": sorted(set(SEP2), key=repr)}, "gen3": {"openers": len(OPEN3), "lines before the operator": len(set(PRE3)), "operator prefixes": len(set(STRAY3)), "operator suffixes": len(set(POST3)), "closers": len(set(CLOSE3("C"))), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "tail lines": len(set(TAIL2))}}
+# gen4 (review 3, workflow wf_a221fda7-c68, of 0ba7f399): the review found that gen, gen2 and gen3 draw none of the shapes behind its false greens (`#$(mark_ran)` as a body line, a `)` in a `${ }` or a `$[ ]` in a
+# `$( )`, a `#` glued to the `)` of a `<( )` or an array, a `(( (x) cat <<EOF ))`, a subscript after a stray closer) and reach the accept path of the strict reader in under 1 script of 1000 (gen 789, gen2 134, gen3 17
+# of 20000): its openers are all lines that the stop refuses. gen4 draws ORDINARY lines (a counter, a `[[ ]]` or `[ ]` test, a `$(date)`, a `$(cat "$F")`, a summary heredoc, a message over lines) between the
+# contested ones, so that the accept path is reached at volume, and counts in its result how often (the REACHED lines).
+ORD4 = ["n=$((n+1))", 'if [[ -n "$A" ]]; then', "fi", 'if [ -n "$A" ]; then', 'echo "built $(date -u +%F)"', 'X=$(cat "$F")', "(( i++ ))", "a=(1 2)", "a[1]=2", "true", "echo hi", "mark_ran",
+        "echo ]; a[1", ": <(true)#\"", "a=(true)#'", ": <(true)", "(( (true)", "for ((i=0;i<2;i++)); do :; done", "echo $[1+1]", "diff <(echo a) <(echo b)", "x=$(echo ${v})", "f() {", "}", "echo ${x:-]}"]
+BODY4 = ["## Report", "- ok", "`code` and \\`escaped\\`", "built $(date -u +%F)", "$((N - 1)) of $N", "#$(mark_ran)", "$(mark_ran)", "$(echo ${y:-)}; mark_ran)", "$(echo ${x%)}; mark_ran)",
+         "$(echo $[1)]; mark_ran)", "# $(mark_ran)", "plain text", "it's", "mark_ran", "x # y", "$(echo a) $(mark_ran)", "`mark_ran`", "${y:-)}"]
+OPLINE4 = ['cat >> "$GITHUB_STEP_SUMMARY" <<EOF', "cat <<EOF", "tee -a f <<EOF", "cat <<'EOF'", "grep x <<EOF", "bash <<EOF", "cat <<EOF >/dev/null", "(( (true) cat <<EOF )) || true", "a=( cat <<EOF",
+           "cat <<EOF $(echo $[ )", "x=$(cat <<EOF", "tee $[ <<EOF ]"]
+STR4 = ['echo "a\nb $(date -u +%F) c"', "echo 'a\nb `x` c'", 'echo "a\n$(echo ${y:-)}; mark_ran) b"', 'echo "a\nb $(false && echo $[1)]; mark_ran )"', "echo 'a\n$(mark_ran)\nb'", 'git commit -m "feat: x\n\nCloses #12"',
+        "node -e '\n  const d = `a ${b}`\n  console.log(d)\n'", 'echo "a\n$(echo ${x:-)}; mark_ran)\nb"', "echo \"a $(echo 'b')\nc\"", ">&'x\n$(mark_ran)\ny'"]
+def gen4(seed):
+    rng = random.Random(seed); units = []
+    for _ in range(rng.randint(2, 6)):
+        k = rng.random()
+        if k < 0.35: units.append(rng.choice(ORD4))
+        elif k < 0.7:
+            term = rng.choices(["EOF", None], [93, 7])[0]
+            units.append("\n".join([rng.choice(OPLINE4)] + [rng.choice(BODY4) for _ in range(rng.randint(0, 3))] + ([term] if term else [])))
+        else: units.append(rng.choice(STR4))
+    return "\n".join(units)
+ALPHABET = {"gen4": {"ordinary and contested lines": len(set(ORD4)), "operator lines": len(set(OPLINE4)), "body lines": len(set(BODY4)), "string units": len(set(STR4))}, "gen2": {"operator contexts": len(set(CTX)), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "string units": len(set(STR2)), "tail lines": len(set(TAIL2)), "line separators": sorted(set(SEP2), key=repr)}, "gen3": {"openers": len(OPEN3), "lines before the operator": len(set(PRE3)), "operator prefixes": len(set(STRAY3)), "operator suffixes": len(set(POST3)), "closers": len(set(CLOSE3("C"))), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "tail lines": len(set(TAIL2))}}
 G = {}
 def init(which):
     G["new"] = load(os.environ.get("GUARD"), "gnew"); G["old"] = load(os.environ.get("OLD"), "gold")
@@ -124,29 +146,41 @@ def ran(script, mark):
     try: os.unlink(mark)
     except FileNotFoundError: pass
     pre = 'mark_ran() { echo x >> "$MARK"; }\n'
-    try:
-        subprocess.run(["bash", "--norc", "--noprofile", "-c", pre + script], cwd=MK, env={"MARK": mark, "PATH": os.environ["PATH"]}, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+    # Review 3 (TT-5): a `mark_ran` that runs in a process substitution (`<( )`, `>( )`) races bash's exit, so the old oracle (stdout and stderr to /dev/null, no wait) counted such a script about half the time (30 runs of
+    # seed 3007585: 14 with the marker, 16 without). Now bash's output is a pipe and communicate() returns when EVERY process that holds it has exited, a process substitution's child included; bash runs in its own
+    # process group, which is killed afterwards, so nothing it started (an `until false` loop) outlives the script.
+    p = subprocess.Popen(["bash", "--norc", "--noprofile", "-c", pre + script], cwd=MK, env={"MARK": mark, "PATH": os.environ["PATH"]}, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    try: p.communicate(timeout=5)
     except subprocess.TimeoutExpired: pass
+    finally:
+        try: os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError: pass
+        try: p.communicate(timeout=5)
+        except Exception: pass
     return os.path.exists(mark)
 MODE = os.environ.get("MODE", "1")
 def work(seed):
-    s = {"2": gen2, "3": gen3}.get(MODE, gen)(seed); r = ran(s, f"{MK}/{os.getpid()}"); res = {"seed": seed, "ran": r}
+    s = {"2": gen2, "3": gen3, "4": gen4}.get(MODE, gen)(seed); r = ran(s, f"{MK}/{os.getpid()}"); res = {"seed": seed, "ran": r}
     for k in ("new", "old"):
         g = G[k]
         try:
             st = g.read_step({"run": s}, {}, rd)
             res[k] = not g.hides_a_launcher(st["unresolved"], s); res[k + "_clean"] = st["unresolved"] == []
+            if k == "new" and res[k]:
+                lines, bodies = g.command_lines(s); res["heredoc_data"] = bool(bodies); res["joined"] = any("\n" in l for l in lines)
         except Exception as e:
             res[k] = None; res[k + "_clean"] = None; res[k + "_err"] = repr(e)[:80]
     res["script"] = s; return res
 if __name__ == "__main__":
     N = int(sys.argv[1]); base = int(sys.argv[2]); MODE = sys.argv[3] if len(sys.argv) > 3 else "1"; os.environ["MODE"] = MODE; os.makedirs(MK, exist_ok=True)
-    print("generator:", {"2": "gen2", "3": "gen3"}.get(MODE, "gen"), "alphabet:", json.dumps(ALPHABET[{"2": "gen2", "3": "gen3"}[MODE]]) if MODE in ("2", "3") else "see the lists at the top of this file")
+    print("generator:", {"2": "gen2", "3": "gen3", "4": "gen4"}.get(MODE, "gen"), "alphabet:", json.dumps(ALPHABET[{"2": "gen2", "3": "gen3", "4": "gen4"}[MODE]]) if MODE in ("2", "3", "4") else "see the lists at the top of this file")
     with Pool(4, initializer=init, initargs=(0,)) as p: rs = p.map(work, range(base, base + N), chunksize=200)
     st = {"scripts": len(rs), "marker_ran": sum(r["ran"] for r in rs)}
     for k in ("new", "old"):
         st[k + "_accepts_opaque_ok"] = sum(1 for r in rs if r[k]); st[k + "_accepts_plain"] = sum(1 for r in rs if r[k + "_clean"]); st[k + "_errors"] = sum(1 for r in rs if r[k] is None)
         st[k + "_VIOLATIONS(accepted & ran)"] = sum(1 for r in rs if r[k] and r["ran"]); st[k + "_VIOLATIONS_plain"] = sum(1 for r in rs if r[k + "_clean"] and r["ran"])
+    acc = [r for r in rs if r["new"]]
+    st["REACHED: scripts the new guard accepts"] = len(acc); st["REACHED: ...of them with a heredoc read as data"] = sum(1 for r in acc if r.get("heredoc_data")); st["REACHED: ...of them with a string joined over lines"] = sum(1 for r in acc if r.get("joined"))
     st["accepted_by_new_not_old"] = sum(1 for r in rs if r["new"] and not r["old"]); st["accepted_by_old_not_new"] = sum(1 for r in rs if r["old"] and not r["new"])
     print(json.dumps(st, indent=1))
     for r in [r for r in rs if (r["new"] and r["ran"]) or r.get("new_err")][:6]: print("-----", r["seed"], r.get("new_err"), "\n" + r["script"])
