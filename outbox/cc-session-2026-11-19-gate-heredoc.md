@@ -65,6 +65,11 @@ Review 3 (workflow `wf_a221fda7-c68` of `0ba7f399`, 5 lenses, 67 agents, 4.6 h; 
 | false reds, design costs | R1, R2, R3 | recorded, 1g; measured on the real tree (none) |
 | tests, fuzz, docs | TT-1 to TT-7, SF-7, SF-8, DW-6, R4 | rows and mutation entries for every clause the review named (the sweep below), `gen4`, a deterministic oracle, the REACHED lines, stale labels and comments, the cost measured |
 
+## Found after review 3
+
+- Mutants with no separating script, deleted as entries with the reason (the clause stays): `ctx-stack-single`, `-double`, `-backtick` (the splitter puts the marker inside a quoted token or raises on the backtick, so an operator in a quote or a backtick pair is code with or without the clause); `rewind-quote` (a rewind of the last line that re-reads the same lines: the output is identical); `rewind-joining` (without the conjunct the rewind repeats at the last line forever once strings are no longer joined: a hang on an input no row has, not a failed check).
+- Mutants the sweep found uncaught after the first round of rows, each now caught by a row: `ctx-stack-param` (a stray `}` before a `${`), `close-line-no-seg`, `ctx-scan-short` (an operator right behind a `${`), `seg-reset` (found by a search for a separating script: a line after a joined single-quoted string), `odd-blank-tab`.
+
 ## Found after review 2
 
 - The mutant sweep of the 171 heredoc and string entries on `aa048d40`: 146 caught, 25 not (13 masked or unpinned clauses, 6 crashes, 1 dead return value, 5 equivalent mutants). All 25 were looked at; none was explained away. Several masked clauses were masked because the reader of an operator inside a quote or a substitution is not found, so the operator is code with or without the clause: the clause then has no row that can reach it from one line, which is part of why the strict reader is simpler.

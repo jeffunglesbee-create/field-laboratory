@@ -10742,29 +10742,11 @@ const MUTATIONS = [
   },
 
   {
-    id: "browser-gate-rewind-joining",
-    file: "scripts/check-browser-gate.py",
-    claim: "the rewind of a string that ends in a backslash happens whether or not strings are being joined",
-    find: "            if joining and i == len(phys) and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
-    replace: "            if i == len(phys) and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
-    expect: "python3 scripts/check-browser-gate.py --self-test",
-  },
-
-  {
     id: "browser-gate-rewind-last",
     file: "scripts/check-browser-gate.py",
     claim: "the rewind of a string that ends in a backslash happens at any line, not the last",
     find: "            if joining and i == len(phys) and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
     replace: "            if joining and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
-    expect: "python3 scripts/check-browser-gate.py --self-test",
-  },
-
-  {
-    id: "browser-gate-rewind-quote",
-    file: "scripts/check-browser-gate.py",
-    claim: "the rewind of a string that ends in a backslash happens for any open thing, not only a plain quote",
-    find: "            if joining and i == len(phys) and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
-    replace: "            if joining and i == len(phys) :                               # a string that never closes: its lines are lines, as before\n                i, cur, joining = first, \"\", False",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
