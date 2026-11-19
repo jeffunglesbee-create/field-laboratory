@@ -471,7 +471,7 @@ def heredoc_as_data(text, ops, bodies, start):
     shown, sc, pos, inside = blank_quoted(text), start.copy(), 0, []
     for (s, e, delim, dash, _q), body in zip(ops, bodies):
         _scan(text[pos:s], sc)                                                                     # what is open where this operator is: what the lines before left open, and this line up to here
-        if sc.stack not in ([], ["$("]) or sc.brk or (sc.stack and sc.parens[-1] != 1) or shown.count("{", 0, s) > shown.count("}", 0, s):
+        if sc.stack not in ([], ["$("]) or sc.brk or (sc.parens and sc.parens[-1] != 1) or shown.count("{", 0, s) > shown.count("}", 0, s):
             return None
         if sc.stack and any((b.lstrip("\t") if dash else b).startswith(delim) for b in body):
             return None
@@ -538,7 +538,7 @@ def _assemble(phys, joining, heredocs):
         if not cur and line.lstrip(" \t").startswith("#") and (not st.stack or st.stack[-1] == "$("):  # a whole-line comment (in a `${ }` or a string it is text)
             continue
         text = cur + line
-        at = _scan(line, st)[0]                                                                    # the openers this line leaves open are carried on into the next, in `st`
+        at = _scan(line, st)                                                                    # the openers this line leaves open are carried on into the next, in `st`
         if st.risk:
             joining = heredocs = False
         new = _opened_since(st.stack, start.stack)                                                 # what THIS logical line opened: a string inside a `$(` of an earlier line is a string
@@ -591,12 +591,12 @@ def comment_start(line):
     `a\\ #b` and `"a"#b` are not comments (shlex's commenters would drop the rest of the line at each, and a command after it would go unread). Where this reads MORE than bash runs (a `#` in
     `$( ... )` is a comment in bash) the classifier has more text to read, the safe direction. Review of 5b5a89b, finding 1 and finding 24 of the review before: a quote-aware cutter that did not
     know `${ }` or `$'...'` cut at a `#` that bash does not, and everything after it (a `; exit 0`, `|| true`, a browser launch) went unread."""
-    return _scan(line)[0]
+    return _scan(line)
 
 
 def _scan(line, st=None):
-    """(the index of the comment's `#` or None, the openers still open where the line ends). One scanner answers both questions: comment_start's description is of the first, and a second reader of the same
-    quotes would drift from it. The openers are `'`, `"`, `$'`, `${`, `$(` and a backtick, innermost last (`st.stack`), with the parentheses still open in each `$(` (`st.parens`). `st` is what an earlier line left
+    """The index of the comment's `#` on this line, or None, and what the line leaves open, in `st` (the openers, and so on). One scanner answers both questions: comment_start's description is of the first, and a second
+    reader of the same quotes would drift from it. The openers are `'`, `"`, `$'`, `${`, `$(` and a backtick, innermost last (`st.stack`), with the parentheses still open in each `$(` (`st.parens`). `st` is what an earlier line left
     open: passed in, it is carried on and updated in place, so a script is scanned once, not once more for each line added to a string. `$$` is the process id, and a quote after it is a quote of its own
     (`echo $$'a\\'` is a closed string, not a `$'...'` that a backslash keeps open). In code (outside every opener, or directly inside a `$( )`) a `[` and, outside every opener, the second `(` of a `((` and the `(` of a `<(` or `>(` is put in `st.brk` and the
     closer of its kind takes it out; a closer with none to close is a literal (a case arm's `)`, a subshell's `)`). `st.risk` is set where bash reads a `$( )` differently from the way the parentheses are counted here: a `#` that begins a
@@ -667,10 +667,10 @@ def _scan(line, st=None):
                 if brk and brk[-1] == "[":
                     brk.pop()
             elif c == "#" and was_top and boundary:
-                return i, []
+                return i
         boundary = was_top and not stack and c in " \t\n;&|()"
         i += 1
-    return None, stack
+    return None
 
 
 def strip_comment(line):
