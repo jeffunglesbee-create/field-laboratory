@@ -4208,6 +4208,8 @@ def self_test():
         ("...at the start of a line", "echo a\n\u00a0# note; npm run y", ["echo a", "\u00a0# note; npm run y"], []),
         ("...U+3000 too", "echo a\u3000# note; npm run y", ["echo a\u3000# note; npm run y"], []),
         ("a string that never closes, with a heredoc operator in what it swallows: its lines are lines", "echo \"a\ncat <<EOF\nx\nEOF", ["echo \"a", "cat <<EOF", "x", "EOF"], []),
+        ("...a single-quoted one: the operator on the next line is inside it", "echo 'a\ncat <<EOF\nx\nEOF", ["echo 'a", "cat <<EOF", "x", "EOF"], []),
+        ("...an ANSI-C one", "echo $'a\ncat <<EOF\nx\nEOF", ["echo $'a", "cat <<EOF", "x", "EOF"], []),
         ("a `( )` group that closed on its line leaves nothing open: the heredoc after it is data", "(echo a); cat <<EOF\nx\nEOF", ["(echo a); cat"], ["x"]),
         ("...a `[ ]` test that closed", "[ -f x ] && cat <<EOF\nx\nEOF", ["[ -f x ] && cat"], ["x"]),
         ("...a case arm's `)` closes nothing, and the heredoc in the arm is data", "case x in\n  a) cat <<EOF\nx\nEOF\n  ;;\nesac", ["case x in", "a) cat", ";;", "esac"], ["x"]),
