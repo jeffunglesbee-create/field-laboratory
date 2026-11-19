@@ -14,7 +14,9 @@ Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 1 (APPROV
 | fix round 2 | `aa048d40` | a carried scan state through the whole script; self-test 1244/1244 |
 | sweep and fuzz fixes | `c518887f`, `743d3e02`, `cae4c0af`, `c95eebcf` | 25 mutants the sweep did not catch fixed; the fuzz at volume found one more false green (a backslash-newline joined with a space); self-test 1278/1278 |
 | Rule 42 | `016b0c9a` | the carried-state reader REPLACED by a strict one (below); self-test 1288/1288 |
-| review 3 | `__WF3__` | `__REVIEW3__` |
+| review 3 | workflow `wf_a221fda7-c68` | 5 lenses, 67 agents, 4.6 h, 2 skeptics per finding: 28 findings confirmed, 3 refuted (as known) |
+| narrowing | `1e86e68d` and after | the bracket stack REMOVED; a line that holds an arithmetic command, a `$[ ]`, a subscript, a `<( )`, a `>( )` or an array literal is not trusted; the line that closes a joined string is judged; odd blanks read as letters; self-test 1363/1363 |
+| review 4 | `__WF4__` | `__REVIEW4__` |
 | final | `__FINAL__` | `__FINALSTATE__` |
 
 ## Why the design was replaced (Rule 42)
@@ -25,14 +27,15 @@ The owner invoked Rule 42 (a fix that has not worked after three attempts: stop,
 
 Everything it trusts is checkable on one logical line from a fresh state; everything else falls back to the parent's behaviour for the rest of the step (read line by line; a heredoc is refused as 'a heredoc').
 
-1. Each logical line is scanned from a fresh `_Open` (the openers, the parentheses of each `$(`, `brk`: the second `(` of a `((`, the `(` of `<(` and `>(`, and `[`). Nothing is carried to the next logical line.
-2. A line that leaves anything open (`st.stack` or `st.brk`), or holds a substitution that is not flat (`_flat_subs(blank_quoted(text))`), stops the joining of strings and the reading of heredocs for the rest of the step.
+1. Each logical line is scanned from a fresh `_Open` (the openers `'`, `"`, `$'`, `${`, `$(`, a backtick, and the parentheses of each `$(`). Nothing is carried to the next logical line. There is no bracket stack (the second review's `brk` and the third review's findings in it are gone with it).
+2. A line that leaves anything open (`st.stack`), holds an EXOTIC form outside quotes (`_exotic`, on `blank_quoted`'s view: an arithmetic command `((` that is not `$((`, a `$[`, a subscript `\w[`, a process substitution `<(` or `>(`, an array `=(`), or holds a substitution that is not flat (`_flat_subs`), stops the joining of strings and the reading of heredocs for the rest of the step, and the operator on that line is not read either.
 3. A heredoc operator is read only at the top level of its line (a fresh scan up to it leaves nothing open, and no `{` is unmatched on the line). Its reader must be one of `cat`, `tee`, `grep`, `wc`, `tr`, `jq`.
-4. A string that spans lines is joined while only a plain quote is open at the end of a line and the physical line (with what a backslash joined to it, in the quote its segment started in: `seg`) is flat once `blank_quoted` has blanked what is in quotes.
-5. An unquoted body line with a `$(` or backtick is given back as `echo "<line>"` only when it has no `"`, is flat, and no body line ends in a backslash. A substitution is flat (`FLAT_SUB`) when it closes on the line and holds no quote, parenthesis, `#`, `<`, `>`, backslash or `case`.
-6. A backslash-newline joins with nothing (as bash does); the `#` of a joined line begins a comment only after a blank or a separator; a backslash followed by a blank is no continuation. A line ends at a newline only; only space and tab are blanks; `$$` is the process id in `_scan` and `blank_quoted`.
+4. A string that spans lines is joined while only a plain quote is open at the end of a line and the physical line (with what a backslash joined to it, in the quote its segment started in: `seg`) is flat once `blank_quoted` has blanked what is in quotes. The line that CLOSES the string is judged the same way, and a closing line that is not flat un-joins the string (it is re-read from its first line with joining and heredocs off).
+5. An unquoted body line with a `$(` or backtick is given back as `echo "<line>"` only when it has no `"`, is flat, and no body line ends in a backslash. A substitution is flat (`FLAT_SUB`) when it closes on the line and holds no quote, parenthesis, `#`, `<`, `>`, backslash, brace, bracket or `case`.
+6. A backslash-newline joins with nothing (as bash does); the `#` of a joined line begins a comment only after a blank or a separator; a backslash followed by a blank is no continuation. A line ends at a newline only; only space and tab are blanks in `command_lines` and `_scan`; `$$` is the process id in `_scan` and `blank_quoted`.
+7. `_odd_to_word`: every other `str.isspace()` character outside quotes (a carriage return, a form feed, a vertical tab, FS to US, NEL, NBSP, U+2028, U+2029, U+2000 to U+200A, U+3000) is written as a letter where a line is read for its commands (`read_commands`, `command_heads`), because bash reads it as part of a word and shlex and `COMMAND_HEAD`'s `\s` read it as a blank (the third review's SF-2; it also closes the NBSP and ideographic-space forms the parent accepted).
 
-Design costs, chosen, recorded in the residual CC-CMD (item 1, 1f): a heredoc, or a string that spans lines, after a line that leaves anything open (`x=$(` ... `)`, a multi-line `"$( )"`, a multi-line `[[ ]]`, a `$( )` with a comment line in it) is refused as at the parent; a body or string whose substitution is not flat is refused or not joined; a reader outside the six is code; `echo $((1<<2))` is refused; CRLF heredocs are code. Compared on 20 ordinary step shapes (a summary heredoc, an `if` ladder, a `for` loop, a subshell, a group, a multi-line commit message with and without a backtick, a heading with `$(date)` or `$((N))`, a quoted-delimiter body, a continued line before a heredoc), the carried-state reader and the strict one differ in 4: a heredoc inside `x=$(` ... `)`, a `$( )` with a comment line, a multi-line `"$( )"` then a summary heredoc, a string that spans lines inside a multi-line `$( )`; all four have a multi-line `$( )` before the heredoc or string, and the real tree has none (probe below).
+Design costs, chosen, recorded in the residual CC-CMD (item 1, 1g): a heredoc, or a string that spans lines, after a line that leaves anything open (`x=$(` ... `)`, a multi-line `"$( )"`, a multi-line `[[ ]]`, a `$( )` with a comment line in it), that holds an EXOTIC form (`(( i++ ))`, `a=(1 2)`, an unquoted `${arr[0]}` or `f[0-9]`) or a substitution that is not flat (`X=$(cat "$F")`, `echo "built $(date -u +"%F")"`, `$(echo ${v})`, a comment that mentions a quote and a substitution) is refused as at the parent; a body line with escaped backticks or a quote is code; a reader outside the six is code; `echo $((1<<2))` is refused; CRLF heredocs are code. Compared on 20 ordinary step shapes (a summary heredoc, an `if` ladder, a `for` loop, a subshell, a group, a multi-line commit message with and without a backtick, a heading with `$(date)` or `$((N))`, a quoted-delimiter body, a continued line before a heredoc), the carried-state reader and the strict one differ in 4 (each has a multi-line `$( )` before the heredoc or string), and the real tree has none (probe below).
 
 ## What reviews 1 and 2 found, and what the rework does about it
 
@@ -48,6 +51,19 @@ Review 1 (25 findings against `1806bf8a`): a multi-line `"$( )"` whose closing l
 | tests, cost, doc | OPS-10, F03 to F13, SJ2-7, SJ2-8, DW-13 | rows, fixtures, entries for what is left; many operators on one line are linear; counts below measured |
 
 Still accepted, pre-existing at the parent, recorded in the residual CC-CMD item 1 (1a to 1g) with the input that passes: a line that starts inside an open `"$(` is read from scratch (`BASE="$(` / `date` / `)" mark_ran`), a `#` in a multi-line `${ }`, `cat \<;mark_ran`, a leading `<<E mark_ran`, a whole-line `#` and a quote inside a backtick pair. After a stop the rest of the step is read as the parent read it, with those weaknesses.
+
+## What review 3 found, and what the narrowing does about it
+
+Review 3 (workflow `wf_a221fda7-c68` of `0ba7f399`, 5 lenses, 67 agents, 4.6 h; dossier `outbox/guard-heredoc-review-3-2026-11-19.md`): 31 findings reported, 28 confirmed by two skeptics each, 3 refuted as known (CL-5, SF-5, DW-3: the lines read after a stop). By root cause:
+
+| root cause | findings | what was done |
+|---|---|---|
+| the bracket stack `brk` was a model of bash: the `)` of a plain subshell popped the `((`, a `)` that closed a `$(` dropped a `[`, a `#` after the `)` of `<( )` or an array was a comment, `a=(` was not tracked | CL-1, CL-2, CL-3 (heredoc forms), CL-6 | REMOVED. A line that holds `((`, `$[`, a subscript, `<(`, `>(` or `=(` outside quotes is not trusted (`EXOTIC`), and the operator on it is not read |
+| a `)` in a `${ }` or a `$[ ]` in a flat `$( )` closed it early for `FLAT_SUB` and `blank_quoted`, and the line that closes a joined string was not judged at all | CL-4, SF-1, DW-1 | `_FLAT` excludes braces and brackets; the closing line is judged like the lines before it |
+| shlex reads a carriage return as a blank, `COMMAND_HEAD`'s `\s` all `isspace()` characters, bash none of them | SF-2 | `_odd_to_word` (item 7 above) |
+| accepted at the parent too, and not this change's | SF-3, SF-4, SF-6, DW-2, DW-4, DW-5, CL-3 (the form with no heredoc) | recorded in the residual CC-CMD, 1f and item 4, with the inputs; the multi-line forms of SF-3 and SF-6 are a new surface of an old root cause and are recorded as that |
+| false reds, design costs | R1, R2, R3 | recorded, 1g; measured on the real tree (none) |
+| tests, fuzz, docs | TT-1 to TT-7, SF-7, SF-8, DW-6, R4 | rows and mutation entries for every clause the review named (the sweep below), `gen4`, a deterministic oracle, the REACHED lines, stale labels and comments, the cost measured |
 
 ## Found after review 2
 

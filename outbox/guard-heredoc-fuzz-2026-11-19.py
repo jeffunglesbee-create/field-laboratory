@@ -8,7 +8,9 @@ the marker: a function the harness defines that appends to a file. The script is
     the guard accepts the script (reads it clean, or keeps it as opaque) => the marker did NOT run in bash.
 
 `mark_ran` is no head the guard allows, so a script in which bash ran it and the guard saw nothing is a false green. The same scripts are read by the guard as it was before the change (OLD), so the
-output says how many more scripts are accepted now (all of them false reds before) and that no script is refused now that was accepted before. Rule 91: the output starts with the count of scripts.
+output says how many more scripts are accepted now than by OLD (`accepted_by_new_not_old`) and how many fewer (`accepted_by_old_not_new`): with OLD = the parent 39459bd2 the second is 0 (the parent refused every heredoc and read a string that
+spans lines line by line); with OLD = an earlier reader of this feature (c95eebcf, the carried-state one) it is the design cost of the strict reader, scripts that reader accepted and this one refuses. Rule 91: the output
+starts with the count of scripts, and says how many of the scripts the guard accepts reach the new code (the REACHED lines: a heredoc read as data, a string joined over lines).
 
     GUARD=scripts/check-browser-gate.py OLD=/path/to/old-guard.py python3 outbox/guard-heredoc-fuzz-2026-11-19.py <count> <first seed> [2|3]
     (GUARD=<a mutated copy> shows that the test can fail: see outbox/guard-heredoc-fuzz-2026-11-19.txt.)
@@ -19,6 +21,9 @@ reader, `(( ))`, `${ }`, `$(( ))`, `$[ ]`, a quoted or backslashed `<<`, a `$( )
 joins the line, a form feed, U+2028 or a carriage return right after the delimiter); a terminator (the delimiter alone, with `)`, ` )`, `);`, a form feed, a carriage return, a tab, a space, an extra letter, or none);
 a body line from a pool that holds `#`, `case`, `EOF)`, a nested heredoc and unbalanced quotes and parentheses in a `$( )`; a string that spans lines (a `"$( )"` closed on a later line, a `"$(` and its `) echo "`,
 `$$'...\\'`, a `#` that holds the `)`, a form feed in a comment); and a tail of lines after it that holds the marker next to apostrophes, quotes and `$( )`. The printed result lists the alphabet (Rule 91): the number of DISTINCT members of each list.
+
+A third argument `4` draws from gen4, written after the third review (workflow wf_a221fda7-c68, of 0ba7f399), which found that gen, gen2 and gen3 reach the accept path of the strict reader in under 1 script of 1000 and draw
+none of the shapes behind its false greens (see the comment above ORD4). gen4 draws ordinary lines between the contested ones and counts how often the accept path is reached.
 
 A third argument `3` draws from the THIRD generator (gen3), written after the second independent review (workflow wf_c6a2a2b4-b6b) found that the first two never draw an opener on one line and its operator on
 the next (0 of 30000 gen2 scripts), which is where the second review's false greens were (an open `$(`, `${`, `$[`, `((` or backtick left by an earlier line; an operator line that opens a `$(` after the
@@ -125,7 +130,8 @@ BODY4 = ["## Report", "- ok", "`code` and \\`escaped\\`", "built $(date -u +%F)"
 OPLINE4 = ['cat >> "$GITHUB_STEP_SUMMARY" <<EOF', "cat <<EOF", "tee -a f <<EOF", "cat <<'EOF'", "grep x <<EOF", "bash <<EOF", "cat <<EOF >/dev/null", "(( (true) cat <<EOF )) || true", "a=( cat <<EOF",
            "cat <<EOF $(echo $[ )", "x=$(cat <<EOF", "tee $[ <<EOF ]"]
 STR4 = ['echo "a\nb $(date -u +%F) c"', "echo 'a\nb `x` c'", 'echo "a\n$(echo ${y:-)}; mark_ran) b"', 'echo "a\nb $(false && echo $[1)]; mark_ran )"', "echo 'a\n$(mark_ran)\nb'", 'git commit -m "feat: x\n\nCloses #12"',
-        "node -e '\n  const d = `a ${b}`\n  console.log(d)\n'", 'echo "a\n$(echo ${x:-)}; mark_ran)\nb"', "echo \"a $(echo 'b')\nc\"", ">&'x\n$(mark_ran)\ny'"]
+        "node -e '\n  const d = `a ${b}`\n  console.log(d)\n'", 'echo "a\n$(echo ${x:-)}; mark_ran)\nb"', "echo \"a $(echo 'b')\nc\""]
+# not drawn: `>&'x` + newline + `$(mark_ran)` + newline + `y'` (a multi-line surface of the parent's reading of the word after `>&`; recorded in the residual CC-CMD, item 1f and item 4), which would add a known violation to every script that holds it.
 def gen4(seed):
     rng = random.Random(seed); units = []
     for _ in range(rng.randint(2, 6)):

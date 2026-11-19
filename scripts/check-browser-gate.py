@@ -4278,6 +4278,10 @@ def self_test():
         ("a `$( )` that holds a `]` is not a flat one: nothing after it is read", "x=$(echo ])\ncat <<EOF\nok\nEOF", ["x=$(echo ])", "cat <<EOF", "ok", "EOF"], []),
         ("an arithmetic command, a subscript or an array inside quotes is text: it stops nothing", "echo \"((x)) a[1] <(y) b=(z) $[1]\"\ncat <<EOF\nx\nEOF", ["echo \"((x)) a[1] <(y) b=(z) $[1]\"", "cat"], ["x"]),
         ("a process substitution `>( )` is not trusted either", "tee >(cat) </dev/null\ncat <<EOF\nx\nEOF", ["tee >(cat) </dev/null", "cat <<EOF", "x", "EOF"], []),
+        ("the quote a string line starts in is forgotten at the next logical line: a line after a joined single-quoted string is judged outside it", "c'\nc'\n$(echo 'z') b\"\nx=$(echo 'y')", ["c'\nc'", "$(echo 'z') b\"", "x=$(echo 'y')"], []),
+        ("a `${` that is open right behind the operator is in the string: the operator is no heredoc", "cat ${<<EOF }\nmark_ran\nEOF", ["cat ${<<EOF }", "mark_ran", "EOF"], []),
+        ("the closing line of a single-quoted string is judged in the quote it closes: what looks like a substitution in it is text, and the string is joined", "echo 'a\nb $(echo \"x\") c'", ["echo 'a\nb $(echo \"x\") c'"], []),
+        ("...and a closing line with a quote of the other kind", "echo \"a\nb 'c' d\"", ["echo \"a\nb 'c' d\""], []),
         ("a `${` is judged by what is open, not by a count of braces: a stray `}` before it does not hide it", "echo } ; cat ${x:- <<EOF }\nmark_ran\nEOF", ["echo } ; cat ${x:- <<EOF }", "mark_ran", "EOF"], []),
         ("a line of a string that is not flat stops the joining, at its FIRST character too: the lines after it are lines, and the command in them is read", "echo \"a\n$(echo a # )\nmark_ran)\"", ["echo \"a\n$(echo a # )", "mark_ran)\""], []),
         ("a `case` in the SECOND substitution of a body line makes the body code, not only one in the first", "cat <<EOF\n$(echo a) $(case x in x)\nmark_ran;; esac)\nEOF", ["cat <<EOF", "$(echo a) $(case x in x)", "mark_ran;; esac)", "EOF"], []),
@@ -4359,7 +4363,7 @@ def self_test():
                 '> \x85 mark_ran echo "$(date)"', '> \u2028 mark_ran echo "$(date)"'):
         check(f"...and a character bash reads as part of a word and a splitter as a blank is read as a letter, so the command after it is read: its `mark_ran` runs (`{cmd[:12]!r}`)", not clean(cmd) and not kept(cmd), unread(cmd))
     check("a carriage return inside quotes is text: the step is read, not refused", clean('echo "a\rb"') and clean("echo 'a\x0cb'"), (unread('echo "a\rb"'), unread("echo 'a\x0cb'")))
-    for src, want in (("echo a >\r; b", "echo a >x; b"), ('echo "a\rb" c\rd', 'echo "a\rb" cxd'), ("echo 'a\x0cb'", "echo 'a\x0cb'"), ("a\u2028b\xa0c\u3000d", "axbxcxd"), ("a \t b", "a \t b"), ("a\x0c", "ax")):
+    for src, want in (("echo a >\r; b", "echo a >x; b"), ('echo "a\rb" c\rd', 'echo "a\rb" cxd'), ("echo 'a\x0cb'", "echo 'a\x0cb'"), ("a\u2028b\xa0c\u3000d", "axbxcxd"), ("a \t b", "a \t b"), ("a\x0c", "ax"), ("a\tb\rc", "a\tbxc")):
         check(f"_odd_to_word: `{src!r}` is `{want!r}`", _odd_to_word(src) == want, _odd_to_word(src))
     # The cost of reading a string that spans lines: each line is scanned once, with what the lines before it left open carried on (one `_scan` of the whole text for each line added made it quadratic: 2000 lines took 10 s).
     scanned, real_scan = [0], _scan
