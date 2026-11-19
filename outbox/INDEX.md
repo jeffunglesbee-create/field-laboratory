@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4e2faff` | 2026-11-19 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-19T00:43 [skip ci] |
+| `e0e4af8` | 2026-11-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `5a6733b` | 2026-11-19 | [cc-session-2026-11-18-split-live-weather.md](cc-session-2026-11-18-split-live-weather.md) | docs: the split of the live weather check is DONE, all four done conditions read on main |
 | `3677660` | 2026-11-19 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44428423540 |
 | `cccac8d` | 2026-11-19 | [egress-path-e2e-20261119T002309Z.txt](egress-path-e2e-20261119T002309Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `cccac8d` | 2026-11-19 | [egress-path-live-20261119T002309Z.txt](egress-path-live-20261119T002309Z.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
