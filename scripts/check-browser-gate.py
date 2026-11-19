@@ -546,12 +546,12 @@ def _assemble(phys, joining, heredocs):
             cur = text[:-1] + " "
             cont, lt = True, lt or (text[:-1].endswith("<") and i < len(phys) and phys[i].startswith("<"))
             if joining and i == len(phys) and _quote_only(new):                                    # a string that never closes: its lines are lines, as before
-                i, cur, joining, heredocs, st = first, "", False, False, start.copy()
+                i, cur, joining, st = first, "", False, start.copy()
             continue
         if joining and _quote_only(new):
             cur = text + "\n"
             if i == len(phys):                                                                     # a string that never closes: its lines are lines, as before
-                i, cur, joining, heredocs, st = first, "", False, False, start.copy()
+                i, cur, joining, st = first, "", False, start.copy()
             continue
         cur = ""
         ops = heredoc_operators(text) if heredocs else []
@@ -4214,6 +4214,21 @@ def self_test():
         ("a `[` that the `$( )` it is in did not close leaves with it: the heredoc after is data", "x=$(echo [)\ncat <<EOF\nok\nEOF", ["x=$(echo [)", "cat"], ["ok"]),
         ("a `(( ))` still open at an operator is open after a `$( )` that closed in it", "(( x=$(date) , cat<<EOF ))\nnpm run y\nEOF", ["(( x=$(date) , cat<<EOF ))", "npm run y", "EOF"], []),
         ("an operator in a `$[ ]` that sits in a `$( )` is code", "x=$(echo $[ 1<<E ])\nnpm run y\nE", ["x=$(echo $[ 1<<E ])", "npm run y", "E"], []),
+        ("an operator in a `$( )` inside another `$( )` is code: only ONE `$( )` is a context this reader reads", "x=$(echo $(cat <<EOF\nx\nEOF\n))\nnpm run y", ["x=$(echo $(cat <<EOF", "x", "EOF", "))", "npm run y"], []),
+        ("...with the inner one opened on an earlier line", "x=$(\n  echo $(\n  cat <<EOF\nx\nEOF\n))\nnpm run y", ["x=$(", "echo $(", "cat <<EOF", "x", "EOF", "))", "npm run y"], []),
+        ("an operator in a `>( )` that an earlier line opened is code (bash ends the body at `EOF)` there too)", "tee >(\ncat <<EOF\nx\nEOF\n) >/dev/null\nnpm run y", ["tee >(", "cat <<EOF", "x", "EOF", ") >/dev/null", "npm run y"], []),
+        ("a `((` that closed on its line is not open at the heredoc after it", "((i=1)); cat <<EOF\nx\nEOF", ["((i=1)); cat"], ["x"]),
+        ("...nor a `<( )` that closed", "diff <(echo a) /dev/null; cat <<EOF\nx\nEOF", ["diff <(echo a) /dev/null; cat <<EOF", "x", "EOF"], []),
+        ("...nor a `>( )` that closed", "tee >(cat) /dev/null; cat <<EOF\nx\nEOF", ["tee >(cat) /dev/null; cat <<EOF", "x", "EOF"], []),
+        ("a `)` closes no `$[`: an operator after it is still in the arithmetic (and a reader stands right after the `)`)", "tee $[ ) cat <<E ]\nnpm run y\nE", ["tee $[ ) cat <<E ]", "npm run y", "E"], []),
+        ("a `]` closes no `((`: an operator after it is still in the arithmetic", "(( x ]; cat <<E ))\nnpm run y\nE", ["(( x ]; cat <<E ))", "npm run y", "E"], []),
+        ("a `$[` inside a `$( )` is open at an operator after it (a reader stands after a `;`)", "x=$(echo $[ 1; cat <<E ])\nnpm run y\nE", ["x=$(echo $[ 1; cat <<E ])", "npm run y", "E"], []),
+        ("a `(( ))` is still open after a `$( )` that closed in it (a reader stands after a `;`)", "(( x=$(date); cat <<E ))\nnpm run y\nE", ["(( x=$(date); cat <<E ))", "npm run y", "E"], []),
+        ("a string that never closes leaves its comment-looking lines as lines: the scan starts again from the state the string started with, not the state it ended with", "echo \"a\n# x\nnpm run y", ["echo \"a", "# x", "npm run y"], []),
+        ("...the same when the last line ends in a backslash", "echo \"a\n# x\nnpm run y \\", ["echo \"a", "# x", "npm run y"], []),
+        ("a no-break space at the start of a line that opens a code heredoc is kept", "\u00a0bash <<EOF\nx\nEOF", ["\u00a0bash <<EOF", "x", "EOF"], []),
+        ("...at the end of a data heredoc's line", "cat <<EOF \u00a0\nx\nEOF", ["cat  \u00a0"], ["x"]),
+        ("...at the end of a line that a backslash continued as the last line of a script", "echo a\u00a0\\", ["echo a\u00a0"], []),
         ("a `)` does not close a `$[`: the operator is still in it", "tee $[ ) 1<<E ]\nnpm run y\nE", ["tee $[ ) 1<<E ]", "npm run y", "E"], []),
         ("a comment with parentheses outside every `$( )` is no risk: the heredoc after it is data", "echo hi # (note)\ncat <<EOF\nx\nEOF", ["echo hi # (note)", "cat"], ["x"]),
         ("a `#` inside a word of a `$( )` is no comment and no risk", "x=$(echo a#(b))\ncat <<EOF\nok\nEOF", ["x=$(echo a#(b))", "cat"], ["ok"]),
