@@ -4033,6 +4033,7 @@ def self_test():
         ("a body line whose `$( )` holds a `#` is not given back as an echo: in bash the substitution goes on into the next line", "cat <<EOF\n$(echo a # )\nnpm run y)\nEOF", ["cat <<EOF", "$(echo a # )", "npm run y)", "EOF"], []),
         ("...a `case` in it", "cat <<EOF\n$(case x in x)\nnpm run y;; esac)\nEOF", ["cat <<EOF", "$(case x in x)", "npm run y;; esac)", "EOF"], []),
         ("...a heredoc in it", "cat <<EOF\n$(cat <<X)\nnpm run y\nX\nEOF", ["cat <<EOF", "$(cat <<X)", "npm run y", "X", "EOF"], []),
+        ("the `$(` of one physical line and the `#` of the next are one substitution when a backslash joins them", 'echo "$(date \\\n# )\nnpm run y)"', ['echo "$(date  # )', 'npm run y)"'], []),
         # where the next line starts
         ("a string and a substitution open at once: the line that closes them is not scanned from nothing, and nothing after it is joined", 'x="$(\ntrue\n) echo "\nnpm run y # "', ['x="$(', "true", ') echo "', 'npm run y # "'], []),
         ("...the same for the ordinary multi-line `\"$( )\"`, whose closing line is `)\"`", 'OUT="$(\n  git rev-parse HEAD\n)"\nnpm run y\nTS=$(date)\ntr -d \'"\' < /dev/null\n# don\'t edit the line above\necho done',

@@ -10293,6 +10293,14 @@ const MUTATIONS = [
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
+    id: "browser-gate-risky-flags-carried",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `$(` and a `#` on different physical lines of one joined line are not read together",
+    find: "        sub, risk = sub or \"$(\" in line or \"`\" in line, risk or RISKY_IN_SUB.search(line) is not None",
+    replace: "        sub, risk = \"$(\" in line or \"`\" in line, RISKY_IN_SUB.search(line) is not None",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+  {
     id: "browser-gate-later-step-is-per-line",
     file: "scripts/check-browser-gate.py",
     claim: "a write to `$GITHUB_ENV` of a dangerous name is read one line at a time again: a group written over several lines, a value held in a variable and the file held in a variable read as clean",
