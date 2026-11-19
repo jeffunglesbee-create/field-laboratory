@@ -7,7 +7,7 @@ differs. The denominator is printed with the result (Rule 91): `checked N of N r
 
     python3 outbox/guard-heredoc-probe-2026-11-19.py /path/to/old-guard.py
 """
-import glob, importlib.util, json, sys
+import glob, importlib.util, json, re, sys
 from pathlib import Path
 
 import yaml
@@ -33,7 +33,10 @@ def read(p):
 
 
 files = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/actions/*/action.yml"))
-steps, differ, heredoc_ops, multiline = 0, [], 0, 0
+steps, differ, heredoc_ops, multiline, blanks_only = 0, [], 0, 0, 0
+blanks = lambda lines: [re.sub(r"[ \t]+", " ", l) for l in lines]
+# a reason quotes the start of its line, cut at a fixed length: two readings that differ in a blank cut it at different places, so a reason is compared by its first 40 characters with blanks collapsed and by what it says after the quoted line
+reasons = lambda rs: [(re.sub(r"[ \t]+", " ", r)[:40], r.rsplit("`: ", 1)[-1]) for r in rs]
 for f in files:
     doc = yaml.safe_load(Path(f).read_text())
     jobs = (doc or {}).get("jobs") or {}
@@ -49,10 +52,13 @@ for f in files:
             heredoc_ops += 1
         if any("\n" in l for l in ln):
             multiline += 1
-        if lo != ln or ro != rn:
+        if blanks(lo) != blanks(ln) or reasons(ro) != reasons(rn):
             differ.append((f, jn, s.get("name"), len(lo), len(ln), len(ro), len(rn)))
+        elif lo != ln or ro != rn:
+            blanks_only += 1
 print(f"checked {steps} of {steps} run steps in {len(files)} files, each read by the old guard and the new one")
 print(f"steps with a heredoc operator: {heredoc_ops}; steps with a command line that holds a newline (a string that spans lines): {multiline}")
-print(f"steps whose command lines or unresolved reasons differ: {len(differ)}")
+print(f"steps whose command lines or reasons differ only in the blanks where a backslash joined two lines (the old reader put a space there, bash puts none): {blanks_only}")
+print(f"steps whose command lines or unresolved reasons differ (blanks apart): {len(differ)}")
 for d in differ:
     print("  DIFF", d)

@@ -1,5 +1,6 @@
 checked 407 of 407 run steps in 57 files, each read by the old guard and the new one
 steps with a heredoc operator: 1; steps with a command line that holds a newline (a string that spans lines): 2
-steps whose command lines or unresolved reasons differ: 2
+steps whose command lines or reasons differ only in the blanks where a backslash joined two lines (the old reader put a space there, bash puts none): 46
+steps whose command lines or unresolved reasons differ (blanks apart): 2
   DIFF ('.github/workflows/mutation-ids-probe.yml', 'ids', 'What the driver said about each id', 8, 4, 12, 1)
   DIFF ('.github/workflows/open-meteo-egress-probe.yml', 'probe', 'Recorded weather and the availability record, under the fault', 18, 13, 30, 5)

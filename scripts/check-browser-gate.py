@@ -517,7 +517,7 @@ def command_lines(script):
     """(lines, bodies): the script's command lines (logical_lines), and the text of the heredoc bodies that were read as data and so are not among them. Besides what logical_lines says: a string that spans lines is
     ONE line, its newlines kept (`echo "a` / `b $(date)"`: the second line is not a command `b`); a heredoc is data or code (heredoc_as_data), and its body and terminator are not command lines when it is data. Both are
     given up where this reader cannot account for the lines: after a `<<` it cannot read (heredoc_operators), a heredoc with no terminator (bash takes the rest of the script as its body, and an unquoted body
-    runs its `$( )`), a `<<` on a line that a backslash joined (bash joins with nothing, this reader with a space: `<\\` and `<EOF` are one operator to bash), an operator line that leaves a `$( )` open after the
+    runs its `$( )`), an operator line that leaves a `$( )` open after the
     operator (the body starts where the substitution ends, not at the next line), and a `$( )` that holds a `#` comment with a parenthesis after it, a `case` or, inside a string, a `<<` (_scan's `risk`): no
     line is joined and no later heredoc is read as data, the rest is read line by line, as it always was. A quoted string and a substitution open at once (`"$(` and its closing line) are not joined: each line of
     them is read on its own, as it always was, and the state is carried, so what follows the closing line is read normally (a body that this reader takes for commands may be text, but it can never be read as text when it is commands). What an earlier line left open (a `$(`, a `${`, a backtick pair,
@@ -529,22 +529,23 @@ def command_lines(script):
 
 def _assemble(phys, joining, heredocs):
     out, bodies, cur, i, first = [], [], "", 0, 0
-    st, start, cont, lt = _Open(), _Open(), False, False
+    st, start, bound = _Open(), _Open(), True
     while i < len(phys):
         if not cur:
-            first, start, cont, lt = i, st.copy(), False, False
-        line = phys[i].rstrip(" \t")
+            first, start, bound = i, st.copy(), True
+        raw = phys[i]
+        line = raw.rstrip(" \t")
         i += 1
         if not cur and line.lstrip(" \t").startswith("#") and (not st.stack or st.stack[-1] == "$("):  # a whole-line comment (in a `${ }` or a string it is text)
             continue
         text = cur + line
-        at = _scan(line, st)                                                                    # the openers this line leaves open are carried on into the next, in `st`
+        at = _scan(line, st, bound)                                                                    # the openers this line leaves open are carried on into the next, in `st`
         if st.risk:
             joining = heredocs = False
         new = _opened_since(st.stack, start.stack)                                                 # what THIS logical line opened: a string inside a `$(` of an earlier line is a string
-        if (len(line) - len(line.rstrip("\\"))) % 2 == 1 and at is None:                            # an odd run of backslashes: the last one escapes the newline
-            cur = text[:-1] + " "
-            cont, lt = True, lt or (text[:-1].endswith("<") and i < len(phys) and phys[i].startswith("<"))
+        if (len(raw) - len(raw.rstrip("\\"))) % 2 == 1 and at is None:                              # an odd run of backslashes at the very end of the line (a blank after it escapes the blank): the last one escapes the newline
+            cur = text[:-1]                                                                        # bash joins with nothing
+            bound = cur[-1:] in (" ", "\t", ";", "&", "|", "(", ")")                                  # a word ends where the line was joined: only then does a `#` after the join begin a comment
             if joining and i == len(phys) and _quote_only(new):                                    # a string that never closes: its lines are lines, as before
                 i, cur, joining, st = first, "", False, start.copy()
             continue
@@ -555,8 +556,6 @@ def _assemble(phys, joining, heredocs):
             continue
         cur = ""
         ops = heredoc_operators(text) if heredocs else []
-        if heredocs and (lt or (cont and ops)):
-            ops = None
         if ops is None:
             joining = heredocs = False
         elif ops:
@@ -594,17 +593,18 @@ def comment_start(line):
     return _scan(line)
 
 
-def _scan(line, st=None):
+def _scan(line, st=None, boundary=True):
     """The index of the comment's `#` on this line, or None, and what the line leaves open, in `st` (the openers, and so on). One scanner answers both questions: comment_start's description is of the first, and a second
     reader of the same quotes would drift from it. The openers are `'`, `"`, `$'`, `${`, `$(` and a backtick, innermost last (`st.stack`), with the parentheses still open in each `$(` (`st.parens`). `st` is what an earlier line left
     open: passed in, it is carried on and updated in place, so a script is scanned once, not once more for each line added to a string. `$$` is the process id, and a quote after it is a quote of its own
     (`echo $$'a\\'` is a closed string, not a `$'...'` that a backslash keeps open). In code (outside every opener, or directly inside a `$( )`) a `[` and, outside every opener, the second `(` of a `((` and the `(` of a `<(` or `>(` is put in `st.brk` and the
     closer of its kind takes it out; a closer with none to close is a literal (a case arm's `)`, a subshell's `)`). `st.risk` is set where bash reads a `$( )` differently from the way the parentheses are counted here: a `#` that begins a
     word starts a comment, which holds the `)` that follows it; the word `case` starts a pattern list whose `)` closes nothing; and a `<<` in a `$( )` that is in a string is a heredoc that takes the lines after it.
-    Once set it stays: what is open after it is not what bash has open."""
+    Once set it stays: what is open after it is not what bash has open. `boundary` is whether a word begins at the first character: it does at the start of a logical line and after a blank, and does not on
+    a line that a backslash joined to a word (`echo a\\` and `# x` are the word `a#`, with no comment)."""
     st = _Open() if st is None else st
     stack, parens, bases, brk = st.stack, st.parens, st.bases, st.brk
-    boundary, i, n = True, 0, len(line)
+    i, n = 0, len(line)
     while i < n:
         c, top, was_top = line[i], (stack[-1] if stack else ""), not stack
         if top == "'":
@@ -3732,8 +3732,8 @@ def self_test():
           "a comment after `;`, `|`, `&`, `(`, `)` and a space; none in `$#`, `${{#x}}`, `${{x##*/}}`, `a#b`, `x=#a`, `\"a\"#b`, `$(a)#c`, `${{x}}#c`)",
           all(comment_start(src) == want for src, want in PINNED_COMMENT_STARTS), [(src, comment_start(src), want) for src, want in PINNED_COMMENT_STARTS if comment_start(src) != want])
     check("strip_comment cuts at that index and leaves a line with none as it is", strip_comment("echo hi # note") == "echo hi " and strip_comment("echo ${y:- #}; exit 0") == "echo ${y:- #}; exit 0")
-    PINNED_LOGICAL = [("echo hi # note \\\nexit 0", ["echo hi # note \\", "exit 0"]), ("echo a \\\n# c\nexit 0", ["echo a  # c", "exit 0"]), ("echo a \\\n  b", ["echo a    b"]), ("echo a \\\\\nexit 0", ["echo a \\\\", "exit 0"]),
-                      ("# whole\necho a", ["echo a"]), ("echo a \\\nb \\\nc", ["echo a  b  c"])]
+    PINNED_LOGICAL = [("echo hi # note \\\nexit 0", ["echo hi # note \\", "exit 0"]), ("echo a \\\n# c\nexit 0", ["echo a # c", "exit 0"]), ("echo a \\\n  b", ["echo a   b"]), ("echo a \\\\\nexit 0", ["echo a \\\\", "exit 0"]),
+                      ("# whole\necho a", ["echo a"]), ("echo a \\\nb \\\nc", ["echo a b c"])]
     check(f"logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after a comment line that follows a continuation, or as the second of two (`\\\\`), on each of these {len(PINNED_LOGICAL)} scripts",
           all(logical_lines(src) == want for src, want in PINNED_LOGICAL), [(src, logical_lines(src), want) for src, want in PINNED_LOGICAL if logical_lines(src) != want])
     for label, text in [("(a) `echo ${y:- #}; exit 0` before the spawner (B1)", "echo ${y:- #}; exit 0\nnpm run gate:bl"), ("(b) `|| true` after a `${y:- #}` (B1)", "node scripts/confidence.mjs --browserless ${y:- #}|| true"),
@@ -4059,8 +4059,8 @@ def self_test():
         ("a code body is not joined (its apostrophes pair with nothing that is not in it)", "bash <<EOF\nit's\nnpm run y\nthat's\nEOF", ["bash <<EOF", "it's", "npm run y", "that's", "EOF"], []),
         ("a code body is not read for heredocs of its own", "bash <<EOF\ncat <<X\nfoo\nX\nEOF", ["bash <<EOF", "cat <<X", "foo", "X", "EOF"], []),
         ("a body with a `\"` and a `$( )` is not given back as an echo (the `\"` would close its string): it is code", 'cat <<EOF\nsay "hi" $(date)\nEOF', ["cat <<EOF", 'say "hi" $(date)', "EOF"], []),
-        ("a backslash at the end of a body line makes it code, and the lines join as they always did", "cat <<EOF\nab \\\n$(npm run pure)\nEOF", ["cat <<EOF", "ab  $(npm run pure)", "EOF"], []),
-        ("...a substitution split over two lines by a backslash is one the code path reads", "cat <<EOF\n$\\\n(npm run pure)\nEOF", ["cat <<EOF", "$ (npm run pure)", "EOF"], []),
+        ("a backslash at the end of a body line makes it code, and the lines join as bash joins them, with nothing", "cat <<EOF\nab \\\n$(npm run pure)\nEOF", ["cat <<EOF", "ab $(npm run pure)", "EOF"], []),
+        ("...a substitution split over two lines by a backslash is the `$( )` it is to bash, and its command is a head", "cat <<EOF\n$\\\n(npm run pure)\nEOF", ["cat <<EOF", "$(npm run pure)", "EOF"], []),
         ("a `$(` that does not close on its line makes the body code", "cat <<EOF\nrun $(date\nEOF", ["cat <<EOF", "run $(date", "EOF"], []),
         ("`cat <<EOF | bash`: the body is data of `cat`, and `bash` is the head the guard refuses", "cat <<EOF | bash\nnpm run pure\nEOF", ["cat  | bash"], ["npm run pure"]),
         ("no terminator: bash takes the rest of the script as the body, so nothing is joined and the lines are read", "cat <<EOF\nit's\nnpm run y\nthat's", ["cat <<EOF", "it's", "npm run y", "that's"], []),
@@ -4101,7 +4101,7 @@ def self_test():
         ("a body line whose `$( )` holds a `#` is not given back as an echo: in bash the substitution goes on into the next line", "cat <<EOF\n$(echo a # )\nnpm run y)\nEOF", ["cat <<EOF", "$(echo a # )", "npm run y)", "EOF"], []),
         ("...a `case` in it", "cat <<EOF\n$(case x in x)\nnpm run y;; esac)\nEOF", ["cat <<EOF", "$(case x in x)", "npm run y;; esac)", "EOF"], []),
         ("...a heredoc in it", "cat <<EOF\n$(cat <<X)\nnpm run y\nX\nEOF", ["cat <<EOF", "$(cat <<X)", "npm run y", "X", "EOF"], []),
-        ("the `$(` of one physical line and the `#` of the next are one substitution when a backslash joins them", 'echo "$(date \\\n# )\nnpm run y)"', ['echo "$(date  # )', 'npm run y)"'], []),
+        ("the `$(` of one physical line and the `#` of the next are one substitution when a backslash joins them", 'echo "$(date \\\n# )\nnpm run y)"', ['echo "$(date # )', 'npm run y)"'], []),
         # where the next line starts
         ("a string and a substitution open at once: the line that closes them is not scanned from nothing, and nothing after it is joined", 'x="$(\ntrue\n) echo "\nnpm run y # "', ['x="$(', "true", ') echo "', 'npm run y # "'], []),
         ("...the same for the ordinary multi-line `\"$( )\"`, whose closing line is `)\"`", 'OUT="$(\n  git rev-parse HEAD\n)"\nnpm run y\nTS=$(date)\ntr -d \'"\' < /dev/null\n# don\'t edit the line above\necho done',
@@ -4126,15 +4126,15 @@ def self_test():
         ("...while the same operator at the top level has a body line that starts with its delimiter, and the line is text", "cat <<EOF\nEOFX\nEOF\nnpm run y", ["cat", "npm run y"], ["EOFX"]),
         ("an operator whose `$( )` closes on its own line, with the body after it", "x=$(cat <<EOF)\nhi\nEOF\nnpm run y", ["x=$(cat )", "npm run y"], ["hi"]),
         # a backslash at the end of a line
-        ("a `<<` that a backslash splits (`<\\` and `<EOF`) is one operator to bash: it is not read, and nothing is joined after it", "cat <\\\n<EOF\necho it's\nEOF\nnpm run y # '", ["cat < <EOF", "echo it's", "EOF", "npm run y # '"], []),
-        ("a delimiter that a backslash splits is one word to bash: the heredoc is not read", "cat <<E\\\nOF\nx\nEOF\nnpm run y\nE", ["cat <<E OF", "x", "EOF", "npm run y", "E"], []),
-        ("an operator on a line that a backslash joined is not read, and nothing is joined after it", 'cat <<EOF \\\n> f\nx\nEOF\necho "a\nb"', ["cat <<EOF  > f", "x", "EOF", 'echo "a', 'b"'], []),
+        ("a `<<` that a backslash splits (`<\\` and `<EOF`) is the operator it is to bash, joined with nothing: the heredoc is read", "cat <\\\n<EOF\necho it's\nEOF\nnpm run y # '", ["cat", "npm run y # '"], ["echo it's"]),
+        ("a delimiter that a backslash splits is one word to bash (`EOF`): the heredoc is read with it, and the `E` after it is a line", "cat <<E\\\nOF\nx\nEOF\nnpm run y\nE", ["cat", "npm run y", "E"], ["x"]),
+        ("an operator on a line that a backslash joined is read, and its body starts after the last line of the command", 'cat <<EOF \\\n> f\nx\nEOF\necho "a\nb"', ["cat  > f", 'echo "a\nb"'], ["x"]),
         ("a string that never closes, whose last line ends in a backslash, is not joined", 'echo "a\nnpm run y \\', ['echo "a', "npm run y"], []),
         # every `$( )` line of a body, every operator, every reader
         ("each `$( )` line of a body is given back, not the first alone", "cat <<EOF\n$(date)\n$(npm run pure)\nEOF", ["cat", 'echo "$(date)"', 'echo "$(npm run pure)"'], ["$(date)", "$(npm run pure)"]),
         ("the body of a second operator is given back", "cat <<A <<B\nx\nA\n$(npm run pure)\nB", ["cat", 'echo "$(npm run pure)"'], ["x", "$(npm run pure)"]),
         ("...a quoted first delimiter and an unquoted second one", "cat <<'A' <<B\nx\nA\n$(npm run pure)\nB", ["cat", 'echo "$(npm run pure)"'], ["x", "$(npm run pure)"]),
-        ("a backslash ending a later body line makes the body code too", "cat <<EOF\nx\n$\\\n(npm run pure)\nEOF", ["cat <<EOF", "x", "$ (npm run pure)", "EOF"], []),
+        ("a backslash ending a later body line makes the body code too", "cat <<EOF\nx\n$\\\n(npm run pure)\nEOF", ["cat <<EOF", "x", "$(npm run pure)", "EOF"], []),
         ("an even run of backslashes at the end of a body line is no continuation", "cat <<EOF\nab \\\\\nx\nEOF", ["cat"], ["ab \\\\", "x"]),
         ("two operators read by different commands: the second one's reader is `bash`, so the heredoc is code", "cat <<A | bash <<B\nx\nA\nnpm run y\nB", ["cat <<A | bash <<B", "x", "A", "npm run y", "B"], []),
         ("...and the first one's", "bash <<A | cat <<B\nx\nA\ny\nB", ["bash <<A | cat <<B", "x", "A", "y", "B"], []),
@@ -4192,10 +4192,22 @@ def self_test():
         ("...an arithmetic `$(( ))` and a `#` in a double-quoted one", "echo \"## Count\nn=$((N + 1))\ndone\"", ["echo \"## Count\nn=$((N + 1))\ndone\""], []),
         ("the word `case` outside a `$( )` of a string is no risk: the string is joined, and the command after it is read", "echo \"in that case $(date)\n# note\"; npm run y", ["echo \"in that case $(date)\n# note\"; npm run y"], []),
         ("a `#` after a `$( )` in a string is text: the closing line is not read from nothing", "echo\"\n$(date)#\necho\"|npm run y\"\"", ["echo\"\n$(date)#\necho\"|npm run y\"\""], []),
-        ("a line a backslash continued is no reason to leave the heredoc after it unread", "npm ci \\\n  --x\ncat >> \"$GITHUB_STEP_SUMMARY\" <<EOF\nresult\nEOF\nnpm run y", ["npm ci    --x", "cat >> \"$GITHUB_STEP_SUMMARY\"", "npm run y"], ["result"]),
-        ("a `<` at the end of a continued line, with a line after it that does not start with `<`, is no split operator", "cat <\\\nfile\ncat <<EOF\nx\nEOF\nnpm run y", ["cat < file", "cat", "npm run y"], ["x"]),
+        ("a line a backslash continued is no reason to leave the heredoc after it unread", "npm ci \\\n  --x\ncat >> \"$GITHUB_STEP_SUMMARY\" <<EOF\nresult\nEOF\nnpm run y", ["npm ci   --x", "cat >> \"$GITHUB_STEP_SUMMARY\"", "npm run y"], ["result"]),
+        ("a `<` at the end of a continued line, with a line after it that does not start with `<`, is `cat <file`: no operator, and the heredoc after it is read", "cat <\\\nfile\ncat <<EOF\nx\nEOF\nnpm run y", ["cat <file", "cat", "npm run y"], ["x"]),
         ("...a continued line that is the last line of the script", "echo a <\\", ["echo a <"], []),
-        ("...a line that starts with `<` after one that does not end in it", "echo a\\\n<b\ncat <<EOF\nx\nEOF", ["echo a <b", "cat"], ["x"]),
+        ("...a line that starts with `<` after one that does not end in it joins with nothing (`echo a<b`)", "echo a\\\n<b\ncat <<EOF\nx\nEOF", ["echo a<b", "cat"], ["x"]),
+        ("a backslash and then a blank at the end of a line escapes the blank and not the newline: the next line is a line of its own", "echo hi \\ \nnpm run y", ["echo hi \\", "npm run y"], []),
+        ("...and a tab", "echo hi \\\t\nnpm run y", ["echo hi \\", "npm run y"], []),
+        ("a `#` on the line a backslash joined to a word is part of the word: `a#b` has no comment", "echo a\\\n#b ; npm run y", ["echo a#b ; npm run y"], []),
+        ("...so the apostrophe after it opens a string, which the next quote closes (bash and the reader agree where)", "echo a\\\n# don't edit the line above\necho a #c\necho '\nnpm run y\necho ok # it's\n)", ["echo a# don't edit the line above\necho a #c\necho '", "npm run y", "echo ok # it's", ")"], []),
+        ("...while after a blank the `#` is a comment, whatever it holds", "echo a \\\n# it's\nnpm run y\necho x'", ["echo a # it's", "npm run y", "echo x'"], []),
+        ("...and after a `;`", "echo a;\\\n# it's\nnpm run y\necho x'", ["echo a;# it's", "npm run y", "echo x'"], []),
+        ("...and after a tab", "echo a\t\\\n# it's\nnpm run y\necho x'", ["echo a\t# it's", "npm run y", "echo x'"], []),
+        ("...and after a `&`", "echo a&\\\n# it's\nnpm run y\necho x'", ["echo a&# it's", "npm run y", "echo x'"], []),
+        ("...and after a `|`", "echo a|\\\n# it's\nnpm run y\necho x'", ["echo a|# it's", "npm run y", "echo x'"], []),
+        ("...and after a `(`", "echo a(\\\n# it's\nnpm run y\necho x'", ["echo a(# it's", "npm run y", "echo x'"], []),
+        ("...and after a `)`", "echo a)\\\n# it's\nnpm run y\necho x'", ["echo a)# it's", "npm run y", "echo x'"], []),
+        ("a `$` that a backslash separates from its `(` is the `$(` it is to bash", "echo \"a $\\\n(npm run y)\"", ["echo \"a $(npm run y)\""], []),
         ("a string and a substitution open at once stop nothing after the closed construct: the heredoc after it is read (the state is carried, so where the construct closed is known)", "x=\"$(\ntrue\n)\"\ncat <<EOF\nresult\nEOF", ["x=\"$(", "true", ")\"", "cat"], ["result"]),
         ("a multi-line `\"$( )\"` assignment followed by a heredoc to the step summary, the ordinary shape: the heredoc is data", "OUT=\"$(\n  git rev-parse HEAD\n)\"\ncat >> \"$GITHUB_STEP_SUMMARY\" <<EOF\nx\nEOF\necho done", ["OUT=\"$(", "git rev-parse HEAD", ")\"", "cat >> \"$GITHUB_STEP_SUMMARY\"", "echo done"], ["x"]),
         ("...and by a string that spans lines: it is joined", "OUT=\"$(\n  git rev-parse HEAD\n)\"\necho \"a\nb\"", ["OUT=\"$(", "git rev-parse HEAD", ")\"", "echo \"a\nb\""], []),
@@ -4288,6 +4300,11 @@ def self_test():
                 "echo `\necho 'a\n`\nmark_ran\n# it's", "echo \"$(date)\" $$'a\\'; mark_ran; echo 'b'", "cp\"\"$$'\\'\"$(mark_ran)\"''", "cp $$'\\';mark_ran '`'",
                 "echo \"in that case $(date)\n# note\"; mark_ran", "echo\"\n$(date)#\necho\"|mark_ran\"\"", "cat <<true\n#$(mark_ran)\ntrue", "tee f <<date\n#`mark_ran`\ndate"):
         check(f"...and a shape that needs what an earlier line left open, or what the operator's line leaves open, is refused, not kept: its `mark_ran` runs (`{cmd.splitlines()[0][:50]}`)", not clean(cmd) and not kept(cmd), unread(cmd))
+    # The second differential fuzz at volume (gen2, seed 2035603) found a script that bash runs and that 1806bf8a, 7e31228a and the head before this change accepted (the parent refused it): a backslash joined to a word
+    # (`echo a\` and `# ...`) is the word `a#...` to bash, with no comment, and the reader joined with a space, so its `#` hid an apostrophe and the string it opens closed at another place than in bash. The reader joins with
+    # nothing now, and reads a `#` on a joined line as a comment only after a blank or a separator; a backslash followed by a blank is not a continuation. Each of these runs `mark_ran` in bash 5.2.21.
+    for cmd in ("echo a\\\n# don't edit the line above\necho a #c\necho '\nmark_ran\nTS=$(date)\necho ok # it's\n)", "echo \"a $\\\n(mark_ran)\"", "echo a\\\n#b ; mark_ran", "echo hi \\ \nmark_ran"):
+        check(f"...and a backslash-newline joined with a space, not with nothing, is refused, not kept: its `mark_ran` runs (`{cmd.splitlines()[0][:50]}`)", not clean(cmd) and not kept(cmd), unread(cmd))
     # The cost of reading a string that spans lines: each line is scanned once, with what the lines before it left open carried on (one `_scan` of the whole text for each line added made it quadratic: 2000 lines took 10 s).
     scanned, real_scan = [0], _scan
     def counting_scan(line, *rest):
