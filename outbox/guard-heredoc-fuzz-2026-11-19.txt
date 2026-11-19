@@ -1,0 +1,225 @@
+head 58dee9bc (scripts/check-browser-gate.py), GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 50000 1000000 1   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
+generator: gen alphabet: see the lists at the top of this file
+{
+ "scripts": 50000,
+ "marker_ran": 27832,
+ "new_accepts_opaque_ok": 7295,
+ "new_accepts_plain": 6417,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 7295,
+ "old_accepts_plain": 6417,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 7295,
+ "REACHED: ...of them with a heredoc read as data": 1982,
+ "REACHED: ...of them with a string joined over lines": 3355,
+ "accepted_by_new_not_old": 0,
+ "accepted_by_old_not_new": 0
+}
+
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 50000 2000000 2   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
+generator: gen2 alphabet: {"operator contexts": 24, "readers": 11, "terminators": 10, "body lines": 38, "string units": 20, "tail lines": 14, "line separators": ["\n", "\r", "\u2028", "\u000b", "\f", "\u0085"]}
+{
+ "scripts": 50000,
+ "marker_ran": 13218,
+ "new_accepts_opaque_ok": 5427,
+ "new_accepts_plain": 1936,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 5446,
+ "old_accepts_plain": 1940,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 5427,
+ "REACHED: ...of them with a heredoc read as data": 347,
+ "REACHED: ...of them with a string joined over lines": 728,
+ "accepted_by_new_not_old": 4,
+ "accepted_by_old_not_new": 23
+}
+
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 50000 3000000 3   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
+generator: gen3 alphabet: {"openers": 18, "lines before the operator": 9, "operator prefixes": 7, "operator suffixes": 10, "closers": 5, "readers": 11, "terminators": 10, "body lines": 38, "tail lines": 14}
+{
+ "scripts": 50000,
+ "marker_ran": 5293,
+ "new_accepts_opaque_ok": 3709,
+ "new_accepts_plain": 1425,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 3704,
+ "old_accepts_plain": 1422,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 3709,
+ "REACHED: ...of them with a heredoc read as data": 60,
+ "REACHED: ...of them with a string joined over lines": 392,
+ "accepted_by_new_not_old": 11,
+ "accepted_by_old_not_new": 6
+}
+
+=== python3 outbox/guard-heredoc-fuzz-2026-11-19.py 50000 4000000 4   (GUARD = the head guard, OLD = the guard of 0ba7f399, the strict reader before the narrowing)
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 50000,
+ "marker_ran": 24187,
+ "new_accepts_opaque_ok": 2864,
+ "new_accepts_plain": 1581,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 7736,
+ "old_accepts_plain": 2118,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 2940,
+ "old_VIOLATIONS_plain": 28,
+ "REACHED: scripts the new guard accepts": 2864,
+ "REACHED: ...of them with a heredoc read as data": 577,
+ "REACHED: ...of them with a string joined over lines": 1554,
+ "accepted_by_new_not_old": 0,
+ "accepted_by_old_not_new": 4872
+}
+
+CONTROLS (Rule 91: the test must be able to fail). Each runs gen4, 20000 scripts, seeds 4000000 to 4019999, with the guard under test as GUARD and the head guard as OLD.
+=== GUARD = 0ba7f399 (the strict reader before the narrowing), a known-wrong guard
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 3094,
+ "new_accepts_plain": 821,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 1181,
+ "new_VIOLATIONS_plain": 7,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 3094,
+ "REACHED: ...of them with a heredoc read as data": 1023,
+ "REACHED: ...of them with a string joined over lines": 2274,
+ "accepted_by_new_not_old": 1976,
+ "accepted_by_old_not_new": 0
+}
+----- 4000006 None 
+echo "a
+=== GUARD = the head with the exotic-form stop removed
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 1727,
+ "new_accepts_plain": 892,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 46,
+ "new_VIOLATIONS_plain": 20,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 1727,
+ "REACHED: ...of them with a heredoc read as data": 542,
+ "REACHED: ...of them with a string joined over lines": 953,
+ "accepted_by_new_not_old": 609,
+ "accepted_by_old_not_new": 0
+}
+----- 4000478 None 
+a=(true)#'
+=== GUARD = the head with the closing-line check off
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 1387,
+ "new_accepts_plain": 617,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 239,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 1387,
+ "REACHED: ...of them with a heredoc read as data": 259,
+ "REACHED: ...of them with a string joined over lines": 867,
+ "accepted_by_new_not_old": 269,
+ "accepted_by_old_not_new": 0
+}
+----- 4000020 None 
+echo "a
+=== GUARD = the head with the backslash-joined line not scanned whole (review 4, RD-1)
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 1118,
+ "new_accepts_plain": 617,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 1118,
+ "REACHED: ...of them with a heredoc read as data": 229,
+ "REACHED: ...of them with a string joined over lines": 598,
+ "accepted_by_new_not_old": 0,
+ "accepted_by_old_not_new": 0
+}
+=== GUARD = the head with _odd_to_word off
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 1118,
+ "new_accepts_plain": 620,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 1118,
+ "REACHED: ...of them with a heredoc read as data": 229,
+ "REACHED: ...of them with a string joined over lines": 598,
+ "accepted_by_new_not_old": 0,
+ "accepted_by_old_not_new": 0
+}
+=== GUARD = the head with a heredoc that is not data not stopping the trust (review 4, RD-2)
+generator: gen4 alphabet: {"ordinary and contested lines": 29, "operator lines": 16, "body lines": 18, "string units": 9}
+{
+ "scripts": 20000,
+ "marker_ran": 9689,
+ "new_accepts_opaque_ok": 1118,
+ "new_accepts_plain": 617,
+ "new_errors": 0,
+ "new_VIOLATIONS(accepted & ran)": 0,
+ "new_VIOLATIONS_plain": 0,
+ "old_accepts_opaque_ok": 1118,
+ "old_accepts_plain": 617,
+ "old_errors": 0,
+ "old_VIOLATIONS(accepted & ran)": 0,
+ "old_VIOLATIONS_plain": 0,
+ "REACHED: scripts the new guard accepts": 1118,
+ "REACHED: ...of them with a heredoc read as data": 229,
+ "REACHED: ...of them with a string joined over lines": 598,
+ "accepted_by_new_not_old": 0,
+ "accepted_by_old_not_new": 0
+}
+
+NOTE (Rule 91): the three controls for the review-4 clauses (the backslash-joined line scanned whole, _odd_to_word, the stop after a heredoc that is not data) show 0 violations: gen4 does not draw a script in which each one alone decides. Those clauses are pinned by rows and by mutation entries (browser-gate-join-rescan, browser-gate-odd-blank-letter, browser-gate-odd-set-narrow, browser-gate-hides-odd-word, browser-gate-code-heredoc-stop: caught), not by this fuzz. The oracle is bash -c, which cannot carry a NUL (browser-gate-nul-refused is pinned by rows). SIGPIPE is ignored in the oracle: the 12 seeds the third review's dossier named, 30 runs each, give the same marker bit on every run (0/30 or 30/30).
+DETERMINISM (python3 /dev/shm/fz/det.py equivalent: gen3 seeds, 30 runs of ran() each, oracle with SIGPIPE ignored): {3007585: '30/30', 3007985: '30/30', 3007986: '0/30', 3008109: '30/30', 3008110: '0/30', 3008112: '0/30', 3008113: '0/30', 3009720: '30/30', 3013196: '0/30', 3015007: '30/30', 3015008: '0/30', 3022505: '30/30'}; deterministic on all 12 seeds: True. Before the change (SIGPIPE at its default in the child) the same seeds gave 19/30, 30/30, 0/30, 28/30, 0/30, 0/30, 0/30, 14/30, 0/30, 30/30, 0/30, 29/30.
