@@ -1,0 +1,367 @@
+Kill matrix of the browser-gate mutation entries against scripts/check-browser-gate.py (isolated-copy runner: one mutant applied to a copy, the copy's --self-test run, the FAIL lines recorded).
+Source: the final sweep of the head before the last cleanup (325 entries: 314 caught, 11 survived; the dispositions of the 11 are below) and a re-run of the 8 entries the cleanup touched (all caught).
+
+MUTANT  (failing checks)  first failing check
+browser-gate-ansi-c-blanked  (1)  round 6 (review of 8e39e08a, finding 2): a substitution after an ANSI-C string that holds an escaped quote is still refused 
+browser-gate-arithmetic-is-no-exemption  (5)  finding 23: `make -s` is no arithmetic (it is a command and a flag): refused under always(), not kept
+browser-gate-assign-empty-subst  (1)  round 6 (review of 8e39e08a): ...and an empty value (`A= npm run shot`) or an empty substitution (`A=$() npm run shot`) in t
+browser-gate-assign-prefix-substitution  (5)  round 6 (P1): the command after a `VAR=$( )` or `VAR=`...`` prefix is a head (`echo "at $(date)"; STAMP=$(date +%s) npm run 
+browser-gate-benign-awk  (5)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-cp  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-find  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-mv  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-raw-line  (35)  an unreadable step with `if: always()` is OPAQUE and counted, not refused, when nothing in it is seen to launch a browser
+browser-gate-benign-reason-ends-the-scan  (1)  round 6 (review of 945daddf, F2): a benign tool before a wrapper or an unknown head on an unreadable line does not end the s
+browser-gate-benign-rm  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-sed  (7)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-sort  (6)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-tee  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-benign-uniq  (3)  BENIGN_HEADS: the members the guard knows are exactly the 29 pinned (a literal list, so a loop cannot lose a fixture with th
+browser-gate-blank-dollar-dollar  (4)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-blank-dollar-dollar-dq  (2)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-boundary-blanks  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-brace-any-open  (1)  command_lines: ...(b): a `{ }` group that closed before the operator does not: the heredoc after it is data (`{ echo a; } ; 
+browser-gate-brace-whole-line  (1)  command_lines: review 4, T4-4 (a): a `{ }` group that is open at the operator holds it: no heredoc (`{ cat <<EOF ; }`)
+browser-gate-close-line-no-seg  (1)  command_lines: the closing line of a single-quoted string is judged in the quote it closes: what looks like a substitution i
+browser-gate-close-line-no-unjoin  (5)  command_lines: review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it (`
+browser-gate-close-line-off  (5)  command_lines: review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it (`
+browser-gate-close-line-offset  (3)  command_lines: review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it (`
+browser-gate-close-line-physical  (1)  command_lines: review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it (`
+browser-gate-code-heredoc-stop  (2)  command_lines: ...and a heredoc that is not read as data stops the trust for the string after it, a backslash at the end of 
+browser-gate-comment-ansi-c-frame  (5)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-backtick-frame  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-boundary-after-substitution  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-brace-frame  (16)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-escape  (5)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-paren-count  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-start-apostrophe-in-double-quotes  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-comment-word-boundary  (9)  a `#` INSIDE a word is not a comment: `echo $#; node ...` still reads the node command
+browser-gate-continuation-join-nothing  (36)  logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after 
+browser-gate-continuation-raw  (3)  command_lines: a backslash and then a blank at the end of a line escapes the blank and not the newline: the next line is a l
+browser-gate-ctx-brace-raw  (1)  command_lines: a `{` inside quotes is text: it does not make a `{ }` group of the operator's line (`echo "{"; cat <<EOF`)
+browser-gate-ctx-scan-short  (1)  command_lines: review 4, T4-1: a stray `}` before a `${` that is right in front of the operator: the `${` is open at the ope
+browser-gate-ctx-scan-start  (1)  command_lines: a quote on the first character of the operator's line opens a string: the operator after its close is read (`
+browser-gate-ctx-stack-ansic  (1)  command_lines: ...in a `$'...'` string (`tee $'\' <<E  }x\\'\' >/dev/null`)
+browser-gate-ctx-stack-param  (2)  command_lines: review 4, T4-1: a stray `}` before a `${` that is right in front of the operator: the `${` is open at the ope
+browser-gate-dirty-exotic  (51)  command_lines: an operator in `(( ))` starts no heredoc: the lines after it are commands (`(( cat<<EOF ))`)
+browser-gate-dirty-exotic-raw  (1)  command_lines: an arithmetic command, a subscript or an array inside quotes is text: it stops nothing (`echo "((x)) a[1] <(y
+browser-gate-dirty-flat  (14)  command_lines: a `#` in a `$( )` on the operator's line hides the `)` from bash, not from the scanner: the heredoc is code (
+browser-gate-dirty-flat-first-char  (1)  command_lines: a line that STARTS with a substitution that is not flat stops the reading (`$(echo "a")`)
+browser-gate-dirty-flat-raw  (1)  command_lines: a `$(` with a `#` inside single quotes is text, not a substitution: the heredoc after it is read (`echo 'a $(
+browser-gate-dirty-stack  (10)  command_lines: an operator in a `${ }` that an earlier line opened starts no heredoc (`echo ${x:-`)
+browser-gate-exotic-alnum-subscript  (2)  command_lines: ...(c): a subscript after a digit and after an underscore is a subscript (`a1[1`)
+browser-gate-exotic-array-plus  (1)  command_lines: ...(d): `+=(` is an array literal (`a+=( cat <<EOF`)
+browser-gate-exotic-dbl-bracket  (6)  command_lines: review 4, EC-1: a `(` after a `[[` makes the line untrusted (a regex group or an extglob pattern holds `<<EOF
+browser-gate-exotic-dbl-bracket-lookbehind  (1)  command_lines: a `[[ ]]` test with only a `$( )` after the `[[` is not a stop: the heredoc after it is data, as before (`if 
+browser-gate-exotic-no-arith  (20)  command_lines: an operator in `(( ))` starts no heredoc: the lines after it are commands (`(( cat<<EOF ))`)
+browser-gate-exotic-no-array  (5)  command_lines: ...(d): `+=(` is an array literal (`a+=( cat <<EOF`)
+browser-gate-exotic-no-dollar-bracket  (9)  command_lines: ...in `$[ ]` (`tee $[ <<E ]`)
+browser-gate-exotic-no-greater-paren  (2)  command_lines: an operator in a `>( )` that an earlier line opened is code (bash ends the body at `EOF)` there too) (`tee >(
+browser-gate-exotic-no-less-paren  (5)  command_lines: ...a `<(` that an earlier line opened (`diff <(`)
+browser-gate-exotic-no-lookbehind  (1)  command_lines: an arithmetic EXPANSION is read: a counter before a summary heredoc leaves it data (`n=$((n+1))`)
+browser-gate-exotic-no-subscript  (4)  command_lines: ...(c): a subscript after a digit and after an underscore is a subscript (`a1[1`)
+browser-gate-exotic-none  (51)  command_lines: an operator in `(( ))` starts no heredoc: the lines after it are commands (`(( cat<<EOF ))`)
+browser-gate-exotic-subscript-any  (4)  command_lines: ...a `[ ]` test that closed (`[ -f x ] && cat <<EOF`)
+browser-gate-exotic-subscript-then-blank  (1)  command_lines: ...(e): a `[` after a word and before a blank is a stop too (`echo a[ 1`)
+browser-gate-final-closed-form-decides  (31)  the final step with `# exit 1` and then `true` is refused (`true` is not echo, exit or a test)
+browser-gate-final-default-no-apostrophe  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-dq-no-backslash  (2)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-dq-no-backtick  (2)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-echo-any-name  (2)  finding 28: ...but an `echo` may print any variable, a runner's too (`$GITHUB_RUN_ID`): it changes neither the exit status n
+browser-gate-final-echo-bare-charset  (2)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-echo-dollar  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-echo-whole-line  (5)  round 6 (G-pop-2): a trailing comment after `exit 1` or after the echo is refused, and the refusal says where the comment go
+browser-gate-final-else-fi-whole  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-env-strings-only  (5)  round 5 (B6): a final step whose env holds a YAML boolean (`STRICT: true`) is refused, with the advice to quote it
+browser-gate-final-exit-nonzero  (2)  the final step with `exit 0` before `exit 1` is refused (exit takes a literal non-zero integer)
+browser-gate-final-exit-range  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-expression-printed  (1)  ...and one that only PRINTS it is accepted, in a message beside the install's outcome (`${{ github.run_id }}`, `${{ github.s
+browser-gate-final-expression-tested  (1)  the final step that TESTS an env value that is any other expression is refused: its value is the runner's, and a branch take
+browser-gate-final-if-whole-line  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-message-comment-line  (1)  round 6 (G-pop-2): a trailing comment after `exit 1` or after the echo is refused, and the refusal says where the comment go
+browser-gate-final-name-in-env  (3)  finding 28: a test that reads `$GITHUB_ACTIONS` (set on every runner, unset in the guard's run) is refused (the guard's run 
+browser-gate-final-test-operators  (1)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-tested-names  (1)  the final step that TESTS an env value that is any other expression is refused: its value is the runner's, and a branch take
+browser-gate-final-word-bare-charset  (2)  round 5: each of these 69 near-misses of a shape (trailing text or a comment, a second statement, `test`, `[[`, `${NAME}` an
+browser-gate-final-word-quoted-charset  (3)  finding 28: a test that reads a variable of the second operand is refused (the guard's run does not set it)
+browser-gate-flat-arith  (3)  command_lines: ...an arithmetic `$(( ))` in it (`cat >> "$GITHUB_STEP_SUMMARY" <<EOF`)
+browser-gate-flat-arith-close  (1)  command_lines: an arithmetic expansion with a nested parenthesis is not flat: the body line is code (`cat <<EOF`)
+browser-gate-flat-backtick-pair  (5)  command_lines: ...a backtick pair in the body runs too (`cat <<EOF`)
+browser-gate-flat-case  (6)  command_lines: ...a `case` in it (`echo "$(case x in x) true;; esac`)
+browser-gate-flat-case-first-only  (1)  command_lines: a `case` in the SECOND substitution of a body line makes the body code, not only one in the first (`cat <<EOF
+browser-gate-flat-case-prefix  (1)  command_lines: ...and a `case` further than six characters into its substitution (`cat <<EOF`)
+browser-gate-flat-class-backslash  (1)  command_lines: ...no backslash (`cat <<EOF`)
+browser-gate-flat-class-backtick  (1)  command_lines: ...no backtick: a `$(` with a backtick pair in it is not flat, whatever the pair is (`cat <<EOF`)
+browser-gate-flat-class-close-brace  (1)  command_lines: a `$( )` that holds a `}` is not a flat one: nothing after it is read (`x=$(echo })`)
+browser-gate-flat-class-close-bracket  (1)  command_lines: a `$( )` that holds a `]` is not a flat one: nothing after it is read (`x=$(echo ])`)
+browser-gate-flat-class-close-paren  (1)  command_lines: ...the first `)` closes it, so a `case` after it is outside: the body line is data (given back as an echo) (`
+browser-gate-flat-class-double-quote  (2)  command_lines: ...no double quote (`echo "a $(echo "b")`)
+browser-gate-flat-class-greater  (1)  command_lines: ...no `>` (`cat <<EOF`)
+browser-gate-flat-class-hash  (11)  command_lines: a string whose `$( )` holds a `#` is not joined: in bash the comment holds the `)` (`echo "$(echo a # )`)
+browser-gate-flat-class-less  (2)  command_lines: ...a heredoc in it (`cat <<EOF`)
+browser-gate-flat-class-open-brace  (10)  command_lines: review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it (`
+browser-gate-flat-class-open-bracket  (3)  command_lines: a `$( )` that holds a bracket is not a flat one (a `)` in a `$[ ]` closes nothing): nothing after it is read,
+browser-gate-flat-class-open-paren  (2)  command_lines: a flat command substitution holds no parenthesis: a body line with a nested one is code (`cat <<EOF`)
+browser-gate-flat-class-single-quote  (1)  command_lines: ...no single quote: a string whose substitution holds one is not joined (`echo "a $(echo 'b')`)
+browser-gate-flat-empty-backtick  (1)  command_lines: an empty backtick pair is flat too (`echo "a ```)
+browser-gate-flat-empty-paren  (1)  command_lines: an empty `$( )` is a flat substitution: the string is joined (`echo "a $()`)
+browser-gate-flat-rest-backtick  (1)  command_lines: a lone backtick in a body line is no flat substitution: the body is code (`cat <<EOF`)
+browser-gate-flat-rest-sub  (40)  command_lines: a `$(` that does not close on its line makes the body code (`cat <<EOF`)
+browser-gate-head-plain-reading-dropped  (1)  round 6 (review of 8e39e08a, finding 1): a launcher inside the `$( )` or backtick value of an assignment prefix is a head an
+browser-gate-heads-arithmetic-masked  (3)  finding 21: ...while the ledger kind (text tools, a git that only reads, a node with a script file the scan has seen, an ass
+browser-gate-heads-backtick-body  (6)  ...an echo line that runs a command (`echo "`date`"`) is refused: it is work the step does, not text it prints
+browser-gate-heads-case-alternatives  (3)  A21: a pattern in parentheses, one of several joined by `|`, or one after `;;&` (a `;` and a `;&`) ends at its `)`: the wrap
+browser-gate-heads-case-paren  (1)  A21: a pattern in parentheses, one of several joined by `|`, or one after `;;&` (a `;` and a `;&`) ends at its `)`: the wrap
+browser-gate-heads-case-start-double-semicolon  (3)  COMMAND_CASE_STARTS: the members the guard knows are exactly the three pinned, and the start of the line (literal table)
+browser-gate-heads-case-start-in  (8)  COMMAND_CASE_STARTS: the members the guard knows are exactly the three pinned, and the start of the line (literal table)
+browser-gate-heads-case-start-line  (1)  A21: the command after a case pattern that follows `^` is found (`true) timeout 5 "$(date)" ;;`)
+browser-gate-heads-case-start-semicolon-ampersand  (3)  COMMAND_CASE_STARTS: the members the guard knows are exactly the three pinned, and the start of the line (literal table)
+browser-gate-heads-comment-cut  (2)  B0/B8: command_heads gives exactly the pinned heads on 8 literal lines (a word after a `;` `|` `(` inside a message or after
+browser-gate-heads-double-quote-content  (15)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-heads-escape-in-code  (1)  B0/B8: `echo \"; npm run pure; \" "$(date)"` still hides a command that runs (outside the quotes, inside a `$( )` or backtic
+browser-gate-heads-escape-in-string  (2)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-heads-paren-count  (2)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-heads-quotes-blanked  (11)  B0/B8: command_heads gives exactly the pinned heads on 8 literal lines (a word after a `;` `|` `(` inside a message or after
+browser-gate-heads-redirect-ampersand  (3)  A21/A22: `echo "at $(date)" 2>&1` (a redirect or a case pattern in a step that runs nothing but text tools) is still kept as
+browser-gate-heads-redirect-append  (2)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-dup-in  (2)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-dup-out  (4)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-fd  (3)  A22: a wrapper after a redirection that is spaced from its target, has a file descriptor, a quoted target, an assignment or 
+browser-gate-heads-redirect-here-string  (2)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-in  (2)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-in-prefix  (48)  A22: a wrapper after a leading `>>` redirection is found (`>>/dev/null timeout 5 x`)
+browser-gate-heads-redirect-out  (43)  COMMAND_REDIRECTS: the members the guard knows are exactly the six pinned (a literal table)
+browser-gate-heads-redirect-spaced  (34)  A22: a wrapper after a leading `<` redirection is found (`< /dev/null timeout 5 x`)
+browser-gate-heads-single-quote-content  (10)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-heads-substitution-body  (27)  ...an echo line that runs a command (`echo "$(date)"`) is refused: it is work the step does, not text it prints
+browser-gate-heads-unterminated-visible  (3)  B0/B8: blank_quoted gives exactly the pinned output on 20 literal inputs (single quotes, double quotes, `$'...'`, an escaped
+browser-gate-heredoc-bodies-kept  (72)  round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on anoth
+browser-gate-heredoc-bodies-pool  (4)  round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on anoth
+browser-gate-heredoc-bodies-shown  (1)  ...and the refusal names the body line it is about
+browser-gate-heredoc-body-exact  (1)  command_lines: a terminator with a trailing space is a body line, and the real one ends the body (`cat <<EOF`)
+browser-gate-heredoc-body-missing  (3)  command_lines: no terminator: bash takes the rest of the script as the body, so nothing is joined and the lines are read (`c
+browser-gate-heredoc-body-tabs  (1)  command_lines: without `-` a tab-indented terminator is a body line (`cat <<EOF`)
+browser-gate-heredoc-code-joined  (1)  command_lines: a code body is not joined (its apostrophes pair with nothing that is not in it) (`bash <<EOF`)
+browser-gate-heredoc-code-nested  (1)  command_lines: a code body is not read for heredocs of its own (`bash <<EOF`)
+browser-gate-heredoc-ctx-brace  (2)  command_lines: an operator in a `{ }` group that is still open is read as code (`{ cat <<EOF`)
+browser-gate-heredoc-ctx-stack  (3)  command_lines: ...in a `$'...'` string (`tee $'\' <<E  }x\\'\' >/dev/null`)
+browser-gate-heredoc-delim-backslash-first  (1)  command_lines: ...with a backslash (`cat <<\_E1`)
+browser-gate-heredoc-delim-backslash-rest  (1)  command_lines: ...with a backslash (`cat <<\_E1`)
+browser-gate-heredoc-delim-bare-first  (2)  command_lines: ...a delimiter may start with an underscore (`cat <<_E`)
+browser-gate-heredoc-delim-bare-rest  (2)  command_lines: a delimiter ends at a digit-and-underscore word's end (`cat <<E_1`)
+browser-gate-heredoc-delim-double-first  (1)  command_lines: ...double-quoted (`cat <<"_E1"`)
+browser-gate-heredoc-delim-double-rest  (1)  command_lines: ...double-quoted (`cat <<"_E1"`)
+browser-gate-heredoc-delim-single-first  (1)  command_lines: ...single-quoted (`cat <<'_E1'`)
+browser-gate-heredoc-delim-single-rest  (1)  command_lines: ...single-quoted (`cat <<'_E1'`)
+browser-gate-heredoc-detection-off  (118)  command_lines: a code body is not read for heredocs of its own (`bash <<EOF`)
+browser-gate-heredoc-echo-backslash  (6)  command_lines: a backslash at the end of a body line makes it code, and the lines join as bash joins them, with nothing (`ca
+browser-gate-heredoc-echo-backslash-first  (1)  command_lines: a backslash ending a later body line makes the body code too (`cat <<EOF`)
+browser-gate-heredoc-echo-backslash-parity  (1)  command_lines: an even run of backslashes at the end of a body line is no continuation (`cat <<EOF`)
+browser-gate-heredoc-echo-backtick  (6)  command_lines: ...a backtick pair in the body runs too (`cat <<EOF`)
+browser-gate-heredoc-echo-dquote  (1)  command_lines: a body with a `"` and a `$( )` is not given back as an echo (the `"` would close its string): it is code (`ca
+browser-gate-heredoc-echo-first-body  (2)  command_lines: the body of a second operator is given back (`cat <<A <<B`)
+browser-gate-heredoc-echo-first-line  (1)  command_lines: each `$( )` line of a body is given back, not the first alone (`cat <<EOF`)
+browser-gate-heredoc-echo-kept  (18)  command_lines: ...with an unquoted delimiter a `$( )` in the body RUNS: it is given back as an `echo` line, whose command is
+browser-gate-heredoc-echo-open  (18)  command_lines: a `$(` that does not close on its line makes the body code (`cat <<EOF`)
+browser-gate-heredoc-echo-quoted-any  (1)  command_lines: ...a quoted first delimiter and an unquoted second one (`cat <<'A' <<B`)
+browser-gate-heredoc-echo-unquoted  (44)  command_lines: ...with an unquoted delimiter a `$( )` in the body RUNS: it is given back as an `echo` line, whose command is
+browser-gate-heredoc-op-backslash  (2)  command_lines: ...and with a backslash in front of the delimiter (`cat <<\EOF`)
+browser-gate-heredoc-op-blanks  (3)  command_lines: a form feed ends no line and is no blank: it is part of bash's delimiter, so a line that is `EOF` and a form 
+browser-gate-heredoc-op-boundary  (4)  command_lines: a delimiter with a quoted part (`E"OF"`) is not parsed (it ends at `E`, and bash's is `EOF`) (`cat <<E"OF"`)
+browser-gate-heredoc-op-comment  (1)  command_lines: a `<<` in a comment is no heredoc (its delimiter is not parsed, and nothing is joined after one that is not) 
+browser-gate-heredoc-op-dash  (1)  command_lines: `<<-` takes the tabs off the terminator (`cat <<-EOF`)
+browser-gate-heredoc-op-delim-group  (75)  command_lines: a heredoc read by `cat` is data: its body and its terminator are not command lines (`cat <<EOF`)
+browser-gate-heredoc-op-double  (3)  command_lines: ...with a double-quoted delimiter too (`cat <<"EOF"`)
+browser-gate-heredoc-op-end-ampersand  (1)  command_lines: ...a `&` (`cat <<EOF&`)
+browser-gate-heredoc-op-end-eol  (66)  command_lines: a heredoc read by `cat` is data: its body and its terminator are not command lines (`cat <<EOF`)
+browser-gate-heredoc-op-end-greater  (1)  command_lines: ...a `>` (`cat <<EOF>f`)
+browser-gate-heredoc-op-end-less  (1)  command_lines: ...a `<` (`cat <<EOF<f`)
+browser-gate-heredoc-op-end-paren  (1)  command_lines: a `( )` subshell is a heredoc context like any other: the reader is `cat` (`(cat <<EOF)`)
+browser-gate-heredoc-op-end-pipe  (1)  command_lines: ...a `|` (`cat <<EOF|wc -l`)
+browser-gate-heredoc-op-end-semicolon  (2)  command_lines: inside an `if` (`if cat <<EOF; then echo y; fi`)
+browser-gate-heredoc-op-end-space  (11)  command_lines: two operators on one line, each with its own body (`cat <<A <<B`)
+browser-gate-heredoc-op-end-tab  (1)  command_lines: ...a tab (`cat <<EOF	| wc -l`)
+browser-gate-heredoc-op-herestring  (1)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-heredoc-op-herestring-prefix  (1)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-heredoc-op-quoted-flag  (4)  command_lines: ...with a single-quoted delimiter a `$( )` in the body is text, not a head (`cat <<'EOF'`)
+browser-gate-heredoc-op-single  (8)  command_lines: ...with a single-quoted delimiter a `$( )` in the body is text, not a head (`cat <<'EOF'`)
+browser-gate-heredoc-op-space  (1)  command_lines: a space between `<<` and the delimiter (`cat << EOF`)
+browser-gate-heredoc-ops-line  (4)  command_lines: a `<<` that a backslash splits (`<\` and `<EOF`) is the operator it is to bash, joined with nothing: the here
+browser-gate-heredoc-reader-any  (9)  command_lines: a heredoc read by `bash` is code: its lines stay lines, as they always were (`bash <<EOF`)
+browser-gate-heredoc-reader-cat  (76)  command_lines: a heredoc read by `cat` is data: its body and its terminator are not command lines (`cat <<EOF`)
+browser-gate-heredoc-reader-first-mark  (1)  command_lines: two operators read by different commands: the second one's reader is `bash`, so the heredoc is code (`cat <<A
+browser-gate-heredoc-reader-grep  (2)  HEREDOC_DATA_READERS: the members the guard knows are exactly the 6 pinned (a literal list, so a loop cannot lose a fixture 
+browser-gate-heredoc-reader-jq  (2)  HEREDOC_DATA_READERS: the members the guard knows are exactly the 6 pinned (a literal list, so a loop cannot lose a fixture 
+browser-gate-heredoc-reader-last-mark  (1)  command_lines: ...and the first one's (`bash <<A | cat <<B`)
+browser-gate-heredoc-reader-marks  (1)  command_lines: the operator in front of the command (`<<EOF cat`)
+browser-gate-heredoc-reader-no-group  (2)  command_lines: ...after a backslash (`\<` is a literal `<`) (`cat \<<EOF`)
+browser-gate-heredoc-reader-one-mark  (1)  command_lines: two operators read by different commands: the second one's reader is `bash`, so the heredoc is code (`cat <<A
+browser-gate-heredoc-reader-tee  (6)  command_lines: the step-summary idiom, `tee -a "$GITHUB_STEP_SUMMARY" <<'EOF'`: the lines of the summary are not commands (`
+browser-gate-heredoc-reader-tr  (3)  HEREDOC_DATA_READERS: the members the guard knows are exactly the 6 pinned (a literal list, so a loop cannot lose a fixture 
+browser-gate-heredoc-reader-unreadable  (1)  command_lines: a reader the splitter cannot read (a substitution in a word of its line) makes the heredoc code (`cat <<EOF >
+browser-gate-heredoc-reader-wc  (3)  HEREDOC_DATA_READERS: the members the guard knows are exactly the 6 pinned (a literal list, so a loop cannot lose a fixture 
+browser-gate-heredoc-second-start  (1)  command_lines: the second delimiter's terminator is looked for after the first body, not from the top (`cat <<A <<B`)
+browser-gate-heredoc-unparsable-joins  (1)  command_lines: a delimiter with a space: nothing is joined after it (`cat <<"A B"`)
+browser-gate-heredoc-unparsable-reads  (3)  command_lines: ...and a delimiter this reader cannot parse reads no heredoc after it (`cat <<[`)
+browser-gate-heredoc-unterminated-joins  (1)  command_lines: no terminator: bash takes the rest of the script as the body, so nothing is joined and the lines are read (`c
+browser-gate-heredoc-unterminated-reads  (2)  command_lines: ...and a heredoc after it is no heredoc: it is text in the body of the first, which an unquoted delimiter exp
+browser-gate-hides-odd-word  (5)  a step that runs `mark_ran` in a form review 4 found is refused, plain or in an always() step (`'echo a >\r<< x; mark_ran'`)
+browser-gate-importer-alias  (2)  round 5 (A27): an alias (`rows as gateRows`) is refused: the array is changed after it is read
+browser-gate-importer-called  (22)  round 5 (A27): `rows.push(...)` in a file that imports rows is refused
+browser-gate-importer-copywithin  (2)  ARRAY_MUTATORS: the Array methods that change the array are exactly the nine pinned (a literal list)
+browser-gate-importer-index-assign  (1)  round 5 (A27): `rows[0] = {}` is refused: the array is changed after it is read
+browser-gate-importer-length-assign  (1)  round 5 (A27): `rows.length = 0` is refused: the array is changed after it is read
+browser-gate-importer-message-rename  (1)  round 6 (hunt-guard-8, G-pop-5): the refusal says the match is by NAME and the remedy is a rename: a parameter called `rows`
+browser-gate-importer-non-braced  (2)  round 5 (A27): ...an import that is not `{ names }` (`import * as g`) is a file this reader cannot attribute
+browser-gate-importer-push  (7)  ARRAY_MUTATORS: the Array methods that change the array are exactly the nine pinned (a literal list)
+browser-gate-importer-reassign  (1)  round 5 (A27): `rows = []` is refused: the array is changed after it is read
+browser-gate-importer-shadow  (1)  round 5 (A27): ...while reads (`for ... of rows`, `.map`, `.find`, `.length`, a spread, a copy that is pushed to), a mutatio
+browser-gate-importer-specifier-blanked  (23)  round 5 (A27): `rows.push(...)` in a file that imports rows is refused
+browser-gate-importer-string-is-an-import  (1)  round 5 merge (A27): ...an import written inside a string or a template literal (the input of another reader's fixture) is n
+browser-gate-importer-use-dot-whitespace  (3)  round 6 (imp-use-dot-method-ws): `rows` and `.push(...)` on two lines, as a formatter writes a chain is refused
+browser-gate-join-closer-first  (1)  command_lines: a `$'...` string that spans lines is closed by its own quote: a substitution in it that is not flat is not jo
+browser-gate-join-flat-closer  (3)  command_lines: `$$` in a double-quoted string is the process id: the `(` after it is text, and the string spans the lines (`
+browser-gate-join-flat-off  (10)  command_lines: a string whose `$( )` holds a `#` is not joined: in bash the comment holds the `)` (`echo "$(echo a # )`)
+browser-gate-join-flat-offset  (4)  command_lines: ...and so is one whose middle line has one (`echo "a`)
+browser-gate-join-flat-physical  (1)  command_lines: the `$(` of one physical line and the `#` of the next are one substitution when a backslash joins them (`echo
+browser-gate-join-flat-raw  (3)  command_lines: `$$` in a double-quoted string is the process id: the `(` after it is text, and the string spans the lines (`
+browser-gate-join-flat-seg  (2)  command_lines: ...in a string that spans lines, on a line in the middle of it: it is joined (`echo 'a`)
+browser-gate-join-rescan  (9)  command_lines: ...so the apostrophe after it opens a string, which the next quote closes (bash and the reader agree where) (
+browser-gate-join-seg-reset  (7)  command_lines: ...in a string that spans lines, on a line in the middle of it: it is joined (`echo 'a`)
+browser-gate-later-step-hint-last-name  (1)  round 6 (review of 8e39e08a): with two dangerous names written the refusal's hint names the first in order (`NODE_OPTIONS=`)
+browser-gate-later-step-is-per-line  (5)  round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on anoth
+browser-gate-later-step-joined-without-newline  (3)  round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on anoth
+browser-gate-later-step-message-hint  (2)  round 6 (review of 8e39e08a): with two dangerous names written the refusal's hint names the first in order (`NODE_OPTIONS=`)
+browser-gate-later-step-name-heredoc-form  (2)  round 6 (hunt-guard-1, hunt-guard-2): a write to `$GITHUB_ENV` of a dangerous name is unresolved when the name sits on anoth
+browser-gate-later-step-shown-first-line  (2)  round 6 (review of 945daddf, F1, F4): each reason quotes the line it is about, not the first line that matches any of the th
+browser-gate-later-step-trigger-no-boundary  (1)  round 6 (review of 945daddf, F1, F4): each reason quotes the line it is about, not the first line that matches any of the th
+browser-gate-later-step-trigger-no-heredoc-form  (1)  round 6 (review of 945daddf, F1, F4): each reason quotes the line it is about, not the first line that matches any of the th
+browser-gate-later-steps-braces  (1)  round 5 (A29): a command that writes `${GITHUB_ENV}` in braces is unresolved
+browser-gate-later-steps-comment-cut  (1)  round 5 (A29): ...while these 8 are read as before (a `$GITHUB_ENV` write of a name that changes no command, `$GITHUB_OUTPUT
+browser-gate-later-steps-dangerous-names  (6)  round 5 (A29): a command that writes `npm_config_node_options=` to `$GITHUB_ENV` (A29 b) is unresolved
+browser-gate-later-steps-github-env  (12)  round 5 (A29): a command that writes `NODE_OPTIONS=` to `$GITHUB_ENV` (A29 a) is unresolved
+browser-gate-later-steps-github-path  (3)  round 5 (A29): a command that writes anything to `$GITHUB_PATH` (A29 c) is unresolved
+browser-gate-later-steps-npmrc  (4)  round 5 (A29): a command that writes a `.npmrc` file (A29 d) is unresolved
+browser-gate-later-steps-wired  (17)  round 5 (A29): a command that writes `NODE_OPTIONS=` to `$GITHUB_ENV` (A29 a) is unresolved
+browser-gate-line-end-blanks  (5)  command_lines: a form feed after a delimiter is part of bash's delimiter: the operator is not parsed, and nothing after it i
+browser-gate-lines-wrapper  (521)  a gated browser step, plain steps, and a final step pass
+browser-gate-logical-lines-comment-ends-continuation  (3)  logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after 
+browser-gate-logical-lines-comment-line-after-continuation  (17)  logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after 
+browser-gate-logical-lines-odd-backslashes  (1)  logical_lines: a backslash at the end of a line joins the next one, except inside a comment (it ends at the newline), after 
+browser-gate-lstrip-blanks  (2)  command_lines: ...at the start of a line (`echo a`)
+browser-gate-nb-echo-message  (1)  round 6 (hunt-guard-5): ...and the refusal says an echo line is allowed and where its characters may sit
+browser-gate-nb-echo-needs-a-space  (1)  round 6 (hunt-guard-5): ...while an echo that runs something (a `$( )` or a backtick pair inside double quotes) or has one o
+browser-gate-nb-echo-quoted-code  (3)  ...an echo line that runs a command (`echo "`date`"`) is refused: it is work the step does, not text it prints
+browser-gate-nb-echo-quoted-text  (1)  round 6 (hunt-guard-5): the required no-browser step with an echo whose quoted message holds `;` `|` `&` `<` or `>` (one of 
+browser-gate-npm-body-comment-cut  (1)  round 5 (B5): ...a trailing comment in the body is cut where bash cuts it (accepted), and the body's `#` inside `${ }` is no
+browser-gate-npm-body-forbidden  (3)  round 5 (B5): the three bodies of the review and 8 more shapes (`&&`, a pipe, `&`, a redirect, a backtick, `$(`, two lines, 
+browser-gate-npm-body-hooks  (1)  round 5 (B5): ...a hook (`pregate:bl`, `postgate:bl`) and a nested script (`npm run inner`, itself behind a second one) with
+browser-gate-npm-body-nested  (1)  round 5 (B5): ...a hook (`pregate:bl`, `postgate:bl`) and a nested script (`npm run inner`, itself behind a second one) with
+browser-gate-npm-body-one-line  (1)  round 5 (B5): the three bodies of the review and 8 more shapes (`&&`, a pipe, `&`, a redirect, a backtick, `$(`, two lines, 
+browser-gate-nul-refused  (2)  a step that runs `mark_ran` in a form review 4 found is refused, plain or in an always() step (`'true\ncat <<EOF\n$\x00(mark
+browser-gate-odd-blank-letter  (47)  ...and a shape that needs what an earlier line left open, or what the operator's line leaves open, is refused, not kept: its
+browser-gate-odd-blank-off  (43)  ...and a character bash reads as part of a word and a splitter as a blank is read as a letter, so the command after it is re
+browser-gate-odd-blank-quoted  (2)  _odd_to_word: `'echo "a\rb" c\rd'` is `'echo "a\rb" c�d'`
+browser-gate-odd-blank-read-commands  (6)  ...and a character bash reads as part of a word and a splitter as a blank is read as a letter, so the command after it is re
+browser-gate-odd-blank-read-heads  (1)  B0/B8: command_heads gives exactly the pinned heads on 9 literal lines (a word after a `;` `|` `(` inside a message or after
+browser-gate-odd-blank-tab  (1)  _odd_to_word: `'a\tb\rc'` is `'a\tb�c'`
+browser-gate-odd-set-narrow  (30)  ...and a character bash reads as part of a word and a splitter as a blank is read as a letter, so the command after it is re
+browser-gate-odd-word-letter  (7)  _odd_to_word: `'echo a >\r; b'` is `'echo a >�; b'`
+browser-gate-op-scan-cost  (1)  twice the operators on one line is scanned about twice as much, not four times (300 operators: 193895 characters, 600: 74799
+browser-gate-open-string-ansic  (3)  command_lines: ...a `$'...'` one (`echo $'a`)
+browser-gate-open-string-any  (51)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-open-string-command  (5)  command_lines: ...a backtick pair that an earlier line opened (`x=``)
+browser-gate-open-string-double  (23)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-open-string-single  (8)  command_lines: ...a single-quoted one (`echo 'a`)
+browser-gate-raw-inline-code-hides  (1)  round 5 merge (G-new-1): on an unreadable line a `node` or `python` head that runs inline code, a package script or a module
+browser-gate-raw-node-eq-forms  (1)  round 5 merge (G-new-1): on an unreadable line a `node` or `python` head that runs inline code, a package script or a module
+browser-gate-raw-python-first-word  (1)  round 5 merge (G-new-1): on an unreadable line a `node` or `python` head that runs inline code, a package script or a module
+browser-gate-regex-word-do  (3)  REGEX_AFTER_WORDS: the words after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)
+browser-gate-regex-word-in  (3)  REGEX_AFTER_WORDS: the words after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)
+browser-gate-regex-word-property  (2)  round 5 (A26): ...a word after a `.` is a property name, not one of them: `cfg.do / 2 && ok(...) / 3` is a division and the 
+browser-gate-regex-word-remembered  (16)  ...and a regular expression after `&&`, `(`, `=>` or `return` still is one (`x && /it's/.test(s) && ok(...)`)
+browser-gate-regex-word-typeof  (3)  REGEX_AFTER_WORDS: the words after which a `/` starts a regular expression are exactly the twelve pinned (a literal list)
+browser-gate-rewind-first  (1)  command_lines: a string that never closes and ends in a backslash is read as lines, and a line before it is read once (`echo
+browser-gate-rewind-last  (1)  command_lines: a backslash-newline in the middle of a string that spans lines does not rewind it (`echo "a`)
+browser-gate-rows-end-continuation  (10)  finding 27: ...and between two rows or after the last (`...more,`, a variable, a row with quoted keys, two rows on one line,
+browser-gate-rows-end-in-instanceof  (2)  round 5 (B7): the rows array followed by `in x` on the next line is refused: it changes the array that is exported
+browser-gate-rows-end-own-bracket  (36)  gate rows: the fixture rows (6 flagged rows that drive a browser, 14 that do not) read clean
+browser-gate-rows-end-semicolon  (2)  round 5 (B7): the rows array followed by `];` reads clean (the last row is followed by `]`, which it is)
+browser-gate-rows-end-statement-start  (3)  round 5 (B7): the rows array followed by `]` and `.concat(more)` on the next line is refused: it changes the array that is e
+browser-gate-safe-cp  (3)  SAFE_HEADS: the members the guard knows are exactly the 24 pinned (a literal list, so a loop cannot lose a fixture with the 
+browser-gate-safe-mv  (3)  SAFE_HEADS: the members the guard knows are exactly the 24 pinned (a literal list, so a loop cannot lose a fixture with the 
+browser-gate-safe-rm  (3)  SAFE_HEADS: the members the guard knows are exactly the 24 pinned (a literal list, so a loop cannot lose a fixture with the 
+browser-gate-safe-tee  (5)  SAFE_HEADS: the members the guard knows are exactly the 24 pinned (a literal list, so a loop cannot lose a fixture with the 
+browser-gate-safe-uniq  (3)  SAFE_HEADS: the members the guard knows are exactly the 24 pinned (a literal list, so a loop cannot lose a fixture with the 
+browser-gate-scan-boundary-default  (1)  comment_start: the index of the comment's `#` is exactly this on each of these 45 lines (text in `${ }`, `${x/ #/z}`, `$'a\'
+browser-gate-scan-cost  (1)  a string of 400 lines that never closes is scanned about as many times as it has characters, not once for each line added to
+browser-gate-scan-dollar-dollar  (5)  command_lines: `$$` is the process id: a quote after it opens a string that the next quote closes (`echo $$'a\'`)
+browser-gate-script-file-name  (6)  round 5 (A25): a row with `['shot.mjs'], { cwd: 'scripts' }` (A25) drives a browser and is not flagged
+browser-gate-script-file-python  (1)  round 5 (A25): a row with a `.py` file (`['probe.py']`) drives a browser and is not flagged
+browser-gate-script-file-read-exempt  (4)  gate rows: an object key named ok/all and a path that is only read (`.includes('scripts/')`, a file under scripts/) are not 
+browser-gate-script-file-root  (1)  round 5 (A25): a row with a file at the repository root (`['pre-launch.cjs']`) drives a browser and is not flagged
+browser-gate-seg-reset  (1)  command_lines: the quote a string line starts in is forgotten at the next logical line: a line after a joined single-quoted 
+browser-gate-split-newline-only  (10)  command_lines: a form feed after a delimiter is part of bash's delimiter: the operator is not parsed, and nothing after it i
+browser-gate-string-continuation-never-closes  (3)  command_lines: a string that never closes, whose last line ends in a backslash, is not joined (`echo "a`)
+browser-gate-string-first-line  (13)  command_lines: a string that never closes, after a line that is complete, leaves that line as it was (`echo ok`)
+browser-gate-string-join-newline  (30)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-string-join-off  (34)  command_lines: ...and strings still join after one (`cat <<< "x"`)
+browser-gate-string-never-closes  (8)  command_lines: a string that never closes is not joined: its lines are lines, the commands in them are read (`echo "a`)
+browser-gate-strip-code  (1)  command_lines: a no-break space at the start of a line that opens a code heredoc is kept (` bash <<EOF`)
+browser-gate-strip-data  (1)  command_lines: ...at the end of a data heredoc's line (`cat <<EOF  `)
+browser-gate-strip-last  (1)  command_lines: ...at the end of a line that a backslash continued as the last line of a script (`echo a \`)
+browser-gate-strip-plain  (6)  command_lines: a form feed after a delimiter is part of bash's delimiter: the operator is not parsed, and nothing after it i
+browser-gate-subst-backtick-ignored  (8)  a command substitution INSIDE quotes is unresolved
+browser-gate-subst-blank-single-reads-double  (1)  round 6 (P4): blank_single_quoted keeps the words (same text length, same quotes) and blanks only single-quoted content
+browser-gate-subst-commenters-kept  (2)  round 6 (P4): a `$(` or a backtick inside single quotes is text and reads as a plain echo (one of these 6: nothing unresolve
+browser-gate-subst-dollar-paren-ignored  (60)  a command substitution in the final step is refused (by the reader, which reads every step, and the script is not run)
+browser-gate-subst-single-quotes-not-blanked  (3)  round 6 (P4): a `$(` or a backtick inside single quotes is text and reads as a plain echo (one of these 6: nothing unresolve
+browser-gate-two-readings-truncate  (1)  round 6 (review of 8e39e08a): if the two readings of a line ever disagree about its words the line is not read (fail closed,
+
+SURVIVORS of the sweep and what was done:
+browser-gate-continuation-bound-{always,never,unused,space,tab,semicolon,ampersand,pipe,open-paren,close-paren} (10): mutants of the `bound` flag _assemble carried across a backslash join. Review 4's fix scans a joined line whole, which left `bound` read by nothing (equivalent mutants, and dead code). The variable and the 10 entries were removed; the property (a `#` after a join is a comment only after a blank or a separator) is pinned by the rows of the whole-line scan and by browser-gate-join-rescan.
+browser-gate-odd-blank-read-heads (1): command_heads did not need its own _odd_to_word once hides_a_launcher rewrote the line. A row was added (PINNED_HEADS: `> CR mark_ran` has the head mark_ran) and the entry now fails on it.
+
+Checks of the self-test: 1425 passed on the final head. 397 of them fail under no mutant of the browser-gate table (they pin the guard's other behaviour or behaviour that no entry mutates); 40 of the 283 `command_lines:` rows are among them (review 4, T4-5 counted 33 of 265 at 652b23e7 by a different method). They are listed here and not relabelled.
+
+command_lines rows that fail under no mutant of the table:
+  command_lines: an operator inside a `$( )` is code: a line that leaves a `$(` open stops the reading of heredocs, and the heredoc is refused as it was before this item (`x=$(cat <<EOF`)
+  command_lines: a here-string (`<<<`) is not a heredoc (`cat <<< "x"`)
+  command_lines: ...a group, which has no command word (`{ cat; } <<EOF`)
+  command_lines: ...a loop (`while read -r l; do :; done <<EOF`)
+  command_lines: the `<<` of an arithmetic shift is not a heredoc, and nothing is joined after it (`echo $((1<<2))`)
+  command_lines: a string that holds an open `$(` is not joined (a newline in it separates commands) (`echo "a $(`)
+  command_lines: two lines with no string stay two lines (`echo a`)
+  command_lines: ...and a `#` after `$$ ` is a comment still (`echo $$ # it's`)
+  command_lines: ...a heredoc in it (`echo "$(cat <<X`)
+  command_lines: a string and a substitution open at once: the line that closes them is not scanned from nothing, and nothing after it is joined (`x="$(`)
+  command_lines: ...the same for the ordinary multi-line `"$( )"`, whose closing line is `)"` (`OUT="$(`)
+  command_lines: a string inside a `$(` that spans lines is not joined either (`x=$(echo "a`)
+  command_lines: a `$(` that is left open stops the joining: a string after it is not joined (`x=$(`)
+  command_lines: ...in a `${ }` word (`cat ${x:- <<EOF }`)
+  command_lines: ...in `$(( ))` (`x=$(( cat<<EOF , 1 ))`)
+  command_lines: ...in a quoted argument (`grep -q 'x <<EOF y' f`)
+  command_lines: an operator inside a backtick pair is read as code (`x=`cat <<EOF`)
+  command_lines: an operator inside a `$( )` that closes on its line is code too: only an operator at the top level is read (`x=$(cat <<EOF)`)
+  command_lines: an operator in an array subscript (`a[1<<E]=1`) is no heredoc (`echo ]; a[1<<E]=1`)
+  command_lines: two operators on a line, the second inside a `$( )`: bash reads the inner body first, so the bodies are not told apart by their place in the text (`cat <<A $(cat <<B)`)
+  command_lines: ...after a `;` (`cat <<A; V=$(cat <<B)`)
+  command_lines: ...an operator inside a `$( )` that opens another (`V=$(cat <<EOF $(`)
+  command_lines: ...and a string after it is not joined (`x=$(echo a # note`)
+  command_lines: ...a continued line that is the last line of the script (`echo a <\`)
+  command_lines: ...and a string that spans lines after it is not joined (`OUT="$(`)
+  command_lines: a `>( )` process substitution is no heredoc context this reader reads (`tee >(cat <<EOF)`)
+  command_lines: a no-break space is no blank to bash: the `#` after it is no comment (`echo a # note; npm run y`)
+  command_lines: ...U+3000 too (`echo a　# note; npm run y`)
+  command_lines: a `(( ))` still open at an operator is open after a `$( )` that closed in it (`(( x=$(date) , cat<<EOF ))`)
+  command_lines: an operator in a `$[ ]` that sits in a `$( )` is code (`x=$(echo $[ 1<<E ])`)
+  command_lines: an operator in a `$( )` inside another `$( )` is code: only ONE `$( )` is a context this reader reads (`x=$(echo $(cat <<EOF`)
+  command_lines: ...nor a `<( )` that closed (`diff <(echo a) /dev/null; cat <<EOF`)
+  command_lines: ...nor a `>( )` that closed (`tee >(cat) /dev/null; cat <<EOF`)
+  command_lines: a `$[` inside a `$( )` is open at an operator after it (a reader stands after a `;`) (`x=$(echo $[ 1; cat <<E ])`)
+  command_lines: a `)` does not close a `$[`: the operator is still in it (`tee $[ ) 1<<E ]`)
+  command_lines: an operator inside a double-quoted argument starts no heredoc (`grep -q "x <<EOF y" f`)
+  command_lines: review 4, RD-2: a quoted `<<true x` is no heredoc to bash, so the string after it is not closed where this reader thinks: nothing after is trusted (`echo "<<true x"`)
+  command_lines: ...the same with the operator in single quotes (`echo '<<true x'`)
+  command_lines: a `${` that is open right behind the operator is in the string: the operator is no heredoc (`cat ${<<EOF }`)
+  command_lines: an operator directly behind a quote that opens is in the string: it is no heredoc (`tee f "<<EOF "`)

@@ -528,10 +528,10 @@ def command_lines(script):
 
 def _assemble(phys, joining, heredocs):
     out, bodies, cur, i, first = [], [], "", 0, 0
-    st, bound, seg = _Open(), True, ""
+    st, seg = _Open(), ""
     while i < len(phys):
         if not cur:
-            first, st, bound, seg = i, _Open(), True, ""
+            first, st, seg = i, _Open(), ""
         raw = phys[i]
         line = raw.rstrip(" \t")
         i += 1
@@ -542,10 +542,9 @@ def _assemble(phys, joining, heredocs):
             st = _Open()
             at = _scan(text, st, True)
         else:
-            at = _scan(line, st, bound)
+            at = _scan(line, st)
         if (len(raw) - len(raw.rstrip("\\"))) % 2 == 1 and at is None:                              # an odd run of backslashes at the very end of the line (a blank after it escapes the blank): the last one escapes the newline
             cur = text[:-1]                                                                        # bash joins with nothing
-            bound = cur[-1:] in (" ", "\t", ";", "&", "|", "(", ")")                                  # a word ends where the line was joined: only then does a `#` after the join begin a comment
             if joining and i == len(phys) and _quote_only(st.stack):                               # a string that never closes: its lines are lines, as before
                 i, cur, joining = first, "", False
             continue
@@ -3570,7 +3569,7 @@ def self_test():
     check(f"B0/B8: blank_quoted gives exactly the pinned output on {len(PINNED_BLANKS)} literal inputs (single quotes, double quotes, `$'...'`, an escaped quote, the bodies of `$( )` and backticks inside double quotes, nested quotes, a quote that never closes)", not broken, broken)
     PINNED_HEADS = [('echo "at $(date) (utc)"', ["echo", "date"]), ('echo "done; see the log $(date)"', ["echo", "date"]), ('echo "started $(date) | ok"', ["echo", "date"]),
                     ("printf '| %s | %s |\\n' \"$(date)\"", ["printf", "date"]), ('echo "at $(date)" # note: one line; no retry', ["echo", "date"]), ('echo "$(date)"; npm run x # a; timeout 5 y', ["echo", "date", "npm"]),
-                    ('echo "a # b" ; timeout 5 x', ["echo", "timeout"]), ('echo "n $((attempt * 3))" "$(date)"', ["echo", "date"])]
+                    ('echo "a # b" ; timeout 5 x', ["echo", "timeout"]), ('echo "n $((attempt * 3))" "$(date)"', ["echo", "date"]), ("> \r mark_ran", ["mark_ran"])]   # the last: a carriage return is part of a word to bash (review 4, the odd blank in command_heads)
     broken = [(t, [h for h, _ in command_heads(t)], w) for t, w in PINNED_HEADS if [h for h, _ in command_heads(t)] != w]
     check(f"B0/B8: command_heads gives exactly the pinned heads on {len(PINNED_HEADS)} literal lines (a word after a `;` `|` `(` inside a message or after a comment's `#` is no head; a `#` inside quotes is no comment)", not broken, broken)
     for cmd in ('echo "at $(date) (utc)"', 'echo "done; see the log $(date)"', 'echo "started $(date) | ok"', 'echo "tried 3 times; giving up at $(date)"', 'echo "at $(date)" # note: one line; no retry',
