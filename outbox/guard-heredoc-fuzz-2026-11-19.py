@@ -10,15 +10,21 @@ the marker: a function the harness defines that appends to a file. The script is
 `mark_ran` is no head the guard allows, so a script in which bash ran it and the guard saw nothing is a false green. The same scripts are read by the guard as it was before the change (OLD), so the
 output says how many more scripts are accepted now (all of them false reds before) and that no script is refused now that was accepted before. Rule 91: the output starts with the count of scripts.
 
-    GUARD=scripts/check-browser-gate.py OLD=/path/to/old-guard.py python3 outbox/guard-heredoc-fuzz-2026-11-19.py <count> <first seed> [2]
+    GUARD=scripts/check-browser-gate.py OLD=/path/to/old-guard.py python3 outbox/guard-heredoc-fuzz-2026-11-19.py <count> <first seed> [2|3]
     (GUARD=<a mutated copy> shows that the test can fail: see outbox/guard-heredoc-fuzz-2026-11-19.txt.)
 
 A third argument `2` draws the scripts from the SECOND generator (gen2), written after the independent review of 1806bf8a (workflow wf_e852d66e-255) found false greens in shapes the first one never draws
-(it drew a line break only as `\\n`, a heredoc operator only after a plain reader, and a body from 24 lines with no `#`, no `case` and no `EOF)`). gen2 draws, for each unit: an operator context (a plain
+(it drew a line break only as `\\n`, a heredoc operator only on the line of its reader, a body from 24 lines with no `case`, no `EOF)` and no `#` inside a `$( )`). gen2 draws, for each unit: an operator context (a plain
 reader, `(( ))`, `${ }`, `$(( ))`, `$[ ]`, a quoted or backslashed `<<`, a `$( )` or a backtick pair left open or closed on the line, a trailing comment, `;` or `|`, a backslash that splits the operator or
 joins the line, a form feed, U+2028 or a carriage return right after the delimiter); a terminator (the delimiter alone, with `)`, ` )`, `);`, a form feed, a carriage return, a tab, a space, an extra letter, or none);
 a body line from a pool that holds `#`, `case`, `EOF)`, a nested heredoc and unbalanced quotes and parentheses in a `$( )`; a string that spans lines (a `"$( )"` closed on a later line, a `"$(` and its `) echo "`,
-`$$'...\\'`, a `#` that holds the `)`, a form feed in a comment); and a tail of lines after it that holds the marker next to apostrophes, quotes and `$( )`. The printed result lists the alphabet (Rule 91).
+`$$'...\\'`, a `#` that holds the `)`, a form feed in a comment); and a tail of lines after it that holds the marker next to apostrophes, quotes and `$( )`. The printed result lists the alphabet (Rule 91): the number of DISTINCT members of each list.
+
+A third argument `3` draws from the THIRD generator (gen3), written after the second independent review (workflow wf_c6a2a2b4-b6b) found that the first two never draw an opener on one line and its operator on
+the next (0 of 30000 gen2 scripts), which is where the second review's false greens were (an open `$(`, `${`, `$[`, `((` or backtick left by an earlier line; an operator line that opens a `$(` after the
+operator; a `#` in a `$( )` on the operator's line; a stray `]` or `)` before a `$[` or `((`; two operators on a line, one in a `$( )`). gen3 draws an opener line (`V=$(`, `x="$(`, `echo ${x:-`, `((`, `$[`,
+`$((`, a backtick, `<(`, `{`, `(`, `case x in`...), a line or two before the operator (a command, a comment that holds a `)`), the operator line (a prefix with a stray closer, a reader, the operator, a
+suffix that opens a `$(` or holds a comment), a body, a terminator, the closer on its own line or on the terminator line, and a tail.
 """
 import sys, os, random, subprocess, importlib.util, json
 from multiprocessing import Pool
@@ -84,7 +90,31 @@ def gen2(seed):
         else: units.append(rng.choice(TAIL2))
         if rng.random() < 0.6: units.append(rng.choice(TAIL2))
     return "\n".join(units)
-ALPHABET = {"operator contexts": len(CTX), "readers": len(READERS2), "terminators": 12, "body lines": len(BODY2), "string units": len(STR2), "tail lines": len(TAIL2), "line separators": sorted(set(SEP2), key=repr)}
+OPEN3 = [("V=$(", ")"), ("x=$(", ")"), ("echo ${x:-", "}"), ("((", "))"), ("true $[", "]"), ("true $((", "))"), ("x=`", "`"), ("diff <(", ") /dev/null"), ("echo $(", ")"), ("{", "}"), ("(", ")"),
+         ("if true; then", "fi"), ("case x in", "esac"), ('x="$(', ')"'), ("echo ${x:-a", "}"), ("for ((", ";;))"), ("while true; do", "break; done"), ("echo $(echo $(", "))")]
+PRE3 = ["", "true\n", "echo a\n", "# c\n", "# ) c\n", "echo ]\n", "echo [\n", "mark_ran\n", "a) true ;;\n"]
+STRAY3 = ["", "", "", "echo ]; ", "true ${x:-))}; ", "echo \\) \\) ; ", "echo ) ; ", "echo '(' ; ", "case x in a) true;; esac; "]
+POST3 = ["", "", "", " $(", " ; V=$(", " >$(echo f", " $(echo a # )", " # (x", " ${x:-$(", " $(echo", " ; ( ", " # note ) "]
+CLOSE3 = lambda close: [close, close, "\n" + close, close + " mark_ran", "", "x\n" + close]
+def unit3(rng):
+    d = rng.choice(["EOF", "E_1", "_E1"]); op = rng.choice([f"<<{d}", f"<<-{d}", f"<<'{d}'", f'<<"{d}"', f"<<\\{d}", f"<< {d}"])
+    opener, close = rng.choice(OPEN3); reader = rng.choice(READERS2)
+    oper = rng.choice(STRAY3) + f"{reader} {op}" + rng.choice(POST3)
+    if rng.random() < 0.15: oper = f"{reader} {op} {rng.choice(READERS2)} $({reader} <<B)"
+    body = [rng.choice(BODY2) for _ in range(rng.randint(0, 3))]; term = rng.choice(TERMS2(d))
+    inner = rng.choice(PRE3) + oper
+    lines = [opener, inner] + body + ([term] if term is not None else []) + [rng.choice(CLOSE3(close))]
+    return "\n".join(lines)
+def gen3(seed):
+    rng = random.Random(seed); units = []
+    for _ in range(rng.randint(1, 3)):
+        k = rng.random()
+        if k < 0.75: units.append(unit3(rng))
+        elif k < 0.88: units.append(rng.choice(STR2).replace("{SEP}", rng.choice(SEP2)))
+        else: units.append(rng.choice(TAIL2))
+        if rng.random() < 0.6: units.append(rng.choice(TAIL2))
+    return "\n".join(units)
+ALPHABET = {"gen2": {"operator contexts": len(set(CTX)), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "string units": len(set(STR2)), "tail lines": len(set(TAIL2)), "line separators": sorted(set(SEP2), key=repr)}, "gen3": {"openers": len(OPEN3), "lines before the operator": len(set(PRE3)), "operator prefixes": len(set(STRAY3)), "operator suffixes": len(set(POST3)), "closers": len(set(CLOSE3("C"))), "readers": len(set(READERS2)), "terminators": len(set(TERMS2("D"))), "body lines": len(set(BODY2)), "tail lines": len(set(TAIL2))}}
 G = {}
 def init(which):
     G["new"] = load(os.environ.get("GUARD"), "gnew"); G["old"] = load(os.environ.get("OLD"), "gold")
@@ -100,7 +130,7 @@ def ran(script, mark):
     return os.path.exists(mark)
 MODE = os.environ.get("MODE", "1")
 def work(seed):
-    s = (gen2 if MODE == "2" else gen)(seed); r = ran(s, f"{MK}/{os.getpid()}"); res = {"seed": seed, "ran": r}
+    s = {"2": gen2, "3": gen3}.get(MODE, gen)(seed); r = ran(s, f"{MK}/{os.getpid()}"); res = {"seed": seed, "ran": r}
     for k in ("new", "old"):
         g = G[k]
         try:
@@ -111,7 +141,7 @@ def work(seed):
     res["script"] = s; return res
 if __name__ == "__main__":
     N = int(sys.argv[1]); base = int(sys.argv[2]); MODE = sys.argv[3] if len(sys.argv) > 3 else "1"; os.environ["MODE"] = MODE; os.makedirs(MK, exist_ok=True)
-    print("generator:", "gen2" if MODE == "2" else "gen", "alphabet:", json.dumps(ALPHABET) if MODE == "2" else "see the lists at the top of this file")
+    print("generator:", {"2": "gen2", "3": "gen3"}.get(MODE, "gen"), "alphabet:", json.dumps(ALPHABET[{"2": "gen2", "3": "gen3"}[MODE]]) if MODE in ("2", "3") else "see the lists at the top of this file")
     with Pool(4, initializer=init, initargs=(0,)) as p: rs = p.map(work, range(base, base + N), chunksize=200)
     st = {"scripts": len(rs), "marker_ran": sum(r["ran"] for r in rs)}
     for k in ("new", "old"):
