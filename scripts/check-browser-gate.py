@@ -425,10 +425,11 @@ def _flat_subs(text):
 
 
 # The forms in which bash reads the text of a line as something other than commands, and in which `<<WORD`, a `#`, a quote or a `)` mean something else than they do at the top level: an arithmetic command `(( ))`
-# (not the `$((` of an arithmetic expansion, which FLAT_SUB reads), a `$[ ]`, a subscript `a[ ]` (a word character in front of the `[`), a process substitution `<( )` or `>( )`, and an array `a=( )`. A line
+# (not the `$((` of an arithmetic expansion, which FLAT_SUB reads), a `$[ ]`, a subscript `a[ ]` (a word character in front of the `[`), a process substitution `<( )` or `>( )`, an array `a=( )`, and a `[[` test that has a `(` after it on its line. A line
+# (and a `[[ ]]` test with a parenthesis in it: a regex group or an extglob pattern, in which `<<EOF` is text; review 4, EC-1)
 # that holds one outside quotes (blank_quoted's view) is not trusted: nothing after it is read as bash reads it, and the `<<WORD` on it is no heredoc this reader reads. The scanner that keeps what is open does not
 # follow them, on purpose: a stack of brackets was a model of bash and it was wrong at every closer that bash reads differently (reviews 2 and 3: `(( (x) cat <<EOF ))`, `$( $[ )`, `${y:-)}` in a `$( )`).
-EXOTIC = re.compile(r"(?<!\$)\(\(|\$\[|[<>]\(|=\(|\w\[")
+EXOTIC = re.compile(r"(?<!\$)\(\(|\$\[|[<>]\(|=\(|\w\[|\[\[[^\n]*(?<!\$)\(")
 
 
 def _exotic(shown):
@@ -537,7 +538,11 @@ def _assemble(phys, joining, heredocs):
         if not cur and line.lstrip(" \t").startswith("#"):
             continue
         text = cur + line
-        at = _scan(line, st, bound)
+        if cur and not cur.endswith("\n"):                                                          # a backslash joined the lines: `$` + `{` is `${` only once they are one (review 4, RD-1), so the logical line is scanned whole
+            st = _Open()
+            at = _scan(text, st, True)
+        else:
+            at = _scan(line, st, bound)
         if (len(raw) - len(raw.rstrip("\\"))) % 2 == 1 and at is None:                              # an odd run of backslashes at the very end of the line (a blank after it escapes the blank): the last one escapes the newline
             cur = text[:-1]                                                                        # bash joins with nothing
             bound = cur[-1:] in (" ", "\t", ";", "&", "|", "(", ")")                                  # a word ends where the line was joined: only then does a `#` after the join begin a comment
@@ -567,7 +572,8 @@ def _assemble(phys, joining, heredocs):
                 joining = heredocs = False
             else:
                 data = heredoc_as_data(text, ops, found[1])
-                if data is None:                                                                   # code: the body and the terminator are lines, read one by one as they always were
+                if data is None:                                                                   # code: the body and the terminator are lines, read one by one as they always were, and nothing after is trusted (review 4, RD-2: bash may not read the operator this reader found, and then the terminator it took is not where bash is)
+                    joining = heredocs = False
                     out.append(text.strip(" \t\n"))
                     out += _assemble(phys[i:found[0]], False, False)[0]
                 else:
@@ -582,6 +588,9 @@ def _assemble(phys, joining, heredocs):
     return [l for l in out if l], bodies
 
 
+ODD_WORD = "\ufffd"                                                                                   # not a letter: a script or a package script whose name holds an odd blank is then a name no file or script has (review 4, SS-2: with `x` it read the benign sibling `axb` for `a<NBSP>b`)
+
+
 def _odd_to_word(line):
     """The line with each character that bash reads as part of a word and that a splitter reads as a blank (`str.isspace()` and not a space, a tab or a newline: a carriage return, a vertical tab, a form feed, FS to
     US, NEL, NBSP, U+2028, U+2029, the spaces of U+2000 to U+200A, U+3000...) written as a letter, outside quotes (blank_quoted's view). shlex treats a carriage return as a blank and COMMAND_HEAD's `\\s` treats all of
@@ -590,7 +599,7 @@ def _odd_to_word(line):
     if not any(c.isspace() and c not in " \t\n" for c in line):
         return line
     shown = blank_quoted(line)
-    return "".join("x" if c.isspace() and c not in " \t\n" and shown[i] == c else line[i] for i, c in enumerate(line))
+    return "".join(ODD_WORD if c.isspace() and c not in " \t\n" and shown[i] == c else line[i] for i, c in enumerate(line))
 
 
 class Unreadable(Exception):
@@ -996,6 +1005,8 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
     """Everything a script starts: {entries: [(file, args)], direct: bool, unresolved: [why]}."""
     if out is None:
         out = {"entries": [], "direct": False, "unresolved": [], "raw": [], "bodies": []}
+    if "\x00" in script:                                                    # bash drops a NUL from a script file, every reader here keeps it as a character (review 4, RD-3)
+        out["unresolved"].append("a NUL byte in the script: bash drops it, so it is not read as bash reads it")
     lines, bodies = command_lines(script)
     cut = [strip_comment(l) for l in lines]
     for trigger, why in later_step_effects("\n".join(cut + bodies)):      # the whole step, and the bodies of its heredocs: `cat >> "$GITHUB_ENV" <<EOF` writes what its body says
@@ -1238,6 +1249,7 @@ def hides_a_launcher(reasons, text=""):
         if not any(pat.search(r) for pat in OPAQUE_REASON_OK):
             return True
     for line in logical_lines(text):
+        line = _odd_to_word(line)                                           # the line as read_commands reads it (review 4, SS-1: a carriage return between `>` and `<<` made the opaque reason appear)
         if any(os.path.basename(h) in WRAPPER_HEADS for h, _ in command_heads(line)):
             return True
         try:
@@ -4254,6 +4266,24 @@ def self_test():
         ("an operator inside a double-quoted argument starts no heredoc", "grep -q \"x <<EOF y\" f\nnpm run y\nEOF", ["grep -q \"x <<EOF y\" f", "npm run y", "EOF"], []),
         ("a line that starts with `#` inside a `${ }` that an earlier line opened is dropped as a comment, as at the parent (bash reads it as text of the word: residual 1b)", "echo ${x:-\n# x\n}", ["echo ${x:-", "}"], []),
         ("a `case` in the `$( )` of a string stops the joining and the heredoc reading: a string after it is not joined", "echo \"$(case x in x) true;; esac)\"\necho \"a\nb\"", ["echo \"$(case x in x) true;; esac)\"", "echo \"a", "b\""], []),
+        ("review 4, EC-1: a `(` after a `[[` makes the line untrusted (a regex group or an extglob pattern holds `<<EOF` as text): the lines after it are commands", "[[ truetrue =~ (true|cat <<EOF)true ]]\nmark_ran\nEOF", ["[[ truetrue =~ (true|cat <<EOF)true ]]", "mark_ran", "EOF"], []),
+        ("...the same for an extglob pattern", "[[ truetrue == @(true|cat <<EOF)true ]]\nmark_ran\nEOF", ["[[ truetrue == @(true|cat <<EOF)true ]]", "mark_ran", "EOF"], []),
+        ("...and for a group over several lines whose quoted body holds a live substitution", "[[ x =~ (true|\ncat <<'EOF'\n$(mark_ran)\nEOF\n)true ]] || true", ["[[ x =~ (true|", "cat <<'EOF'", "$(mark_ran)", "EOF", ")true ]] || true"], []),
+        ("a `[[ ]]` test with only a `$( )` after the `[[` is not a stop: the heredoc after it is data, as before", "if [[ -n \"$(date)\" ]]; then\n  cat <<EOF\nx\nEOF\nfi", ["if [[ -n \"$(date)\" ]]; then", "cat", "fi"], ["x"]),
+        ("review 4, RD-1: a `$` and a `{` that a backslash-newline joined are a `${`: it stays open, and a quoted heredoc after it is no data", "echo $\\\n{x:-\ncat <<'EOF'\n$(mark_ran)\nEOF\n}", ["echo ${x:-", "cat <<'EOF'", "$(mark_ran)", "EOF", "}"], []),
+        ("...a `$` and a `'` joined are an ANSI-C string, in which the backslash escapes the quote: the lines after are inside it", "echo $\\\n$'\\'\n#\n(mark_ran)\n'", ["echo $$'\\'", "(mark_ran)", "'"], []),
+        ("...and a plain single-quoted string after the joined `$`", "echo $\\\n'\\'\necho '$(mark_ran)\n'", ["echo $'\\'\necho '$(mark_ran)", "'"], []),
+        ("review 4, RD-2: a quoted `<<true x` is no heredoc to bash, so the string after it is not closed where this reader thinks: nothing after is trusted", "echo \"<<true x\"\necho \"a\ntrue\necho x\" ; mark_ran ; echo \"\n\"", ["echo \"<<true x\"", "echo \"a", "true", "echo x\" ; mark_ran ; echo \"", "\""], []),
+        ("...the same with the operator in single quotes", "echo '<<true x'\necho \"a\ntrue\necho x\" ; mark_ran ; echo \"\n\"", ["echo '<<true x'", "echo \"a", "true", "echo x\" ; mark_ran ; echo \"", "\""], []),
+        ("...and a heredoc that is not read as data stops the trust for the string after it, a backslash at the end of the body being what made it code", "cat <<EOF\necho \\\nEOF\necho 'x\n$(mark_ran)\ny'", ["cat <<EOF", "echo EOF", "echo 'x", "$(mark_ran)", "y'"], []),
+        ("review 4, T4-1: a stray `}` before a `${` that is right in front of the operator: the `${` is open at the operator, so no heredoc", "echo }; cat ${<<EOF }\nmark_ran\nEOF", ["echo }; cat ${<<EOF }", "mark_ran", "EOF"], []),
+        ("review 4, T4-2: the closing line of a string that spans lines is judged with what a backslash joined to it", "echo \"a\n$(echo ${y:-\\\n)}; mark_ran) b\"", ["echo \"a", "$(echo ${y:-)}; mark_ran) b\""], []),
+        ("review 4, T4-4 (a): a `{ }` group that is open at the operator holds it: no heredoc", "{ cat <<EOF ; }\nmark_ran\nEOF", ["{ cat <<EOF ; }", "mark_ran", "EOF"], []),
+        ("...(b): a `{ }` group that closed before the operator does not: the heredoc after it is data", "{ echo a; } ; cat <<EOF\nx\nEOF\nnpm run y", ["{ echo a; } ; cat", "npm run y"], ["x"]),
+        ("...(c): a subscript after a digit and after an underscore is a subscript", "a1[1\ncat <<EOF\nx\nEOF\nnpm run y", ["a1[1", "cat <<EOF", "x", "EOF", "npm run y"], []),
+        ("...and after an underscore", "_[1\ncat <<EOF\nx\nEOF\nnpm run y", ["_[1", "cat <<EOF", "x", "EOF", "npm run y"], []),
+        ("...(d): `+=(` is an array literal", "a+=( cat <<EOF\nmark_ran\nEOF", ["a+=( cat <<EOF", "mark_ran", "EOF"], []),
+        ("...(e): a `[` after a word and before a blank is a stop too", "echo a[ 1\ncat <<EOF\nx\nEOF\nnpm run y", ["echo a[ 1", "cat <<EOF", "x", "EOF", "npm run y"], []),
         ("review 3, CL-1: an arithmetic command is not trusted (the `)` of a plain subshell in it closes nothing): the operator in it is no heredoc", "(( (true) cat <<EOF )) || true\nmark_ran\nEOF", ["(( (true) cat <<EOF )) || true", "mark_ran", "EOF"], []),
         ("...the same with the arithmetic over two lines", "(( (true)\ncat <<EOF )) || true\nmark_ran\nEOF", ["(( (true)", "cat <<EOF )) || true", "mark_ran", "EOF"], []),
         ("...and with the closer in what looks like the body", "(( (true)\ncat <<EOF\n)) || mark_ran\nEOF", ["(( (true)", "cat <<EOF", ")) || mark_ran", "EOF"], []),
@@ -4348,7 +4378,7 @@ def self_test():
     # nothing now, and reads a `#` on a joined line as a comment only after a blank or a separator; a backslash followed by a blank is not a continuation. Each of these runs `mark_ran` in bash 5.2.21.
     for cmd in ("echo a\\\n# don't edit the line above\necho a #c\necho '\nmark_ran\nTS=$(date)\necho ok # it's\n)", "echo \"a $\\\n(mark_ran)\"", "echo a\\\n#b ; mark_ran", "echo hi \\ \nmark_ran"):
         check(f"...and a backslash-newline joined with a space, not with nothing, is refused, not kept: its `mark_ran` runs (`{cmd.splitlines()[0][:50]}`)", not clean(cmd) and not kept(cmd), unread(cmd))
-    # The third review (workflow wf_a221fda7-c68, of 0ba7f399): each of these runs `mark_ran` in bash 5.2.21 (as a script file under `-e -o pipefail`, which is how a step runs, except `a=( cat <<EOF`, which only `-c` runs)
+    # The third review (workflow wf_a221fda7-c68, of 0ba7f399): each of these runs `mark_ran` in bash 5.2.21 (as a script file under `-e -o pipefail`, which is how a step runs, except `a=( cat <<EOF`, which only `-c` runs), except the last two (`echo ]; a[1` and `a[$(echo ])`), which do not run it: every revision including the parent refuses them, and they kill no mutant of the subscript stop (review 4, T4-6)
     # and was accepted by 0ba7f399 in an always() step (the plain forms of the heredoc ones too). The parent refused every one of them. What the bracket stack kept in `brk` could not follow (the `)` of a plain
     # subshell in a `(( ))`, a `$[` in a `$( )`, a `)` in a `${ }` in a `$( )`, a `#` after the `)` of a `<( )`, an array literal) is not followed now: a line that holds the form is not trusted (_exotic), and a `$( )` that holds a brace or a bracket is not flat.
     for cmd in ("(( (true) cat <<EOF )) || true\nmark_ran\nEOF", "(( (true)\ncat <<EOF )) || true\nmark_ran\nEOF", "(( (true)\ncat <<EOF\n)) || mark_ran\nEOF", "cat <<EOF $(echo $[ )\n] ) ; mark_ran\nEOF",
@@ -4363,8 +4393,24 @@ def self_test():
                 '> \x85 mark_ran echo "$(date)"', '> \u2028 mark_ran echo "$(date)"'):
         check(f"...and a character bash reads as part of a word and a splitter as a blank is read as a letter, so the command after it is read: its `mark_ran` runs (`{cmd[:12]!r}`)", not clean(cmd) and not kept(cmd), unread(cmd))
     check("a carriage return inside quotes is text: the step is read, not refused", clean('echo "a\rb"') and clean("echo 'a\x0cb'"), (unread('echo "a\rb"'), unread("echo 'a\x0cb'")))
-    for src, want in (("echo a >\r; b", "echo a >x; b"), ('echo "a\rb" c\rd', 'echo "a\rb" cxd'), ("echo 'a\x0cb'", "echo 'a\x0cb'"), ("a\u2028b\xa0c\u3000d", "axbxcxd"), ("a \t b", "a \t b"), ("a\x0c", "ax"), ("a\tb\rc", "a\tbxc")):
+    for src, want in (("echo a >\r; b", "echo a >\ufffd; b"), ('echo "a\rb" c\rd', 'echo "a\rb" c\ufffdd'), ("echo 'a\x0cb'", "echo 'a\x0cb'"), ("a\u2028b\xa0c\u3000d", "a\ufffdb\ufffdc\ufffdd"), ("a \t b", "a \t b"), ("a\x0c", "a\ufffd"), ("a\tb\rc", "a\tb\ufffdc")):
         check(f"_odd_to_word: `{src!r}` is `{want!r}`", _odd_to_word(src) == want, _odd_to_word(src))
+    ODD = sorted(c for c in map(chr, range(0x110000)) if c.isspace() and c not in " \t\n")
+    check("the characters _odd_to_word rewrites are all 26 that bash reads as part of a word and a splitter as a blank (review 4, T4-3)", len(ODD) == 26 and all(_odd_to_word(f"a{c}b") == "a" + ODD_WORD + "b" for c in ODD), (len(ODD), [hex(ord(c)) for c in ODD if _odd_to_word(f"a{c}b") != "a" + ODD_WORD + "b"]))
+    for c in ODD:
+        check(f"...and `> {c!r} mark_ran echo` is read with the character in a word, so `mark_ran` is a command (review 4, T4-3)", not clean(f'> {c} mark_ran echo "$(date)"') and not kept(f'> {c} mark_ran echo "$(date)"'), unread(f'> {c} mark_ran echo "$(date)"'))
+    # Review 4. Each of these runs `mark_ran` in bash 5.2.21 (a script file, `-e -o pipefail`) and was accepted by 652b23e7, in a plain step or in an always() step (the parent refused the first ten); a step that holds one is refused now.
+    plain_refused = lambda cmd: read_step({"run": cmd}, pkg, read)["unresolved"] != []
+    for cmd in ("[[ truetrue =~ (true|cat <<EOF)true ]]\nmark_ran\nEOF", "[[ truetrue == @(true|cat <<EOF)true ]]\nmark_ran\nEOF", "[[ x =~ (true|\ncat <<'EOF'\n$(mark_ran)\nEOF\n)true ]] || true",
+                "echo $\\\n{x:-\ncat <<'EOF'\n$(mark_ran)\nEOF\n}", "echo $\\\n$'\\'\n#\n(mark_ran)\n'", "echo $\\\n'\\'\necho '$(mark_ran)\n'", "echo $\\\n$'\\'\nmark_ran\n'",
+                "cat <<EOF\necho \\\nEOF\necho 'x\n$(mark_ran)\ny'", "true\ncat <<EOF\n$\x00(mark_ran)\nEOF", 'true\necho "a\n$\x00(mark_ran)\nb"',
+                "echo a >\r<< x; mark_ran", "echo a >>\r<< x; mark_ran", "cat <\r <(mark_ran)", "echo a >\r>(mark_ran)", "echo a >\r<<echo; mark_ran"):
+        check(f"a step that runs `mark_ran` in a form review 4 found is refused, plain or in an always() step (`{cmd[:30]!r}`)", plain_refused(cmd) and not clean(cmd) and not kept(cmd), (read_step({"run": cmd}, pkg, read)["unresolved"], unread(cmd)))
+    pkg_odd = dict(pkg, **{"a\xa0b": "node scripts/shot.mjs", "axb": "node scripts/pure.mjs"})
+    files_odd = dict(files, **{"scripts/a\xa0b.mjs": files["scripts/shot.mjs"], "scripts/axb.mjs": files["scripts/pure.mjs"]})
+    for cmd in ("npm run a\xa0b", "node scripts/a\xa0b.mjs"):
+        r = read_step({"run": cmd}, pkg_odd, lambda p: files_odd[p])
+        check(f"a package script or a file whose name holds an odd blank is read by its name, not by the name with a letter in its place (`{cmd!r}`): the step is refused, not read as the benign sibling (review 4, SS-2)", r["unresolved"] != [] or r["browser"], r)
     # The cost of reading a string that spans lines: each line is scanned once, with what the lines before it left open carried on (one `_scan` of the whole text for each line added made it quadratic: 2000 lines took 10 s).
     scanned, real_scan = [0], _scan
     def counting_scan(line, *rest):

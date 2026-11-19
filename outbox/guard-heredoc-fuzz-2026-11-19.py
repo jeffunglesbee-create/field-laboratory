@@ -124,11 +124,12 @@ def gen3(seed):
 # of 20000): its openers are all lines that the stop refuses. gen4 draws ORDINARY lines (a counter, a `[[ ]]` or `[ ]` test, a `$(date)`, a `$(cat "$F")`, a summary heredoc, a message over lines) between the
 # contested ones, so that the accept path is reached at volume, and counts in its result how often (the REACHED lines).
 ORD4 = ["n=$((n+1))", 'if [[ -n "$A" ]]; then', "fi", 'if [ -n "$A" ]; then', 'echo "built $(date -u +%F)"', 'X=$(cat "$F")', "(( i++ ))", "a=(1 2)", "a[1]=2", "true", "echo hi", "mark_ran",
-        "echo ]; a[1", ": <(true)#\"", "a=(true)#'", ": <(true)", "(( (true)", "for ((i=0;i<2;i++)); do :; done", "echo $[1+1]", "diff <(echo a) <(echo b)", "x=$(echo ${v})", "f() {", "}", "echo ${x:-]}"]
+        "echo ]; a[1", ": <(true)#\"", "a=(true)#'", ": <(true)", "(( (true)", "for ((i=0;i<2;i++)); do :; done", "echo $[1+1]", "diff <(echo a) <(echo b)", "x=$(echo ${v})", "f() {", "}", "echo ${x:-]}",
+        "[[ x =~ (a|b) ]]", "[[ x == @(a|b) ]]", "echo $\\\n{x:-a}", "echo $\\\n$'a'", "echo '<<true x'"]   # review 4 (EC-1, RD-1, RD-2): a regex group and an extglob in a `[[ ]]`, an opener a backslash-newline splits
 BODY4 = ["## Report", "- ok", "`code` and \\`escaped\\`", "built $(date -u +%F)", "$((N - 1)) of $N", "#$(mark_ran)", "$(mark_ran)", "$(echo ${y:-)}; mark_ran)", "$(echo ${x%)}; mark_ran)",
          "$(echo $[1)]; mark_ran)", "# $(mark_ran)", "plain text", "it's", "mark_ran", "x # y", "$(echo a) $(mark_ran)", "`mark_ran`", "${y:-)}"]
 OPLINE4 = ['cat >> "$GITHUB_STEP_SUMMARY" <<EOF', "cat <<EOF", "tee -a f <<EOF", "cat <<'EOF'", "grep x <<EOF", "bash <<EOF", "cat <<EOF >/dev/null", "(( (true) cat <<EOF )) || true", "a=( cat <<EOF",
-           "cat <<EOF $(echo $[ )", "x=$(cat <<EOF", "tee $[ <<EOF ]"]
+           "cat <<EOF $(echo $[ )", "x=$(cat <<EOF", "tee $[ <<EOF ]", "[[ truetrue =~ (true|cat <<EOF)true ]]", "[[ truetrue == @(true|cat <<EOF)true ]]", "echo a >\r<< x", "cat <\r <(true)"]
 STR4 = ['echo "a\nb $(date -u +%F) c"', "echo 'a\nb `x` c'", 'echo "a\n$(echo ${y:-)}; mark_ran) b"', 'echo "a\nb $(false && echo $[1)]; mark_ran )"', "echo 'a\n$(mark_ran)\nb'", 'git commit -m "feat: x\n\nCloses #12"',
         "node -e '\n  const d = `a ${b}`\n  console.log(d)\n'", 'echo "a\n$(echo ${x:-)}; mark_ran)\nb"', "echo \"a $(echo 'b')\nc\""]
 # not drawn: `>&'x` + newline + `$(mark_ran)` + newline + `y'` (a multi-line surface of the parent's reading of the word after `>&`; recorded in the residual CC-CMD, item 1f and item 4), which would add a known violation to every script that holds it.
@@ -158,7 +159,7 @@ def ran(script, mark):
     # Review 3 (TT-5): a `mark_ran` that runs in a process substitution (`<( )`, `>( )`) races bash's exit, so the old oracle (stdout and stderr to /dev/null, no wait) counted such a script about half the time (30 runs of
     # seed 3007585: 14 with the marker, 16 without). Now bash's output is a pipe and communicate() returns when EVERY process that holds it has exited, a process substitution's child included; bash runs in its own
     # process group, which is killed afterwards, so nothing it started (an `until false` loop) outlives the script.
-    p = subprocess.Popen(["bash", "--norc", "--noprofile", "-c", pre + script], cwd=MK, env={"MARK": mark, "PATH": os.environ["PATH"]}, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    p = subprocess.Popen(["bash", "--norc", "--noprofile", "-c", pre + script], cwd=MK, env={"MARK": mark, "PATH": os.environ["PATH"]}, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True, restore_signals=False)   # SIGPIPE stays ignored, as in Python: a `<( )` writer that bash outlives is not killed before it runs `mark_ran` (review 4, T4-7)
     try: p.communicate(timeout=5)
     except subprocess.TimeoutExpired: pass
     finally:

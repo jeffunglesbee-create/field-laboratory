@@ -10511,8 +10511,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-lookbehind",
     file: "scripts/check-browser-gate.py",
     claim: "the `$((` of an arithmetic expansion is an arithmetic command",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10520,8 +10520,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-arith",
     file: "scripts/check-browser-gate.py",
     claim: "an arithmetic command `(( ))` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10529,8 +10529,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-dollar-bracket",
     file: "scripts/check-browser-gate.py",
     claim: "a `$[ ]` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|[<>]\\(|=\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10538,8 +10538,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-less-paren",
     file: "scripts/check-browser-gate.py",
     claim: "a process substitution `<( )` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|>\\(|=\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|>\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10547,8 +10547,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-greater-paren",
     file: "scripts/check-browser-gate.py",
     claim: "a process substitution `>( )` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|<\\(|=\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|<\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10556,8 +10556,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-array",
     file: "scripts/check-browser-gate.py",
     claim: "an array literal `a=( )` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|\\w\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10565,8 +10565,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-no-subscript",
     file: "scripts/check-browser-gate.py",
     claim: "a subscript `a[ ]` is read",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10574,8 +10574,8 @@ const MUTATIONS = [
     id: "browser-gate-exotic-subscript-any",
     file: "scripts/check-browser-gate.py",
     claim: "a `[` that is no subscript (a `[ ` test, a `[[ ` test) is not a form the reader follows",
-    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
-    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\[\")",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
@@ -10623,6 +10623,124 @@ const MUTATIONS = [
     replace: "            joining = heredocs = False",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
+
+  {
+    id: "browser-gate-exotic-dbl-bracket",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `[[` test with a parenthesis after it is a form the reader does not follow (a regex group or an extglob pattern holds `<<EOF` as text; review 4, EC-1)",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-exotic-dbl-bracket-lookbehind",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `$(` after a `[[` is no regex group: a test with only a substitution in it is not a stop",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*\\(\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-exotic-alnum-subscript",
+    file: "scripts/check-browser-gate.py",
+    claim: "a subscript after a digit or an underscore is a subscript",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|[A-Za-z]\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-exotic-array-plus",
+    file: "scripts/check-browser-gate.py",
+    claim: "`+=(` is an array literal",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|\\w=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-exotic-subscript-then-blank",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `[` after a word and before a blank is a stop",
+    find: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    replace: "EXOTIC = re.compile(r\"(?<!\\$)\\(\\(|\\$\\[|[<>]\\(|=\\(|\\w\\[(?=\\S)|\\[\\[[^\\n]*(?<!\\$)\\(\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-join-rescan",
+    file: "scripts/check-browser-gate.py",
+    claim: "a logical line that a backslash joined is scanned whole: a `$` and a `{` that it joined are a `${` (review 4, RD-1)",
+    find: "        if cur and not cur.endswith(\"\\n\"):",
+    replace: "        if False:",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-code-heredoc-stop",
+    file: "scripts/check-browser-gate.py",
+    claim: "a heredoc that is not read as data stops the trust for the rest of the step (review 4, RD-2)",
+    find: "                    joining = heredocs = False\n                    out.append(text.strip(\" \\t\\n\"))\n                    out += _assemble(",
+    replace: "                    out.append(text.strip(\" \\t\\n\"))\n                    out += _assemble(",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-hides-odd-word",
+    file: "scripts/check-browser-gate.py",
+    claim: "hides_a_launcher reads a line as read_commands reads it, odd blanks as letters (review 4, SS-1)",
+    find: "        line = _odd_to_word(line)                                           # the line as read_commands reads it (review 4, SS-1: a carriage return between `>` and `<<` made the opaque reason appear)\n",
+    replace: "",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-odd-word-letter",
+    file: "scripts/check-browser-gate.py",
+    claim: "an odd blank is written as a character no name holds, not as a letter (review 4, SS-2: `a<NBSP>b` read as the benign `axb`)",
+    find: "ODD_WORD = \"\\ufffd\"",
+    replace: "ODD_WORD = \"x\"",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-nul-refused",
+    file: "scripts/check-browser-gate.py",
+    claim: "a script that holds a NUL byte is refused: bash drops it and no reader here does (review 4, RD-3)",
+    find: "    if \"\\x00\" in script:",
+    replace: "    if False:",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-odd-set-narrow",
+    file: "scripts/check-browser-gate.py",
+    claim: "every one of the 26 odd blanks is written as a word character, not only a carriage return and a form feed (review 4, T4-3)",
+    find: "ODD_WORD if c.isspace() and c not in \" \\t\\n\" and shown[i] == c else",
+    replace: "ODD_WORD if c in \"\\r\\x0c\" and shown[i] == c else",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-brace-whole-line",
+    file: "scripts/check-browser-gate.py",
+    claim: "the braces of a `{ }` group are counted up to the operator, not on the whole line (review 4, T4-4)",
+    find: "shown.count(\"{\", 0, s) > shown.count(\"}\", 0, s)",
+    replace: "shown.count(\"{\") > shown.count(\"}\")",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-brace-any-open",
+    file: "scripts/check-browser-gate.py",
+    claim: "a `{ }` group that closed before the operator does not hold it (review 4, T4-4)",
+    find: "shown.count(\"{\", 0, s) > shown.count(\"}\", 0, s)",
+    replace: "shown.count(\"{\", 0, s) > 0",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
 
   {
     id: "browser-gate-join-flat-offset",
@@ -10772,7 +10890,7 @@ const MUTATIONS = [
     id: "browser-gate-odd-blank-letter",
     file: "scripts/check-browser-gate.py",
     claim: "the character is written as a blank, not a letter",
-    find: "\"\".join(\"x\" if c.isspace()",
+    find: "\"\".join(ODD_WORD if c.isspace()",
     replace: "\"\".join(\" \" if c.isspace()",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
