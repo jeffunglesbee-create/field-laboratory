@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-19T00:20:41.677Z",
+  "at": "2026-11-19T23:18:31.093Z",
   "scope": "full",
   "ran": 112,
-  "from_mutations": 1989,
-  "failing": 0,
+  "from_mutations": 2164,
+  "failing": 1,
   "notApplicable": [],
   "results": [
     {
@@ -160,7 +160,9 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"every governed commit paired source with outbox\"",
-      "passed": true
+      "passed": false,
+      "status": 1,
+      "tail": "FAIL  every governed commit paired source with outbox\n  node scripts/history-check.mjs\n      FAIL  2 commit(s) changed source without an outbox entry:\n            → 92334d5  test: an entry for the closing line of a string judged with what a backslash joined to it\n            → 7e31228  test: the `$(` of one physical line and the `#` of the next are read together (review of 0f1182bf, own check)"
     },
     {
       "cmd": "bash -c '! node scripts/mutation-check.mjs --only known-survivor'",
@@ -459,16 +461,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      3623262,
-      3147225,
-      4004017,
-      3391093,
-      3563609,
-      3199214,
-      2824834,
-      3305272
+      3600527,
+      3677699,
+      4202487,
+      3164074,
+      3141369,
+      3714227,
+      3384368,
+      4143690
     ],
-    "longestMs": 4004017,
-    "sumMs": 27058526
+    "longestMs": 4202487,
+    "sumMs": 29028441
   }
 }
