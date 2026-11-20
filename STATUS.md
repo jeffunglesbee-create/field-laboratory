@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`odds-coverage-lost` on 2026-11-20 — 10 games, 0 malformed (229 runs logged)
+`ok` on 2026-11-20 — 30 games, 0 malformed (230 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
