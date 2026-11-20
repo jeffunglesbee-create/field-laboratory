@@ -18,7 +18,8 @@ Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 1 (APPROV
 | narrowing | `1e86e68d` and after | the bracket stack REMOVED; a line that holds an arithmetic command, a `$[ ]`, a subscript, a `<( )`, a `>( )` or an array literal is not trusted; the line that closes a joined string is judged; odd blanks read as letters; self-test 1363/1363 |
 | review 4 | workflow `wf_2947ccfb-10f` | 4 lenses, 54 agents, 3.7 h, 2 or 3 skeptics per finding: 22 findings confirmed, 3 refuted; 9 were false greens, 6 of them new with this item |
 | review-4 fixes | `58dee9bc`, `92334d5d` | a `[[` with a `(` after it is a stop; a backslash-joined line is scanned whole; a heredoc that is not data stops the trust; odd blanks written as U+FFFD, in `hides_a_launcher` too; a NUL refused; rows for T4-1 to T4-4, SS-5; the oracle ignores SIGPIPE; self-test 1425/1425 |
-| final | `__MERGE__` | __STATE__ |
+| landed | `2f841c5e` (squash commit `25065d4b` on `main` 799c872c, then the ledger of the scored run) | scored `verify-full` run `44637826337`: earned 530 of 530, failing [], skipped [], notApplicable [], mutation baseline failing 0, 8 of 8 shards |
+| why a squash | `25065d4b` | the first scored run (`44625526303`, head `443b40a0` of `gate-items-2-7`) failed on the row `every governed commit paired source with outbox`: it walks every commit and `7e31228` and `92334d5` of this branch changed `scripts/` with no outbox entry. Shard 6 stopped at its baseline on that row. History is not rewritten: the squash commit pairs source with outbox in one commit, and `gate-items-2-7` keeps the 28 commits it replaces |
 
 ## Why the design was replaced (Rule 42)
 
@@ -119,4 +120,5 @@ Review 4 (workflow `wf_2947ccfb-10f` of `652b23e7`; 4 lenses, 54 agents, 3.7 h):
 
 - No fifth review was run. Reviews 1 to 4 confirmed 25, 48, 28 and 22 findings; review 4's fixes are checked by their rows, entries, the sweep, the equivalence run and the volume fuzz, not by a fresh independent read of the head.
 - The fuzz artifact is the run at `58dee9bc`; the head differs from it by the removal of `bound` (0 differences on 120000 scripts, above), not by a re-run.
-- The scored `verify-full` (530/530) and the landing on `main` are in the last row of the table; the runs after the landing are in the residual CC-CMD's closure paragraph.
+- The scored `verify-full` (530/530) and the landing on `main` are in the last rows of the table. The `verify` and `guards` runs on the landing push are read after it (the residual CC-CMD's closure paragraph holds the result).
+- Two commits of `gate-items-2-7` (`7e31228`, `92334d5`) broke the per-commit pairing rule, and no check run here before the first scored run caught it: `node scripts/history-check.mjs` was not part of the local routine. It is now (it passes on the landed history).
