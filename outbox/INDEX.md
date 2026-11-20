@@ -12,6 +12,22 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2b0d3b9` | 2026-11-20 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44649181259 |
+| `55407d6` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 3 (MLS, ET 11-19) passes: a second sport key, the ET day after 19:00 ET, and the pre-kickoff string as a manifest field |
+| `2e08193` | 2026-11-20 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-20T00:54 [skip ci] |
+| `e528ab3` | 2026-11-20 | [live-score-2026-11-19-20261120-0053Z.png](live-score-2026-11-19-20261120-0053Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `e528ab3` | 2026-11-20 | [live-score-manifest-2026-11-19-20261120-0053Z.json](live-score-manifest-2026-11-19-20261120-0053Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `12da9c2` | 2026-11-20 | [guard-heredoc-review-3-2026-11-19.md](guard-heredoc-review-3-2026-11-19.md) | docs: two citations in the review-3 dossier name the guard they describe, not a line of the current file |
+| `2fa640c` | 2026-11-20 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: the landing of the browser gate guard heredoc work, the scored run, and why it is a squash |
+| `7bfc2de` | 2026-11-20 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 25065d4 [skip ci] |
+| `25065d4` | 2026-11-19 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-fuzz-2026-11-19.py](guard-heredoc-fuzz-2026-11-19.py) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-fuzz-2026-11-19.txt](guard-heredoc-fuzz-2026-11-19.txt) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-kill-matrix-2026-11-19.txt](guard-heredoc-kill-matrix-2026-11-19.txt) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-probe-2026-11-19.py](guard-heredoc-probe-2026-11-19.py) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-probe-2026-11-19.txt](guard-heredoc-probe-2026-11-19.txt) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-review-2-2026-11-19.md](guard-heredoc-review-2-2026-11-19.md) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
+| `25065d4` | 2026-11-19 | [guard-heredoc-review-3-2026-11-19.md](guard-heredoc-review-3-2026-11-19.md) | feat: the browser gate guard reads a data heredoc and a multi-line quoted string (residual CC-CMD item 1) |
 | `bd00e65` | 2026-11-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-19 [skip ci] |
 | `bd00e65` | 2026-11-19 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-19 [skip ci] |
 | `bd00e65` | 2026-11-19 | [sport-vocabulary-2026-11-19T20-22-44-120Z.json](sport-vocabulary-2026-11-19T20-22-44-120Z.json) | drift-sentinel: ok on 2026-11-19 [skip ci] |
