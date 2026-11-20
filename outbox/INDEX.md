@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `90ac1a8` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 6 passes with two Half time notes and one minute clock on one page, the first half time off EFL Trophy |
+| `5f70793` | 2026-11-20 | [live-score-2026-11-20-20261120-2032Z.png](live-score-2026-11-20-20261120-2032Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `5f70793` | 2026-11-20 | [live-score-manifest-2026-11-20-20261120-2032Z.json](live-score-manifest-2026-11-20-20261120-2032Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `6caeb42` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 5 passes with three live matches on three sport keys at once, and the poll's request count with three keys |
+| `bb27d70` | 2026-11-20 | [live-score-2026-11-20-20261120-2012Z.png](live-score-2026-11-20-20261120-2012Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `bb27d70` | 2026-11-20 | [live-score-manifest-2026-11-20-20261120-2012Z.json](live-score-manifest-2026-11-20-20261120-2012Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `f80f36a` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 4 passes with two live matches on two sport keys at once (Bundesliga and Ligue 1) |
+| `87ce72e` | 2026-11-20 | [live-score-2026-11-20-20261120-1957Z.png](live-score-2026-11-20-20261120-1957Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `87ce72e` | 2026-11-20 | [live-score-manifest-2026-11-20-20261120-1957Z.json](live-score-manifest-2026-11-20-20261120-1957Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `3b79d71` | 2026-11-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-20 [skip ci] |
 | `3b79d71` | 2026-11-20 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-20 [skip ci] |
 | `3b79d71` | 2026-11-20 | [sport-vocabulary-2026-11-20T19-54-05-622Z.json](sport-vocabulary-2026-11-20T19-54-05-622Z.json) | drift-sentinel: ok on 2026-11-20 [skip ci] |
