@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f4505ad` | 2026-11-20 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-20 [skip ci] |
+| `f4505ad` | 2026-11-20 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-20 [skip ci] |
+| `f4505ad` | 2026-11-20 | [sport-vocabulary-2026-11-20T08-45-02-319Z.json](sport-vocabulary-2026-11-20T08-45-02-319Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-20 [skip ci] |
 | `6fa7e2a` | 2026-11-20 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: the post-landing runs of the browser gate guard heredoc work are recorded |
 | `65db60c` | 2026-11-20 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `c5a3a98` | 2026-11-20 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44650893844 |
