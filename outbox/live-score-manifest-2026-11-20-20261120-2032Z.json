@@ -1,0 +1,273 @@
+{
+  "deployed": "c5a3a984c3b8573b037bf3f5f7f364430a82896c",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-20",
+  "probedAt": "2026-11-20T20:31:19.510Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "mls",
+    "bundesliga",
+    "laliga",
+    "ligue1"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 30 game(s) for 2026-11-20"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 20,
+  "pageOutcomes": [
+    {
+      "key": "ligue1",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "bundesliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "laliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "bundesliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "laliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "ligue1",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    }
+  ],
+  "runnerFeeds": {
+    "mls": {
+      "status": 200,
+      "error": null
+    },
+    "bundesliga": {
+      "status": 200,
+      "error": null
+    },
+    "laliga": {
+      "status": 200,
+      "error": null
+    },
+    "ligue1": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [
+    "401884736",
+    "401882805",
+    "401876395"
+  ],
+  "verdict": "PASS",
+  "reasons": [],
+  "cardState": "In progress",
+  "scoreMatchesFeed": true,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "halfTimeMarker": true,
+  "requestsToV2Games": 6,
+  "checked": "checked 3 of 13 soccer cards against the page's own last /v2/games answer (10 with no ESPN id, 0 outside their window, 0 with no reading yet); 3 live",
+  "rows": [
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-06_roundonebestof3series_2026-11-20",
+      "teams": "Chicago Fire FC v Charlotte FC",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-07_roundonebestof3series_2026-11-20",
+      "teams": "New England Revolution v Philadelphia Union",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-08_roundonebestof3series_2026-11-20",
+      "teams": "Inter Miami CF v Columbus Crew",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-05_roundonebestof3series_2026-11-20",
+      "teams": "Nashville SC v TBC Away",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-02_roundonebestof3series_2026-11-20",
+      "teams": "San Jose Earthquakes v Houston Dynamo FC",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-03_roundonebestof3series_2026-11-20",
+      "teams": "St. Louis CITY SC v Los Angeles Football Club",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-04_roundonebestof3series_2026-11-20",
+      "teams": "FC Dallas v Portland Timbers",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_R16-01_roundonebestof3series_2026-11-20",
+      "teams": "Vancouver Whitecaps FC v TBC Away",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled — no start time",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_WC-09_wildcardmatches_2026-11-20",
+      "teams": "Orlando City v FC Cincinnati",
+      "sport": "MLS",
+      "score": "1–3",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_MLS-COM-000002_WC-01_wildcardmatches_2026-11-20",
+      "teams": "Seattle Sounders FC v Real Salt Lake",
+      "sport": "MLS",
+      "score": "1–1",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": null,
+      "kind": "unjoined",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Bundesliga_2026-11-20_e401884736",
+      "teams": "Bayern v Cologne",
+      "sport": "Bundesliga",
+      "score": "1–1",
+      "status": "In progress",
+      "live": "Half time",
+      "forecast": null,
+      "espnId": "401884736",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "La Liga_2026-11-20_e401882805",
+      "teams": "Athletic v Espanyol",
+      "sport": "La Liga",
+      "score": "0–0",
+      "status": "In progress",
+      "live": "30'",
+      "forecast": null,
+      "espnId": "401882805",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Ligue 1_2026-11-20_e401876395",
+      "teams": "Troyes v Le Havre AC",
+      "sport": "Ligue 1",
+      "score": "1–1",
+      "status": "In progress",
+      "live": "Half time",
+      "forecast": null,
+      "espnId": "401876395",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": true,
+  "screenshot": "outbox/live-score-2026-11-20-20261120-2032Z.png"
+}
