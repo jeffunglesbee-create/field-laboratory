@@ -587,7 +587,7 @@ The docstring has said this since 1806bf8a, where OLD was the parent (which refu
 - Input:
 
 ```
-Any earlier line with a `$( )` or backtick pair that is not FLAT (holds ' " ( ) ` \ # < >), then a data heredoc or a multi-line string. Minimal: `X=$(cat "$FILE")` newline `cat >> "$GITHUB_STEP_SUMMARY" <<EOF` newline `## Result` newline `sha: $GITHUB_SHA` newline `EOF`. Also `X=$(git log -1 --pretty=format:"%s")`, `X=$(git rev-parse HEAD 2>/dev/null || echo none)`, `X=$(wc -c < f)`, `DEPLOYED=$(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')` (the real step 'The deployed build stamp matches main' in live-check.yml, an audited job) followed by a summary heredoc, `cat <<'EOF' > file`, `tee -a "$GITHUB_STEP_SUMMARY" <<EOF`, or a multi-line `git commit -m "a<newline>b"`. Code: scripts/check-browser-gate.py:543 `if st.stack or st.brk or not _flat_subs(blank_quoted(text)): joining = heredocs = False`.
+Any earlier line with a `$( )` or backtick pair that is not FLAT (holds ' " ( ) ` \ # < >), then a data heredoc or a multi-line string. Minimal: `X=$(cat "$FILE")` newline `cat >> "$GITHUB_STEP_SUMMARY" <<EOF` newline `## Result` newline `sha: $GITHUB_SHA` newline `EOF`. Also `X=$(git log -1 --pretty=format:"%s")`, `X=$(git rev-parse HEAD 2>/dev/null || echo none)`, `X=$(wc -c < f)`, `DEPLOYED=$(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')` (the real step 'The deployed build stamp matches main' in live-check.yml, an audited job) followed by a summary heredoc, `cat <<'EOF' > file`, `tee -a "$GITHUB_STEP_SUMMARY" <<EOF`, or a multi-line `git commit -m "a<newline>b"`. Code: scripts/check-browser-gate.py at 0ba7f399 (line 543 there) `if st.stack or st.brk or not _flat_subs(blank_quoted(text)): joining = heredocs = False`.
 ```
 
 - Expected:
@@ -616,7 +616,7 @@ Not a regression against the parent 39459bd2: it refused every heredoc and every
 - Input:
 
 ```
-`echo start  # was: X=$(date +"%F")` newline `cat >> "$GITHUB_STEP_SUMMARY" <<EOF` newline `## x` newline `EOF`. Same with the comment `# the ` char` (a lone backtick) and `# see $(foo` (unclosed). Controls: the same text as a whole-line comment above `echo start`, and the comment `# don't`, are read. Code: scripts/check-browser-gate.py:543, `_flat_subs(blank_quoted(text))` runs on the logical line with its trailing comment still on it, while strip_comment cuts the comment everywhere else.
+`echo start  # was: X=$(date +"%F")` newline `cat >> "$GITHUB_STEP_SUMMARY" <<EOF` newline `## x` newline `EOF`. Same with the comment `# the ` char` (a lone backtick) and `# see $(foo` (unclosed). Controls: the same text as a whole-line comment above `echo start`, and the comment `# don't`, are read. Code: scripts/check-browser-gate.py at 0ba7f399 (line 543 there), `_flat_subs(blank_quoted(text))` runs on the logical line with its trailing comment still on it, while strip_comment cuts the comment everywhere else.
 ```
 
 - Expected:
