@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6fa7e2a` | 2026-11-20 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: the post-landing runs of the browser gate guard heredoc work are recorded |
+| `65db60c` | 2026-11-20 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `c5a3a98` | 2026-11-20 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44650893844 |
 | `2b0d3b9` | 2026-11-20 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44649181259 |
 | `55407d6` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 3 (MLS, ET 11-19) passes: a second sport key, the ET day after 19:00 ET, and the pre-kickoff string as a manifest field |
