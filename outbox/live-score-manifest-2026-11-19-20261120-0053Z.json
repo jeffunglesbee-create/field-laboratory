@@ -1,0 +1,85 @@
+{
+  "deployed": "36776606192fc4dc83e4eba0d322ca3f450d293e",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-19",
+  "probedAt": "2026-11-20T00:52:30.549Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "mls"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 21 game(s) for 2026-11-19"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 21,
+  "pageOutcomes": [
+    {
+      "key": "mls",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 2
+    },
+    {
+      "key": "mls",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 2
+    }
+  ],
+  "runnerFeeds": {
+    "mls": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [
+    "401933535"
+  ],
+  "verdict": "PASS",
+  "reasons": [],
+  "cardState": "In progress",
+  "scoreMatchesFeed": true,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "halfTimeMarker": false,
+  "requestsToV2Games": 2,
+  "checked": "checked 1 of 2 soccer cards against the page's own last /v2/games answer (0 with no ESPN id, 1 outside their window, 0 with no reading yet); 1 live",
+  "rows": [
+    {
+      "gameId": "MLS_2026-11-19_e401933535",
+      "teams": "Orlando v Cincinnati",
+      "sport": "MLS",
+      "score": "0–0",
+      "status": "In progress",
+      "live": "13'",
+      "forecast": null,
+      "espnId": "401933535",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_2026-11-19_e401933555",
+      "teams": "Seattle v Salt Lake",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled 2026-11-20T03:00Z (parsed 03:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401933555",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": true,
+  "screenshot": "outbox/live-score-2026-11-19-20261120-0053Z.png"
+}
