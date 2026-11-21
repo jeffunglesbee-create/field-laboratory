@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `087197b` | 2026-11-21 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 8 passes with Half time on an EPL card; the eight proof runs are done and the session record is final |
+| `0885bfd` | 2026-11-21 | [live-score-2026-11-21-20261121-1327Z.png](live-score-2026-11-21-20261121-1327Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `0885bfd` | 2026-11-21 | [live-score-manifest-2026-11-21-20261121-1327Z.json](live-score-manifest-2026-11-21-20261121-1327Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `c02314e` | 2026-11-21 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 7 passes on the first EPL match, and the forecast half is seen for the first time |
+| `899310a` | 2026-11-21 | [live-score-2026-11-21-20261121-1252Z.png](live-score-2026-11-21-20261121-1252Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `899310a` | 2026-11-21 | [live-score-manifest-2026-11-21-20261121-1252Z.json](live-score-manifest-2026-11-21-20261121-1252Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `f5e95a9` | 2026-11-21 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: live proof of the EPL forecast on 7 live cards, 2026-11-21 |
 | `317a0a1` | 2026-11-21 | [forecast-live-2026-11-21.png](forecast-live-2026-11-21.png) | probe: the model's forecast on an EPL card, on the live page [skip ci] |
 | `317a0a1` | 2026-11-21 | [forecast-live-manifest-2026-11-21.json](forecast-live-manifest-2026-11-21.json) | probe: the model's forecast on an EPL card, on the live page [skip ci] |
