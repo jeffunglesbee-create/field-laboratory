@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `57658ad` | 2026-11-21 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-21T00:12 [skip ci] |
 | `90ac1a8` | 2026-11-20 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 6 passes with two Half time notes and one minute clock on one page, the first half time off EFL Trophy |
 | `5f70793` | 2026-11-20 | [live-score-2026-11-20-20261120-2032Z.png](live-score-2026-11-20-20261120-2032Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `5f70793` | 2026-11-20 | [live-score-manifest-2026-11-20-20261120-2032Z.json](live-score-manifest-2026-11-20-20261120-2032Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
