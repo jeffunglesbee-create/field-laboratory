@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-21",
+  "probedAt": "2026-11-21T11:07:52.183Z",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "deployed": "c5a3a984c3b8573b037bf3f5f7f364430a82896c",
+  "verdict": "PASS",
+  "judged": 7,
+  "numbers": 7,
+  "reasons": [],
+  "standingsRequests": 1,
+  "standingsStatuses": [
+    200
+  ],
+  "standingsRoute": "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings",
+  "errors": [],
+  "screenshot": "outbox/forecast-live-2026-11-21.png",
+  "cards": [
+    {
+      "teams": "Man City v Fulham",
+      "status": "Scheduled 2026-11-21T12:30Z (parsed 12:30)",
+      "market": "win prob — Man City 69% · draw 18% · Fulham 13%",
+      "kind": "model",
+      "text": "model table-v2 — Man City 61% · draw 27% · Fulham 12%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Bournemouth v Nottm Forest",
+      "status": "Scheduled 2026-11-21T15:00Z (parsed 15:00)",
+      "market": "win prob — Bournemouth 50% · draw 27% · Nottm Forest 23%",
+      "kind": "model",
+      "text": "model table-v2 — Bournemouth 55% · draw 27% · Nottm Forest 18%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Aston Villa v Sunderland",
+      "status": "Scheduled 2026-11-21T15:00Z (parsed 15:00)",
+      "market": "win prob — Aston Villa 55% · draw 25% · Sunderland 21%",
+      "kind": "model",
+      "text": "model table-v2 — Aston Villa 53% · draw 27% · Sunderland 20%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Chelsea v Leeds",
+      "status": "Scheduled 2026-11-21T15:00Z (parsed 15:00)",
+      "market": "win prob — Chelsea 47% · draw 28% · Leeds 25%",
+      "kind": "model",
+      "text": "model table-v2 — Chelsea 48% · draw 27% · Leeds 25%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Coventry v C Palace",
+      "status": "Scheduled 2026-11-21T15:00Z (parsed 15:00)",
+      "market": "win prob — Coventry 38% · draw 28% · C Palace 34%",
+      "kind": "model",
+      "text": "model table-v2 — Coventry 48% · draw 27% · C Palace 25%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Spurs v Ipswich",
+      "status": "Scheduled 2026-11-21T15:00Z (parsed 15:00)",
+      "market": "win prob — Spurs 63% · draw 21% · Ipswich 16%",
+      "kind": "model",
+      "text": "model table-v2 — Spurs 45% · draw 27% · Ipswich 28%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    },
+    {
+      "teams": "Newcastle v Arsenal",
+      "status": "Scheduled 2026-11-21T17:30Z (parsed 17:30)",
+      "market": "win prob — Newcastle 17% · draw 23% · Arsenal 61%",
+      "kind": "model",
+      "text": "model table-v2 — Newcastle 16% · draw 27% · Arsenal 57%",
+      "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+    }
+  ]
+}
