@@ -56,12 +56,11 @@ on the pinned page (last bullets below).
   line reads the same whether the numbers agree or not.
 - NOT built, and still Phase 2's: the `Paired` type and `whyNoMarket` (Rule 99),
   the change record, any D1 write. A card with no price says nothing about why.
-- NOT yet seen on a live card: none can exist before 2026-11-21 (first kickoff
-  12:30Z). The wiring is proved on the page pinned to the 2026-10-10 capture at a
-  fixed clock, which is hindsight by construction, and again on the DEPLOYED page
-  (`outbox/forecast-deployed-wiring-2026-11-08.json`, verdict `WIRED`, commit
-  d9554f3); the live proof is staged, with its unblock criteria and exact verify
-  command in the session document.
+- SEEN on a live card, 2026-11-21: run 44897584850 (`forecast-live-probe`, 11:07Z,
+  deployed c5a3a98) read `verdict: "PASS"`, 7 of 7 EPL cards `Scheduled` with kickoff ahead
+  drawing `model table-v2 — …`, one standings request answered 200, `errors: []`
+  (`outbox/forecast-live-manifest-2026-11-21.json`, `outbox/forecast-live-2026-11-21.png`).
+  Record: `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`, "Live proof".
 - **The model is overconfident.** table-v1's constants are declared priors and
   were not fitted. Replayed over the 99 finished 2026-27 matches, at GW6 onward
   (n = 47) its Brier score is 0.752 against the market's 0.572 and a uniform

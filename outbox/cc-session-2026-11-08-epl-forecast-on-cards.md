@@ -10,7 +10,7 @@
 
 1. An EPL card that is `Scheduled` with its kickoff still ahead now carries one line under the market line: `model table-v1 — Arsenal 94% · draw 4% · Spurs 2%`. A card that should carry one and cannot says why, by name, in one of seven sentences. Every other card is unchanged.
 2. The wiring is proved on the page pinned to the 2026-10-10 capture at a fixed clock: 38 of 38 render checks, one committed screenshot (`outbox/forecast-card-pinned.png`). **That screenshot is wiring proof only.** The committed table is 2026-11-08 and the fixtures are 2026-10-10, so each forecast in it is made from a table that already contains its own result. The same proof was then taken from the DEPLOYED page (d9554f3): `outbox/forecast-deployed-wiring-2026-11-08.json`, verdict `WIRED`, with the same caveat.
-3. The line has **not yet been seen on a live card**, and none can exist before 2026-11-21 (premise 3 below). The live proof is STAGED with its unblock criteria further down, and a one-shot scheduled task runs the probe that morning.
+3. The line **was seen on a live card on 2026-11-21** (run 44897584850, `PASS`, 7 of 7 cards; see "Live proof" at the end). It could not exist before that date (premise 3 below).
 4. The model is a declared prior and it is overconfident against the market. At GW6 onward (n = 47) its Brier score is 0.752 against the market's 0.572 and a uniform guess's 0.667. The card prints the number and where it came from; it prints no accuracy claim. The numbers and their limits are under "The model's record so far".
 5. Landed on `main` as `91c17b4` (the feature), `f8df1b7` (its checks) and `d9554f3` (a fix: the first push went red at `check:exit-drains`, see Landing). On `d9554f3`: `verify`, `guards`, `deploy` and `verify-full` (1,194 mutations) are green, and `/version.txt` on the deployed page reads that sha. One post-deploy `live-check` step is red for a reason that predates this work (Landing, last paragraph).
 
@@ -94,7 +94,7 @@ What this means on the card. The CC-CMD warned that a model shown beside the mar
 5. **The CC-CMD's Status said `src/Forecast.fs` was 268 lines.** True on 2026-10-04, false now. The count is removed from the Status instead of replaced.
 6. **No command runs `verify.yml`'s steps before a push.** `check:exit-drains` is a `verify.yml` step and is in none of the pre-commit hook, `scripts/gate-checks.mjs`, `scripts/confidence.mjs` or `docs/gate-rows.txt` (`grep -c exit-drains` returns 0 for the first three; the rows file has no line naming it). This session's three new scripts therefore reached CI without it having run, and the first push went red (Landing, push 1). A failing step also hides every step after it: 38 `run:` steps, all four forecast steps among them, were skipped. Searched `docs/*.md` and `outbox/*.md` by content for a CC-CMD that covers running the job's steps locally ("every step of verify", "verify steps locally", "steps CI skipped"): none. Candidate, not built: a script that executes the `run:` blocks of `verify.yml` in order, which is what was done by hand for the 38 (`outbox/forecast-verify-steps-local-2026-11-08.txt`).
 
-## Verified, and STAGED
+## Verified, and VERIFIED (live proof 2026-11-21)
 
 Verified before the first commit, by command:
 
@@ -112,7 +112,7 @@ Verified before the first commit, by command:
 
 The mutation run found 4 survivors the first time (a missing away club not named, a case-insensitive join, an away deduction unchecked, an unclipped refusal), each a claim the Suite did not defend. Six Suite checks and four mutation entries now defend them and the home-side twins. The first run's baseline was red for the render check because the browser path was unset; 12 records from it did not count and were re-run with a green baseline (16 superseded records are listed in the JSON).
 
-**STAGED: the forecast on a live card.**
+**VERIFIED 2026-11-21 (was STAGED): the forecast on a live card.** See "Live proof" at the end.
 
 - *What is staged.* A real forecast on a real `Scheduled` EPL card, on the deployed page, with the table the relay serves that day.
 - *What blocks it.* No EPL card can be `Scheduled` with a kickoff ahead before 2026-11-21T12:30Z (premise 3).
@@ -167,3 +167,15 @@ d9554f3 is the fix, rebased onto three bot commits that landed while it was bein
 **The 2026-11-21 run**: scheduled task `trig_0177NdbPiNCxsGMgVaQWmk6q`, one shot at 2026-11-21T11:05:00Z, runs on automatic approval. Its prompt is the STAGED section's criteria plus: after a FAIL, run every `verify.yml` step the fix touches before pushing.
 
 **Not caused by this change, found while reading the deploy's runs**: the post-deploy `live-check` run 42508515549 on d9554f3 is red at "A finished game shows the brief written after it finished": `Milan @ Genoa` (Serie A) shows a `game_live` brief on a Final card; 14 other final games pass, the EPL ones among them. The same step failed in three runs before this work reached the page: 42387767654 (7d6ed4a), 42410306002 (39686ee), 42426463552 (6a21570), all on 2026-11-07. No `docs/CC-CMD-*.md` mentions `brief-phase-live-check`; the outbox files that name this check are `outbox/cc-the-recap-on-a-finished-game-2026-08-29.md` and `outbox/cc-the-phase-rule-verified-live-2026-08-29.md` (neither read for this). Not touched here (Rule 69).
+
+## Live proof, 2026-11-21
+
+- **Run:** `forecast-live-probe` 44897584850, `workflow_dispatch` on `main`, dispatched 11:07Z, success. Manifest `outbox/forecast-live-manifest-2026-11-21.json` (probed 11:07:52Z), screenshot `outbox/forecast-live-2026-11-21.png`.
+- **Deployed sha (from the manifest):** `c5a3a984c3b8573b037bf3f5f7f364430a82896c`.
+- **Done condition, each part read from the manifest:** `verdict` `PASS`; `numbers` 7; `standingsRequests` 1; `standingsStatuses` `[200]`; `errors` `[]`; `reasons` `[]`. A `node -e` over `cards` applying `^model table-v2 — (.+) (\d+)% · draw (\d+)% · (.+) (\d+)%$` matched 7 of 7 entries with `kind: "model"`.
+- **One real card.** Man City v Fulham, `Scheduled 2026-11-21T12:30Z`:
+  - market: `win prob — Man City 69% · draw 18% · Fulham 13%` (draftkings ML -270 / +650, snapshot 2026-11-21T10:02:42.961Z)
+  - model: `model table-v2 — Man City 61% · draw 27% · Fulham 12%`
+- **The other six cards, all `kind: "model"`:** Bournemouth v Nottm Forest (model 55/27/18, market 50/27/23), Aston Villa v Sunderland (53/27/20, market 55/25/21), Chelsea v Leeds (48/27/25, market 47/28/25), Coventry v C Palace (48/27/25, market 38/28/34), Spurs v Ipswich (45/27/28, market 63/21/16), Newcastle v Arsenal (16/27/57, market 17/23/61).
+- **Not shown by this proof:** whether the model is any good. The model's draw is 27% on every card by construction (`draw 0.27 for every match`), and it differs from the market by up to 18 points (Spurs v Ipswich home 45% vs 63%). Calibration needs finished results, which the D1 record would hold; that decision stays the owner's.
+- **Status:** VERIFIED for the wiring on live cards. Not touched: relay, client, Odds API, `docs/dead-cron-baseline.json`.
