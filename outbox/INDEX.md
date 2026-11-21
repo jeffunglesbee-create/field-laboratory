@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `983a5ee` | 2026-11-21 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-21 [skip ci] |
+| `983a5ee` | 2026-11-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-21 [skip ci] |
+| `983a5ee` | 2026-11-21 | [sport-vocabulary-2026-11-21T18-59-27-273Z.json](sport-vocabulary-2026-11-21T18-59-27-273Z.json) | drift-sentinel: ok on 2026-11-21 [skip ci] |
+| `9b65643` | 2026-11-21 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-21T14:55 [skip ci] |
 | `087197b` | 2026-11-21 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: Task 10 slot 8 passes with Half time on an EPL card; the eight proof runs are done and the session record is final |
 | `0885bfd` | 2026-11-21 | [live-score-2026-11-21-20261121-1327Z.png](live-score-2026-11-21-20261121-1327Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `0885bfd` | 2026-11-21 | [live-score-manifest-2026-11-21-20261121-1327Z.json](live-score-manifest-2026-11-21-20261121-1327Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
