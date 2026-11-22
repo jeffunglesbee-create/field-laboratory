@@ -5564,6 +5564,9 @@ let private otherSports () =
         """{"games":[{"id":"espn:401873070","espnEventId":"401873070","sport":"nfl","league":"NFL","state":"live","start":"2026-11-22T18:00Z","home":{"name":"Buffalo Bills","abbr":"BUF","score":6,"curatedRank":99},"away":{"name":"Miami Dolphins","abbr":"MIA","score":0,"curatedRank":99},"periodNum":1,"periodLabel":"Q1","clock":"3:45","venue":"Highmark Stadium","round":11,"broadcasts":["CBS"],"streams":[{"label":"CBS","market":"National","type":"TV"}],"situation":{"down":3,"distance":1,"yardLine":30,"possession":"2","isRedZone":false}}]}"""
     let nhlRangers =
         """{"games":[{"id":"nhl:2026020373","nhleGameId":2026020373,"sport":"nhl","league":"NHL","state":"live","start":"2026-11-22T17:30:00Z","home":{"name":"New York Rangers","abbr":"NYR","score":1},"away":{"name":"Carolina Hurricanes","abbr":"CAR","score":1},"periodNum":1,"periodLabel":"P1","clock":"02:57","venue":"Madison Square Garden","winProbState":"modelled","winProbLabel":"FIELD model probability","winProb":{"homeWin":0.515,"draw":0,"awayWin":0.485,"source":"field-hockey-wp","label":"FIELD model probability","state":"modelled"},"openingWP":{"homeWin":0.5371,"draw":0,"awayWin":0.463,"source":"field-hockey-wp","label":"FIELD pre-game prior","state":"prior","elapsed":0,"storedAt":1795369001281},"wpDelta":{"homeWin":0,"awayWin":0,"draw":0},"recentWPHistory":[{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0}]}]}"""
+    // A real NFL game at halftime, served after the relay fix (field-relay-nba 8bdac8e), 2026-11-22 22:30:39Z, `outbox/live-capture-nfl-2026-11-22-2230Z.json`: Jets 17 at Chargers 10, `state` live, Q2, clock 0:00, `situation.isHalftime` true.
+    let nflHalftime =
+        """{"games":[{"id":"espn:401873074","espnEventId":"401873074","sport":"nfl","league":"NFL","state":"live","start":"2026-11-22T21:05Z","home":{"name":"Los Angeles Chargers","abbr":"LAC","score":10,"curatedRank":99},"away":{"name":"New York Jets","abbr":"NYJ","score":17,"curatedRank":99},"periodNum":2,"periodLabel":"Q2","clock":"0:00","venue":"SoFi Stadium","round":11,"broadcasts":["Fox"],"streams":[{"label":"Fox","market":"National","type":"TV"}],"situation":{"down":1,"distance":10,"yardLine":35,"possession":null,"isRedZone":false,"isHalftime":true}}]}"""
     let card (sport: string) (home: string) (away: string) (espn: string option) : Game =
         let json =
             sprintf """{"id":"c1","sport":"%s","date":"2026-11-11","home":"%s","away":"%s"%s}"""
@@ -5701,6 +5704,11 @@ let private otherSports () =
           (fun g -> readFeed nhlRangers g = LiveScore.LiveNow(1, 1, Some "P1 02:57"))
           (card "NHL" "Rangers" "Hurricanes" None)
           (card "NHL" "Hurricanes" "Rangers" None)
+
+      Verify.check "a real NFL game at halftime (2026-11-22, after the relay fix) is a break, not a clock: HalfTime, Jets 17 at Chargers 10, joined by its ESPN id"
+          (fun g -> readFeed nflHalftime g = LiveScore.HalfTime(10, 17))
+          (card "NFL" "Chargers" "Jets" (Some "401873074"))
+          (card "NFL" "Chargers" "Jets" (Some "1"))
 
       // Built from the relay's adapter, no live body yet (2026-11-22): `adaptESPNFootball` gives `periodLabel` `Q<n>` and `clock` the displayClock.
       Verify.check "an NFL game in play reads its quarter and clock: Q3 4:12 (built from the adapter; the real NFL body is the row above)"
