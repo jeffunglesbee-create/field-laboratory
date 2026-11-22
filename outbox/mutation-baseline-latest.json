@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-20T00:45:07.570Z",
+  "at": "2026-11-22T17:50:53.975Z",
   "scope": "full",
-  "ran": 112,
-  "from_mutations": 2164,
+  "ran": 115,
+  "from_mutations": 2204,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -453,22 +453,34 @@
     {
       "cmd": "node --input-type=module -e \"import { workflowProblems } from './scripts/delete-branches.mjs'; import { readFileSync } from 'node:fs'; const p = workflowProblems(readFileSync('.github/workflows/delete-branches.yml', 'utf8')); console.log(p.join('\\n') || 'the workflow is its pin'); process.exit(p.length ? 1 : 0)\"",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/check-same-fixture.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?data=context-2026-11-21' node scripts/twin-card-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/probe-espn-id-collisions.mjs --self-test",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      4561976,
-      3815405,
-      3571069,
-      3554476,
-      4169700,
-      4083557,
-      4166721,
-      4138926
+      4181697,
+      4128256,
+      3741416,
+      4200583,
+      3332557,
+      3266290,
+      2959096,
+      3951536
     ],
-    "longestMs": 4561976,
-    "sumMs": 32061830
+    "longestMs": 4200583,
+    "sumMs": 29761431
   }
 }
