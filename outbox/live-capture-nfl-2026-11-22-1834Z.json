@@ -1,0 +1,1269 @@
+{
+  "capturedAt": "2026-11-22T18:34:29.045Z",
+  "sport": "nfl",
+  "date": "2026-11-22",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "error": null,
+  "v2": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/v2/games?sport=nfl&date=2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public, max-age=15",
+    "age": null,
+    "date": "Sun, 22 Nov 2026 18:34:30 GMT",
+    "bytes": 5594,
+    "body": {
+      "sport": "nfl",
+      "date": "2026-11-22",
+      "games": [
+        {
+          "id": "espn:401873070",
+          "espnEventId": "401873070",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Buffalo Bills",
+            "abbr": "BUF",
+            "score": 6,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Miami Dolphins",
+            "abbr": "MIA",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "3:45",
+          "venue": "Highmark Stadium",
+          "round": 11,
+          "broadcasts": [
+            "CBS"
+          ],
+          "streams": [
+            {
+              "label": "CBS",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 3,
+            "distance": 1,
+            "yardLine": 30,
+            "possession": "2",
+            "isRedZone": false
+          }
+        },
+        {
+          "id": "espn:401873071",
+          "espnEventId": "401873071",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Chicago Bears",
+            "abbr": "CHI",
+            "score": 3,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "New Orleans Saints",
+            "abbr": "NO",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "2:00",
+          "venue": "Soldier Field",
+          "round": 11,
+          "broadcasts": [
+            "Fox"
+          ],
+          "streams": [
+            {
+              "label": "Fox",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 3,
+            "distance": 15,
+            "yardLine": 58,
+            "possession": "3",
+            "isRedZone": false
+          }
+        },
+        {
+          "id": "espn:401873073",
+          "espnEventId": "401873073",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Dallas Cowboys",
+            "abbr": "DAL",
+            "score": 6,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Tennessee Titans",
+            "abbr": "TEN",
+            "score": 3,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "1:42",
+          "venue": "AT&T Stadium",
+          "round": 11,
+          "broadcasts": [
+            "Fox"
+          ],
+          "streams": [
+            {
+              "label": "Fox",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 1,
+            "distance": 10,
+            "yardLine": 78,
+            "possession": "6",
+            "isRedZone": false
+          }
+        },
+        {
+          "id": "espn:401873072",
+          "espnEventId": "401873072",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Detroit Lions",
+            "abbr": "DET",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Tampa Bay Buccaneers",
+            "abbr": "TB",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 2,
+          "periodLabel": "Q2",
+          "clock": "15:00",
+          "venue": "Ford Field",
+          "round": 11,
+          "broadcasts": [
+            "Fox"
+          ],
+          "streams": [
+            {
+              "label": "Fox",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 1,
+            "distance": 10,
+            "yardLine": 47,
+            "possession": "8",
+            "isRedZone": false
+          }
+        },
+        {
+          "id": "espn:401873067",
+          "espnEventId": "401873067",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Kansas City Chiefs",
+            "abbr": "KC",
+            "score": 14,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Arizona Cardinals",
+            "abbr": "ARI",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "0:48",
+          "venue": "Arrowhead Stadium",
+          "round": 11,
+          "broadcasts": [
+            "CBS"
+          ],
+          "streams": [
+            {
+              "label": "CBS",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": -1,
+            "distance": 0,
+            "yardLine": 35,
+            "possession": "12",
+            "isRedZone": true
+          }
+        },
+        {
+          "id": "espn:401873076",
+          "espnEventId": "401873076",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Philadelphia Eagles",
+            "abbr": "PHI",
+            "score": 6,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Pittsburgh Steelers",
+            "abbr": "PIT",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "1:19",
+          "venue": "Lincoln Financial Field",
+          "round": 11,
+          "broadcasts": [
+            "CBS"
+          ],
+          "streams": [
+            {
+              "label": "CBS",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 1,
+            "distance": 10,
+            "yardLine": 51,
+            "possession": "21",
+            "isRedZone": false
+          }
+        },
+        {
+          "id": "espn:401873068",
+          "espnEventId": "401873068",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "live",
+          "start": "2026-11-22T18:00Z",
+          "home": {
+            "name": "Carolina Panthers",
+            "abbr": "CAR",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Baltimore Ravens",
+            "abbr": "BAL",
+            "score": 9,
+            "curatedRank": 99
+          },
+          "periodNum": 1,
+          "periodLabel": "Q1",
+          "clock": "3:06",
+          "venue": "Bank of America Stadium",
+          "round": 11,
+          "broadcasts": [
+            "Fox"
+          ],
+          "streams": [
+            {
+              "label": "Fox",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": {
+            "down": 1,
+            "distance": 10,
+            "yardLine": 11,
+            "possession": "33",
+            "isRedZone": true
+          }
+        },
+        {
+          "id": "espn:401873074",
+          "espnEventId": "401873074",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "pre",
+          "start": "2026-11-22T21:05Z",
+          "home": {
+            "name": "Los Angeles Chargers",
+            "abbr": "LAC",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "New York Jets",
+            "abbr": "NYJ",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "0:00",
+          "venue": "SoFi Stadium",
+          "round": 11,
+          "broadcasts": [
+            "Fox"
+          ],
+          "streams": [
+            {
+              "label": "Fox",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": null
+        },
+        {
+          "id": "espn:401873075",
+          "espnEventId": "401873075",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "pre",
+          "start": "2026-11-22T21:25Z",
+          "home": {
+            "name": "Denver Broncos",
+            "abbr": "DEN",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Las Vegas Raiders",
+            "abbr": "LV",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "0:00",
+          "venue": "Empower Field at Mile High",
+          "round": 11,
+          "broadcasts": [
+            "CBS"
+          ],
+          "streams": [
+            {
+              "label": "CBS",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": null
+        },
+        {
+          "id": "espn:401873069",
+          "espnEventId": "401873069",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "pre",
+          "start": "2026-11-22T21:25Z",
+          "home": {
+            "name": "New York Giants",
+            "abbr": "NYG",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Jacksonville Jaguars",
+            "abbr": "JAX",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "0:00",
+          "venue": "MetLife Stadium",
+          "round": 11,
+          "broadcasts": [
+            "CBS"
+          ],
+          "streams": [
+            {
+              "label": "CBS",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": null
+        },
+        {
+          "id": "espn:401873077",
+          "espnEventId": "401873077",
+          "sport": "nfl",
+          "league": "NFL",
+          "state": "pre",
+          "start": "2026-11-23T01:20Z",
+          "home": {
+            "name": "San Francisco 49ers",
+            "abbr": "SF",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "away": {
+            "name": "Minnesota Vikings",
+            "abbr": "MIN",
+            "score": 0,
+            "curatedRank": 99
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "0:00",
+          "venue": "Estadio Banorte",
+          "round": 11,
+          "broadcasts": [
+            "NBC"
+          ],
+          "streams": [
+            {
+              "label": "NBC",
+              "market": "National",
+              "type": "TV"
+            }
+          ],
+          "situation": null
+        }
+      ],
+      "count": 11,
+      "source": "espn-wc",
+      "ts": 1795372470145
+    },
+    "parseError": null
+  },
+  "archive": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public,max-age=300",
+    "age": null,
+    "date": "Sun, 22 Nov 2026 18:34:29 GMT",
+    "bytes": 292077,
+    "parseError": null,
+    "rowCount": 44
+  },
+  "games": [
+    {
+      "id": "espn:401873070",
+      "espnId": "401873070",
+      "state": "live",
+      "homeScore": 6,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "3:45",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873071",
+      "espnId": "401873071",
+      "state": "live",
+      "homeScore": 3,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "2:00",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873073",
+      "espnId": "401873073",
+      "state": "live",
+      "homeScore": 6,
+      "awayScore": 3,
+      "scoresAreIntegers": true,
+      "clock": "1:42",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873072",
+      "espnId": "401873072",
+      "state": "live",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "15:00",
+      "clockIsString": true,
+      "periodNum": 2,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873067",
+      "espnId": "401873067",
+      "state": "live",
+      "homeScore": 14,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0:48",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873076",
+      "espnId": "401873076",
+      "state": "live",
+      "homeScore": 6,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "1:19",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873068",
+      "espnId": "401873068",
+      "state": "live",
+      "homeScore": 0,
+      "awayScore": 9,
+      "scoresAreIntegers": true,
+      "clock": "3:06",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T18:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873074",
+      "espnId": "401873074",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0:00",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-22T21:05Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873075",
+      "espnId": "401873075",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0:00",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-22T21:25Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873069",
+      "espnId": "401873069",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0:00",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-22T21:25Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401873077",
+      "espnId": "401873077",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0:00",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-23T01:20Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "broadcasts",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    }
+  ],
+  "joins": [
+    {
+      "espnId": "401873070",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873070",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873070",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Bills",
+        "away": "Dolphins",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Highmark Stadium",
+        "streams": "CBS",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:39",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-1460,\"away\":860},\"spread\":{\"home\":-16.5,\"away\":16.5,\"homePrice\":-105,\"awayPrice\":-114},\"total\":{\"over\":44.5,\"under\":44.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873070",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873071",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873071",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873071",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Bears",
+        "away": "Saints",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Soldier Field",
+        "streams": "Fox",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:39",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-610,\"away\":450},\"spread\":{\"home\":-11.5,\"away\":11.5,\"homePrice\":-107,\"awayPrice\":-112},\"total\":{\"over\":48.5,\"under\":48.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873071",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873073",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873073",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873073",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Cowboys",
+        "away": "Titans",
+        "home_score": null,
+        "away_score": null,
+        "venue": "AT&T Stadium",
+        "streams": "Fox",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:40",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-344,\"away\":277},\"spread\":{\"home\":-7.5,\"away\":7.5,\"homePrice\":-106,\"awayPrice\":-113},\"total\":{\"over\":54.5,\"under\":54.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873073",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873072",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873072",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873072",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Lions",
+        "away": "Buccaneers",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Ford Field",
+        "streams": "Fox",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:40",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-200,\"away\":168},\"spread\":{\"home\":-3.5,\"away\":3.5,\"homePrice\":-111,\"awayPrice\":-108},\"total\":{\"over\":47.5,\"under\":47.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873072",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873067",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873067",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873067",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Chiefs",
+        "away": "Cardinals",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Arrowhead Stadium",
+        "streams": "CBS",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:41",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-1320,\"away\":800},\"spread\":{\"home\":-15.5,\"away\":15.5,\"homePrice\":-106,\"awayPrice\":-113},\"total\":{\"over\":40.5,\"under\":40.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873067",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873076",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873076",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873076",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Eagles",
+        "away": "Steelers",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Lincoln Financial Field",
+        "streams": "CBS",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:41",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":160,\"away\":-190},\"spread\":{\"home\":3.5,\"away\":-3.5,\"homePrice\":-109,\"awayPrice\":-111},\"total\":{\"over\":37.5,\"under\":37.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873076",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873068",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873068",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873068",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Panthers",
+        "away": "Ravens",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Bank of America Stadium",
+        "streams": "Fox",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:41",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-145,\"away\":123},\"spread\":{\"home\":-3,\"away\":3,\"homePrice\":-102,\"awayPrice\":-118},\"total\":{\"over\":43.5,\"under\":43.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873068",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T18:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873074",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873074",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:05Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873074",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Chargers",
+        "away": "Jets",
+        "home_score": null,
+        "away_score": null,
+        "venue": "SoFi Stadium",
+        "streams": "Fox",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:42",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-172,\"away\":144},\"spread\":{\"home\":-3,\"away\":3,\"homePrice\":-117,\"awayPrice\":-102},\"total\":{\"over\":41.5,\"under\":41.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873074",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:05Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873075",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873075",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:25Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873075",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Broncos",
+        "away": "Raiders",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Empower Field at Mile High",
+        "streams": "CBS",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:42",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-660,\"away\":478},\"spread\":{\"home\":-10.5,\"away\":10.5,\"homePrice\":-109,\"awayPrice\":-110},\"total\":{\"over\":41.5,\"under\":41.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873075",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:25Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873069",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873069",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:25Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873069",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "Giants",
+        "away": "Jaguars",
+        "home_score": null,
+        "away_score": null,
+        "venue": "MetLife Stadium",
+        "streams": "CBS",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:43",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":210,\"away\":-255},\"spread\":{\"home\":6,\"away\":-6,\"homePrice\":-109,\"awayPrice\":-110},\"total\":{\"over\":45.5,\"under\":45.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873069",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T21:25Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401873077",
+      "matched": true,
+      "archive": {
+        "id": "NFL_2026-11-22_e401873077",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:20Z"
+      },
+      "raw": {
+        "id": "NFL_2026-11-22_e401873077",
+        "sport": "NFL",
+        "league": "NFL",
+        "date": "2026-11-22",
+        "home": "49ers",
+        "away": "Vikings",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Estadio Banorte",
+        "streams": "NBC",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:43",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:29.008Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-170,\"away\":143},\"spread\":{\"home\":-3,\"away\":3,\"homePrice\":-117,\"awayPrice\":-102},\"total\":{\"over\":46.5,\"under\":46.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401873077",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:20Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    }
+  ],
+  "summary": {
+    "gamesInFeed": 11,
+    "byState": {
+      "live": 7,
+      "pre": 4
+    },
+    "live": 7,
+    "liveWithIntegerScores": 7,
+    "liveWithClockString": 7,
+    "liveWithArchiveScoreNull": 7,
+    "liveFeedShape": 7,
+    "liveFullShape": 7,
+    "preWithScoreZero": 4,
+    "archiveMatched": 11,
+    "finalWithArchiveUnscored": 0
+  },
+  "coverage": "checked 11 of 11 games joined to an archive row; 7 live",
+  "gap": "final in the feed with an unscored archive row: 0 of 0 final game(s)",
+  "feedShapeSeen": true,
+  "proved": true
+}
