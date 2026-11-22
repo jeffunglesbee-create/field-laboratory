@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `db3b9b5` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45075375013 |
+| `9b308b3` | 2026-11-22 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 75ca5ba [skip ci] |
+| `1f3d683` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the first NBA halftime body reads live Q2 0.1 with no flag; the relay now flags it, the card's Half time read is armed for 00:05Z |
+| `bed8794` | 2026-11-22 | [live-capture-nba-2026-11-22-2141Z.json](live-capture-nba-2026-11-22-2141Z.json) | probe: the live /v2/games shape of nba on 2026-11-22 [skip ci] |
+| `1343f7a` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the deployed page reads an NBA card in play right, and says Game over on finished NFL cards: live-score-probe PASS at 21:06Z |
+| `47657e8` | 2026-11-22 | [live-score-2026-11-22-20261122-2108Z.png](live-score-2026-11-22-20261122-2108Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `47657e8` | 2026-11-22 | [live-score-manifest-2026-11-22-20261122-2108Z.json](live-score-manifest-2026-11-22-20261122-2108Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `75ca5ba` | 2026-11-22 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | fix: a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write (residual CC-CMD item 9) |
+| `75ca5ba` | 2026-11-22 | [guard-mention-fuzz-2026-11-22.py](guard-mention-fuzz-2026-11-22.py) | fix: a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write (residual CC-CMD item 9) |
+| `75ca5ba` | 2026-11-22 | [guard-mention-fuzz-2026-11-22.txt](guard-mention-fuzz-2026-11-22.txt) | fix: a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write (residual CC-CMD item 9) |
+| `75ca5ba` | 2026-11-22 | [mutation-entries-near-a-change-2026-11-22.py](mutation-entries-near-a-change-2026-11-22.py) | fix: a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write (residual CC-CMD item 9) |
+| `4426e10` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `5b13b84` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the three red live-check runs near the other-sports commits, read and recorded in the session record |
 | `aba5793` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45064234730 |
 | `c84e08c` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the deployed page reads NFL and NHL cards in play right: live-score-probe PASS at 20:04Z, seven NFL cards and one NHL card |
