@@ -8,9 +8,9 @@ Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 9 (owner:
 |---|---|---|
 | start | `72232307` | `main` |
 | built | `b5563f24` | `without_mentions`, 42 checks, 13 mutation entries (4 repointed), the fuzz |
-| first scored run | `274a4706` | `verify-full` run `45058424770` FAILED: shard 8 reported `mutation SURVIVED` (below); the other 7 shards passed |
-| fix | `__FIX__` | the entry repointed, a new entry for the fallback, all 22 entries whose anchor lies in a touched line caught |
-| landed | `__LANDED__` | scored `verify-full` run `__RUN__`: `__STATE__` |
+| first scored run | `274a4706` | `verify-full` run `45058424770` FAILED: shard 8 reported `mutation SURVIVED` (below); the other 7 shards passed; its ledger commits are on branch `item9` only (the squash `75ca5ba3` on `item9-land` is why they are not on `main`) |
+| fix | ``75ca5ba3`` | the entry repointed, a new entry for the fallback, all 22 entries whose anchor lies in a touched line caught |
+| landed | ``107ad080`` | scored `verify-full` run ``45067406927``: `earned 530 of 530, failing [], skipped [], notApplicable [], mutation baseline failing 0, 8 of 8 shards; `verify` run `45075375013` and `guards` run `45075375078` green on the landing` |
 
 ## Probe first
 
