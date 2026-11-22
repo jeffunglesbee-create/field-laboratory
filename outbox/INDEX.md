@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f900e82` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45057130549 |
+| `43b42a7` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | feat: live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL; a card the feed has finished is neither asked about nor told later answers |
+| `43b42a7` | 2026-11-22 | [relay-cfb-post-body-2026-11-22.md](relay-cfb-post-body-2026-11-22.md) | feat: live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL; a card the feed has finished is neither asked about nor told later answers |
+| `7223230` | 2026-11-22 | [cc-session-2026-11-22-epl-alias-coverage.md](cc-session-2026-11-22-epl-alias-coverage.md) | docs: the league-coverage check's first live run, covered 20 of 20 |
 | `83932f0` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `83932f0` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `83932f0` | 2026-11-22 | [sport-vocabulary-2026-11-22T18-35-42-513Z.json](sport-vocabulary-2026-11-22T18-35-42-513Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
