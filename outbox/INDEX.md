@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1484025` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45078589999 |
+| `5242b1e` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | test: the real post-fix NFL halftime body is a Suite row; the deployed page's first Half time on a football card is recorded (probe PASS 22:31Z) |
+| `7981596` | 2026-11-22 | [live-score-2026-11-22-20261122-2232Z.png](live-score-2026-11-22-20261122-2232Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `7981596` | 2026-11-22 | [live-score-manifest-2026-11-22-20261122-2232Z.json](live-score-manifest-2026-11-22-20261122-2232Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `d70a4cd` | 2026-11-22 | [live-capture-nfl-2026-11-22-2230Z.json](live-capture-nfl-2026-11-22-2230Z.json) | probe: the live /v2/games shape of nfl on 2026-11-22 [skip ci] |
 | `e4a5cda` | 2026-11-22 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: item 9 of the browser gate guard residual CC-CMD is landed; the scored run, the landing and why it is a squash are recorded |
 | `8f187db` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `db3b9b5` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45075375013 |
