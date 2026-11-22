@@ -42,6 +42,8 @@ const EARLY = 'Arsenal v Leeds' // kicked off 11:30Z, finalised in the capture
 const LATE = 'Chelsea v Bournemouth' // kicks off 14:00Z
 
 /** The laboratory's soccer sports by their label, spelled out (src/Desk.fs `sportMeta`, `IsSoccer = true`). A card of one of these carries the live node; no other card does. */
+/** The sports besides soccer the feed is asked about (src/LiveScore.fs `liveSportKey`, owner 2026-11-22), by their section label, spelled out. */
+export const OTHER_LIVE = ['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB', 'AFL']
 export const SOCCER = [
   'MLS', 'EFL Cup', 'La Liga', 'EPL', 'Ligue 1', 'Serie A', 'Bundesliga',
   'UEFA Champions League', 'UEFA Champions League Qualifying', 'UEFA Europa League', 'UEFA Europa League Qualifying',
@@ -58,13 +60,14 @@ export const WORDS = {
   fullTime: 'Full time',
   unavailable: 'live score unavailable',
   stopped: 'live updates stopped',
+  gameOver: 'Game over',
 }
 
 /** What differs between a card as read and as wanted. Empty means it is as wanted. Only the keys in `want` are compared. */
 export const mismatches = (card, want) =>
   Object.keys(want).filter(k => card[k] !== want[k]).map(k => `${k}: "${card[k]}" is not "${want[k]}"`)
 
-/** A scripted /v2/games body for the one game of the mocked slate. The KEYS are those of two real probes (2026-11-11); the values are
+/** A scripted /v2/games body for the one game of the mocked slate. The keys it reads are those of two real probes (2026-11-11); the values are
  *  this test's own. The keys of a game in play were captured 2026-11-11 (the Suite holds the real bodies); a scripted body here carries only the keys the page reads. */
 export const feedBody = (state, home, away, clock) =>
   JSON.stringify({
@@ -171,10 +174,14 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       live: c.querySelector('[data-testid="live"]')?.textContent ?? null,
     })))
   const soccer = cards.filter(c => SOCCER.includes(c.sport))
-  const others = cards.filter(c => !SOCCER.includes(c.sport))
+  const otherLive = cards.filter(c => OTHER_LIVE.includes(c.sport))
+  const others = cards.filter(c => !SOCCER.includes(c.sport) && !OTHER_LIVE.includes(c.sport))
   check('every card of a soccer sport has the live node, and it is empty at first paint',
     soccer.length > 0 && soccer.every(c => c.hasLive && c.live === ''), JSON.stringify({ soccer: soccer.length, withNode: soccer.filter(c => c.hasLive).length }))
-  check('no card of any other sport has one, so their structure is unchanged',
+  const otherLabels = [...new Set(otherLive.map(c => c.sport))].sort()
+  check(`every card of the other sports the feed is asked about that this slate holds has the live node too, empty at first paint (${otherLabels.join(', ')}: ${otherLabels.length} of the seven; the Suite pins the key of all seven)`,
+    otherLive.length > 0 && otherLive.every(c => c.hasLive && c.live === ''), JSON.stringify({ otherLive: otherLive.length, labels: otherLabels, withNode: otherLive.filter(c => c.hasLive).length }))
+  check('no card of a sport the feed is not asked about has one (CFL, golf, tennis...), so their structure is unchanged',
     others.length > 0 && others.every(c => !c.hasLive), JSON.stringify({ others: others.length, withNode: others.filter(c => c.hasLive).map(c => c.sport) }))
   // What the node LOOKS like, not just what it says (review 2026-11-11, semantics F8: it had no CSS rule, so it read larger and brighter than
   // the status line above it, and a check that reads textContent cannot see that).
@@ -328,7 +335,8 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     const pg = await ctx.newPage()
     pg.on('pageerror', e => errors2.push(`pageerror: ${e.message}`))
     const feedRequests = []
-    const script = [feedBody('live', 1, 0, "34'"), feedBody('final', 2, 1, "90'+4'"), 'FAIL', feedBody('live', 3, 0, "70'"), 'GARBAGE', feedBody('live', 3, 1, "88'")]
+    // No `final` in this long run: a game the feed has said is over is settled and no longer asked about (src/LiveScore.fs `isSettled`), so it would end the run. The Full time case is the next block.
+    const script = [feedBody('live', 1, 0, "34'"), 'FAIL', feedBody('live', 3, 0, "70'"), 'GARBAGE', feedBody('live', 3, 1, "88'")]
     await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
     await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
     await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
@@ -349,15 +357,9 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       mismatches(first, { score: '1–0', status: WORDS.inProgress, live: "34'" }).length === 0, JSON.stringify(first))
 
     await pg.clock.fastForward(60_000)
-    const second = await settle(pg, EARLY, { live: WORDS.fullTime })
-    check('one tick later it asks again, once, and a final feed game reads Full time (the archive has not finalised it)',
-      feedRequests.length === 2 && mismatches(second, { score: '2–1', status: WORDS.inProgress, live: WORDS.fullTime }).length === 0,
-      JSON.stringify({ n: feedRequests.length, card: second }))
-
-    await pg.clock.fastForward(60_000)
     const third = await settle(pg, EARLY, { live: WORDS.unavailable })
     check('a feed that answers 503 is said on the card in words, and the card goes back to the archive\'s answer',
-      feedRequests.length === 3 && mismatches(third, { live: WORDS.unavailable, status: WORDS.passed, score: '—' }).length === 0,
+      feedRequests.length === 2 && mismatches(third, { live: WORDS.unavailable, status: WORDS.passed, score: '—' }).length === 0,
       JSON.stringify({ n: feedRequests.length, card: third }))
 
     check('...and the reason rides on the card as data-why, the feed\'s own status (the words stay the same)', typeof third.why === 'string' && third.why.includes('503'), JSON.stringify(third.why))
@@ -365,25 +367,25 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     await pg.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }))
     await pg.clock.fastForward(60_000)
     await pg.waitForTimeout(300)
-    check('a hidden tab asks for nothing', feedRequests.length === 3, String(feedRequests.length))
+    check('a hidden tab asks for nothing', feedRequests.length === 2, String(feedRequests.length))
 
     await pg.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }))
     await pg.clock.fastForward(60_000)
     const fourth = await settle(pg, EARLY, { score: '3–0' })
     check('a visible tab asks again at the next tick and the card is live again',
-      feedRequests.length === 4 && mismatches(fourth, { score: '3–0', live: "70'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: fourth }))
+      feedRequests.length === 3 && mismatches(fourth, { score: '3–0', live: "70'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: fourth }))
     check('...and the reason is gone with the unavailable note: no data-why on a card that reads a clock', fourth.why === null, JSON.stringify(fourth.why))
 
     await pg.clock.fastForward(60_000)
     const fifth = await settle(pg, EARLY, { live: WORDS.unavailable })
     check('a body that is not JSON is said on the card in words, never a blank',
-      feedRequests.length === 5 && mismatches(fifth, { live: WORDS.unavailable, status: WORDS.passed }).length === 0, JSON.stringify({ n: feedRequests.length, card: fifth }))
+      feedRequests.length === 4 && mismatches(fifth, { live: WORDS.unavailable, status: WORDS.passed }).length === 0, JSON.stringify({ n: feedRequests.length, card: fifth }))
     check('...and its reason says the body was unreadable', typeof fifth.why === 'string' && fifth.why.startsWith('unreadable'), JSON.stringify(fifth.why))
 
     await pg.clock.fastForward(60_000)
     const sixth = await settle(pg, EARLY, { score: '3–1' })
     check('a later good answer puts the card back on the clock, with the new score',
-      feedRequests.length === 6 && mismatches(sixth, { score: '3–1', status: WORDS.inProgress, live: "88'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: sixth }))
+      feedRequests.length === 5 && mismatches(sixth, { score: '3–1', status: WORDS.inProgress, live: "88'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: sixth }))
 
     await pg.clock.fastForward(3 * 60 * 60 * 1000)
     await pg.waitForTimeout(300)
@@ -399,6 +401,200 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       mismatches(stopped, { score: '3–1', status: WORDS.inProgress, live: WORDS.stopped }).length === 0, JSON.stringify(stopped))
     check('...with no reason attribute: it is not a failure of the feed', stopped.why === null, JSON.stringify(stopped.why))
     check('no page errors on the unpinned page', errors2.length === 0, errors2.join(' | '))
+    await ctx.close()
+  }
+
+  // ── a match the feed says is over (soccer) ─────────────────────────────────────────────────────────────────────────────────────────────
+  // The Full time marker (owner ruling 2026-11-11) and the efficiency that goes with it (2026-11-22): once the feed says the match is over the card says Full time with the final score and the poll
+  // stops asking, though the archive has not finalised it, because a final score does not move and the page never re-reads the archive (before, the key was asked until the card's window ended).
+  {
+    const slate = JSON.parse(readFileSync('data/context-2026-10-10.json', 'utf8'))
+    slate.games.regular = slate.games.regular.filter(g => String(g.espn_event_id) === ARSENAL_LEEDS_ESPN)
+      .map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+    slate.games.postseason = []
+    const errors4 = []
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors4.push(`pageerror: ${e.message}`))
+    const feedRequests = []
+    const script = [feedBody('live', 1, 0, "34'"), feedBody('final', 2, 1, "90'+4'")]
+    await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
+      feedRequests.push(r.request().url())
+      return r.fulfill({ contentType: 'application/json', body: script[Math.min(feedRequests.length - 1, script.length - 1)] })
+    })
+    await pg.clock.install({ time: new Date(AT) })
+    await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    await settle(pg, EARLY, { score: '1–0' })
+    await pg.clock.fastForward(60_000)
+    const over = await settle(pg, EARLY, { live: WORDS.fullTime })
+    check('one tick after the live answer the feed says the match is over: the card reads Full time with the final score and stays In progress (the archive has not finalised it)',
+      feedRequests.length === 2 && mismatches(over, { score: '2–1', status: WORDS.inProgress, live: WORDS.fullTime }).length === 0, JSON.stringify({ n: feedRequests.length, card: over }))
+    await pg.clock.fastForward(60_000)
+    await pg.clock.fastForward(60_000)
+    await pg.clock.fastForward(60_000)
+    await pg.waitForTimeout(300)
+    const after = await readCard(pg, EARLY)
+    check('...and the poll stops asking: no request at the next three ticks, the card unchanged', feedRequests.length === 2 && mismatches(after ?? {}, { score: '2–1', live: WORDS.fullTime }).length === 0,
+      JSON.stringify({ n: feedRequests.length, card: after }))
+    check('no page errors when the feed says the match is over', errors4.length === 0, errors4.join(' | '))
+    await ctx.close()
+  }
+
+  // ── the other sports (owner, 2026-11-22: NBA and NHL are needed, and the others) ──────────────────────────────────────────────────────────
+  // One NBA card (joined by ESPN event id) and one NHL card (the NHL feed has NO ESPN id: joined by the two club names) from the committed capture of 2026-11-21, started and unscored in
+  // the archive, the way the live captures of 2026-11-11 found them. The feeds are scripted: they carry the keys the page reads, as the real NBA and NHL bodies do (the Suite holds those), not every key; the values are this
+  // test's own. What this proves that the Suite cannot: that the page asks once per key, tells each card its own answer, reads `Q2 6:17` and `P2 10:11` beside the score, says `Game over` (not
+  // `Full time`) when the feed says the game is over, and then STOPS ASKING: a game the feed has finished is not asked about again, though the archive has not finalised it.
+  {
+    const KEEP = ['NBA_2026-11-21_e401910024', 'NHL_2026-11-21_e401892758']
+    const slate = JSON.parse(readFileSync('data/context-2026-11-21.json', 'utf8'))
+    slate.games.regular = slate.games.regular.filter(g => KEEP.includes(g.id)).map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+    slate.games.postseason = []
+    slate.briefs = []
+    const feed = {
+      nba: [
+        JSON.stringify({ sport: 'nba', date: '2026-11-21', games: [{ id: 'espn:401910024', espnEventId: '401910024', sport: 'nba', league: 'NBA', state: 'live', start: '2026-11-22T00:30Z',
+          home: { name: 'New York Knicks', abbr: 'NY', score: 55 }, away: { name: 'Portland Trail Blazers', abbr: 'POR', score: 48 }, periodNum: 2, periodLabel: 'Q2', clock: '6:17', situation: null }] }),
+        JSON.stringify({ sport: 'nba', date: '2026-11-21', games: [{ id: 'espn:401910024', espnEventId: '401910024', sport: 'nba', league: 'NBA', state: 'final', start: '2026-11-22T00:30Z',
+          home: { name: 'New York Knicks', abbr: 'NY', score: 101 }, away: { name: 'Portland Trail Blazers', abbr: 'POR', score: 96 }, periodNum: 4, periodLabel: 'F', clock: '0.0', situation: null }] }),
+      ],
+      nhl: [
+        JSON.stringify({ sport: 'nhl', date: '2026-11-21', games: [{ id: 'nhl:2026020999', nhleGameId: 2026020999, sport: 'nhl', league: 'NHL', state: 'live', start: '2026-11-22T00:00:00Z',
+          home: { name: 'Boston Bruins', abbr: 'BOS', score: 2 }, away: { name: 'Washington Capitals', abbr: 'WSH', score: 1 }, periodNum: 2, periodLabel: 'P2', clock: '10:11' }] }),
+        JSON.stringify({ sport: 'nhl', date: '2026-11-21', games: [{ id: 'nhl:2026020999', nhleGameId: 2026020999, sport: 'nhl', league: 'NHL', state: 'final', start: '2026-11-22T00:00:00Z',
+          home: { name: 'Boston Bruins', abbr: 'BOS', score: 3 }, away: { name: 'Washington Capitals', abbr: 'WSH', score: 1 }, periodNum: 3, periodLabel: 'F', clock: '00:00' }] }),
+      ],
+    }
+    const errors3 = []
+    const asked = { nba: 0, nhl: 0 }
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors3.push(`pageerror: ${e.message}`))
+    await pg.route(`${RELAY}/context/date/2026-11-21`, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
+      const key = new URL(r.request().url()).searchParams.get('sport')
+      const n = asked[key] ?? 0
+      asked[key] = n + 1
+      return r.fulfill({ contentType: 'application/json', body: feed[key]?.[Math.min(n, 1)] ?? JSON.stringify({ games: [] }) })
+    })
+    await pg.clock.install({ time: new Date('2026-11-22T01:10:00Z') })
+    await pg.goto(`${BASE}/?date=2026-11-21`, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    // AwayAtHome: the card names the away side first and shows the away score first.
+    const NBA = 'Trail Blazers @ Knicks', NHL = 'Capitals @ Bruins'
+    const nba1 = await settle(pg, NBA, { live: 'Q2 6:17' })
+    const nhl1 = await settle(pg, NHL, { live: 'P2 10:11' })
+    check('an NBA card is told its game by ESPN event id: the away score first, In progress, and the quarter with the clock beside it',
+      mismatches(nba1 ?? {}, { score: '48–55', status: WORDS.inProgress, live: 'Q2 6:17' }).length === 0, JSON.stringify(nba1))
+    check('an NHL card is told its game with no ESPN id in the feed, by its two club names: P2 10:11, In progress',
+      mismatches(nhl1 ?? {}, { score: '1–2', status: WORDS.inProgress, live: 'P2 10:11' }).length === 0, JSON.stringify(nhl1))
+    check('the page asked once for each key: nba once and nhl once', asked.nba === 1 && asked.nhl === 1, JSON.stringify(asked))
+
+    await pg.clock.fastForward(60_000)
+    const nba2 = await settle(pg, NBA, { live: WORDS.gameOver })
+    const nhl2 = await settle(pg, NHL, { live: WORDS.gameOver })
+    check('when the feed says the NBA game is over the card says Game over with the final score and stays In progress (the archive has not finalised it)',
+      mismatches(nba2 ?? {}, { score: '96–101', status: WORDS.inProgress, live: WORDS.gameOver }).length === 0, JSON.stringify(nba2))
+    check('...and the NHL card the same (the NHL feed says final)',
+      mismatches(nhl2 ?? {}, { score: '1–3', status: WORDS.inProgress, live: WORDS.gameOver }).length === 0, JSON.stringify(nhl2))
+    check('one tick later each key was asked a second time, once', asked.nba === 2 && asked.nhl === 2, JSON.stringify(asked))
+
+    await pg.clock.fastForward(60_000)
+    await pg.clock.fastForward(60_000)
+    await pg.clock.fastForward(60_000)
+    await pg.waitForTimeout(300)
+    check('both games are over, so the poll stops asking: no request at the next three ticks though the archive has not finalised either game',
+      asked.nba === 2 && asked.nhl === 2, JSON.stringify(asked))
+    check('no page errors on the NBA and NHL slate', errors3.length === 0, errors3.join(' | '))
+    await ctx.close()
+  }
+
+  // ── two games of one key, one finished and one in play (review 2026-11-22) ──────────────────────────────────────────────────────────────────
+  // The poll asks `nba` every minute while the second game is on. An answer is told to the cards still being followed, not to the card the feed has finished: a failed poll must not
+  // rewrite a final score the poll stopped asking about. Two NBA cards of the committed capture of 2026-11-21; the feed is scripted: good, then 503, then good.
+  {
+    const KEEP = ['NBA_2026-11-21_e401910024', 'NBA_2026-11-21_e401910025']
+    const slate = JSON.parse(readFileSync('data/context-2026-11-21.json', 'utf8'))
+    slate.games.regular = slate.games.regular.filter(g => KEEP.includes(g.id)).map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+    slate.games.postseason = []
+    slate.briefs = []
+    const two = JSON.stringify({ sport: 'nba', date: '2026-11-21', games: [
+      { id: 'espn:401910024', espnEventId: '401910024', sport: 'nba', league: 'NBA', state: 'final', start: '2026-11-22T00:30Z',
+        home: { name: 'New York Knicks', abbr: 'NY', score: 101 }, away: { name: 'Portland Trail Blazers', abbr: 'POR', score: 96 }, periodNum: 4, periodLabel: 'F', clock: '0.0', situation: null },
+      { id: 'espn:401910025', espnEventId: '401910025', sport: 'nba', league: 'NBA', state: 'live', start: '2026-11-22T01:00Z',
+        home: { name: 'Dallas Mavericks', abbr: 'DAL', score: 55 }, away: { name: 'LA Clippers', abbr: 'LAC', score: 48 }, periodNum: 2, periodLabel: 'Q2', clock: '5:00', situation: null }] })
+    const answers = [two, 'FAIL', two]
+    let asked = 0
+    const errors5 = []
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors5.push(`pageerror: ${e.message}`))
+    await pg.route(`${RELAY}/context/date/2026-11-21`, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
+      const a = answers[Math.min(asked++, answers.length - 1)]
+      return a === 'FAIL' ? r.fulfill({ status: 503, body: 'down' }) : r.fulfill({ contentType: 'application/json', body: a })
+    })
+    await pg.clock.install({ time: new Date('2026-11-22T01:10:00Z') })
+    await pg.goto(`${BASE}/?date=2026-11-21`, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    const OVER = 'Trail Blazers @ Knicks', LIVE = 'Clippers @ Mavericks'
+    const over1 = await settle(pg, OVER, { live: WORDS.gameOver })
+    const live1 = await settle(pg, LIVE, { live: 'Q2 5:00' })
+    check('two NBA games in one answer: the finished one says Game over with the final score, the one in play the quarter and the clock',
+      mismatches(over1 ?? {}, { score: '96–101', status: WORDS.inProgress, live: WORDS.gameOver }).length === 0 && mismatches(live1 ?? {}, { score: '48–55', status: WORDS.inProgress, live: 'Q2 5:00' }).length === 0,
+      JSON.stringify({ over1, live1 }))
+    await pg.clock.fastForward(60_000)
+    const live2 = await settle(pg, LIVE, { live: WORDS.unavailable })
+    const over2 = await readCard(pg, OVER)
+    check('a poll that fails while one game of the key is still on: the game in play says live score unavailable, and the FINISHED game keeps its final score and Game over (it is not told the failure)',
+      mismatches(live2 ?? {}, { live: WORDS.unavailable }).length === 0 && mismatches(over2 ?? {}, { score: '96–101', status: WORDS.inProgress, live: WORDS.gameOver }).length === 0, JSON.stringify({ live2, over2 }))
+    await pg.clock.fastForward(60_000)
+    const live3 = await settle(pg, LIVE, { live: 'Q2 5:00' })
+    const over3 = await readCard(pg, OVER)
+    check('...and the next good answer restores the game in play and leaves the finished one as it was; the key was asked three times, once a tick',
+      mismatches(live3 ?? {}, { score: '48–55', live: 'Q2 5:00' }).length === 0 && mismatches(over3 ?? {}, { score: '96–101', live: WORDS.gameOver }).length === 0 && asked === 3, JSON.stringify({ live3, over3, asked }))
+    check('no page errors with a finished and a live game in one key', errors5.length === 0, errors5.join(' | '))
+    await ctx.close()
+  }
+
+  // ── an answer that arrives after the card's window has ended (review 2026-11-22) ───────────────────────────────────────────────────────────
+  // The card's window ends 3 h after the 11:30Z kickoff. The page is loaded 10 s before it ends, so the request at load is inside the window; the response is held, the clock passes the window and a tick
+  // runs (the card is marked stopped, the timer stops), and then the response arrives. Told by the clock of the REQUEST, the card would show a live score the poll can never correct: told by the
+  // clock of the ARRIVAL, it is not told, and says what the archive says.
+  {
+    const slate = JSON.parse(readFileSync('data/context-2026-10-10.json', 'utf8'))
+    slate.games.regular = slate.games.regular.filter(g => String(g.espn_event_id) === ARSENAL_LEEDS_ESPN)
+      .map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+    slate.games.postseason = []
+    const errors6 = []
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors6.push(`pageerror: ${e.message}`))
+    let release
+    const held = new Promise(res => { release = res })
+    let asked = 0
+    await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), async r => {
+      asked++
+      await held
+      return r.fulfill({ contentType: 'application/json', body: feedBody('live', 1, 0, "34'") })
+    })
+    await pg.clock.install({ time: new Date('2026-10-10T14:29:50Z') })
+    await pg.goto(UNPINNED, { waitUntil: 'domcontentloaded' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    await pg.waitForTimeout(300)
+    await pg.clock.fastForward(60_000)
+    await pg.waitForTimeout(300)
+    release()
+    await pg.waitForTimeout(600)
+    const late = await readCard(pg, EARLY)
+    check('an answer that arrives after the card\'s window ended is not told to it: the card says what the archive says, not a live score the poll can never correct',
+      asked === 1 && mismatches(late ?? {}, { status: WORDS.passed, live: '', score: '—' }).length === 0, JSON.stringify({ asked, late }))
+    check('no page errors when the answer arrives after the window', errors6.length === 0, errors6.join(' | '))
     await ctx.close()
   }
 

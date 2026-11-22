@@ -81,7 +81,8 @@ export const claimsOf = ({ program, liveScore, sources }) => {
     `LivePollMs = ${period}; call: ${(code.match(/setInterval[^\n]*/) ?? ['none'])[0].trim()}`)
 
   claim('a request is made only while the tab is visible', /\(string document\?visibilityState\)\s*=\s*"visible"/.test(code))
-  claim('...only for a key with a card to ask about (`liveKeysAt`), and an answer is told only the cards `answersTo` selects: the key\'s sport, in its window', /LiveScore\.liveKeysAt\b/.test(code) && /Seq\.filter \(fun h -> LiveScore\.answersTo key now h\.Game\)/.test(code))
+  claim('...only for a key with a card to ask about (`liveKeysAt`), and an answer is told only the cards `answersTo` selects: the key\'s sport, in its window', /LiveScore\.liveKeysAt\b/.test(code) && /Seq\.filter \(fun h -> not \(h\.IsSettled\(\)\) && LiveScore\.answersTo key arrived h\.Game\)/.test(code))
+  claim('...and told by the clock of the ARRIVAL, not of the request: `let arrived = System.DateTimeOffset.UtcNow` in the answer callback', /Promise\.iter \(fun result ->[\s\S]*?let arrived = System\.DateTimeOffset\.UtcNow[\s\S]*?answersTo key arrived/.test(code))
   claim('...and the timer stops when no window is ahead', /LiveScore\.liveWorkAheadAt\b[\s\S]*?stopLivePoll \(\)/.test(code))
   claim('...one request per key at a time: a key is held by `if inFlight.Add key then` and released first thing in the answer callback',
     /if inFlight\.Add key then/.test(code) && /Promise\.iter \(fun result ->\s*\n\s*inFlight\.Remove key \|> ignore/.test(code) && count(/inFlight\.Remove key\b/, code) === 1)
@@ -141,7 +142,8 @@ let private startLivePoll (handles) (etDay: string) =
                     tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
-                        let cards = handles |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
+                        let arrived = System.DateTimeOffset.UtcNow
+                        let cards = handles |> Seq.filter (fun h -> not (h.IsSettled()) && LiveScore.answersTo key arrived h.Game)
                         ())
     livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
 ${TO} ────────
@@ -181,7 +183,9 @@ if (SELF_TEST) {
   one('a Promise.sleep anywhere in src is caught, not only in the region', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let w = Promise.sleep 5000' })
   one('an in-flight guard that is always open is caught', GOOD.replace('if inFlight.Add key then', 'if inFlight.Add key || true then'))
   one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
-  one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key now h.Game', 'LiveScore.inLiveWindowAt now h.Game'))
+  one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key arrived h.Game', 'LiveScore.inLiveWindowAt arrived h.Game'))
+  one('an answer told a card the feed has finished is caught', GOOD.replace('not (h.IsSettled()) && ', ''))
+  one('an answer told by the clock of the request, not the arrival, is caught', GOOD.replace('let arrived = System.DateTimeOffset.UtcNow', 'let arrived = now'))
   one('a poll that asks for the URL\'s day is caught', GOOD.replace('startLivePoll cardHandles.Value payload.Date', 'startLivePoll cardHandles.Value (viewedDate ())'))
   // Fix-review 2026-11-11 (poll F1, defence F20, F21): each fixture breaks one of the two new parts only.
   one('a poll that ignores the day it was started with and asks for the URL\'s day inside the poll is caught', GOOD.replace('LiveFeed.feedPath key etDay', 'LiveFeed.feedPath key (viewedDate ())'))

@@ -100,11 +100,21 @@ const BATTERY = {
   'a numeric clock': { games: [game({ clock: 34 })] },
   'keys the decoder does not read': { games: [game({ foo: 1, home: { score: 1, name: 'A' } })] },
   'one bad game of two': { games: [game(), game({ espnEventId: 9, state: undefined })] },
+  // The other sports (owner, 2026-11-22). NHL: no ESPN id, joined by the two club names; the final state word of NBA's siblings is `post`; a game the page can join to nothing is refused.
+  'an NHL game: no espnEventId, both club names, a period label': { games: [game({ espnEventId: undefined, home: { name: 'Buffalo Sabres', score: 2 }, away: { name: 'Tampa Bay Lightning', score: 4 }, clock: '02:42', periodLabel: 'P2' })] },
+  'a null espnEventId with both club names': { games: [game({ espnEventId: null, home: { name: 'Buffalo Sabres', score: 2 }, away: { name: 'Tampa Bay Lightning', score: 4 } })] },
+  'no espnEventId and no club names': { games: [game({ espnEventId: undefined })] },
+  'no espnEventId and one club name': { games: [game({ espnEventId: undefined, home: { name: 'Buffalo Sabres', score: 2 }, away: { score: 4 } })] },
+  'a numeric espnEventId': { games: [game({ espnEventId: 401879233 })] },
+  'a numeric club name beside a string id': { games: [game({ home: { name: 5, score: 1 } })] },
+  'a post state word': { games: [game({ state: 'post', home: { name: 'South Carolina Gamecocks', score: 6 }, away: { name: 'Georgia Bulldogs', score: 34 }, periodLabel: 'F', clock: '0:00' })] },
+  'a numeric period label': { games: [game({ periodLabel: 2 })] },
+  'a null period label': { games: [game({ periodLabel: null })] },
 }
 // The page's Result is Fable's (tag 0 = Ok, fields[0] = a list of records, None = undefined); the probe's is { ok, games }. Both reduced to the same shape, with `null` for no score and
 // `''` for no clock (the probe's own reading of an absent clock; the page keeps `None` and `readingFor` drops an empty one, which is the same reading).
-const pageShape = r => (r.tag === 0 ? { ok: true, games: [...r.fields[0]].map(g => ({ id: g.EspnEventId, state: g.State, home: g.HomeScore ?? null, away: g.AwayScore ?? null, clock: g.Clock ?? '', halftime: g.IsHalftime })) } : { ok: false })
-const probeShape = r => (r.ok ? { ok: true, games: r.games.map(g => ({ id: g.espnId, state: g.state, home: g.home, away: g.away, clock: g.clock, halftime: g.halftime })) } : { ok: false })
+const pageShape = r => (r.tag === 0 ? { ok: true, games: [...r.fields[0]].map(g => ({ id: g.EspnEventId ?? null, homeName: g.HomeName ?? null, awayName: g.AwayName ?? null, periodLabel: g.PeriodLabel ?? null, state: g.State, home: g.HomeScore ?? null, away: g.AwayScore ?? null, clock: g.Clock ?? '', halftime: g.IsHalftime })) } : { ok: false })
+const probeShape = r => (r.ok ? { ok: true, games: r.games.map(g => ({ id: g.espnId, homeName: g.homeName, awayName: g.awayName, periodLabel: g.periodLabel, state: g.state, home: g.home, away: g.away, clock: g.clock, halftime: g.halftime })) } : { ok: false })
 
 const verdicts = Object.entries(BATTERY).map(([name, body]) => {
   const page = pageShape(pageDecodeFeed(JSON.stringify(body)))

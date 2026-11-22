@@ -92,22 +92,28 @@ const halftimeOf = s => {
   return f === undefined || f === null ? { ok: true, v: false } : typeof f === 'boolean' ? { ok: true, v: f } : { ok: false }
 }
 
-/** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `espnEventId` and a
- *  string `state`; a score is an integer or absent, a clock a string or absent. ONE bad game fails the whole feed, as it does on the page. */
+/** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `state`, an `espnEventId` that is a string, absent or null, and
+ *  (when there is no id) BOTH club names as strings (NHL: the feed has no ESPN id and is joined by name); a score is an integer or absent, a clock and a period label strings or absent. ONE bad game
+ *  fails the whole feed, as it does on the page. Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
 export const decodeFeed = body => {
   if (!body || typeof body !== 'object' || !Array.isArray(body.games)) return { ok: false, why: 'no games list' }
   const games = []
+  const optString = v => v === undefined || v === null || typeof v === 'string'
   for (const g of body.games) {
     if (!g || typeof g !== 'object') return { ok: false, why: 'a game is not an object' }
-    if (typeof g.espnEventId !== 'string') return { ok: false, why: 'a game has no string espnEventId' }
+    if (!optString(g.espnEventId)) return { ok: false, why: 'a game has an espnEventId that is not a string' }
     if (typeof g.state !== 'string') return { ok: false, why: 'a game has no string state' }
     if (!teamOk(g.home) || !teamOk(g.away)) return { ok: false, why: 'a team is not an object' }
+    if (!optString(g.home?.name) || !optString(g.away?.name)) return { ok: false, why: 'a club name is not a string' }
     const h = intOrNull(g.home?.score), a = intOrNull(g.away?.score)
     if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number from 0 to the int32 maximum' }
     if (g.clock !== undefined && g.clock !== null && typeof g.clock !== 'string') return { ok: false, why: 'a clock is not a string' }
+    if (!optString(g.periodLabel)) return { ok: false, why: 'a periodLabel is not a string' }
     const ht = halftimeOf(g.situation)
     if (!ht.ok) return { ok: false, why: 'situation is not an object, or isHalftime is not a boolean' }
-    games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '', halftime: ht.v })
+    const espnId = g.espnEventId ?? null, homeName = g.home?.name ?? null, awayName = g.away?.name ?? null
+    if (espnId === null && (homeName === null || awayName === null)) return { ok: false, why: 'a game with neither an espnEventId nor both team names cannot be joined to a card' }
+    games.push({ espnId, homeName, awayName, periodLabel: g.periodLabel ?? null, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '', halftime: ht.v })
   }
   return { ok: true, games }
 }

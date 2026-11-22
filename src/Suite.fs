@@ -4607,10 +4607,10 @@ let private liveScore () =
     let epl = game Sport.EPL kickoff None None None
     let finalised = game Sport.EPL kickoff (Some "2026-11-21 14:35:00") (Some 2) (Some 1)
 
-    [ Verify.check "a feed key is known for a soccer sport and not for any other"
+    [ Verify.check "a feed key is known for a sport the relay serves a feed for and not for one it does not (CFL)"
           (fun sport -> (LiveScore.liveSportKey sport).IsSome)
           Sport.EPL
-          Sport.MLB
+          Sport.CFL
 
       // The hold input is DERIVED from the sport list, so a soccer sport added without a key fails here.
       Verify.check "every laboratory soccer sport has a feed key"
@@ -4708,10 +4708,11 @@ let private liveScore () =
           "2026-11-21T13:00:00Z"
           "2026-11-21T09:30:00Z"
 
-      Verify.check "a sport that is not soccer is never asked about, even inside its window"
-          (fun sport -> LiveScore.liveKeysAt (at "2026-11-21T13:00:00Z") [ game sport kickoff None None None ] = [ "epl" ])
+      // Until 2026-11-22 the counterexample was MLB; MLB has a key now (the other sports are asked about), so the property is about a sport the relay has NO key for.
+      Verify.check "a sport with no feed key (CFL) is never asked about, even inside its window"
+          (fun sport -> List.isEmpty (LiveScore.liveKeysAt (at "2026-11-21T13:00:00Z") [ game sport kickoff None None None ]))
+          Sport.CFL
           Sport.EPL
-          Sport.MLB
 
       // Fix-review 2026-11-11, defence F18: `pollableAt`'s window test mutated to the END of the window alone kept every check green, because the pair
       // above fails at 09:30Z for a reason that is not epl's lower bound (the efltrophy card's own kickoff is the only thing that moves). ONE card, one second either side of its kickoff:
@@ -4745,10 +4746,10 @@ let private liveScore () =
           "2026-11-21T15:30:00Z"
           "2026-11-21T15:30:01Z"
 
-      Verify.check "a slate with no soccer card has no live work ahead"
+      Verify.check "a slate with no card of a sport the feed is asked about has no live work ahead"
           (fun sport -> LiveScore.liveWorkAheadAt (at "2026-11-21T10:00:00Z") [ game sport kickoff None None None ])
           Sport.EPL
-          Sport.MLB
+          Sport.CFL
 
       // Review 2026-11-11, poll S20: only inLiveWindowAt had a start-less case, so a start-less soccer row could keep the timer armed unseen.
       Verify.check "a soccer row with no start time has no live work ahead, as it is never in a window"
@@ -4928,12 +4929,18 @@ let private liveFeed () =
         """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"pre","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"0'","periodNum":0,"periodLabel":"","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":null,"matchEvents":[],"streams":[]}],"count":1,"source":"espn-wc","ts":1794378915750}"""
 
     let feedGame id state home away clock : LiveFeed.FeedGame =
-        { EspnEventId = id
+        { EspnEventId = Some id
+          HomeName = None
+          AwayName = None
+          PeriodLabel = None
           State = state
           HomeScore = home
           AwayScore = away
           Clock = clock
           IsHalftime = false }
+    // The fields the checks of this group are about. A served body also carries the club names and the period label (asserted in "Live scores, other sports"), which these checks do not compare.
+    let core (g: LiveFeed.FeedGame) = (g.EspnEventId, g.State, g.HomeScore, g.AwayScore, g.Clock, g.IsHalftime)
+    let decodedCore (body: string) = LiveFeed.decodeFeed body |> Result.map (List.map core)
 
     let liveRealBody =
         """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"18'","periodNum":1,"periodLabel":"18'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":18,"isStoppage":false,"isHalftime":false,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794424735294}"""
@@ -5049,15 +5056,15 @@ let private liveFeed () =
 
     [ Verify.check "a served final game decodes to its id, state, both scores and the clock as served"
           (fun body ->
-              let expected = Ok [ feedGame "401879240" "final" (Some 4) (Some 4) (Some "90'+9'") ]
-              LiveFeed.decodeFeed body = expected)
+              let expected = Ok [ core (feedGame "401879240" "final" (Some 4) (Some 4) (Some "90'+9'")) ]
+              decodedCore body = expected)
           finalBody
           preBody
 
       Verify.check "a served pre game decodes with its score 0 and clock 0' (so a score is never read without the state)"
           (fun body ->
-              let expected = Ok [ feedGame "401911177" "pre" (Some 0) (Some 0) (Some "0'") ]
-              LiveFeed.decodeFeed body = expected)
+              let expected = Ok [ core (feedGame "401911177" "pre" (Some 0) (Some 0) (Some "0'")) ]
+              decodedCore body = expected)
           preBody
           finalBody
 
@@ -5204,7 +5211,7 @@ let private liveFeed () =
           liveAsym
 
       Verify.check "a score of zero on each side decodes, so the lower bound is 0 and not 1"
-          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "7" "live" (Some 0) (Some 0) None ])
+          (fun body -> decodedCore body = Ok [ core (feedGame "7" "live" (Some 0) (Some 0) None) ])
           (one """{"espnEventId":"7","state":"live","home":{"score":0},"away":{"score":0}}""")
           liveAsym
 
@@ -5240,12 +5247,12 @@ let private liveFeed () =
 
       // The two games in play captured on 2026-11-11 (the header above): the first real bodies of a match in play this page has read.
       Verify.check "a game in play, as captured at 19:18Z, decodes to its id, state, scores, clock and no half time"
-          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "live" (Some 0) (Some 0) (Some "18'") ])
+          (fun body -> decodedCore body = Ok [ core (feedGame "401911177" "live" (Some 0) (Some 0) (Some "18'")) ])
           liveRealBody
           halftimeRealBody
 
       Verify.check "a game at half time, as captured at 19:54Z, decodes with its clock as served and the half-time flag set"
-          (fun body -> LiveFeed.decodeFeed body = Ok [ { feedGame "401911177" "live" (Some 3) (Some 0) (Some "45'+3'") with IsHalftime = true } ])
+          (fun body -> decodedCore body = Ok [ core { feedGame "401911177" "live" (Some 3) (Some 0) (Some "45'+3'") with IsHalftime = true } ])
           halftimeRealBody
           liveRealBody
 
@@ -5261,7 +5268,7 @@ let private liveFeed () =
 
       // The Full time ruling's case, on a real match (2026-11-11): the feed says `final` while the archive row has no score yet.
       Verify.check "a game that has finished, as captured at 20:59Z with the archive unscored, decodes to its score and its clock as served"
-          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "final" (Some 5) (Some 2) (Some "90'+3'") ])
+          (fun body -> decodedCore body = Ok [ core (feedGame "401911177" "final" (Some 5) (Some 2) (Some "90'+3'")) ])
           finalRealBody
           halftimeRealBody
 
@@ -5534,6 +5541,199 @@ let private twinRows () =
           ("FC", "FC Dallas")
           ("Dallas", "FC Dallas") ]
 
+// ---------------------------------------------------------------------------
+// Live scores, the other sports. docs/CC-CMD-2026-11-11-live-scores-other-sports.md (owner, 2026-11-22: "NBA and NHL are needed ... other sports are needed as well").
+//
+// The first three bodies are REAL games of the live captures of 2026-11-11 (`outbox/live-capture-nba-2026-11-11-0200Z.json`, `outbox/live-capture-nhl-2026-11-11-0201Z.json`), one game of each
+// as served; the CFB final is a game of 2026-11-21 as served by the relay on 2026-11-22 (read through `probe_relay_route`, `outbox/relay-cfb-post-body-2026-11-22.md`). Neither NBA nor NHL has a final in a committed capture. An NFL game in play and an NHL game in play are real bodies of 2026-11-22 18:34Z
+// (`outbox/live-capture-nfl-2026-11-22-1834Z.json`, `outbox/live-capture-nhl-2026-11-22-1834Z.json`). MLB, WNBA and AFL have no live body at all
+// yet: those cases are built from the relay's adapters (`adaptESPNMLB`, `adaptESPNBasketball`) and are marked where they are.
+// ---------------------------------------------------------------------------
+
+let private otherSports () =
+    let nbaLive =
+        """{"games":[{"id":"espn:401909966","espnEventId":"401909966","sport":"nba","league":"NBA","state":"live","start":"2026-11-12T00:00Z","home":{"name":"Indiana Pacers","abbr":"IND","score":91},"away":{"name":"Washington Wizards","abbr":"WSH","score":77},"periodNum":4,"periodLabel":"Q4","clock":"8:57","venue":"Gainbridge Fieldhouse","situation":{"quarter":4,"clock":"8:57","possession":null},"linescores":{"home":[26,29,22,14],"away":[25,25,27,0]},"round":null,"streams":[{"label":"MNMT","market":"Away","type":"TV"},{"label":"DAZN IND","market":"Home","type":"Streaming"}]}]}"""
+    let nhlLive =
+        """{"games":[{"id":"nhl:2026020293","nhleGameId":2026020293,"sport":"nhl","league":"NHL","state":"live","start":"2026-11-12T00:00:00Z","home":{"name":"Buffalo Sabres","abbr":"BUF","score":2},"away":{"name":"Tampa Bay Lightning","abbr":"TBL","score":4},"periodNum":2,"periodLabel":"P2","clock":"02:42","venue":"KeyBank Center","winProbState":"modelled","winProbLabel":"FIELD model probability","winProb":{"homeWin":0.117,"draw":0,"awayWin":0.883,"source":"field-hockey-wp","label":"FIELD model probability","state":"modelled"},"openingWP":{"homeWin":0.5371,"draw":0,"awayWin":0.463,"source":"field-hockey-wp","label":"FIELD pre-game prior","state":"prior","elapsed":0,"storedAt":1794441944625},"wpDelta":{"homeWin":0,"awayWin":0,"draw":0},"recentWPHistory":[{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0}]}]}"""
+    let nhlTwo =
+        """{"games":[{"id":"nhl:2026020293","nhleGameId":2026020293,"sport":"nhl","league":"NHL","state":"live","start":"2026-11-12T00:00:00Z","home":{"name":"Buffalo Sabres","abbr":"BUF","score":2},"away":{"name":"Tampa Bay Lightning","abbr":"TBL","score":4},"periodNum":2,"periodLabel":"P2","clock":"02:42","venue":"KeyBank Center","winProbState":"modelled","winProbLabel":"FIELD model probability","winProb":{"homeWin":0.117,"draw":0,"awayWin":0.883,"source":"field-hockey-wp","label":"FIELD model probability","state":"modelled"},"openingWP":{"homeWin":0.5371,"draw":0,"awayWin":0.463,"source":"field-hockey-wp","label":"FIELD pre-game prior","state":"prior","elapsed":0,"storedAt":1794441944625},"wpDelta":{"homeWin":0,"awayWin":0,"draw":0},"recentWPHistory":[{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0},{"elapsed":0,"homeWin":0.117,"draw":0}]},{"id":"nhl:2026020294","nhleGameId":2026020294,"sport":"nhl","league":"NHL","state":"live","start":"2026-11-12T00:30:00Z","home":{"name":"Calgary Flames","abbr":"CGY","score":0},"away":{"name":"New York Rangers","abbr":"NYR","score":1},"periodNum":2,"periodLabel":"P2","clock":"10:11","venue":"Scotiabank Saddledome","winProbState":"modelled","winProbLabel":"FIELD model probability","winProbCaveats":["goalieInNetId absent; goalie quality is not a model input, so nothing was substituted for it"],"winProb":{"homeWin":0.288,"draw":0,"awayWin":0.712,"source":"field-hockey-wp","label":"FIELD model probability","state":"modelled"},"openingWP":{"homeWin":0.5371,"draw":0,"awayWin":0.463,"source":"field-hockey-wp","label":"FIELD pre-game prior","state":"prior","elapsed":0,"storedAt":1794444542483},"wpDelta":{"homeWin":0,"awayWin":0,"draw":0},"recentWPHistory":[{"elapsed":0,"homeWin":0.292,"draw":0},{"elapsed":0,"homeWin":0.292,"draw":0},{"elapsed":0,"homeWin":0.288,"draw":0},{"elapsed":0,"homeWin":0.288,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.287,"draw":0},{"elapsed":0,"homeWin":0.289,"draw":0},{"elapsed":0,"homeWin":0.289,"draw":0},{"elapsed":0,"homeWin":0.289,"draw":0},{"elapsed":0,"homeWin":0.289,"draw":0},{"elapsed":0,"homeWin":0.288,"draw":0},{"elapsed":0,"homeWin":0.288,"draw":0}]}]}"""
+    let cfbFinal =
+        """{"games":[{"id":"espn:401856753","espnEventId":"401856753","sport":"cfb","league":"NCAAF","state":"post","start":"2026-11-22T00:30Z","home":{"name":"South Carolina Gamecocks","abbr":"SC","score":6,"curatedRank":21},"away":{"name":"Georgia Bulldogs","abbr":"UGA","score":34,"curatedRank":1},"periodNum":4,"periodLabel":"F","clock":"0:00","venue":"Williams-Brice Stadium","round":12,"broadcasts":["ABC"],"streams":[{"label":"ABC","market":"National","type":"TV"}],"situation":null}]}"""
+    // Real bodies of games in play on 2026-11-22 18:34Z, one game of each as served (`outbox/live-capture-nfl-2026-11-22-1834Z.json`, `outbox/live-capture-nhl-2026-11-22-1834Z.json`): NFL Bills 6, Dolphins 0, Q1 3:45; NHL Rangers 1, Hurricanes 1, P1 02:57, no espnEventId.
+    let nflLive =
+        """{"games":[{"id":"espn:401873070","espnEventId":"401873070","sport":"nfl","league":"NFL","state":"live","start":"2026-11-22T18:00Z","home":{"name":"Buffalo Bills","abbr":"BUF","score":6,"curatedRank":99},"away":{"name":"Miami Dolphins","abbr":"MIA","score":0,"curatedRank":99},"periodNum":1,"periodLabel":"Q1","clock":"3:45","venue":"Highmark Stadium","round":11,"broadcasts":["CBS"],"streams":[{"label":"CBS","market":"National","type":"TV"}],"situation":{"down":3,"distance":1,"yardLine":30,"possession":"2","isRedZone":false}}]}"""
+    let nhlRangers =
+        """{"games":[{"id":"nhl:2026020373","nhleGameId":2026020373,"sport":"nhl","league":"NHL","state":"live","start":"2026-11-22T17:30:00Z","home":{"name":"New York Rangers","abbr":"NYR","score":1},"away":{"name":"Carolina Hurricanes","abbr":"CAR","score":1},"periodNum":1,"periodLabel":"P1","clock":"02:57","venue":"Madison Square Garden","winProbState":"modelled","winProbLabel":"FIELD model probability","winProb":{"homeWin":0.515,"draw":0,"awayWin":0.485,"source":"field-hockey-wp","label":"FIELD model probability","state":"modelled"},"openingWP":{"homeWin":0.5371,"draw":0,"awayWin":0.463,"source":"field-hockey-wp","label":"FIELD pre-game prior","state":"prior","elapsed":0,"storedAt":1795369001281},"wpDelta":{"homeWin":0,"awayWin":0,"draw":0},"recentWPHistory":[{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0},{"elapsed":0,"homeWin":0.515,"draw":0}]}]}"""
+    let card (sport: string) (home: string) (away: string) (espn: string option) : Game =
+        let json =
+            sprintf """{"id":"c1","sport":"%s","date":"2026-11-11","home":"%s","away":"%s"%s}"""
+                sport home away (match espn with Some id -> sprintf ",\"espn_event_id\":\"%s\"" id | None -> "")
+        match Thoth.Json.Decode.fromString gameDecoder json with
+        | Ok g -> g
+        | Error why -> failwithf "a test card did not decode: %s" why
+    let readFeed (body: string) (g: Game) =
+        match LiveFeed.decodeFeed body with
+        | Ok feed -> LiveFeed.readingFor feed g
+        | Error why -> LiveScore.LiveUnavailable("decode: " + why)
+    // A game as the relay's NFL, MLB and AFL adapters serve it, for the cases no live body exists for yet: the sport key, the state word, the period label and the clock.
+    let built (state: string) (periodLabel: string) (clock: string) (home: int) (away: int) =
+        sprintf """{"games":[{"id":"espn:900","espnEventId":"900","state":"%s","periodLabel":"%s","clock":"%s","home":{"name":"H","score":%d},"away":{"name":"A","score":%d}}]}""" state periodLabel clock home away
+
+    [ Verify.check "every sport the relay serves a contest feed for has its key, and the relay's: NBA nba, WNBA wnba, NHL nhl, MLB mlb, NFL nfl, CFB cfb, AFL afl"
+          (fun pairs -> pairs |> List.forall (fun (sport, key) -> LiveScore.liveSportKey sport = Some key))
+          [ (Sport.NBA, "nba"); (Sport.WNBA, "wnba"); (Sport.NHL, "nhl"); (Sport.MLB, "mlb"); (Sport.NFL, "nfl"); (Sport.CFB, "cfb"); (Sport.AFL, "afl") ]
+          [ (Sport.NBA, "nba"); (Sport.NHL, "nba") ]
+
+      Verify.check "a sport with no relay feed (CFL, IPL, UFL, golf) has no key"
+          (fun sports -> sports |> List.forall (fun s -> (LiveScore.liveSportKey s).IsNone))
+          [ Sport.CFL; Sport.IPL; Sport.UFL; Sport.Golf ]
+          [ Sport.CFL; Sport.NBA ]
+
+      Verify.check "the windows: soccer 3 h, NBA, WNBA, NHL and AFL 3.5 h, NFL 4 h, MLB and CFB 4.5 h"
+          (fun (pairs: (Sport * float) list) -> pairs |> List.forall (fun (sport, hours) -> LiveScore.liveWindowFor sport = TimeSpan.FromHours(hours: float)))
+          [ (Sport.EPL, 3.0); (Sport.NBA, 3.5); (Sport.WNBA, 3.5); (Sport.NHL, 3.5); (Sport.AFL, 3.5); (Sport.NFL, 4.0); (Sport.MLB, 4.5); (Sport.CFB, 4.5) ]
+          [ (Sport.EPL, 3.5); (Sport.NFL, 4.0) ]
+
+      Verify.check "an NBA card is in its window until 3.5 h after the start, not 3 h"
+          (fun now -> LiveScore.inLiveWindowAt (at now) (card "NBA" "Pacers" "Wizards" (Some "401909966") |> fun g -> { g with StartTime = Some(at "2026-11-12T00:00:00Z") }))
+          "2026-11-12T03:30:00Z"
+          "2026-11-12T03:30:01Z"
+
+      // The window is read at three sites (`inLiveWindowAt`, `liveWorkAheadAt`, `windowEndedAt`); each is pinned on its own (review 2026-11-22: put back on the soccer constant, the other two stayed green).
+      Verify.check "an NBA card has work ahead until 3.5 h after the start (the timer is kept alive for it), not 3 h"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ (card "NBA" "Pacers" "Wizards" (Some "401909966") |> fun g -> { g with StartTime = Some(at "2026-11-12T00:00:00Z") }) ])
+          "2026-11-12T03:30:00Z"
+          "2026-11-12T03:30:01Z"
+
+      Verify.check "an NBA card's window has not ended at 3.5 h after the start and has ended a second later (it is then told its window ended), not at 3 h"
+          (fun now -> not (LiveScore.windowEndedAt (at now) (card "NBA" "Pacers" "Wizards" (Some "401909966") |> fun g -> { g with StartTime = Some(at "2026-11-12T00:00:00Z") })))
+          "2026-11-12T03:30:00Z"
+          "2026-11-12T03:30:01Z"
+
+      Verify.check "a real NBA game in play reads its score with the quarter and the clock: Q4 8:57, 91 to 77"
+          (fun g -> readFeed nbaLive g = LiveScore.LiveNow(91, 77, Some "Q4 8:57"))
+          (card "NBA" "Pacers" "Wizards" (Some "401909966"))
+          (card "NBA" "Pacers" "Wizards" (Some "401909999"))
+
+      Verify.check "a real NHL game in play is joined by its two club names, the feed having no ESPN id, and reads P2 02:42, 2 to 4"
+          (fun g -> readFeed nhlLive g = LiveScore.LiveNow(2, 4, Some "P2 02:42"))
+          (card "NHL" "Sabres" "Lightning" (Some "401892690"))
+          (card "NHL" "Lightning" "Sabres" (Some "401892690"))
+
+      Verify.check "the NHL join is home to home and away to away: the same two clubs the other way round are no game"
+          (fun g -> match readFeed nhlLive g with LiveScore.LiveUnavailable _ -> true | _ -> false)
+          (card "NHL" "Lightning" "Sabres" (Some "401892690"))
+          (card "NHL" "Sabres" "Lightning" (Some "401892690"))
+
+      Verify.check "an NHL card whose clubs are not in the feed reads that the feed has no game for it"
+          (fun g -> readFeed nhlLive g = LiveScore.LiveUnavailable "the feed has no game for this card")
+          (card "NHL" "Bruins" "Capitals" (Some "401892758"))
+          (card "NHL" "Sabres" "Lightning" (Some "401892690"))
+
+      Verify.check "the two live NHL games of the capture are each joined to their own card, not to one another's"
+          (fun (g, expected) -> readFeed nhlTwo g = expected)
+          (card "NHL" "Flames" "Rangers" (Some "1"), LiveScore.LiveNow(0, 1, Some "P2 10:11"))
+          (card "NHL" "Flames" "Rangers" (Some "1"), LiveScore.LiveNow(2, 4, Some "P2 02:42"))
+
+      Verify.check "two feed games with no id that both match one card are an error that says so, not a guess"
+          (fun g ->
+              let both = """{"games":[{"state":"live","home":{"name":"Buffalo Sabres","score":1},"away":{"name":"Tampa Bay Lightning","score":0}},{"state":"live","home":{"name":"Buffalo Sabres","score":2},"away":{"name":"Tampa Bay Lightning","score":2}}]}"""
+              readFeed both g = LiveScore.LiveUnavailable "the feed has more than one game for these two clubs")
+          (card "NHL" "Sabres" "Lightning" (Some "1"))
+          (card "NHL" "Sabres" "Bruins" (Some "1"))
+
+      Verify.check "a feed game with neither an ESPN id nor both club names is refused when the body is read"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          """{"games":[{"state":"live","home":{"score":1},"away":{"score":0}}]}"""
+          """{"games":[{"state":"live","home":{"name":"A","score":1},"away":{"name":"B","score":0}}]}"""
+
+      Verify.check "the NHL join needs BOTH clubs: the home club alone matching is no game"
+          (fun g -> readFeed nhlLive g = LiveScore.LiveUnavailable "the feed has no game for this card")
+          (card "NHL" "Sabres" "Bruins" (Some "401892690"))
+          (card "NHL" "Sabres" "Lightning" (Some "401892690"))
+
+      Verify.check "...and the away club alone matching is no game either"
+          (fun g -> readFeed nhlLive g = LiveScore.LiveUnavailable "the feed has no game for this card")
+          (card "NHL" "Bruins" "Lightning" (Some "401892690"))
+          (card "NHL" "Sabres" "Lightning" (Some "401892690"))
+
+      Verify.check "an NHL card with no ESPN id at all is still joined by its two club names; with names that match nothing it says it has no id to join on"
+          (fun (g, expected) -> readFeed nhlLive g = expected)
+          (card "NHL" "Sabres" "Lightning" None, LiveScore.LiveNow(2, 4, Some "P2 02:42"))
+          (card "NHL" "Bruins" "Capitals" None, LiveScore.LiveNow(2, 4, Some "P2 02:42"))
+
+      Verify.check "a period with no clock is the period alone: Q3 (the feed between periods)"
+          (fun body -> readFeed body (card "NBA" "H" "A" (Some "900")) = LiveScore.LiveNow(1, 0, Some "Q3"))
+          (built "live" "Q3" "" 1 0)
+          (built "live" "Q3" "6:17" 1 0)
+
+      Verify.check "a clock with no period label is the clock alone: 6:17"
+          (fun body -> readFeed body (card "NBA" "H" "A" (Some "900")) = LiveScore.LiveNow(1, 0, Some "6:17"))
+          (built "live" "" "6:17" 1 0)
+          (built "live" "Q3" "6:17" 1 0)
+
+      Verify.check "a game with an ESPN id is joined by it even when a club name differs (the name is for games with no id only)"
+          (fun g -> readFeed nbaLive g = LiveScore.LiveNow(91, 77, Some "Q4 8:57"))
+          (card "NBA" "Indiana" "Washington" (Some "401909966"))
+          (card "NBA" "Pacers" "Wizards" (Some "1"))
+
+      Verify.check "a real CFB game that is over says `post`, which is read as the end of the game, with its score: 6 to 34, Game over"
+          (fun g -> readFeed cfbFinal g = LiveScore.GameOver(6, 34))
+          (card "CFB" "South Carolina" "Georgia" (Some "401856753"))
+          (card "CFB" "South Carolina" "Georgia" (Some "1"))
+
+      Verify.check "`final` and `post` both end a game, and soccer keeps its own words: Full time for a soccer card, Game over for any other"
+          (fun (body, g, expected) -> readFeed body g = expected)
+          (built "final" "F" "0:00" 3 1, card "NBA" "H" "A" (Some "900"), LiveScore.GameOver(3, 1))
+          (built "final" "F" "0:00" 3 1, card "EPL" "H" "A" (Some "900"), LiveScore.GameOver(3, 1))
+
+      Verify.check "a soccer card keeps Full time"
+          (fun (body, g, expected) -> readFeed body g = expected)
+          (built "final" "" "90'" 3 1, card "EPL" "H" "A" (Some "900"), LiveScore.FullTime(3, 1))
+          (built "final" "" "90'" 3 1, card "NFL" "H" "A" (Some "900"), LiveScore.FullTime(3, 1))
+
+      Verify.check "a real NFL game in play (2026-11-22) reads its quarter and clock: Q1 3:45, Bills 6 to Dolphins 0, joined by its ESPN id"
+          (fun g -> readFeed nflLive g = LiveScore.LiveNow(6, 0, Some "Q1 3:45"))
+          (card "NFL" "Bills" "Dolphins" (Some "401873070"))
+          (card "NFL" "Bills" "Dolphins" (Some "1"))
+
+      Verify.check "a real NHL game in play (2026-11-22), no espnEventId in its body, is joined by its two club names: Rangers 1, Hurricanes 1, P1 02:57"
+          (fun g -> readFeed nhlRangers g = LiveScore.LiveNow(1, 1, Some "P1 02:57"))
+          (card "NHL" "Rangers" "Hurricanes" None)
+          (card "NHL" "Hurricanes" "Rangers" None)
+
+      // Built from the relay's adapter, no live body yet (2026-11-22): `adaptESPNFootball` gives `periodLabel` `Q<n>` and `clock` the displayClock.
+      Verify.check "an NFL game in play reads its quarter and clock: Q3 4:12 (built from the adapter; the real NFL body is the row above)"
+          (fun g -> readFeed (built "live" "Q3" "4:12" 14 10) g = LiveScore.LiveNow(14, 10, Some "Q3 4:12"))
+          (card "NFL" "H" "A" (Some "900"))
+          (card "NFL" "H" "A" (Some "1"))
+
+      // Built from `adaptESPNMLB`: `periodLabel` is `T<inning>` or `B<inning>` (top or bottom), and baseball has no clock.
+      Verify.check "an MLB game in play reads its inning alone: Top 5 and Bot 7, never a clock (built from the adapter, no live MLB body captured yet)"
+          (fun g -> readFeed (built "live" "T5" "0:00" 2 1) g = LiveScore.LiveNow(2, 1, Some "Top 5") && readFeed (built "live" "B7" "0:00" 2 1) g = LiveScore.LiveNow(2, 1, Some "Bot 7"))
+          (card "MLB" "H" "A" (Some "900"))
+          (card "NFL" "H" "A" (Some "900"))
+
+      Verify.check "a game in play with no period label and no clock has no note rather than an invented one"
+          (fun g -> readFeed (built "live" "" "" 1 0) g = LiveScore.LiveNow(1, 0, None))
+          (card "NBA" "H" "A" (Some "900"))
+          (card "NBA" "H" "A" (Some "1"))
+
+      Verify.check "a game that is over reads Game over beside its score, and the archive's Final still shows no note"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.GameOver(3, 1)) = "Game over")
+          Scheduled
+          (Final(3, 1, false))
+
+      Verify.check "a game the feed says is over is settled and is not asked about again; a game in play is not"
+          (fun reading -> LiveScore.isSettled reading)
+          (LiveScore.GameOver(3, 1))
+          (LiveScore.LiveNow(3, 1, None))
+
+      Verify.check "Full time is settled too, and an unavailable feed is not (it is retried)"
+          (fun reading -> LiveScore.isSettled reading)
+          (LiveScore.FullTime(2, 1))
+          (LiveScore.LiveUnavailable "the feed did not answer: HTTP 503") ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -5554,6 +5754,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Live scores", liveScore ()
       "Live feed", liveFeed ()
       "Twin rows", twinRows ()
+      "Live scores, other sports", otherSports ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()

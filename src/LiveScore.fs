@@ -30,6 +30,9 @@ type LiveReading =
     | HalfTime of home: int * away: int
     /// The feed says the game is over and the archive row has not finalised it yet. The card stays `In progress`, marked.
     | FullTime of home: int * away: int
+    /// The same for every sport that is not soccer (owner, 2026-11-22: other sports are wanted): the feed says the game is over, the archive has not finalised it, the card stays `In progress` and says
+    /// `Game over`. "Full time" is the owner's approved word for soccer and is not a word for a basketball or a hockey game, so it has its own case.
+    | GameOver of home: int * away: int
     /// The card's window ended while it still held a live answer (`LiveNow` or `HalfTime`): a suspended match, or a tie that ran past three hours after its start. The poll no longer asks
     /// about this card, so its score is the last one heard and nothing else would say so. The card keeps that score, still `In progress`, and says in words that live updates stopped
     /// (owner, 2026-11-22, "Go with Claude's best recommendations": CC-CMD Open question 1, the named state at the window's end; the review's `as of HH:mm` after two polls is not built).
@@ -61,6 +64,15 @@ let liveSportKey (sport: Sport) : string option =
     | Sport.EFLCup -> Some "eflcup"
     | Sport.EFLTrophy -> Some "efltrophy"
     | Sport.FACup -> Some "facup"
+    // The other sports the relay's /v2/games serves (field-relay-nba `V2_LEAGUES`, read 2026-11-22: nba, nhl, mlb, wnba, afl, nfl, cfb). Owner, 2026-11-22: "NBA and NHL are needed ... other sports are needed as well"
+    // (docs/CC-CMD-2026-11-11-live-scores-other-sports.md). Tennis and golf have keys too (atp, wta, pga) and a different shape (an event, not a contest): not here.
+    | Sport.NBA -> Some "nba"
+    | Sport.WNBA -> Some "wnba"
+    | Sport.NHL -> Some "nhl"
+    | Sport.MLB -> Some "mlb"
+    | Sport.NFL -> Some "nfl"
+    | Sport.CFB -> Some "cfb"
+    | Sport.AFL -> Some "afl"
     | _ -> None
 
 /// THE POLL'S NAMED CONDITIONS (the CC-CMD's "Design"; the owner may change them, and `check:live-score-poll` reads them).
@@ -87,11 +99,27 @@ let LivePollTimeoutMs = 90000
 /// after kickoff (`outbox/live-score-real-bodies-2026-11-11.md`). One match, two games: a sample, not a bound.
 let liveWindowAfterStart = TimeSpan.FromHours 3.0
 
+/// How long after its start a card of this sport is worth asking about. Soccer is `liveWindowAfterStart`. The others are CHOSEN, not measured, from two things: the usual length of the game, and
+/// the committed captures' start-to-`finalized_at` minutes (they include late cron finalisations, so they say how long a game ran at most, not how long it usually does; re-measured 2026-11-22 on
+/// `data/context-*.json` and `data/games-*.json`, rows deduplicated by id: CFB 103 rows, median 211, 90th percentile 256, longest 661; NHL 16 rows, median 180, longest 481; NBA 8 rows, median 166, longest 570;
+/// MLB 2 rows, 161 and 166; NFL, WNBA and AFL have no row with both a start and a finalisation, so their windows rest on the usual length of the game alone). A longer window costs a request per key per minute for each card the archive has not finalised; a shorter one stops asking while a game is still on, and the
+/// card then says `live updates stopped` (CC-CMD-2026-11-11-soccer-live-scores, Open question 1). A game delayed past its window (weather, a suspension) lands on that stopped state by design.
+let liveWindowFor (sport: Sport) : TimeSpan =
+    match sport with
+    | Sport.NBA
+    | Sport.WNBA
+    | Sport.NHL
+    | Sport.AFL -> TimeSpan.FromHours 3.5
+    | Sport.NFL -> TimeSpan.FromHours 4.0
+    | Sport.MLB
+    | Sport.CFB -> TimeSpan.FromHours 4.5
+    | _ -> liveWindowAfterStart
+
 /// Is the card inside its live window at this instant? Inclusive at both ends. A row with no start time is never in one: an
 /// unknown start time is no evidence of either side, as `Desk.notYetStartedAt` already says.
 let inLiveWindowAt (now: DateTimeOffset) (g: Game) : bool =
     match g.StartTime with
-    | Some start -> now >= start && now <= start + liveWindowAfterStart
+    | Some start -> now >= start && now <= start + liveWindowFor g.Sport
     | None -> false
 
 /// Is the card worth asking the feed about at this instant? In its window, and not already `Final` in the archive: the archive's
@@ -128,13 +156,22 @@ let liveWorkAheadAt (now: DateTimeOffset) (games: Game list) : bool =
             | Final _ -> false
             | _ -> true)
         && (match g.StartTime with
-            | Some start -> now <= start + liveWindowAfterStart
+            | Some start -> now <= start + liveWindowFor g.Sport
             | None -> false))
+
+/// Has the feed said this game is over? Then asking again changes nothing (a final score does not move), and the poll stops asking about the card and stops telling it answers (`Program.fs`): the page
+/// never re-reads the archive, so the card stays as it is whether or not the archive finalises meanwhile. Efficiency: `pollableAt` reads the archive state AT LOAD, so before this a key was asked every
+/// minute until the card's window ended, three hours after kickoff for soccer, which is about an hour after a 105-minute match; now it stops at the whistle.
+let isSettled (reading: LiveReading) : bool =
+    match reading with
+    | FullTime _
+    | GameOver _ -> true
+    | _ -> false
 
 /// Has the card's window ended at this instant? Strictly after its last instant (`inLiveWindowAt` is inclusive), and false for a row with no start time, which has no window.
 let windowEndedAt (now: DateTimeOffset) (g: Game) : bool =
     match g.StartTime with
-    | Some start -> now > start + liveWindowAfterStart
+    | Some start -> now > start + liveWindowFor g.Sport
     | None -> false
 
 /// What a card holds once its window has ended: a live answer (`LiveNow`, `HalfTime`) becomes `LiveStopped` and keeps its score. Every other reading is left as it is: `FullTime` is
@@ -156,6 +193,7 @@ let foldReading (archive: GameState) (reading: LiveReading) : GameState =
         | LiveNow(h, a, _)
         | HalfTime(h, a)
         | FullTime(h, a)
+        | GameOver(h, a)
         | LiveStopped(h, a) -> InProgress(h, a)
         | NoReading
         | LiveUnavailable _ -> archive
@@ -169,6 +207,7 @@ let liveNoteText (reading: LiveReading) : string =
     | LiveNow(_, _, None) -> ""
     | HalfTime _ -> "Half time"
     | FullTime _ -> "Full time"
+    | GameOver _ -> "Game over"
     | LiveStopped _ -> "live updates stopped"
     | LiveUnavailable _ -> "live score unavailable"
 

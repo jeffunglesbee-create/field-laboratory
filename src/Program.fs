@@ -340,7 +340,8 @@ let private stopLivePoll () =
 let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: string) =
     stopLivePoll ()
     let inFlight = System.Collections.Generic.HashSet<string>()
-    let games () = handles |> Seq.map (fun h -> h.Game) |> List.ofSeq
+    // The cards still worth asking about: one the feed has said is over is not (`LiveScore.isSettled`), so a slate whose live games have all finished stops its timer without waiting for the archive.
+    let games () = handles |> Seq.filter (fun h -> not (h.IsSettled())) |> Seq.map (fun h -> h.Game) |> List.ofSeq
 
     let tick () =
         let now = System.DateTimeOffset.UtcNow
@@ -355,9 +356,13 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
                     tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
+                        // Told at the instant the answer ARRIVES, not the instant the request left: a card whose window ended while the request was in flight has been marked stopped (above) and must keep that,
+                        // and the timer may already be stopped, so nothing would mark it again. A card the feed has finished is not told either: an answer for another game of the key (or a failed poll) must not
+                        // rewrite a final score that `isSettled` stopped asking about.
+                        let arrived = System.DateTimeOffset.UtcNow
                         let cards =
                             handles
-                            |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
+                            |> Seq.filter (fun h -> not (h.IsSettled()) && LiveScore.answersTo key arrived h.Game)
                             |> List.ofSeq
                         match result with
                         | Error why ->
