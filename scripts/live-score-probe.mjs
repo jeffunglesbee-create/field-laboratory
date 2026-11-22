@@ -1,10 +1,11 @@
-// THE LIVE SCORE ON A SOCCER CARD, ON THE DEPLOYED PAGE, AT REAL TIME, FROM A RUNNER.
-// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8 and its Done condition.
+// THE LIVE SCORE ON A CARD, ON THE DEPLOYED PAGE, AT REAL TIME, FROM A RUNNER.
+// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8 and its Done condition; and, from 2026-11-22 (owner: NBA, NHL and the other sports are needed), every sport the page asks the feed about:
+// the sixteen soccer labels and NBA, WNBA, NHL, MLB, NFL, CFB and AFL (`LABEL_TO_KEY`). A card is joined by ESPN event id, or, for NHL whose feed carries none, by the two club names.
 //
 // `live-score-render-check.mjs` drives a card through a mocked feed at a fake clock: wiring. It cannot prove the one thing a
 // reader sees: a real match in play, on the page that is live, with the score the relay serves at that moment. This does.
 //
-// IT CANNOT RUN ON EVERY DAY. A card shows a live score only while a lab-covered soccer match is in play, so a run at any other
+// IT CANNOT RUN ON EVERY DAY. A card shows a live score only while a game of a covered sport is in play, so a run at any other
 // time answers NOTHING-TO-JUDGE, which is NOT a pass and exits non-zero: an honest "no live game" is worth more than a green line
 // that never saw one. The first lab-covered matches after this was written: 2026-11-11 EFL Trophy 19:00Z, 2026-11-17 EFL Trophy
 // 19:00Z, the 2026-11-19 ET MLS matches, 2026-11-20 Bundesliga / Ligue 1 / La Liga, 2026-11-21 EPL 12:30Z.
@@ -12,12 +13,12 @@
 // WHAT IT DOES. Opens `<site>/?date=<ET day>` in a real Chromium with no mock and no fake clock and watches it for a period
 // (default 70 s, so a 60 s tick has fired). It records, in order, every /v2/games poll the PAGE makes and how each ended: a body
 // the page's own decoder would accept (strict, as src/LiveFeed.fs), an HTTP error, an unreadable body, or no answer at all. Then it
-// reads every soccer card and judges it against what the page was LAST told for that card's game: a card can only show what the
+// reads every live-score card (soccer, NBA, WNBA, NHL, MLB, NFL, CFB, AFL) and judges it against what the page was LAST told for that card's game: a card can only show what the
 // page was told, and a second fetch from the runner is a different instant (a clock moves every minute).
 //
 // THE RUNNER'S OWN VIEW exists for one thing, and it is derived from the CARDS, not from the page's requests (a page that never
 // polls makes no request, and a view keyed on requests would then see nothing and read "no game is live" in exactly the failure
-// the probe exists for): for every sport key a soccer card maps to (`LABEL_TO_KEY`), the runner fetches the feed itself, and a game
+// the probe exists for): for every sport key a card maps to (`LABEL_TO_KEY`), the runner fetches the feed itself, and a game
 // it sees `live` that the page never received a reading for is a FAIL (`live-unread`).
 //
 // A card is joined card id -> archive row (`/context/date`, read by the runner) -> `espn_event_id` -> the feed's `espnEventId`.
@@ -34,7 +35,7 @@
 // And the page itself must be on the LIVE slate: `#decode-status` is `ok`, not the committed capture the page falls back to.
 //
 // WHAT IT DOES NOT SAY (Rule 91). That a score is right: the card is compared with what the relay served, and the feed's accuracy is
-// ESPN's. It reports `checked N of M soccer cards` where it is read; a card with no ESPN id, outside its window or with no reading
+// ESPN's. It reports `checked N of M live-score cards` where it is read; a card with no ESPN id, outside its window or with no reading
 // is counted, not judged. `forecastChecked` says how many live cards even carry a forecast node (only EPL does): `forecastAbsent`
 // over zero cards is null, not true.
 //
@@ -49,6 +50,7 @@
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { createChecks, finish, isMain, fieldDay } from './checks.mjs'
+import { sameClub } from './probe-espn-id-collisions.mjs'
 
 const SITE = (process.env.URL || 'https://field-laboratory.jeffunglesbee.workers.dev').replace(/\/+$/, '')
 export const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
@@ -61,17 +63,32 @@ export const LABEL_TO_KEY = {
   'UEFA Europa League Qualifying': 'europaqual', 'UEFA Europa Conference League': 'conference',
   'UEFA Europa Conference League Qualifying': 'conferencequal', 'FIFA World Cup': 'wc26', 'EFL Cup': 'eflcup',
   'EFL Trophy': 'efltrophy', 'FA Cup': 'facup',
+  // Owner, 2026-11-22: the other sports the relay's /v2/games serves.
+  'NBA': 'nba', 'WNBA': 'wnba', 'NHL': 'nhl', 'MLB': 'mlb', 'NFL': 'nfl', 'CFB': 'cfb', 'AFL': 'afl',
 }
-export const SOCCER = Object.keys(LABEL_TO_KEY)
+/** The sixteen soccer labels, spelled out (src/Desk.fs `IsSoccer`). */
+export const SOCCER = [
+  'EPL', 'MLS', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1', 'UEFA Champions League', 'UEFA Champions League Qualifying', 'UEFA Europa League',
+  'UEFA Europa League Qualifying', 'UEFA Europa Conference League', 'UEFA Europa Conference League Qualifying', 'FIFA World Cup', 'EFL Cup', 'EFL Trophy', 'FA Cup',
+]
+export const OTHER_LIVE = ['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB', 'AFL']
+export const LIVE_LABELS = [...SOCCER, ...OTHER_LIVE]
+/** The labels whose card shows the AWAY score first (src/Desk.fs `Matchup = AwayAtHome`); soccer and AFL are home first. `scripts/check-live-probe-keys.mjs` holds this to the compiled registry. */
+export const AWAY_FIRST = new Set(['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB'])
 
 /** The page's words, spelled out in full on purpose (a typo in the page must not be forgiven by a check that derives the same string). */
-export const WORDS = { inProgress: 'In progress', halfTime: 'Half time', fullTime: 'Full time', unavailable: 'live score unavailable' }
-/** The poll's window after a start time (src/LiveScore.fs `liveWindowAfterStart`). */
-export const WINDOW_MS = 3 * 3600_000
+export const WORDS = { inProgress: 'In progress', halfTime: 'Half time', fullTime: 'Full time', gameOver: 'Game over', unavailable: 'live score unavailable' }
+/** The poll's window after a start time, by label (src/LiveScore.fs `liveWindowFor`; `scripts/check-live-probe-keys.mjs` holds the table to it): soccer 3 h, NBA, WNBA, NHL and AFL 3.5 h, NFL 4 h, MLB and CFB 4.5 h. */
+export const WINDOW_H = { NBA: 3.5, WNBA: 3.5, NHL: 3.5, AFL: 3.5, NFL: 4, MLB: 4.5, CFB: 4.5 }
+export const windowMsOf = label => (WINDOW_H[label] ?? 3) * 3600_000
+/** The word for a game the feed says is over and the archive has not finalised: soccer keeps the owner's `Full time`, every other sport says `Game over`. */
+export const overWordOf = label => (SOCCER.includes(label) ? WORDS.fullTime : WORDS.gameOver)
 /** A card whose window opened this recently may not have been asked yet: the next tick is up to a minute away. */
 export const JUST_OPENED_MS = 90_000
 
 const arrow = (h, a) => `${h}–${a}`
+/** The score as the card draws it: the away score first for NBA, WNBA, NHL, MLB, NFL and CFB (`AwayAtHome`), the home score first otherwise. */
+export const arrowFor = (label, h, a) => (AWAY_FIRST.has(label) ? arrow(a, h) : arrow(h, a))
 
 // --- reading the feed the way the page does ----------------------------------
 
@@ -92,73 +109,110 @@ const halftimeOf = s => {
   return f === undefined || f === null ? { ok: true, v: false } : typeof f === 'boolean' ? { ok: true, v: f } : { ok: false }
 }
 
-/** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `espnEventId` and a
- *  string `state`; a score is an integer or absent, a clock a string or absent. ONE bad game fails the whole feed, as it does on the page. */
+/** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `state`, an `espnEventId` that is a string, absent or null, and
+ *  (when there is no id) BOTH club names as strings (NHL: the feed has no ESPN id and is joined by name); a score is an integer or absent, a clock and a period label strings or absent. ONE bad game
+ *  fails the whole feed, as it does on the page. Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
 export const decodeFeed = body => {
   if (!body || typeof body !== 'object' || !Array.isArray(body.games)) return { ok: false, why: 'no games list' }
   const games = []
+  const optString = v => v === undefined || v === null || typeof v === 'string'
   for (const g of body.games) {
     if (!g || typeof g !== 'object') return { ok: false, why: 'a game is not an object' }
-    if (typeof g.espnEventId !== 'string') return { ok: false, why: 'a game has no string espnEventId' }
+    if (!optString(g.espnEventId)) return { ok: false, why: 'a game has an espnEventId that is not a string' }
     if (typeof g.state !== 'string') return { ok: false, why: 'a game has no string state' }
     if (!teamOk(g.home) || !teamOk(g.away)) return { ok: false, why: 'a team is not an object' }
+    if (!optString(g.home?.name) || !optString(g.away?.name)) return { ok: false, why: 'a club name is not a string' }
     const h = intOrNull(g.home?.score), a = intOrNull(g.away?.score)
     if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number from 0 to the int32 maximum' }
     if (g.clock !== undefined && g.clock !== null && typeof g.clock !== 'string') return { ok: false, why: 'a clock is not a string' }
+    if (!optString(g.periodLabel)) return { ok: false, why: 'a periodLabel is not a string' }
     const ht = halftimeOf(g.situation)
     if (!ht.ok) return { ok: false, why: 'situation is not an object, or isHalftime is not a boolean' }
-    games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '', halftime: ht.v })
+    const espnId = g.espnEventId ?? null, homeName = g.home?.name ?? null, awayName = g.away?.name ?? null
+    if (espnId === null && (homeName === null || awayName === null)) return { ok: false, why: 'a game with neither an espnEventId nor both team names cannot be joined to a card' }
+    games.push({ espnId, homeName, awayName, periodLabel: g.periodLabel ?? null, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '', halftime: ht.v })
   }
   return { ok: true, games }
 }
 
-/** The archive rows of a `/context/date` body (`games.regular` + `games.postseason`) as `row id -> { espnId, startMs }`. A row with no ESPN id is absent. */
+/** The archive rows of a `/context/date` body (`games.regular` + `games.postseason`) as `row id -> { espnId, startMs, home, away }`. A row with no ESPN id is absent. The club names are for the games the feed gives no id (NHL). */
 export const rowsOf = ctx =>
   new Map([...(ctx?.games?.regular ?? []), ...(ctx?.games?.postseason ?? [])]
     .filter(r => r && r.id != null && r.espn_event_id != null)
-    .map(r => [String(r.id), { espnId: String(r.espn_event_id), startMs: Date.parse(r.start_time ?? '') }]))
+    .map(r => [String(r.id), { espnId: String(r.espn_event_id), startMs: Date.parse(r.start_time ?? ''), home: r.home ?? '', away: r.away ?? '' }]))
+
+/** The game of a decoded feed a row is, or `undefined` (src/LiveFeed.fs `readingFor`): by ESPN event id; failing that, the ONE game with no id whose two club names match the row's, home to home and away to away
+ *  (`sameClub`: the subset test or initials, which is what the page's `Desk.sameTeam` is). Two such games is no join: the page says so on the card. */
+export const gameFor = (games, row) => {
+  const byId = games.find(g => g.espnId !== null && g.espnId === row.espnId)
+  if (byId) return byId
+  const named = games.filter(g => g.espnId === null && g.homeName !== null && g.awayName !== null && sameClub(row.home, g.homeName) && sameClub(row.away, g.awayName))
+  return named.length === 1 ? named[0] : undefined
+}
 
 // --- judging a card ------------------------------------------------------------
 
 /** Does the card show the score the page was told? */
-export const scoreMatches = (card, last) => card.score === arrow(last.home, last.away)
+export const scoreMatches = (card, last) => card.score === arrowFor(card.sport, last.home, last.away)
 /** Is the card free of a forecast? `none` is the page's own word for an EPL card with no line to draw, and no node at all is `null`. */
 export const forecastFree = card => card.forecast === null || card.forecast === 'none'
 
-/** One card against the game the page was last told about. Returns { kind, ok, reason }. */
+/** The note the page draws beside the score for a game in play (src/LiveFeed.fs `liveClockText`). Soccer: the feed's clock, verbatim. Other sports: the period and the clock, `Q2 6:17`, `P2 10:11`;
+ *  baseball says the inning alone, `Top 5` / `Bot 7` for the relay's `T5` / `B7`, and the clock only when it has no inning. Empty when the feed carried neither. Held to the page by the Suite and the render check. */
+export const liveNoteOf = (label, g) => {
+  const clock = g.clock ?? ''
+  if (SOCCER.includes(label)) return clock
+  let period = g.periodLabel ?? ''
+  if (label === 'MLB' && /^[TB]\d/.test(period)) period = (period[0] === 'T' ? 'Top ' : 'Bot ') + period.slice(1)
+  if (period && label === 'MLB') return period
+  return period && clock ? `${period} ${clock}` : period || clock
+}
+
+/** One card against the game the page was last told about. Returns { kind, ok, reason }. The card's `sport` is its label, which decides the score order, the note and the word for a finished game. */
 export const judgeCard = (card, last) => {
-  const bad = reason => ({ kind: last.state, ok: false, reason })
+  const label = card.sport
+  // `post` is the relay's closing word for every ESPN sport but NBA; the page reads it as `final`, and so is it recorded.
+  const kind = last.state === 'post' ? 'final' : last.state
+  const bad = reason => ({ kind, ok: false, reason })
   const inProgress = card.status === WORDS.inProgress
+  const scoreless = last.home === null || last.away === null
+  const over = last.state === 'final' || last.state === 'post'
+  // A game the archive has finalised is Final and carries no live note, whatever the feed says (the archive wins): judged before anything the feed says.
+  if (/^Final/.test(card.status)) return card.live === '' ? { kind: 'final', ok: true, reason: '' } : bad(`the card is Final and carries the note "${card.live}"`)
+  // A live or final game the feed serves with no score: the page reads it as `LiveUnavailable` and says so, on every sport.
+  if ((last.state === 'live' || over) && scoreless)
+    return card.live === WORDS.unavailable ? { kind: 'feed-unavailable', ok: true, reason: '' } : bad(`the feed says ${last.state} and carries no score, and the card's note is "${card.live}", not "${WORDS.unavailable}"`)
   if (last.state === 'live') {
     if (!inProgress) return bad(`the feed says live and the card says "${card.status}"`)
-    if (!scoreMatches(card, last)) return bad(`the card shows ${card.score}, the feed ${arrow(last.home, last.away)}`)
-    // At half time the feed's clock still reads the first half's last minute (`45'+3'`) and the page says `Half time` instead (owner approved 2026-11-11).
-    const want = last.halftime ? WORDS.halfTime : last.clock
-    if (card.live !== want) return bad(`the card's note is "${card.live}", ${last.halftime ? 'the feed says half time' : `the feed's clock is "${last.clock}"`}`)
+    if (!scoreMatches(card, last)) return bad(`the card shows ${card.score}, the feed ${arrowFor(label, last.home, last.away)}`)
+    // At half time the feed's clock still reads the first half's last minute (`45'+3'`) and the page says `Half time` instead (owner approved 2026-11-11), on whatever sport the feed flags it.
+    const want = last.halftime ? WORDS.halfTime : liveNoteOf(label, last)
+    if (card.live !== want) return bad(`the card's note is "${card.live}", ${last.halftime ? 'the feed says half time' : `the feed's clock reads "${want}"`}`)
     if (!forecastFree(card)) return bad(`a card in play carries a forecast (${card.forecast})`)
     return { kind: 'live', ok: true, reason: '' }
   }
-  if (last.state === 'final') {
-    if (inProgress && card.live === WORDS.fullTime && scoreMatches(card, last)) return { kind: 'final', ok: true, reason: '' }
-    if (/^Final/.test(card.status)) return { kind: 'final', ok: true, reason: '' }
-    return bad(`the feed says final and the card says "${card.status}" with note "${card.live}" and score ${card.score}`)
+  // The over word is Full time for soccer and Game over for the rest.
+  if (over) {
+    if (inProgress && card.live === overWordOf(label) && scoreMatches(card, last)) return { kind: 'final', ok: true, reason: '' }
+    return bad(`the feed says ${last.state} and the card says "${card.status}" with note "${card.live}" and score ${card.score}`)
   }
   if (last.state === 'pre') {
     if (inProgress) return bad('the feed says pre and the card says In progress')
-    return { kind: 'pre', ok: true, reason: '' }
+    return card.live === '' ? { kind: 'pre', ok: true, reason: '' } : bad(`the feed says pre and the card carries the note "${card.live}"`)
   }
-  return bad(`the feed's state "${last.state}" is not one the page reads`)
+  // A state word the page does not read: the page says `live score unavailable` (src/LiveFeed.fs `readingFor`), and that is the right card; anything else is not.
+  return card.live === WORDS.unavailable ? { kind: 'feed-unavailable', ok: true, reason: '' } : bad(`the feed's state "${last.state}" is not one the page reads, and the card's note is "${card.live}", not "${WORDS.unavailable}"`)
 }
 
 /** The kinds a card can have, in the manifest: what was judged, and what was counted without being judged. */
 const NOT_JUDGED = new Set(['unjoined', 'out-of-window', 'no-reading'])
 
 /**
- * The probe's verdict over every soccer card. Pure.
+ * The probe's verdict over every card of a sport the page asks the feed about. Pure.
  *   cards        read from the DOM: { gameId, teams, sport, score, status, live, forecast }
- *   rows         archive row id -> { espnId, startMs }   (`rowsOf`)
+ *   rows         archive row id -> { espnId, startMs, home, away }   (`rowsOf`)
  *   outcomes     the page's /v2/games polls in order: { key, status, decoded }  (decoded: `decodeFeed`'s answer, or { ok: false, why })
- *   runner       { ok, why: [string], live: Set<espnId> }: the runner's own look, keyed from the cards
+ *   runner       { ok, why: [string], live: [{ key, ...game }] }: the runner's own look, keyed from the cards; every game the feeds serve `live`, with the sport key it came from
  *   requests     how many /v2/games requests the page made
  *   nowMs        the instant the cards were read
  *   decodeStatus { state, text } of the page's `#decode-status`
@@ -172,20 +226,20 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
     if (!row) return { ...c, espnId: null, kind: 'unjoined', ok: true, reason: '' }
     const id = row.espnId
     const outs = byKey[key] ?? []
-    const read = o => o.decoded.ok && o.decoded.games.some(g => g.espnId === id)
+    const read = o => o.decoded.ok && gameFor(o.decoded.games, row) !== undefined
     // A game the runner sees live that the page never received a reading for, in or out of its window, whatever the polls did.
-    if (runner.live.has(id) && !outs.some(read)) {
+    if (gameFor(runner.live.filter(g => g.key === key), row) !== undefined && !outs.some(read)) {
       const ok = outs.filter(o => o.decoded.ok).length
       return { ...c, espnId: id, kind: 'live-unread', ok: false, reason: `the feed says live and the page never received a reading for it (${outs.length} poll(s) of ${key}, ${ok} readable)` }
     }
-    const inWindow = Number.isFinite(row.startMs) && nowMs >= row.startMs && nowMs <= row.startMs + WINDOW_MS
+    const inWindow = Number.isFinite(row.startMs) && nowMs >= row.startMs && nowMs <= row.startMs + windowMsOf(c.sport)
     if (!inWindow) return { ...c, espnId: id, kind: 'out-of-window', ok: true, reason: '' }
     const last = outs.at(-1)
     if (!last) {
       if (nowMs - row.startMs <= JUST_OPENED_MS) return { ...c, espnId: id, kind: 'no-reading', ok: true, reason: '' }
       return { ...c, espnId: id, kind: 'never-asked', ok: false, reason: `the card is in its live window and the page never asked the feed for ${key}` }
     }
-    const game = last.decoded.ok ? last.decoded.games.find(g => g.espnId === id) : undefined
+    const game = last.decoded.ok ? gameFor(last.decoded.games, row) : undefined
     if (!game) {
       // The page's last poll failed, or its body has no such game: its own words are "live score unavailable".
       const why = last.decoded.ok ? 'the feed has no game for this card' : `the last poll failed (${last.decoded.why})`
@@ -193,9 +247,18 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
         ? { ...c, espnId: id, kind: 'feed-unavailable', ok: true, reason: '' }
         : { ...c, espnId: id, kind: 'feed-unavailable', ok: false, reason: `${why} and the card's note is "${c.live}", not "${WORDS.unavailable}"` }
     }
+    // A game the page's own polls read `live` and then `pre`: a started game does not un-start. The relay serves a football break or a baseball delay as `pre` (its adapters read only an
+    // in-progress status as `live`; not yet read from a body), and the page, which reads `pre` as no reading, puts the card back on what the archive says. That is what a viewer sees, so it is named.
+    if (game.state === 'pre' && outs.some(o => o.decoded.ok && gameFor(o.decoded.games, row)?.state === 'live'))
+      return { ...c, espnId: id, kind: 'regressed', ok: false, reason: `the feed said this game was live and then pre (a break or a delay the relay serves as pre); the card says "${c.status}"` }
     return { ...c, espnId: id, ...judgeCard(c, game) }
   })
 
+  // A live game with no ESPN id (NHL) that NO card of its sport claims by name. The runner's view and the page both join by name, so a name the matcher cannot pair is invisible to both:
+  // the card says `live score unavailable`, which is the page's own answer for a game it cannot join. Counted and, beside a card of that sport saying so, a FAIL.
+  const claimedBy = g => rowsOut.some(r => LABEL_TO_KEY[r.sport] === g.key && r.gameId != null && rows.get(String(r.gameId)) && gameFor([g], rows.get(String(r.gameId))) === g)
+  const unclaimed = (runner.live ?? []).filter(g => g.espnId === null && !claimedBy(g))
+  const unclaimedWithCard = unclaimed.filter(g => rowsOut.some(r => LABEL_TO_KEY[r.sport] === g.key && r.kind === 'feed-unavailable'))
   const live = rowsOut.filter(r => r.kind === 'live')
   const violations = rowsOut.filter(r => !r.ok)
   const withNode = live.filter(r => r.forecast !== null)
@@ -204,24 +267,27 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
   const scheduledAfterKickoff = rowsOut.some(r => (r.kind === 'live' || r.kind === 'live-unread' || r.kind === 'final') && /^(Scheduled |Start time passed)/.test(r.status))
   const fields = {
     cardState: live.length ? live[0].status : null,
-    scoreMatchesFeed: live.length > 0 && live.every(r => scoreMatches(r, outcomesGame(byKey, r))),
+    scoreMatchesFeed: live.length > 0 && live.every(r => scoreMatches(r, outcomesGame(byKey, r, rows))),
     // Over the live cards that HAVE a forecast node (EPL only). Zero such cards is null: nothing was checked, which is not "absent".
     forecastChecked: withNode.length,
     forecastAbsent: withNode.length === 0 ? null : withNode.every(r => r.forecast === 'none'),
     scheduledAfterKickoff,
     fullTimeMarker: rowsOut.some(r => r.live === WORDS.fullTime),
+    gameOverMarker: rowsOut.some(r => r.live === WORDS.gameOver),
+    runnerLiveUnclaimed: unclaimed.map(g => ({ key: g.key, home: g.homeName, away: g.awayName })),
     halfTimeMarker: rowsOut.some(r => r.live === WORDS.halfTime),
     requestsToV2Games: requests,
-    checked: `checked ${judged} of ${rowsOut.length} soccer cards against the page's own last /v2/games answer (${count('unjoined')} with no ESPN id, ${count('out-of-window')} outside their window, ${count('no-reading')} with no reading yet); ${live.length} live`,
+    checked: `checked ${judged} of ${rowsOut.length} live-score cards against the page's own last /v2/games answer (${count('unjoined')} with no ESPN id, ${count('out-of-window')} outside their window, ${count('no-reading')} with no reading yet); ${live.length} live; ${unclaimed.length} live id-less feed game(s) no card claims`,
     rows: rowsOut,
   }
   const reasons = []
   if (decodeStatus?.state !== 'ok') reasons.push(`the page is not showing the live slate: #decode-status is "${decodeStatus?.state ?? 'absent'}": ${decodeStatus?.text ?? ''}`.trim())
   for (const v of violations) reasons.push(`${v.teams}: ${v.reason}`)
+  for (const g of unclaimedWithCard) reasons.push(`the ${g.key} feed has a live game, ${g.awayName} at ${g.homeName}, that no ${g.key} card joins by name, beside a ${g.key} card saying "${WORDS.unavailable}"`)
   let verdict
   if (reasons.length) verdict = 'FAIL'
   else if (!runner.ok) { verdict = 'UNVERIFIED'; reasons.push(...runner.why) }
-  else if (live.length === 0) { verdict = 'NOTHING-TO-JUDGE'; reasons.push('no lab-covered soccer game is live on this slate') }
+  else if (live.length === 0) { verdict = 'NOTHING-TO-JUDGE'; reasons.push('no game of a sport the page asks the feed about is live on this slate') }
   else verdict = 'PASS'
   const out = { verdict, reasons, ...fields }
   out.doneCondition = doneConditionOf(out)
@@ -229,7 +295,7 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
 }
 
 /** The game the page was last told about for a live row (it was judged against it, so it exists). */
-const outcomesGame = (byKey, row) => byKey[LABEL_TO_KEY[row.sport]].at(-1).decoded.games.find(g => g.espnId === row.espnId)
+const outcomesGame = (byKey, card, rows) => gameFor(byKey[LABEL_TO_KEY[card.sport]].at(-1).decoded.games, rows.get(String(card.gameId)))
 
 /** The CC-CMD's Done condition for a manifest: a PASS, a live card In progress, its score the feed's, no forecast on a card that has the node,
  *  and no card reading Scheduled / Start time passed while its game is live or over. One definition, here, so a FAIL with all four booleans
@@ -269,7 +335,8 @@ if (SELF_TEST) {
   const SCHED = 'Scheduled 2026-11-21T12:30Z (parsed 12:30)'
   const PASSED = 'Start time passed, no score served'
   const okStatus = { state: 'ok', text: 'decoded 7 game(s)' }
-  const runnerOk = (...ids) => ({ ok: true, why: [], live: new Set(ids) })
+  const runnerOk = (...ids) => ({ ok: true, why: [], live: ids.map(id => ({ key: 'epl', espnId: id, homeName: null, awayName: null })) })
+  const runnerBlind = why => ({ ok: false, why, live: [] })
   const run = (o = {}) => judge({ cards: [card()], rows, outcomes: [poll([game()])], runner: runnerOk('401911177'), requests: 1, nowMs: NOW, decodeStatus: okStatus, ...o })
   const j = (c, g) => judgeCard(c, g)
 
@@ -342,6 +409,89 @@ if (SELF_TEST) {
   check('a pre game that reads Scheduled or Start time passed is ok', j(card({ status: SCHED, live: '' }), pre).ok === true && j(card({ status: PASSED, live: '' }), pre).ok === true)
   check('a feed state the page does not read is a failure, named', /suspended/.test(j(card(), game({ state: 'suspended' })).reason))
 
+  // Other sports (owner 2026-11-22): the score is AWAY first for NBA, WNBA, NHL, MLB, NFL and CFB; the note is the period and the clock; a finished game says Game over; a flagged break says Half time on any sport.
+  const nba = (o = {}) => game({ espnId: '401910024', home: 58, away: 60, periodLabel: 'Q2', clock: '6:17', ...o })
+  const nbaCard = (o = {}) => card({ sport: 'NBA', teams: 'Trail Blazers @ Knicks', score: '60–58', live: 'Q2 6:17', forecast: null, ...o })
+  check('NBA in play: the away score first, the period and the clock as the note, is ok', j(nbaCard(), nba()).ok === true && j(nbaCard(), nba()).kind === 'live')
+  check('...the home score first is a failure (the card draws away first), and so is the clock alone or the period alone',
+    j(nbaCard({ score: '58–60' }), nba()).ok === false && j(nbaCard({ live: '6:17' }), nba()).ok === false && j(nbaCard({ live: 'Q2' }), nba()).ok === false)
+  check('the same game for a soccer label reads home first with the clock alone: the order and the note follow the label, not the shape of the body',
+    j(card({ sport: 'EPL', score: '58–60', live: '6:17' }), nba({ periodLabel: 'Q2' })).ok === true)
+  check('NHL: `P2 10:11`, away first', j(nbaCard({ sport: 'NHL', score: '2–1', live: 'P2 10:11' }), nba({ home: 1, away: 2, periodLabel: 'P2', clock: '10:11' })).ok === true)
+  check('a period with no clock is the period alone (the feed between periods)', j(nbaCard({ live: 'Q3' }), nba({ periodLabel: 'Q3', clock: '' })).ok === true && j(nbaCard({ live: 'Q3' }), nba({ periodLabel: 'Q3', clock: '0:00' })).ok === false)
+  const mlb = (o = {}) => nba({ home: 3, away: 5, periodLabel: 'T5', clock: '', ...o })
+  const mlbCard = (o = {}) => nbaCard({ sport: 'MLB', teams: 'Mets @ Braves', score: '5–3', live: 'Top 5', ...o })
+  check('MLB: the relay\'s T5 / B7 read Top 5 / Bot 7, the inning alone even when a clock is present, and the clock when there is no inning',
+    j(mlbCard(), mlb()).ok === true && j(mlbCard({ live: 'Bot 7' }), mlb({ periodLabel: 'B7' })).ok === true && j(mlbCard(), mlb({ clock: '2:00' })).ok === true
+      && j(mlbCard({ live: '2:00' }), mlb({ periodLabel: '', clock: '2:00' })).ok === true && j(mlbCard({ live: 'T5' }), mlb()).ok === false && j(mlbCard({ live: 'Mid 5' }), mlb({ periodLabel: 'Mid 5' })).ok === true)
+  check('a finished game of another sport is In progress with Game over and the final score, not Full time; `post` is read as final',
+    j(nbaCard({ live: 'Game over', score: '99–97' }), nba({ state: 'final', home: 97, away: 99 })).ok === true
+      && j(nbaCard({ live: 'Game over', score: '99–97' }), nba({ state: 'post', home: 97, away: 99 })).ok === true
+      && j(nbaCard({ live: 'Full time', score: '99–97' }), nba({ state: 'final', home: 97, away: 99 })).ok === false
+      && j(card({ live: 'Game over', score: '2–1' }), fin).ok === false && j(nbaCard({ live: 'Game over', score: '97–99' }), nba({ state: 'final', home: 97, away: 99 })).ok === false)
+  check('a game the archive has finalised is Final on any sport', j(nbaCard({ status: 'Final', live: '' }), nba({ state: 'post' })).ok === true)
+  check('a half-time flag reads Half time on any sport; the period and clock beside it is a failure',
+    j(nbaCard({ live: 'Half time' }), nba({ halftime: true })).ok === true && j(nbaCard(), nba({ halftime: true })).ok === false)
+  check('a live or final game with no score is unavailable on any sport: the card must say so, and the stale score is a failure',
+    ['live', 'final', 'post'].every(st => j(nbaCard({ live: WORDS.unavailable, score: '—' }), nba({ state: st, home: null })).ok === true && j(nbaCard(), nba({ state: st, away: null })).ok === false))
+  check('liveNoteOf is the page\'s note: soccer the clock, others period and clock, MLB the inning',
+    liveNoteOf('EPL', { clock: "34'", periodLabel: '1H' }) === "34'" && liveNoteOf('NBA', { clock: '6:17', periodLabel: 'Q2' }) === 'Q2 6:17' && liveNoteOf('NBA', { clock: '', periodLabel: '' }) === ''
+      && liveNoteOf('MLB', { clock: '', periodLabel: 'B7' }) === 'Bot 7' && liveNoteOf('MLB', { clock: '1:00', periodLabel: '' }) === '1:00')
+
+  // The join: by ESPN id, failing that the ONE id-less game whose two club names match, home to home and away to away (NHL).
+  const nhlRow = { espnId: '401892758', startMs: T0, home: 'Bruins', away: 'Capitals' }
+  const nhl = (o = {}) => ({ espnId: null, homeName: 'Boston Bruins', awayName: 'Washington Capitals', periodLabel: 'P2', state: 'live', home: 1, away: 2, clock: '10:11', halftime: false, ...o })
+  check('gameFor finds a game by ESPN id, and an id-less game by its two club names', gameFor([game()], { espnId: '401911177' }) !== undefined && gameFor([nhl()], nhlRow) !== undefined)
+  check('...never an id-less game with the clubs swapped, one club different, or no names; never when two id-less games match; the id wins over the names',
+    gameFor([nhl({ homeName: 'Washington Capitals', awayName: 'Boston Bruins' })], nhlRow) === undefined && gameFor([nhl({ awayName: 'Edmonton Oilers' })], nhlRow) === undefined
+      && gameFor([nhl({ homeName: null, awayName: null })], nhlRow) === undefined && gameFor([nhl(), nhl()], nhlRow) === undefined
+      && gameFor([nhl(), nhl({ espnId: '401892758', home: 9 })], nhlRow).home === 9 && gameFor([nhl({ espnId: '1' })], nhlRow) === undefined)
+  const NHL_ID = 'NHL_2026-11-21_e401892758'
+  const nhlRows = new Map([[NHL_ID, nhlRow]])
+  const nhlCard = { gameId: NHL_ID, teams: 'Capitals @ Bruins', sport: 'NHL', score: '2–1', status: 'In progress', live: 'P2 10:11', forecast: null }
+  const runnerOf = (key, ...games) => ({ ok: true, why: [], live: games.map(g => ({ key, ...g })) })
+  const rN = judge({ cards: [nhlCard], rows: nhlRows, outcomes: [poll([nhl()], 'nhl')], runner: runnerOf('nhl', nhl()), requests: 1, nowMs: NOW, decodeStatus: okStatus })
+  check('an NHL card is joined to its id-less feed game by name, judged away first with `P2 10:11`, and passes', rN.verdict === 'PASS' && rN.rows[0].kind === 'live' && rN.scoreMatchesFeed === true && rN.doneCondition === true, JSON.stringify(rN.rows[0]))
+  check('an NHL game the runner sees live that the page never read is a FAIL, found by name',
+    (r => r.verdict === 'FAIL' && r.rows[0].kind === 'live-unread')(judge({ cards: [{ ...nhlCard, status: PASSED, live: '' }], rows: nhlRows, outcomes: [], runner: runnerOf('nhl', nhl()), requests: 0, nowMs: NOW, decodeStatus: okStatus })))
+  // The runner's live games are matched within the card's own sport key: an id-less game live in the NHL feed whose names happen to be a soccer row's is not a game the EPL poll should have read.
+  const rowsNamed = new Map([[ROW_A, { espnId: '401911177', startMs: T0, home: 'Barnsley', away: 'Oldham' }]])
+  const noGameYet = { cards: [card({ status: PASSED, live: WORDS.unavailable, score: '—' })], rows: rowsNamed, outcomes: [poll([game({ espnId: '9' })])], requests: 1, nowMs: NOW, decodeStatus: okStatus }
+  check('the runner\'s live games are per sport key: an NHL game with a soccer row\'s two names is not a live game of the EPL feed, while the same game in the EPL feed IS one the page failed to read',
+    judge({ ...noGameYet, runner: runnerOf('nhl', nhl({ homeName: 'Barnsley', awayName: 'Oldham' })) }).rows[0].kind === 'feed-unavailable'
+      && judge({ ...noGameYet, runner: runnerOf('epl', nhl({ homeName: 'Barnsley', awayName: 'Oldham' })) }).rows[0].kind === 'live-unread')
+  // Review 2026-11-22 (probe parity): the page folds a Final archive row and a `pre` game back to the archive, and the probe judges them as strictly; an unread state word is the page's `live score unavailable`;
+  // `post` is recorded as `final`; a game seen live and then `pre` is named; and an id-less live game no card claims is counted and, beside a card saying unavailable, a FAIL.
+  check('a Final card carries no live note: Final with a leftover note is a failure, Final with none is ok whatever state the feed is in (the archive wins)',
+    j(nbaCard({ status: 'Final', live: 'Q4 0:00', score: '99–97' }), nba({ state: 'post', home: 97, away: 99 })).ok === false
+      && ['live', 'final', 'post', 'pre'].every(st => j(nbaCard({ status: 'Final', live: '', score: '99–97' }), nba({ state: st })).ok === true))
+  check('a pre game with a leftover note on a Scheduled card is a failure, and with none is ok', j(card({ status: SCHED, live: "34'" }), pre).ok === false && j(card({ status: SCHED, live: '' }), pre).ok === true)
+  check('a state word the page does not read is right when the card says live score unavailable, wrong otherwise',
+    j(card({ status: PASSED, live: WORDS.unavailable, score: '—' }), game({ state: 'suspended' })).ok === true && j(card(), game({ state: 'suspended' })).ok === false)
+  check('`post` is recorded as final: an NFL card still Scheduled after a `post` game is a failure that scheduledAfterKickoff sees',
+    (r => r.verdict === 'FAIL' && r.scheduledAfterKickoff === true && r.rows[0].kind === 'final')(
+      judge({ cards: [nbaCard({ sport: 'NFL', status: PASSED, live: '', score: '—' })], rows: new Map([[ROW_A, { espnId: '401910024', startMs: T0, home: 'H', away: 'A' }]]), outcomes: [poll([nba({ state: 'post', home: 17, away: 20 })], 'nfl')], runner: runnerOk(), requests: 1, nowMs: NOW, decodeStatus: okStatus })))
+  const regress = (...states) => judge({ cards: [card({ status: PASSED, live: '', score: '—' })], rows, outcomes: states.map(st => poll([game({ state: st, home: 1, away: 0 })])), runner: runnerOk(), requests: states.length, nowMs: NOW, decodeStatus: okStatus })
+  check('a game read live and then pre is named as a regression and fails; pre alone, and live alone, are not that',
+    (r => r.verdict === 'FAIL' && r.rows[0].kind === 'regressed' && /live and then pre/.test(r.reasons[0]))(regress('live', 'pre')) && regress('pre', 'pre').rows[0].kind === 'pre'
+      && regress('pre', 'live').rows[0].kind !== 'regressed')
+  const nhlOut = { cards: [{ ...nhlCard, status: PASSED, live: WORDS.unavailable, score: '—' }], outcomes: [poll([nhl()], 'nhl')], requests: 1, nowMs: NOW, decodeStatus: okStatus }
+  const stranger = nhl({ homeName: 'Utah Mammoth', awayName: 'Boston Bruins' })
+  check('an id-less live game no card claims is counted; beside a card of that sport saying unavailable it fails, naming it; a claimed game or no card of the sport is not a failure',
+    (r => r.verdict === 'FAIL' && r.runnerLiveUnclaimed.length === 1 && /Utah Mammoth/.test(r.reasons.join()) && /1 live id-less feed game\(s\) no card claims/.test(r.checked))(judge({ ...nhlOut, outcomes: [poll([stranger], 'nhl')], rows: nhlRows, runner: runnerOf('nhl', stranger) }))
+      && judge({ ...nhlOut, rows: nhlRows, runner: runnerOf('nhl', nhl()) }).runnerLiveUnclaimed.length === 0
+      && judge({ ...nhlOut, rows: new Map(), runner: runnerOf('nhl', stranger) }).runnerLiveUnclaimed.length === 1)
+  check('the join is the page\'s sameClub: initials join (NYR with New York Rangers), a subset joins, two different clubs do not',
+    gameFor([nhl({ homeName: 'New York Rangers', awayName: 'Carolina Hurricanes' })], { espnId: '1', home: 'NYR', away: 'Hurricanes' }) !== undefined
+      && gameFor([nhl()], { espnId: '1', home: 'Bruins', away: 'Capitals' }) !== undefined && gameFor([nhl()], { espnId: '1', home: 'Bruins', away: 'Oilers' }) === undefined)
+  // Windows are per sport (src/LiveScore.fs `liveWindowFor`): NFL 4 h, MLB and CFB 4.5 h, NBA, WNBA, NHL, AFL 3.5 h, soccer 3 h.
+  const at = (label, hours) => judge({ cards: [card({ sport: label, gameId: ROW_A })], rows, outcomes: [], runner: runnerOk(), requests: 0, nowMs: T0 + hours * 3600_000 - 1, decodeStatus: okStatus }).rows[0].kind
+  check('the window follows the sport: just inside is judged (never-asked), just outside is out-of-window, for soccer, NBA, NFL and MLB',
+    [['EPL', 3], ['NBA', 3.5], ['NHL', 3.5], ['NFL', 4], ['MLB', 4.5], ['CFB', 4.5], ['WNBA', 3.5], ['AFL', 3.5]].every(([l, h]) => at(l, h) === 'never-asked' && at(l, h + 0.01) === 'out-of-window'),
+    JSON.stringify(['EPL', 'NBA', 'NFL', 'MLB'].map(l => [l, at(l, WINDOW_H[l] ?? 3), at(l, (WINDOW_H[l] ?? 3) + 0.01)])))
+  check('the coverage line names live-score cards and the Game over marker is seen on a finished NBA card',
+    (r => /live-score cards/.test(r.checked) && r.gameOverMarker === true && r.fullTimeMarker === false)(judge({ cards: [nbaCard({ live: 'Game over', score: '99–97' })], rows: new Map([[ROW_A, { espnId: '401910024', startMs: T0, home: 'Knicks', away: 'Trail Blazers' }]]), outcomes: [poll([nba({ state: 'final', home: 97, away: 99 })], 'nba')], runner: runnerOk(), requests: 1, nowMs: NOW, decodeStatus: okStatus })))
+
   // the verdict over cards
   const r1 = run()
   check('a live card shown right, with a request, is a PASS and the Done condition holds',
@@ -386,10 +536,10 @@ if (SELF_TEST) {
     (r => r.verdict === 'FAIL' && /decode-status/.test(r.reasons[0]) && /warn/.test(r.reasons[0]))(run({ decodeStatus: { state: 'warn', text: 'live slate unreachable' } }))
       && run({ decodeStatus: null }).verdict === 'FAIL')
   check('a runner that could not read its own view cannot say there is nothing to judge, and cannot PASS: UNVERIFIED',
-    (r => r.verdict === 'UNVERIFIED' && /context/.test(r.reasons[0]))(run({ runner: { ok: false, why: ['the runner could not read /context/date: HTTP 502'], live: new Set() } }))
-      && run({ cards: [card({ status: SCHED, live: '' })], outcomes: [poll([pre])], runner: { ok: false, why: ['x'], live: new Set() } }).verdict === 'UNVERIFIED')
+    (r => r.verdict === 'UNVERIFIED' && /context/.test(r.reasons[0]))(run({ runner: runnerBlind(['the runner could not read /context/date: HTTP 502']) }))
+      && run({ cards: [card({ status: SCHED, live: '' })], outcomes: [poll([pre])], runner: runnerBlind(['x']) }).verdict === 'UNVERIFIED')
   check('a verdict FAIL outranks UNVERIFIED: a wrong card is wrong whatever the runner saw',
-    run({ cards: [card({ score: '0–1' })], runner: { ok: false, why: ['x'], live: new Set() } }).verdict === 'FAIL')
+    run({ cards: [card({ score: '0–1' })], runner: runnerBlind(['x']) }).verdict === 'FAIL')
   const rFull = run({ cards: [card({ live: 'Full time', score: '2–1' })], outcomes: [poll([fin])], runner: runnerOk() })
   check('fullTimeMarker is seen on a card that says Full time and not on one that does not', rFull.fullTimeMarker === true && r1.fullTimeMarker === false)
   const rHalf = run({ cards: [card({ live: 'Half time', score: '3–0' })], outcomes: [poll([game({ home: 3, away: 0, clock: "45'+3'", halftime: true })])], runner: runnerOk('401911177') })
@@ -398,7 +548,7 @@ if (SELF_TEST) {
     run({ cards: [card({ status: SCHED, live: '' })], outcomes: [poll([fin])], runner: runnerOk() }).scheduledAfterKickoff === true
       && run({ cards: [card({ status: PASSED, live: '' })], outcomes: [poll([fin])], runner: runnerOk() }).scheduledAfterKickoff === true)
   check('the coverage line says checked N of M where it is read, and what it did not judge',
-    /^checked 1 of 3 soccer cards .*\(1 with no ESPN id, 1 outside their window, 0 with no reading yet\); 1 live$/.test(
+    /^checked 1 of 3 live-score cards .*\(1 with no ESPN id, 1 outside their window, 0 with no reading yet\); 1 live; 0 live id-less feed game\(s\) no card claims$/.test(
       run({ cards: [card(), card({ gameId: ROW_C, teams: 'No id' }), card({ gameId: ROW_B, teams: 'Out' })], rows: rowsNoStartB, outcomes: [poll([game(), game({ espnId: '401906340' })])] }).checked))
   check('the Done condition needs a request', doneConditionOf({ ...r1, requestsToV2Games: 0 }) === false)
 
@@ -408,7 +558,8 @@ if (SELF_TEST) {
     argsOf({}, '2026-11-21').date === '2026-11-21' && argsOf({}, '2026-11-21').watch === 70 && argsOf({ date: '2026-11-1' }, 'x').error !== undefined
       && argsOf({ watch: 'abc' }, '2026-11-21').error !== undefined && argsOf({ watch: '2' }, '2026-11-21').error !== undefined && argsOf({ watch: '70 --x' }, '2026-11-21').error !== undefined
       && argsOf({ date: '2026-11-21', watch: '90' }, 'x').watch === 90)
-  check('sixteen soccer labels, each with its own key', SOCCER.length === 16 && new Set(SOCCER).size === 16 && new Set(Object.values(LABEL_TO_KEY)).size === 16)
+  check('sixteen soccer labels and seven other sports, each with its own key', SOCCER.length === 16 && new Set(SOCCER).size === 16 && OTHER_LIVE.length === 7 && LIVE_LABELS.length === 23
+    && new Set(Object.values(LABEL_TO_KEY)).size === 23 && LIVE_LABELS.every(l => LABEL_TO_KEY[l] !== undefined))
   // The exit code main uses is the tested one: the LAST `// --- main` marker in the file is main's own, and main exits through exitCodeOf and never with a bare 0.
   const src = readFileSync(new URL(import.meta.url), 'utf8')
   const mainSrc = src.slice(src.lastIndexOf('// --- main'))
@@ -420,9 +571,9 @@ if (SELF_TEST) {
 // --- the probe: the glue -------------------------------------------------------
 
 export const readCards = page =>
-  page.evaluate(soccer =>
+  page.evaluate(labels =>
     [...document.querySelectorAll('.desk-card')]
-      .filter(c => soccer.includes(c.closest('section.sport-group')?.getAttribute('data-sport') ?? ''))
+      .filter(c => labels.includes(c.closest('section.sport-group')?.getAttribute('data-sport') ?? ''))
       .map(c => {
         const txt = id => c.querySelector(`[data-testid="${id}"]`)?.textContent ?? null
         return {
@@ -432,7 +583,7 @@ export const readCards = page =>
           score: txt('score'), status: txt('status'), live: txt('live') ?? '',
           forecast: c.querySelector('[data-testid="forecast"]')?.getAttribute('data-forecast') ?? null,
         }
-      }), SOCCER)
+      }), LIVE_LABELS)
 
 /** One fetch from the runner. Never throws: the status, the parsed body, and an error that says what went wrong. */
 export const defaultGetJson = async url => {
@@ -502,17 +653,17 @@ export const probe = async ({ browser, site, relay = RELAY, date, watchSeconds, 
       return el ? { state: el.getAttribute('data-state'), text: el.textContent ?? '' } : null
     })
 
-    // The runner's own view, keyed from the CARDS: the archive rows, then the feed for every key a soccer card maps to.
+    // The runner's own view, keyed from the CARDS: the archive rows, then the feed for every key a card maps to.
     const ctx = await getJson(`${relay}/context/date/${date}`)
     const keys = [...new Set(cards.map(c => LABEL_TO_KEY[c.sport]).filter(Boolean))]
     const feeds = Object.fromEntries(await Promise.all(keys.map(async k => [k, await getJson(`${relay}/v2/games?sport=${k}&date=${date}`)])))
     const runnerWhy = []
     if (ctx.error || ctx.status !== 200) runnerWhy.push(`the runner could not read /context/date/${date}: ${ctx.error ?? `HTTP ${ctx.status}`}`)
-    const live = new Set()
+    const live = []
     for (const [k, f] of Object.entries(feeds)) {
       const d = f.error || f.status !== 200 ? { ok: false, why: f.error ?? `HTTP ${f.status}` } : decodeFeed(f.body)
       if (!d.ok) runnerWhy.push(`the runner could not read the ${k} feed: ${d.why}`)
-      else for (const g of d.games) if (g.state === 'live') live.add(g.espnId)
+      else for (const g of d.games) if (g.state === 'live') live.push({ key: k, ...g })
     }
     const rows = rowsOf(ctx.body)
     const result = judge({ cards, rows, outcomes: outcomes.filter(Boolean), runner: { ok: runnerWhy.length === 0, why: runnerWhy, live }, requests, nowMs, decodeStatus })
@@ -520,7 +671,7 @@ export const probe = async ({ browser, site, relay = RELAY, date, watchSeconds, 
       feedKeys: keys, errors, decodeStatus, requestsInFlightAtRead: open, contextStatus: ctx.status, archiveRowsWithEspnId: rows.size,
       pageOutcomes: outcomes.filter(Boolean).map(o => ({ key: o.key, status: o.status, ok: o.decoded.ok, why: o.decoded.ok ? null : o.decoded.why, games: o.decoded.ok ? o.decoded.games.length : null })),
       runnerFeeds: Object.fromEntries(Object.entries(feeds).map(([k, f]) => [k, { status: f.status, error: f.error }])),
-      runnerLiveEspnIds: [...live], ...result,
+      runnerLiveEspnIds: live.map(g => g.espnId).filter(Boolean), runnerLiveGames: live.map(g => ({ key: g.key, espnId: g.espnId, home: g.homeName, away: g.awayName })), ...result,
     })
     try { shot = await page.screenshot({ fullPage: true }) } catch (e) { manifest.screenshotError = e.message }
   } catch (e) {
@@ -551,35 +702,39 @@ if (E2E) {
   const feedBody = (state, home, away, clock) => JSON.stringify({ sport: 'epl', date: DATE, count: 1, games: [{ id: `espn:${ARSENAL}`, espnEventId: ARSENAL, sport: 'epl', league: 'EPL', state, start: '2026-10-10T11:30Z', home: { name: 'Arsenal', abbr: 'ARS', score: home }, away: { name: 'Leeds', abbr: 'LEE', score: away }, clock, periodNum: 1, periodLabel: '', situation: null, matchEvents: [], streams: [] }] })
   const browser = await chromium.launch(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {})
 
-  /** One scenario: the page's slate, what its feed route answers on each tick, and what the runner's own fetches see. */
-  const scenario = async ({ slate = slateFor(g => g), feed, runnerFeed, runnerCtx = 'ok', slateRoute = 'ok', lateMs = 0 }) => {
-    const answer = n => feed[Math.min(n, feed.length - 1)]
-    let n = 0
+  /** One scenario: the page's slate, what its feed route answers on each tick, and what the runner's own fetches see. `feed` is the list of answers for the EPL key, or `{ key: [answers] }` for
+   *  several; an answer is a body, or ABORT / FAIL / GARBAGE. Each key is counted on its own, as the page asks once per key per tick. `runnerFeed` is a body, 'down', or `{ key: body }`. */
+  const scenario = async ({ slate = slateFor(g => g), feed, runnerFeed, runnerCtx = 'ok', slateRoute = 'ok', lateMs = 0, date = DATE, at = AT }) => {
+    const feeds = Array.isArray(feed) ? { epl: feed } : feed
+    const counts = {}
     const prepare = async page => {
-      await page.route(`${RELAY}/context/date/${DATE}`, r => slateRoute === 'ok' ? r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }) : r.fulfill({ status: 500, body: 'down' }))
+      await page.route(`${RELAY}/context/date/${date}`, r => slateRoute === 'ok' ? r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }) : r.fulfill({ status: 500, body: 'down' }))
       await page.route(`${RELAY}/espn-standings/soccer/eng.1/standings`, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
       await page.route(u => u.href.startsWith(`${RELAY}/v2/games`), async r => {
-        const i = n++
+        const key = new URL(r.request().url()).searchParams.get('sport')
+        const i = counts[key] = (counts[key] ?? -1) + 1
         // `lateMs`: every answer after the first arrives this much later, so the one that ends the watch is still in flight when it ends. A probe that
         // reads the cards without waiting for it reads the previous answer, and only a probe that waits passes.
         if (i > 0 && lateMs) await new Promise(res => setTimeout(res, lateMs))
-        const a = answer(i)
+        const answers = feeds[key] ?? ['FAIL']
+        const a = answers[Math.min(i, answers.length - 1)]
         if (a === 'ABORT') return r.abort('connectionrefused')
         if (a === 'FAIL') return r.fulfill({ status: 503, body: 'down' })
         if (a === 'GARBAGE') return r.fulfill({ contentType: 'text/html', body: '<html>maintenance</html>' })
         return r.fulfill({ contentType: 'application/json', body: a })
       })
-      await page.clock.install({ time: new Date(AT) })
+      await page.clock.install({ time: new Date(at) })
     }
     const getJson = async url => {
       if (url.includes('/context/date/')) return runnerCtx === 'ok' ? { status: 200, body: slate, error: null } : { status: 502, body: null, error: 'HTTP 502' }
-      return runnerFeed === 'down' ? { status: 503, body: null, error: 'HTTP 503' } : { status: 200, body: JSON.parse(runnerFeed), error: null }
+      const body = typeof runnerFeed === 'object' ? runnerFeed[new URL(url).searchParams.get('sport')] : runnerFeed
+      return body === 'down' || body === undefined ? { status: 503, body: null, error: 'HTTP 503' } : { status: 200, body: JSON.parse(body), error: null }
     }
     const watch = 70
     // The page asks one request per key at a time (src/Program.fs `inFlight`), so a tick that fires while the first answer is still in flight is
     // skipped, as it should be. A real pause lets the first answer land; then the fake clock moves past the 60 s tick.
     const wait = async (p, ms) => { await p.waitForTimeout(600); await p.clock.fastForward(ms) }
-    return probe({ browser, site: BASE, date: DATE, watchSeconds: watch, getJson, prepare, wait, now: () => Date.parse(AT) + watch * 1000 })
+    return probe({ browser, site: BASE, date, watchSeconds: watch, getJson, prepare, wait, now: () => Date.parse(at) + watch * 1000 })
   }
 
   try {
@@ -619,6 +774,41 @@ if (E2E) {
 
     const noCtx = await scenario({ feed: [LIVE], runnerFeed: LIVE, runnerCtx: 'down' })
     check('end to end, a runner that cannot read /context/date: UNVERIFIED with the status recorded', noCtx.manifest.verdict === 'UNVERIFIED' && noCtx.manifest.contextStatus === 502)
+
+    // NBA and NHL (owner 2026-11-22), the capture of 2026-11-21 cut to one NBA card (joined by ESPN event id) and one NHL card (the NHL feed carries NO id: joined by the two club names), the clock
+    // set 34 and 64 minutes after their starts. The scores, period labels and clocks are spelled out here, not derived from the rule that reads them.
+    const OD = '2026-11-21', OAT = '2026-11-22T01:04:00Z'
+    const otherSlate = () => {
+      const KEEP = ['NBA_2026-11-21_e401910024', 'NHL_2026-11-21_e401892758']
+      const c = JSON.parse(readFileSync('data/context-2026-11-21.json', 'utf8'))
+      c.games.regular = c.games.regular.filter(g => KEEP.includes(g.id)).map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+      c.games.postseason = []
+      c.briefs = []
+      return c
+    }
+    const nbaBody = (state, home, away, label, clock) => JSON.stringify({ sport: 'nba', date: OD, games: [{ id: 'espn:401910024', espnEventId: '401910024', sport: 'nba', league: 'NBA', state, start: '2026-11-22T00:30Z',
+      home: { name: 'New York Knicks', abbr: 'NY', score: home }, away: { name: 'Portland Trail Blazers', abbr: 'POR', score: away }, periodNum: 2, periodLabel: label, clock, situation: null }] })
+    const nhlBody = (state, home, away, label, clock) => JSON.stringify({ sport: 'nhl', date: OD, games: [{ id: 'nhl:2026020999', nhleGameId: 2026020999, sport: 'nhl', league: 'NHL', state, start: '2026-11-22T00:00:00Z',
+      home: { name: 'Boston Bruins', abbr: 'BOS', score: home }, away: { name: 'Washington Capitals', abbr: 'WSH', score: away }, periodNum: 2, periodLabel: label, clock }] })
+    const NBA_LIVE = nbaBody('live', 55, 48, 'Q2', '6:17'), NHL_LIVE = nhlBody('live', 2, 1, 'P2', '10:11')
+    const o1 = await scenario({ slate: otherSlate(), date: OD, at: OAT, feed: { nba: [NBA_LIVE], nhl: [NHL_LIVE] }, runnerFeed: { nba: NBA_LIVE, nhl: NHL_LIVE } })
+    const rowOf = (m, tail) => m.rows.find(r => r.teams.endsWith(tail))
+    check('end to end, NBA and NHL in play on a page whose polls work: PASS, two live-score cards judged, the Done condition true',
+      o1.manifest.verdict === 'PASS' && o1.manifest.doneCondition === true && /^checked 2 of 2 live-score cards /.test(o1.manifest.checked) && o1.manifest.scoreMatchesFeed === true && o1.manifest.error === null,
+      JSON.stringify({ v: o1.manifest.verdict, r: o1.manifest.reasons, c: o1.manifest.checked }))
+    check('...the NBA card read AWAY first with the quarter and the clock, and the NHL card the same, joined by names: spelled out',
+      rowOf(o1.manifest, 'Knicks')?.score === '48–55' && rowOf(o1.manifest, 'Knicks')?.live === 'Q2 6:17' && rowOf(o1.manifest, 'Knicks')?.kind === 'live'
+        && rowOf(o1.manifest, 'Bruins')?.score === '1–2' && rowOf(o1.manifest, 'Bruins')?.live === 'P2 10:11' && rowOf(o1.manifest, 'Bruins')?.kind === 'live', JSON.stringify(o1.manifest.rows))
+    check('...the page asked each key at least once, the runner saw both games live and the manifest names them (NHL by its clubs, it has no id)',
+      o1.manifest.requestsToV2Games >= 2 && o1.manifest.runnerLiveGames.length === 2 && o1.manifest.runnerLiveGames.some(g => g.key === 'nhl' && g.espnId === null && g.home === 'Boston Bruins')
+        && o1.manifest.runnerLiveGames.some(g => g.key === 'nba' && g.espnId === '401910024') && Buffer.isBuffer(o1.shot), JSON.stringify(o1.manifest.runnerLiveGames))
+    const o2 = await scenario({ slate: otherSlate(), date: OD, at: OAT, feed: { nba: [NBA_LIVE, nbaBody('final', 101, 96, 'F', '0.0')], nhl: [NHL_LIVE, nhlBody('final', 3, 1, 'F', '00:00')] }, runnerFeed: { nba: nbaBody('final', 101, 96, 'F', '0.0'), nhl: nhlBody('final', 3, 1, 'F', '00:00') } })
+    check('end to end, the game over in both feeds: Game over (not Full time) with the final score on both cards, the Game over marker seen, nothing live left to judge',
+      o2.manifest.gameOverMarker === true && o2.manifest.fullTimeMarker === false && o2.manifest.verdict === 'NOTHING-TO-JUDGE' && rowOf(o2.manifest, 'Knicks')?.kind === 'final' && rowOf(o2.manifest, 'Bruins')?.kind === 'final'
+        && rowOf(o2.manifest, 'Knicks')?.score === '96–101' && rowOf(o2.manifest, 'Bruins')?.score === '1–3' && rowOf(o2.manifest, 'Knicks')?.live === 'Game over', JSON.stringify({ v: o2.manifest.verdict, rows: o2.manifest.rows }))
+    const o3 = await scenario({ slate: otherSlate(), date: OD, at: OAT, feed: { nba: [NBA_LIVE], nhl: ['ABORT'] }, runnerFeed: { nba: NBA_LIVE, nhl: NHL_LIVE } })
+    check('end to end, the NHL poll refused while the runner sees the game live: FAIL as live-unread, found by the two club names, and the NBA card still judged ok',
+      o3.manifest.verdict === 'FAIL' && rowOf(o3.manifest, 'Bruins')?.kind === 'live-unread' && rowOf(o3.manifest, 'Knicks')?.kind === 'live' && rowOf(o3.manifest, 'Knicks')?.ok === true, JSON.stringify({ v: o3.manifest.verdict, rows: o3.manifest.rows }))
 
     const crash = await probe({ browser: { newContext: async () => { throw new Error('no browser today') } }, site: BASE, date: DATE, watchSeconds: 5 })
     check('end to end, a probe that dies still returns a manifest saying why, with verdict ERROR and no throw',

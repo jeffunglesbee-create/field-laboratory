@@ -504,6 +504,8 @@ type CardHandle =
       SetState: GameState -> unit
       /// What the live feed said about this game. `NoReading` puts the card back as the archive leaves it.
       SetReading: LiveScore.LiveReading -> unit
+      /// Has the feed said this game is over (`FullTime`, `GameOver`)? The poll does not ask about a settled card.
+      IsSettled: unit -> bool
       /// The card's window has ended: a live answer it holds becomes `LiveStopped` (`LiveScore.stoppedFrom`). Any other reading, and no reading, is left alone, so calling it again changes nothing.
       MarkStopped: unit -> unit }
 
@@ -791,6 +793,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
         fun r ->
             setReading r
             setHeard (heard () + 1)
+      IsSettled = fun () -> LiveScore.isSettled (reading ())
       MarkStopped =
         fun () ->
             match reading () with

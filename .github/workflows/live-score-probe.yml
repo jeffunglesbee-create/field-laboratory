@@ -1,12 +1,12 @@
-# A live soccer score on a lab card, on the DEPLOYED page, at real time, from a runner.
-# scripts/live-score-probe.mjs; docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8 and its Done condition.
+# A live score on a lab card, on the DEPLOYED page, at real time, from a runner: soccer and, from 2026-11-22, NBA, WNBA, NHL, MLB, NFL, CFB and AFL.
+# scripts/live-score-probe.mjs; docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8 and its Done condition; docs/CC-CMD-2026-11-11-live-scores-other-sports.md, Task 3.
 #
 # live-score-render-check judges a card on a pinned page at a fake clock with a mocked feed: wiring. This judges the page that is live,
 # at the time the runner runs it, with the feed the relay serves then: a real match in play. A real Chromium against the live URLs, a
 # committed screenshot and a manifest in outbox/. A runner so that it happens with nobody in a session (the authoring sandbox 403s
 # *.workers.dev at CONNECT).
 #
-# IT HAS A WINDOW. A card shows a live score only while a lab-covered soccer match is in play, so a run at any other time answers
+# IT HAS A WINDOW. A card shows a live score only while a game of a covered sport is in play, so a run at any other time answers
 # NOTHING-TO-JUDGE, which is NOT a pass and leaves the job red, as forecast-live-probe's does: the manifest, committed either way, says no
 # game was live. The runs worth making are listed in the CC-CMD,
 # Task 10 (11-17 19:35Z and 20:10Z, 11-20 00:50Z, 11-20 19:55Z / 20:10Z / 20:30Z, 11-21 12:50Z and 13:25Z).
