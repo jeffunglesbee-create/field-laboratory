@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2844bc7` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `2844bc7` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `2844bc7` | 2026-11-22 | [sport-vocabulary-2026-11-22T08-19-47-020Z.json](sport-vocabulary-2026-11-22T08-19-47-020Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `eac36f7` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `df39da2` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the twin-rows change on the deployed page reads one card per MLS match (Open question 3, option b) |
 | `39dd718` | 2026-11-22 | [live-score-2026-11-21-20261122-0225Z.png](live-score-2026-11-21-20261122-0225Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `39dd718` | 2026-11-22 | [live-score-manifest-2026-11-21-20261122-0225Z.json](live-score-manifest-2026-11-21-20261122-0225Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
