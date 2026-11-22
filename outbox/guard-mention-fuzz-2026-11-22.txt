@@ -1,0 +1,13 @@
+head 72232307 + working tree, GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)
+=== head guard, 50000 scripts, seeds 1000000..1049999 (OLD = the guard of main before item 9)
+{'scripts': 50000, 'wrote': 26900, 'refused': 30850, 'FALSE_GREENS': 0, 'mention_only': 19150, 'false_reds_old': 15852, 'false_reds_new': 0}
+=== CONTROL (a known-wrong guard must show false greens): namesseen, 6000 scripts, seeds 2000000..
+{'scripts': 6000, 'wrote': 3174, 'refused': 2842, 'FALSE_GREENS': 709, 'mention_only': 2386, 'false_reds_old': 0, 'false_reds_new': 0}
+=== CONTROL (a known-wrong guard must show false greens): subst, 6000 scripts, seeds 2000000..
+{'scripts': 6000, 'wrote': 3174, 'refused': 3614, 'FALSE_GREENS': 99, 'mention_only': 2386, 'false_reds_old': 0, 'false_reds_new': 0}
+=== CONTROL (a known-wrong guard must show false greens): wholeline, 6000 scripts, seeds 2000000..
+{'scripts': 6000, 'wrote': 3174, 'refused': 1540, 'FALSE_GREENS': 1970, 'mention_only': 2386, 'false_reds_old': 0, 'false_reds_new': 0}
+
+ALPHABET (Rule 91, what the generator draws; scripts are 1 to 4 units joined by newline, ';', '&&' or '||'): mention-only units: echo and printf of 6 messages (a .npmrc, $GITHUB_PATH, $GITHUB_ENV, NODE_OPTIONS=x, plain text), echo of a plain word, echo -n, single-quoted echo, [ -f .npmrc ], test -e .npmrc, [[ -d "$GITHUB_PATH" ]], if [ -f .npmrc ]; then echo found; fi. Write units (20): redirects (>, >>, 2>>, glued >>) to .npmrc, $GITHUB_PATH or $GITHUB_ENV, tee and tee -a, a group { echo ...; } >> file, a subshell, a heredoc cat >> "$GITHUB_ENV" <<EOF, a line continuation before the redirect, a write beside a mention with && and ||, a write inside a quoted $( ) and inside an if. Not drawn: cp, mv, sed -i, npm config set (writes the user's .npmrc without naming it: a residual of round 5, A29), a name built from pieces, python or node writing the file.
+FALSE GREEN = bash wrote .npmrc or $GITHUB_PATH, or put NODE_OPTIONS in $GITHUB_ENV, and the guard accepted the step (plain: nothing unresolved; always(): hides_a_launcher is False). FALSE RED = a step of mention-only units that the guard refuses for a reason naming .npmrc, $GITHUB_PATH or $GITHUB_ENV.
+REAL TREE: outbox/guard-heredoc-probe-2026-11-19.py against the guard of main before item 9: checked 411 of 411 run steps in 57 files; 0 steps whose command lines or unresolved reasons differ.

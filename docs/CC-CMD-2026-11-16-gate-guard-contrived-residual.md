@@ -105,9 +105,13 @@ A survivor is a clause whose removal or loosening leaves the self-test green. Ro
 
 Close when each has a fixture that fails the mutant (Rule 90), or the row is ruled out.
 
-### 9. `.npmrc`, `$GITHUB_PATH` and `$GITHUB_ENV` named in a quoted message — REACHABLE (low), false red (hunt-guard-7)
+### 9. `.npmrc`, `$GITHUB_PATH` and `$GITHUB_ENV` named in a quoted message — REACHABLE (low), false red (hunt-guard-7), BUILT 2026-11-22
 
 `echo "using the repo .npmrc"` and `if [ -f .npmrc ]; then echo found; fi` make a step unresolved: the text scan reads quotes. A write to `.npmrc` can be `> "$HOME/.npmrc"` (quoted), so blanking quotes is not enough. Close when a mention is told from a write (the redirect target, `tee`'s operand) or ruled WON'T FIX.
+
+**BUILT 2026-11-22 (owner: "item 9 approved"), landed on `main` at `__LANDED__` (scored `verify-full` run `__RUN__`).** A mention is told from a write by two closed forms that are cut from the text the three reference patterns read (`without_mentions`): `echo` or `printf` with only quoted strings that hold no `$(`, `${` or backtick and plain words as arguments, and a read-only test of a path (`[ -f X ]`, `[[ -e X ]]`, `test -d X`; one of `-f -e -d -r -s -w -x -L -h`). A redirect, a pipe or `tee` is not among an echo's arguments and stays in the text with its target, so `echo "x" >> .npmrc` is refused as before. The names written to `$GITHUB_ENV` are still read in the whole text, because `{ echo "NODE_OPTIONS=x"; } >> "$GITHUB_ENV"` has the name inside a message and the write outside it. Evidence: self-test 1467/1467 (42 new checks); 13 new mutation entries and 4 repointed, each caught (one equivalent mutant, a flags clause that the bare-word argument already covered, was removed with its entry; two lookaheads that no script of the fuzz needed were removed); real tree 411 of 411 run steps read identically; differential fuzz against bash 5.2.21 (`outbox/guard-mention-fuzz-2026-11-22.txt`): 50000 scripts, 0 false greens, false reds on mention-only scripts 15852 to 0 of 19150; three controls (names read in the cut text, a `$(` allowed in a message, the whole echo line cut) show 709, 99 and 1970 false greens in 6000 scripts. Session note: `outbox/cc-session-2026-11-22-gate-item-9.md`.
+
+What is left, each a false red (a step that is refused although it writes nothing), chosen: a read of the file (`cat .npmrc`, `ls .npmrc`, `git ls-files .npmrc`), a message that holds `${` or a substitution, an `echo` inside another quoted string (`bash -c 'echo ".npmrc"'`), and any test operator outside the nine. The fuzz does not draw `cp`, `mv`, `sed -i`, `npm config set` (a write of the user's `.npmrc` that names no file: round 5, A29), a name built from pieces, or a script that writes the file from python or node; those stay refused or unseen as before the change.
 
 ### 10. The no-launch trap — CONTRIVED and COSMETIC (rounds 4 and 5)
 
