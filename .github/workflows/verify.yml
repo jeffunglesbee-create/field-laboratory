@@ -1458,6 +1458,14 @@ jobs:
           node scripts/weather-availability.mjs --self-test
           node scripts/mutate-weather-availability.mjs
 
+      # The league-coverage check's own checks (scripts/epl-alias-coverage-check.mjs): no network and no relay checkout.
+      # Its live run is the drift sentinel's, daily; each mutation must be red by its named self-test check.
+      - name: The EPL alias coverage check's own checks
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: |
+          node scripts/epl-alias-coverage-check.mjs --self-test
+          node scripts/mutate-epl-alias-coverage.mjs
+
       - name: Keep the availability record
         if: "!cancelled() && steps.weather_availability.outcome == 'success'"
         uses: actions/upload-artifact@v4
