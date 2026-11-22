@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5b13b84` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the three red live-check runs near the other-sports commits, read and recorded in the session record |
+| `aba5793` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45064234730 |
+| `c84e08c` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the deployed page reads NFL and NHL cards in play right: live-score-probe PASS at 20:04Z, seven NFL cards and one NHL card |
+| `190ed79` | 2026-11-22 | [live-score-2026-11-22-20261122-2005Z.png](live-score-2026-11-22-20261122-2005Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `190ed79` | 2026-11-22 | [live-score-manifest-2026-11-22-20261122-2005Z.json](live-score-manifest-2026-11-22-20261122-2005Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `5cfa8cd` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | probe: a card the archive finalised is correct and is never "never asked" or "live unread"; the first deployed-page manifest of the other sports is recorded |
+| `2de1948` | 2026-11-22 | [live-score-2026-11-22-20261122-1953Z.png](live-score-2026-11-22-20261122-1953Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `2de1948` | 2026-11-22 | [live-score-manifest-2026-11-22-20261122-1953Z.json](live-score-manifest-2026-11-22-20261122-1953Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `0e9f84a` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the first real NFL halftime body shows the relay serving a break as pre; the lab's other-sports CC-CMD and session record say so, and who reads the fix |
+| `e53c4a9` | 2026-11-22 | [live-capture-nfl-2026-11-22-1941Z.json](live-capture-nfl-2026-11-22-1941Z.json) | probe: the live /v2/games shape of nfl on 2026-11-22 [skip ci] |
 | `f31f0b4` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `f31f0b4` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `f31f0b4` | 2026-11-22 | [sport-vocabulary-2026-11-22T19-22-06-512Z.json](sport-vocabulary-2026-11-22T19-22-06-512Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
