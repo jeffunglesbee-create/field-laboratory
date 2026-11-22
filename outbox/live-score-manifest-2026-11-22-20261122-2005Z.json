@@ -1,0 +1,780 @@
+{
+  "deployed": "b03d5697b8d3b7a8ca9d530f6343116807ca238b",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-22",
+  "probedAt": "2026-11-22T20:04:06.264Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "nfl",
+    "nba",
+    "nhl",
+    "seriea",
+    "laliga",
+    "ligue1",
+    "mls",
+    "bundesliga",
+    "epl"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 42 game(s) for 2026-11-22 · 2 row(s) not drawn — the same match is drawn from its ESPN id"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 42,
+  "pageOutcomes": [
+    {
+      "key": "nhl",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 5
+    },
+    {
+      "key": "nfl",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 11
+    },
+    {
+      "key": "ligue1",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 3
+    },
+    {
+      "key": "laliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 4
+    },
+    {
+      "key": "seriea",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 5
+    },
+    {
+      "key": "nhl",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 5
+    },
+    {
+      "key": "nfl",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 11
+    },
+    {
+      "key": "seriea",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 5
+    },
+    {
+      "key": "ligue1",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 3
+    },
+    {
+      "key": "laliga",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 4
+    }
+  ],
+  "runnerFeeds": {
+    "nfl": {
+      "status": 200,
+      "error": null
+    },
+    "nba": {
+      "status": 200,
+      "error": null
+    },
+    "nhl": {
+      "status": 200,
+      "error": null
+    },
+    "seriea": {
+      "status": 200,
+      "error": null
+    },
+    "laliga": {
+      "status": 200,
+      "error": null
+    },
+    "ligue1": {
+      "status": 200,
+      "error": null
+    },
+    "mls": {
+      "status": 200,
+      "error": null
+    },
+    "bundesliga": {
+      "status": 200,
+      "error": null
+    },
+    "epl": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [
+    "401873070",
+    "401873071",
+    "401873073",
+    "401873072",
+    "401873067",
+    "401873076",
+    "401873068",
+    "401875001",
+    "401882803",
+    "401876400"
+  ],
+  "runnerLiveGames": [
+    {
+      "key": "nfl",
+      "espnId": "401873070",
+      "home": "Buffalo Bills",
+      "away": "Miami Dolphins"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873071",
+      "home": "Chicago Bears",
+      "away": "New Orleans Saints"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873073",
+      "home": "Dallas Cowboys",
+      "away": "Tennessee Titans"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873072",
+      "home": "Detroit Lions",
+      "away": "Tampa Bay Buccaneers"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873067",
+      "home": "Kansas City Chiefs",
+      "away": "Arizona Cardinals"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873076",
+      "home": "Philadelphia Eagles",
+      "away": "Pittsburgh Steelers"
+    },
+    {
+      "key": "nfl",
+      "espnId": "401873068",
+      "home": "Carolina Panthers",
+      "away": "Baltimore Ravens"
+    },
+    {
+      "key": "nhl",
+      "espnId": null,
+      "home": "New York Rangers",
+      "away": "Carolina Hurricanes"
+    },
+    {
+      "key": "seriea",
+      "espnId": "401875001",
+      "home": "Atalanta",
+      "away": "Internazionale"
+    },
+    {
+      "key": "laliga",
+      "espnId": "401882803",
+      "home": "Getafe",
+      "away": "Atlético Madrid"
+    },
+    {
+      "key": "ligue1",
+      "espnId": "401876400",
+      "home": "Marseille",
+      "away": "Le Mans"
+    }
+  ],
+  "verdict": "PASS",
+  "reasons": [],
+  "cardState": "In progress",
+  "scoreMatchesFeed": true,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "gameOverMarker": false,
+  "runnerLiveUnclaimed": [],
+  "halfTimeMarker": false,
+  "requestsToV2Games": 10,
+  "checked": "checked 12 of 42 live-score cards against the page's own last /v2/games answer (0 with no ESPN id, 30 outside their window, 0 with no reading yet); 11 live; 0 live id-less feed game(s) no card claims",
+  "rows": [
+    {
+      "gameId": "NFL_2026-11-22_e401873070",
+      "teams": "Dolphins @ Bills",
+      "sport": "NFL",
+      "score": "9–20",
+      "status": "In progress",
+      "live": "Q3 7:32",
+      "forecast": null,
+      "espnId": "401873070",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873071",
+      "teams": "Saints @ Bears",
+      "sport": "NFL",
+      "score": "10–19",
+      "status": "In progress",
+      "live": "Q3 5:10",
+      "forecast": null,
+      "espnId": "401873071",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873073",
+      "teams": "Titans @ Cowboys",
+      "sport": "NFL",
+      "score": "23–34",
+      "status": "In progress",
+      "live": "Q3 7:19",
+      "forecast": null,
+      "espnId": "401873073",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873072",
+      "teams": "Buccaneers @ Lions",
+      "sport": "NFL",
+      "score": "7–17",
+      "status": "In progress",
+      "live": "Q3 4:19",
+      "forecast": null,
+      "espnId": "401873072",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873067",
+      "teams": "Cardinals @ Chiefs",
+      "sport": "NFL",
+      "score": "7–27",
+      "status": "In progress",
+      "live": "Q3 1:18",
+      "forecast": null,
+      "espnId": "401873067",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873076",
+      "teams": "Steelers @ Eagles",
+      "sport": "NFL",
+      "score": "6–16",
+      "status": "In progress",
+      "live": "Q3 7:58",
+      "forecast": null,
+      "espnId": "401873076",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873068",
+      "teams": "Ravens @ Panthers",
+      "sport": "NFL",
+      "score": "26–29",
+      "status": "In progress",
+      "live": "Q3 11:01",
+      "forecast": null,
+      "espnId": "401873068",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873074",
+      "teams": "Jets @ Chargers",
+      "sport": "NFL",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T21:05Z (parsed 21:05)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401873074",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873075",
+      "teams": "Raiders @ Broncos",
+      "sport": "NFL",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T21:25Z (parsed 21:25)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401873075",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873069",
+      "teams": "Jaguars @ Giants",
+      "sport": "NFL",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T21:25Z (parsed 21:25)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401873069",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NFL_2026-11-22_e401873077",
+      "teams": "Vikings @ 49ers",
+      "sport": "NFL",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T01:20Z (parsed 01:20)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401873077",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910029",
+      "teams": "Pistons @ Hawks",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T20:30Z (parsed 20:30)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910029",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910030",
+      "teams": "Thunder @ Heat",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T23:00Z (parsed 23:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910030",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910031",
+      "teams": "Magic @ Wizards",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T00:00Z (parsed 00:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910031",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910032",
+      "teams": "Nuggets @ Bulls",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T00:00Z (parsed 00:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910032",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910033",
+      "teams": "Mavericks @ Jazz",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T00:00Z (parsed 00:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910033",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910034",
+      "teams": "Pacers @ Knicks",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T01:00Z (parsed 01:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910034",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NBA_2026-11-22_e401910035",
+      "teams": "Celtics @ Warriors",
+      "sport": "NBA",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T01:30Z (parsed 01:30)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401910035",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NHL_2026-11-22_e401892768",
+      "teams": "Hurricanes @ Rangers",
+      "sport": "NHL",
+      "score": "4–1",
+      "status": "In progress",
+      "live": "P3 05:33",
+      "forecast": null,
+      "espnId": "401892768",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NHL_2026-11-22_e401892769",
+      "teams": "Sabres @ Lightning",
+      "sport": "NHL",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T22:00Z (parsed 22:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401892769",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NHL_2026-11-22_e401892770",
+      "teams": "Oilers @ Blues",
+      "sport": "NHL",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T00:00Z (parsed 00:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401892770",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NHL_2026-11-22_e401892771",
+      "teams": "Penguins @ Stars",
+      "sport": "NHL",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T00:00Z (parsed 00:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401892771",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "NHL_2026-11-22_e401892772",
+      "teams": "Blackhawks @ Canucks",
+      "sport": "NHL",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T01:00Z (parsed 01:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401892772",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Serie A_2026-11-22_e401875008",
+      "teams": "Juventus v Venezia",
+      "sport": "Serie A",
+      "score": "4–0",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401875008",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Serie A_2026-11-22_e401875047",
+      "teams": "Bologna v Udinese",
+      "sport": "Serie A",
+      "score": "1–1",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401875047",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Serie A_2026-11-22_e401874960",
+      "teams": "Sassuolo v Genoa",
+      "sport": "Serie A",
+      "score": "0–2",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401874960",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Serie A_2026-11-22_e401874989",
+      "teams": "Milan v Frosinone",
+      "sport": "Serie A",
+      "score": "5–1",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401874989",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Serie A_2026-11-22_e401875001",
+      "teams": "Atalanta v Inter Milan",
+      "sport": "Serie A",
+      "score": "0–1",
+      "status": "In progress",
+      "live": "20'",
+      "forecast": null,
+      "espnId": "401875001",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "La Liga_2026-11-22_e401882804",
+      "teams": "Barcelona v Villarreal",
+      "sport": "La Liga",
+      "score": "3–2",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401882804",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "La Liga_2026-11-22_e401882800",
+      "teams": "Racing v Real Sociedad",
+      "sport": "La Liga",
+      "score": "3–2",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401882800",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "La Liga_2026-11-22_e401882801",
+      "teams": "Osasuna v Málaga",
+      "sport": "La Liga",
+      "score": "1–0",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401882801",
+      "kind": "final",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "La Liga_2026-11-22_e401882803",
+      "teams": "Getafe v Atlético",
+      "sport": "La Liga",
+      "score": "0–0",
+      "status": "In progress",
+      "live": "5'",
+      "forecast": null,
+      "espnId": "401882803",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Ligue 1_2026-11-22_e401876397",
+      "teams": "Paris FC v Angers",
+      "sport": "Ligue 1",
+      "score": "4–0",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401876397",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Ligue 1_2026-11-22_e401876401",
+      "teams": "Lorient v Rennes",
+      "sport": "Ligue 1",
+      "score": "1–1",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401876401",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Ligue 1_2026-11-22_e401876400",
+      "teams": "Marseille v Le Mans",
+      "sport": "Ligue 1",
+      "score": "0–0",
+      "status": "In progress",
+      "live": "19'",
+      "forecast": null,
+      "espnId": "401876400",
+      "kind": "live",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_2026-11-22_e401933731",
+      "teams": "Nashville v Cincinnati",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T21:00Z (parsed 21:00)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401933731",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_2026-11-22_e401933730",
+      "teams": "Chicago v Charlotte",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled 2026-11-22T23:30Z (parsed 23:30)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401933730",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "MLS_2026-11-22_e401933729",
+      "teams": "Vancouver v Salt Lake",
+      "sport": "MLS",
+      "score": "—",
+      "status": "Scheduled 2026-11-23T01:30Z (parsed 01:30)",
+      "live": "",
+      "forecast": null,
+      "espnId": "401933729",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Bundesliga_2026-11-22_e401884733",
+      "teams": "Augsburg v Mainz",
+      "sport": "Bundesliga",
+      "score": "3–1",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401884733",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "Bundesliga_2026-11-22_e401884730",
+      "teams": "Bremen v Hamburg",
+      "sport": "Bundesliga",
+      "score": "4–0",
+      "status": "Final",
+      "live": "",
+      "forecast": null,
+      "espnId": "401884730",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "EPL_2026-11-22_e401879234",
+      "teams": "Hull v Brighton",
+      "sport": "EPL",
+      "score": "2–0",
+      "status": "Final",
+      "live": "",
+      "forecast": "none",
+      "espnId": "401879234",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    },
+    {
+      "gameId": "EPL_2026-11-22_e401878755",
+      "teams": "Liverpool v Man Utd",
+      "sport": "EPL",
+      "score": "4–0",
+      "status": "Final",
+      "live": "",
+      "forecast": "none",
+      "espnId": "401878755",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": true,
+  "screenshot": "outbox/live-score-2026-11-22-20261122-2005Z.png"
+}
