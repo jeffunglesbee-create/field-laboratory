@@ -264,6 +264,25 @@ jobs:
           RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
         run: npm run check:sport-vocabulary
 
+      # THE LEAGUE, AGAINST THE RELAY'S TEAM RESOLVER
+      # (field-relay-nba docs/CC-CMD-2026-09-11-epl-identity-resolve.md, Task 2, carried forward 2026-11-22).
+      # Promotion and relegation change three clubs every summer, and a spelling that resolves to no league club
+      # fails silently: the archive's `C Palace` sat unmatched against the league's `Crystal Palace` until an alias
+      # was added. This compares the 20 clubs of the ESPN standings with the names FPL and the archive use for them,
+      # through the relay's own resolver, and is red on any name that reaches no club or any feed it cannot read.
+      # It reads three PUBLIC relay routes and the resolver's source from a read-only checkout of the relay (a
+      # public repo), so it needs no secret and spends no Odds credit. Daily is more than a seasonal change needs,
+      # and costs three cached GETs.
+      - uses: actions/checkout@v4
+        if: always()
+        with:
+          repository: jeffunglesbee-create/field-relay-nba
+          path: .relay-src
+
+      - name: The relay's resolver reaches every club in the league
+        if: always()
+        run: npm run check:epl-alias-coverage
+
       - name: Append to the drift log
         if: always()
         run: |

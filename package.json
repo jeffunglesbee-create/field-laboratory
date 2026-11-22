@@ -121,6 +121,7 @@
     "check:game-id": "node scripts/game-id-check.mjs --self-test && node scripts/game-id-check.mjs",
     "check:scoreline": "node scripts/scoreline-check.mjs --self-test && node scripts/scoreline-check.mjs",
     "check:sport-vocabulary": "node scripts/sport-vocabulary-check.mjs",
+    "check:epl-alias-coverage": "node scripts/epl-alias-coverage-check.mjs --self-test && node scripts/epl-alias-coverage-check.mjs",
     "check:staged-outbox": "node scripts/staged-outbox-check.mjs --self-test && node scripts/staged-outbox-check.mjs",
     "check:staged-verifier": "node scripts/staged-verifier-check.mjs --self-test && node scripts/staged-verifier-check.mjs",
     "check:boundary": "node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs",
