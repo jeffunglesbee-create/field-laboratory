@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-22T14:53:56.157Z",
+  "at": "2026-11-22T23:49:13.575Z",
   "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
   "join": {
     "resolved": 20,
@@ -44,12 +44,12 @@
     {
       "subject": "epl-fixture-106",
       "provenance": "Modelled",
-      "value": "0.176260/0.270000/0.553740"
+      "value": "0.246735/0.270000/0.483265"
     },
     {
       "subject": "epl-fixture-107",
       "provenance": "Modelled",
-      "value": "0.590509/0.270000/0.139491"
+      "value": "0.624290/0.270000/0.105710"
     },
     {
       "subject": "epl-fixture-103",
