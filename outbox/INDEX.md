@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `336ae76` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the other-sports session record names the commits and what CI said at each |
+| `bd6f715` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `e5a8e47` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | probe: the deployed-page probe judges every sport the page asks the feed about; the registry check holds its keys, away-first set and windows to the compiled page |
 | `f900e82` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45057130549 |
 | `43b42a7` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | feat: live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL; a card the feed has finished is neither asked about nor told later answers |
 | `43b42a7` | 2026-11-22 | [relay-cfb-post-body-2026-11-22.md](relay-cfb-post-body-2026-11-22.md) | feat: live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL; a card the feed has finished is neither asked about nor told later answers |
