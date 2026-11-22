@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f31f0b4` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `f31f0b4` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `f31f0b4` | 2026-11-22 | [sport-vocabulary-2026-11-22T19-22-06-512Z.json](sport-vocabulary-2026-11-22T19-22-06-512Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `77ba8a1` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b03d569` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45058031285 |
 | `3233b0a` | 2026-11-22 | [live-capture-nfl-2026-11-22-1910Z.json](live-capture-nfl-2026-11-22-1910Z.json) | probe: the live /v2/games shape of nfl on 2026-11-22 [skip ci] |
 | `336ae76` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the other-sports session record names the commits and what CI said at each |
