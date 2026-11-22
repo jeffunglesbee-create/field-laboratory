@@ -7,8 +7,9 @@ Written 2026-11-22 on `main`. Owner direction of 2026-11-22: NBA, NHL "and the o
 | point | where | what |
 |---|---|---|
 | start | `main` `6d6ab9df` | the poll asked the feed about the sixteen soccer sport keys only; verify 45036530728 and guards 45036530781 green; deploy 45037242877 and live-check 45037360735 green on the head after it |
-| page | the commit that adds this file | the page reads live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL |
-| probe | the next code commit | the deployed-page probe and its registry check judge every one of those sports |
+| page | `main` `43b42a75` (pushed 18:48Z) | the page reads live scores for NBA, WNBA, NHL, MLB, NFL, CFB and AFL; verify 45057130549 and guards 45057130166 green, deploy 45057829049 green (18:55:50Z to 18:56:50Z, on `f900e829`, the outbox commit after it); `live-check` on that head: not read when this was written |
+| probe | `main` `e5a8e479` (pushed about 18:58Z) | the deployed-page probe and its registry check judge every one of those sports; its CI: not read when this was written |
+| relay | field-relay-nba `main` `85127fb` (pushed first, ATOMIC-A) | CONTRACTS.md gains the other boards; a note on the v2 final-word CC-CMD |
 
 ## What the stack contains (commit order)
 
