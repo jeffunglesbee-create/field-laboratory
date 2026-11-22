@@ -754,20 +754,37 @@ GITHUB_PATH_REF = re.compile(r"\$\{?GITHUB_PATH\b")
 GITHUB_ENV_REF = re.compile(r"\$\{?GITHUB_ENV\b")
 ASSIGNED_NAME = re.compile(r"(?<![\w$])([A-Za-z_]\w*)(?:=|<<)")
 NPMRC_REF = re.compile(r"\.npmrc\b")
+# A MENTION IS NOT A WRITE (residual CC-CMD item 9, hunt-guard-7). `echo "using the repo .npmrc"` and `if [ -f .npmrc ]; then echo found; fi` named the file and made the step unresolved. Two closed forms are cut out
+# of the text the three REFERENCE patterns above read, and nothing else: (1) `echo` or `printf` with only quoted strings without a substitution (no `$(`, no `${`, no backtick) and plain words for arguments: it
+# writes to stdout, so what its arguments name is text. A redirect, a pipe or a `tee` is not among the arguments and stays in the text, with its target (`echo "x" >> .npmrc` still names the file; a lookahead for what
+# follows the command was tried and removed: no script of the fuzz needs it); (2) a read-only test of a path, `[ -f X ]`, `[[ -e X ]]` or `test -d X` (one of `-f -e -d -r -s -w -x -L -h`, one plain or quoted
+# operand with no substitution). A quoted string with a `$(` is no message: its command runs, and the step is refused for that anyway in a plain step but not in an always() one (the fuzz shows the difference: 55 false greens
+# without the exclusion in 3000 scripts). The names a step writes to $GITHUB_ENV are still read
+# from the WHOLE text: `{ echo "NODE_OPTIONS=x"; } >> "$GITHUB_ENV"` has the name inside a message command and the write outside it (hunt-guard-1, 2). Anything else that holds the name stays refused.
+_MSG_ARG = r"""(?:"(?:[^"\\`$]|\\.|\$(?![({]))*"|'[^']*'|[\w./:=@%+,-]+)"""
+MESSAGE_COMMAND = re.compile(r"(?<![\w$./-])(?:echo|printf)(?:[ \t]+" + _MSG_ARG + r")+")
+_TEST_OPERAND = r"""(?:"(?:[^"\\`$]|\\.|\$(?![({]))*"|'[^']*'|[\w./~:=@%+,-]+)"""
+READONLY_TEST = re.compile(r"(?<![\w$./-])(?:\[\[?[ \t]+-[fedrswxLh][ \t]+" + _TEST_OPERAND + r"[ \t]+\]\]?|test[ \t]+-[fedrswxLh][ \t]+" + _TEST_OPERAND + r")")
 
 
-def later_step_effects(text):
+def without_mentions(line):
+    """The line with each mention-only command (MESSAGE_COMMAND, READONLY_TEST) replaced by `true`: what the three reference patterns read."""
+    return READONLY_TEST.sub("true", MESSAGE_COMMAND.sub("true", line))
+
+
+def later_step_effects(text, seen=None):
     """[(trigger, why)] the command text (its comment already cut) changes what the steps after it run, in a way this reader cannot follow. `trigger` is the pattern that finds the line the reason is about
     (the `$GITHUB_PATH` reference, the line that names the variable, the `.npmrc`), so that a refusal quotes that line and not the first line that matches any of the three (review of 945daddf, F1 and F4)."""
     out = []
-    if GITHUB_PATH_REF.search(text):
+    seen = text if seen is None else seen                                  # the text the references are read in: without the mention-only commands (without_mentions); the NAMES are read in `text`
+    if GITHUB_PATH_REF.search(seen):
         out.append((GITHUB_PATH_REF, "it writes to $GITHUB_PATH, which puts a directory first on the PATH of every later step"))
-    if GITHUB_ENV_REF.search(text):
+    if GITHUB_ENV_REF.search(seen):
         names = sorted({n for n in ASSIGNED_NAME.findall(text) if dangerous_var(n)})
         if names:
             out.append((re.compile(r"(?<![\w$])(?:" + "|".join(re.escape(n) for n in names) + r")(?:=|<<)"),
                         f"it writes {', '.join(names)} to $GITHUB_ENV, which changes what the commands of every later step run (or it names `{names[0]}=` in a step that writes to $GITHUB_ENV: put a message that only mentions the name in a step of its own)"))
-    if NPMRC_REF.search(text):
+    if NPMRC_REF.search(seen):
         out.append((NPMRC_REF, "it names a .npmrc file, which sets npm's own config (script-shell, node-options...) for every later `npm run`"))
     return out
 
@@ -1008,8 +1025,9 @@ def read_commands(script, pkg, read, seen=frozenset(), depth=0, out=None):
         out["unresolved"].append("a NUL byte in the script: bash drops it, so it is not read as bash reads it")
     lines, bodies = command_lines(script)
     cut = [strip_comment(l) for l in lines]
-    for trigger, why in later_step_effects("\n".join(cut + bodies)):      # the whole step, and the bodies of its heredocs: `cat >> "$GITHUB_ENV" <<EOF` writes what its body says
-        shown = next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])
+    mentionless = [without_mentions(c) for c in cut] + bodies               # the references are read without the mention-only commands, the names in the whole text (item 9)
+    for trigger, why in later_step_effects("\n".join(cut + bodies), "\n".join(mentionless)):      # the whole step, and the bodies of its heredocs: `cat >> "$GITHUB_ENV" <<EOF` writes what its body says
+        shown = next((l for l, c in zip(lines + bodies, mentionless) if trigger.search(c)), None) or next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])
         out["unresolved"].append(f"`{shown[:80]}`: {why}")
     for line in lines:
         line = _odd_to_word(line)
@@ -4410,6 +4428,20 @@ def self_test():
     for cmd in ("npm run a\xa0b", "node scripts/a\xa0b.mjs"):
         r = read_step({"run": cmd}, pkg_odd, lambda p: files_odd[p])
         check(f"a package script or a file whose name holds an odd blank is read by its name, not by the name with a letter in its place (`{cmd!r}`): the step is refused, not read as the benign sibling (review 4, SS-2)", r["unresolved"] != [] or r["browser"], r)
+    # Item 9 (residual CC-CMD, hunt-guard-7): a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write. A mention-only command is clean in a plain step; a write beside one is refused, plain or in an always() step.
+    plain_ok = lambda cmd: read_step({"run": cmd}, pkg, read)["unresolved"] == []
+    for cmd in ('echo "using the repo .npmrc"', "printf '%s\\n' 'see .npmrc'", "echo see .npmrc", 'echo -n "see .npmrc"', 'echo "appends to $GITHUB_PATH in the next step"', "echo 'the $GITHUB_ENV file'",
+                "if [ -f .npmrc ]; then echo found; fi", '[[ -e "$GITHUB_PATH" ]] && echo yes', "test -d .npmrc", *(f"[ -{op} .npmrc ]" for op in "fedrswxLh")):
+        check(f"a mention-only command is no write: clean in a plain step (item 9, `{cmd[:44]}`)", plain_ok(cmd), read_step({"run": cmd}, pkg, read)["unresolved"])
+    for cmd in ('echo "registry=x" >> .npmrc', 'echo "registry=x" > "$HOME/.npmrc"', 'echo "m"; echo "registry=x" >> .npmrc', "[ -f .npmrc ] || echo x > .npmrc", 'echo "x" 2>> .npmrc', 'echo "x">>.npmrc',
+                'echo /tmp/evil | tee -a "$GITHUB_PATH"', 'echo "using .npmrc" && echo /x >> "$GITHUB_PATH"', '{ echo "NODE_OPTIONS=x"; } >> "$GITHUB_ENV"', '( echo "NODE_OPTIONS=x" ) >> "$GITHUB_ENV"',
+                'echo "NODE_OPTIONS=x" | tee "$GITHUB_ENV"', 'echo "$(echo x >> .npmrc)"', 'echo "a" \\\n  >> .npmrc', "if [ -f .npmrc ]; then echo x >> .npmrc; fi", 'echo "`echo x >> .npmrc`"'):
+        check(f"...and a write beside a mention is still refused, plain or in an always() step (item 9, `{cmd[:44]}`)", plain_refused(cmd) and not clean(cmd) and not kept(cmd), (read_step({"run": cmd}, pkg, read)["unresolved"], unread(cmd)))
+    r9 = read_step({"run": 'echo "using .npmrc"\necho x >> .npmrc'}, pkg, read)["unresolved"]
+    check("the refusal quotes the line that writes, not the line that mentions (item 9)", len(r9) == 1 and "echo x >> .npmrc" in r9[0] and "using" not in r9[0], r9)
+    for src, want in (('echo "a .npmrc"', "true"), ('echo "x" >> .npmrc', "true >> .npmrc"), ('echo "$(date)"', 'echo "$(date)"'), ("[ -f .npmrc ]", "true"), ("[ -n .npmrc ]", "[ -n .npmrc ]"), ("[ -f $(x) ]", "[ -f $(x) ]"),
+                      ("echo a | tee .npmrc", "true | tee .npmrc"), ("noecho 'a'", "noecho 'a'")):
+        check(f"without_mentions: `{src}` is `{want}` (item 9)", without_mentions(src) == want, without_mentions(src))
     # The cost of reading a string that spans lines: each line is scanned once, with what the lines before it left open carried on (one `_scan` of the whole text for each line added made it quadratic: 2000 lines took 10 s).
     scanned, real_scan = [0], _scan
     def counting_scan(line, *rest):
