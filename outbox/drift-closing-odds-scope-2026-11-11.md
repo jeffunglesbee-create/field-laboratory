@@ -49,4 +49,22 @@ Added to `outbox/drift-closing-odds-fix-verified-2026-11-12.txt`, which holds th
 
 **What was not read:** the closing-odds row's own line in this run's log. The log tool returned the last 230 of 758 lines, and that row is printed in step 7, earlier. That the row is not `REGRESSED` is therefore an inference from step 7 being `success` (in each of the seven red runs the other note records, that step was the one that failed and its `##[error]` line named this ask), not a quotation. The verbatim `no rows` and `NOT OBSERVABLE` lines are the dispatched run's, in the other note. The date this run probed (yesterday in UTC, 2026-11-11, EFL Trophy only) was not read from the log either.
 
-**Still staged, unchanged:** a `holds` reading, which needs a sentinel run that probes a date with an EPL or La Liga game. The relay lists none for 2026-11-13 to 11-15; the next EPL matchday is 2026-11-21 (the forecast probe's routine names it), so the first run that probes it is the 01:30 slot of 2026-11-22, which arrives about 08:00 to 08:45Z. A reminder into the authoring session is set for 2026-11-22 09:30Z (`trig_01NRgH5ZtCuAPCCrQBZGtRC3`).
+**Still staged at the time of that section (met 2026-11-22, the section below):** a `holds` reading, which needs a sentinel run that probes a date with an EPL or La Liga game. The relay lists none for 2026-11-13 to 11-15; the next EPL matchday is 2026-11-21 (the forecast probe's routine names it), so the first run that probes it is the 01:30 slot of 2026-11-22, which arrives about 08:00 to 08:45Z. A reminder into the authoring session is set for 2026-11-22 09:30Z (`trig_01NRgH5ZtCuAPCCrQBZGtRC3`).
+
+## The `holds` reading (read 2026-11-22 09:31Z)
+
+The reminder set for 09:30Z (`trig_01NRgH5ZtCuAPCCrQBZGtRC3`) fired and this was read then. **Result: `holds`.**
+
+| fact | value | where |
+|---|---|---|
+| the run | 45002204270, event `schedule`, created 2026-11-22T08:18:39Z (the 01:30 slot, about 6 h 49 min after its cron), conclusion `success`, job 137145989711 | `mcp__github__actions_list` `list_workflow_runs` (the first `schedule` run created at or after 2026-11-22T01:30Z; the one before it, 44938394674, is 2026-11-21T18:58Z) and `list_workflow_jobs` |
+| the head | `eac36f7211ad1279642e7b4e3d5a3752512753e9` (authored 2026-11-22T08:06:54Z); `git merge-base --is-ancestor 1f4a3464 eac36f72` says yes | `git` in the clone |
+| the step | `Did the filed CC-CMDs land?` (step 7) `success`, 08:19:43Z to 08:19:45Z | the job's step list |
+| the verbatim line | `2026-11-22T08:19:45.8172374Z   holds      CC-CMD-2026-08-21-closing-odds-capture (surviving ask)`, followed by `landed 2026-08-27, drift-sentinel run 33035197618, probing /context/date/2026-08-26` and the note that the rate lives in the relay's own probe; the date in that second line is where the ask LANDED, not what this run probed | the job's log (`get_job_logs` with `tail_lines` 900 returned the whole job, 752 split lines; the tool saved it to a file, which was read by slicing) |
+
+**The probed date: 2026-11-21, derived, not printed for this row.** The ask's route is `/context/date/${yesterdayUTC()}` (`scripts/cc-cmd-followup.mjs`, the entry named `CC-CMD-2026-08-21-closing-odds-capture (surviving ask)`), and the run was created 2026-11-22T08:18:39Z, so yesterday in UTC is 2026-11-21. The same log prints `probe: /context/date/2026-11-21` for another ask (`CC-CMD-2026-08-25-golf-sport-label`, which uses the same helper), so the route did resolve to that date in this run. The payload the sentinel read was not read here. A capture of the same route taken 2026-11-22 00:47Z, `data/context-2026-11-21.json`, has `opening_odds` on 7 of 7 EPL rows and 4 of 4 La Liga rows (non-null; whether each parses is what the predicate decides and is not re-read here).
+
+**What `holds` means in the script.** `landedVerdict` (`scripts/cc-cmd-followup.mjs:43`) maps `null` to `no rows`, `true` to `holds` and `false` to `REGRESSED`; `true` is "at least one EPL or La Liga game carries an opening line", and `null` is "no EPL or La Liga game in the payload". So this run's payload held EPL or La Liga games and at least one was priced. The only earlier reading of this predicate on `main` was `no rows` on an EFL Trophy slate (dispatched run 43144848254); the first scheduled run after the fix (43183593967) was not read. The staged item is met.
+
+**Not read:** the sentinel's own payload for 2026-11-21 (no step prints it), and how many of the EPL and La Liga games it carried were priced.
+
