@@ -5316,6 +5316,16 @@ let private twinRows () =
         """{"id":"MLS_MLS-COM-000002_R16-08_roundonebestof3series_2026-11-21","sport":"MLS","series_key":"MLS-COM-000002_R16-08","round":"Round One Best-of-3 Series","game_number":1,"date":"2026-11-21","home":"Inter Miami CF","away":"Columbus Crew","home_score":null,"away_score":null,"venue":"Nu Stadium","streams":null,"note":null,"series_record":null,"series_margins":null,"importance":null,"league":"Major League Soccer - Cup Playoffs","crew":null,"created_at":"2026-11-09 21:22:34","opening_odds":null,"closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":null,"went_to_ot":null,"finalized_at":null,"start_time":null,"inplay_odds":null,"bsd_event_id":"654252"}"""
         ]
         |> List.map decode
+    // The four NHL rows of the same capture, verbatim: two matches, each as a row with an ESPN id and a start time and as a lowercase row that carries an NHL API id in
+    // `espn_event_id`, has the same score and no start time (CC-CMD Open question 4).
+    let realNhl =
+        [
+        """{"id":"NHL_2026-11-21_e401892754","sport":"NHL","league":"NHL","date":"2026-11-21","home":"Hurricanes","away":"Oilers","home_score":7,"away_score":4,"venue":"Lenovo Center","streams":"NHL Net, CARNHL","note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 10:00:31","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:41.328Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-180,\"away\":150},\"spread\":{\"home\":-1.5,\"away\":1.5,\"homePrice\":136,\"awayPrice\":-162},\"total\":{\"over\":6.5,\"under\":6.5}}","closing_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T17:50:16.705Z\",\"moneyline\":{\"home\":-238,\"away\":195},\"spread\":{\"home\":-1.5,\"away\":1.5,\"homePrice\":110,\"awayPrice\":-130},\"total\":{\"over\":6.5,\"under\":6.5},\"_kickoff\":{\"at\":\"2026-11-21T18:00Z\",\"verified\":true,\"late_minutes\":null}}","drama_peak":null,"drama_arc":null,"espn_event_id":"401892754","went_to_ot":0,"finalized_at":"2026-11-21 21:00:25","start_time":"2026-11-21T18:00Z","importance":null,"inplay_odds":null,"bsd_event_id":null}"""
+        """{"id":"nhl_2026-11-21_e2026020359","sport":"NHL","league":"NHL","date":"2026-11-21","home":"Carolina Hurricanes","away":"Edmonton Oilers","home_score":7,"away_score":4,"venue":"Lenovo Center","streams":null,"note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 20:55:18","opening_odds":null,"closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":"2026020359","went_to_ot":0,"finalized_at":"2026-11-21 20:55:18","start_time":null,"importance":null,"inplay_odds":null,"bsd_event_id":null}"""
+        """{"id":"NHL_2026-11-21_e401892755","sport":"NHL","league":"NHL","date":"2026-11-21","home":"Flames","away":"Blackhawks","home_score":3,"away_score":4,"venue":"Scotiabank Saddledome","streams":"ESPN+, CHSN","note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 10:00:32","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:41.328Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-162,\"away\":136},\"spread\":{\"home\":-1.5,\"away\":1.5,\"homePrice\":160,\"awayPrice\":-192},\"total\":{\"over\":5.5,\"under\":5.5}}","closing_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T20:20:02.873Z\",\"moneyline\":{\"home\":-162,\"away\":136},\"spread\":{\"home\":-1.5,\"away\":1.5,\"homePrice\":160,\"awayPrice\":-192},\"total\":{\"over\":5.5,\"under\":5.5},\"_kickoff\":{\"at\":\"2026-11-21T20:30Z\",\"verified\":true,\"late_minutes\":null}}","drama_peak":null,"drama_arc":null,"espn_event_id":"401892755","went_to_ot":1,"finalized_at":"2026-11-21 23:30:24","start_time":"2026-11-21T20:30Z","importance":null,"inplay_odds":null,"bsd_event_id":null}"""
+        """{"id":"nhl_2026-11-21_e2026020360","sport":"NHL","league":"NHL","date":"2026-11-21","home":"Calgary Flames","away":"Chicago Blackhawks","home_score":3,"away_score":4,"venue":"Scotiabank Saddledome","streams":null,"note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 23:26:43","opening_odds":null,"closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":"2026020360","went_to_ot":1,"finalized_at":"2026-11-21 23:26:43","start_time":null,"importance":null,"inplay_odds":null,"bsd_event_id":null}"""
+        ]
+        |> List.map decode
     let eid (id: string) = sprintf ",\"espn_event_id\":\"%s\"" id
     let row (id: string) (sport: string) (home: string) (away: string) (extra: string) =
         decode (sprintf """{"id":"%s","sport":"%s","date":"2026-11-21","home":"%s","away":"%s"%s}""" id sport home away extra)
@@ -5369,10 +5379,34 @@ let private twinRows () =
           [ stub; { stub with Id = "s2" }; twin ]
           [ stub; { stub with Id = "s2" }; twin; { twin with Id = "t2" } ]
 
-      Verify.check "a row with an ESPN id is never dropped, whatever its twin"
+      // The capture holds a recap for each of these four rows, keyed by the row's `espn_event_id` (the lowercase rows by their NHL API id). The text is not the point, the keys are.
+      Verify.check "the two real NHL matches of 2026-11-21: the lowercase row with no start time is not drawn, though a recap joins it, because its twin has a recap too"
+          (fun (rows: Game list) ->
+              let recaps = [ "2026020359"; "401892754"; "2026020360"; "401892755" ] |> List.map (fun id -> brief id "A recap.")
+              drawn recaps rows = [ "NHL_2026-11-21_e401892754"; "NHL_2026-11-21_e401892755" ]
+              && notDrawn recaps rows = [ "nhl_2026-11-21_e2026020359"; "nhl_2026-11-21_e2026020360" ])
+          realNhl
+          (realNhl |> List.map (fun g -> { g with Day = None }))
+
+      Verify.check "a stub with a brief whose twin has a brief too is not drawn: no brief is lost"
+          (fun (briefs: Brief list, rows: Game list) -> drawn briefs rows = [ "t1" ])
+          ([ brief "s1" "A report."; brief "7001" "A report." ], pair)
+          ([ brief "s1" "A report." ], pair)
+
+      Verify.check "a row with an ESPN id and a start time is never dropped, whatever its twin"
+          (fun (rows: Game list) -> List.length (drawn [] rows) = 2)
+          [ { twin with RawStartTime = Some "2026-11-21T18:00Z" }; { stub with EspnEventId = Some "7000"; RawStartTime = Some "2026-11-21T18:00Z" } ]
+          [ { twin with RawStartTime = Some "2026-11-21T18:00Z" }; { stub with EspnEventId = Some "7000" } ]
+
+      Verify.check "two rows that both carry an id are one match only when one of them has no start time"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          [ { stub with EspnEventId = Some "7000" }; { twin with RawStartTime = Some "2026-11-21T18:00Z" } ]
+          [ { stub with EspnEventId = Some "7000" }; twin ]
+
+      Verify.check "a stub that has an id needs a twin that has a start time"
           (fun (rows: Game list) -> List.length (drawn [] rows) = 2)
           [ { stub with EspnEventId = Some "7000" }; twin ]
-          pair
+          [ { stub with EspnEventId = Some "7000" }; { twin with RawStartTime = Some "2026-11-21T18:00Z" } ]
 
       Verify.check "a stub that has a score its twin lacks stays"
           (fun (rows: Game list) -> drawn [] rows = [ "s1"; "t1" ])

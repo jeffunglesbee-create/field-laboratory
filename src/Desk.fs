@@ -995,22 +995,25 @@ let sameTeam (a: string) (b: string) : bool =
 let sameFixture (x: Game) (y: Game) : bool =
     (sameTeam x.Home y.Home && sameTeam x.Away y.Away) || (sameTeam x.Home y.Away && sameTeam x.Away y.Home)
 
-/// `(drawn, notDrawn)`: the day's rows, with the ones that are the same match as a row carrying an ESPN event id taken out.
+/// `(drawn, notDrawn)`: the day's rows, with the ones that are the same match as a better-recorded row taken out.
 ///
-/// A row is not drawn only when ALL of these hold, each of them a way a row could be a different match or carry something its twin lacks:
-///   - it has no ESPN event id itself (an ESPN-id row is never dropped, and is what the others are matched to);
-///   - it is a contest with two named sides (a golf event is not a pair of clubs);
-///   - there is a row with an ESPN id, in the same sport on the same day, with the same two clubs, that no earlier row has already used: ONE
-///     twin per stub, so a doubleheader's two rows are two matches and a second stub stays;
+/// A STUB is a row that has no ESPN event id (the provider-composite and dash-scheme rows of MLS) or no start time at all (the lowercase `nhl_` and `nba_` rows, which
+/// carry an NHL or ESPN id in `espn_event_id` and are the same finished match written a second time: owner ruling 2026-11-22, "go with Claude's best recommendations",
+/// CC-CMD Open question 4). A stub is not drawn only when ALL of these hold, each of them a way a row could be a different match or carry something its twin lacks:
+///   - it is a contest between two clubs (a golf event is not a pair of clubs);
+///   - there is a row with an ESPN id, in the same sport on the same day, with the same two clubs, that no earlier row has already used:
+///     ONE twin per stub, so a doubleheader's two rows are two matches and a second stub stays. A stub that HAS an id needs a twin that also has a start time, so
+///     two real games of a doubleheader, both with a start time, are never one another's stub;
 ///   - it has no score the twin lacks (a final here must not be replaced by a card that is not yet scored);
 ///   - it has no odds the twin lacks (two real stubs of the committed captures, both Red Bull New York, hold an opening line their twin does not, and the card that
 ///     is left would read "no odds" where the stub's read a price);
-///   - no brief joins to it (`briefsByGame` is the one authority on that), because the brief would go with the card.
+///   - no brief joins to it that its twin lacks (`briefsByGame` is the one authority on that): a brief on a stub whose twin has none would go with the card, and a stub whose twin has a
+///     brief too loses none (both lowercase NHL rows of the 2026-11-21 capture carry a recap keyed by their NHL id, and each ESPN twin carries its own recap).
 /// Where one of the last three keeps a stub the page draws both cards, as it did before this rule: nothing is lost and the duplicate is not hidden.
-/// Not covered, and stated: the matching is token subsets and initials, so two DIFFERENT clubs that nest (`D.C. United` and `Atlanta United FC` on `united`) match, and
-/// it takes two rows of one sport on one day with BOTH clubs nesting, one of them with no ESPN id, to hide anything wrongly; and two rows that BOTH carry an id
-/// (two NHL matches of 2026-11-21 are written a second time with an NHL API id in `espn_event_id`) are outside this rule, whatever they are.
 /// A row with no day matches nothing: two unreadable dates are not the same date.
+/// Not covered, and stated: the matching is token subsets and initials, so two DIFFERENT clubs that nest (`D.C. United` and `Atlanta United FC` on `united`) match, and
+/// it takes two rows of one sport on one day with BOTH clubs nesting, one of them a stub, to hide anything wrongly. Measured on the six committed captures: the rows
+/// with an id and no start time are 12 (AFL 2, golf 2, MLB 6, NHL 2); only the 2 NHL rows have a twin with a start time, and they are the duplicates.
 let withoutShadowedRows (briefs: Brief list) (games: Game list) : Game list * Game list =
     let isContest (g: Game) =
         match (sportMeta g.Sport).Matchup with
@@ -1021,21 +1024,24 @@ let withoutShadowedRows (briefs: Brief list) (games: Game list) : Game list * Ga
         match g.OpeningOdds, g.ClosingOdds with
         | Decoded _, _ | _, Decoded _ -> true
         | _ -> false
+    let hasStart (g: Game) = g.RawStartTime.IsSome
+    let isStub (g: Game) = g.EspnEventId.IsNone || not (hasStart g)
     let withId = games |> List.filter (fun t -> t.EspnEventId.IsSome)
     let step (used: string list, drawn: Game list, notDrawn: Game list) (g: Game) =
         let twin =
-            if g.EspnEventId.IsSome || not (isContest g) || g.Day.IsNone then None
+            if not (isStub g) || not (isContest g) || g.Day.IsNone then None
             else
                 withId
                 |> List.tryFind (fun t ->
-                    not (List.contains t.Id used)
+                    (g.EspnEventId.IsNone || hasStart t)
+                    && not (List.contains t.Id used)
                     && t.Sport = g.Sport
                     && t.Day = g.Day
                     && sameFixture g t
                     && (scored t || not (scored g))
                     && (hasOdds t || not (hasOdds g)))
         match twin with
-        | Some t when Map.isEmpty (briefsByGame [ g ] briefs) -> (t.Id :: used, drawn, g :: notDrawn)
+        | Some t when Map.isEmpty (briefsByGame [ g ] briefs) || not (Map.isEmpty (briefsByGame [ t ] briefs)) -> (t.Id :: used, drawn, g :: notDrawn)
         | _ -> (used, g :: drawn, notDrawn)
     let _, drawn, notDrawn = List.fold step ([], [], []) games
     List.rev drawn, List.rev notDrawn

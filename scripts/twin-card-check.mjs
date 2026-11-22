@@ -6,7 +6,8 @@
 // agree, and that the stubs are really gone from the DOM and the rows with an ESPN id really are there.
 //
 // It reads the capture of 2026-11-21 (data/context-2026-11-21.json, captured unedited by the capture-render-fixture workflow, run 44968295236): three MLS
-// matches, each as a row with an ESPN event id and as a stub in the provider's own id scheme with no start time. The names are SPELLED OUT here on purpose:
+// matches, each as a row with an ESPN event id and as a stub in the provider's own id scheme with no start time, and two NHL matches, each as a row with an ESPN id and a start
+// time and as a lowercase row that carries an NHL API id and no start time (CC-CMD Open question 4). The names are SPELLED OUT here on purpose:
 // a check that derived them from the same rule would agree with the rule whatever it did.
 //
 // Usage:  node scripts/serve.mjs   (in another shell)
@@ -30,8 +31,17 @@ export const TWINS = [
   { id: 'MLS_2026-11-21_e401933739', teams: 'Miami v Columbus' },
   { id: 'MLS_2026-11-21_e401933732', teams: 'Dallas v Portland' },
 ]
+/** The two NHL matches of the same capture, each as a lowercase row (an NHL API id in `espn_event_id`, no start time) and as the row with an ESPN id and a start time. CC-CMD Open question 4. */
+export const NHL_STUBS = [
+  { id: 'nhl_2026-11-21_e2026020359', teams: 'Carolina Hurricanes v Edmonton Oilers' },
+  { id: 'nhl_2026-11-21_e2026020360', teams: 'Calgary Flames v Chicago Blackhawks' },
+]
+export const NHL_TWINS = [
+  { id: 'NHL_2026-11-21_e401892754', teams: 'Hurricanes v Oilers' },
+  { id: 'NHL_2026-11-21_e401892755', teams: 'Flames v Blackhawks' },
+]
 /** The sentence the page appends to its decode status, spelled out in full: a typo in the page must not be forgiven by a check that derives the same string. */
-export const NOTE = ' · 3 row(s) not drawn — the same match is drawn from its ESPN id'
+export const NOTE = ' · 5 row(s) not drawn — the same match is drawn from its ESPN id'
 
 /** What the page shows, as plain data: the status line, the MLS section's heading count and cards. */
 export const verdicts = snap => {
@@ -39,13 +49,15 @@ export const verdicts = snap => {
   const ids = new Set(snap.cards.map(c => c.id))
   const teams = new Set(snap.cards.map(c => c.teams))
   return [
-    ['the status line says three rows are not drawn, in its own words', snap.status.includes(NOTE), snap.status],
+    ['the status line says five rows are not drawn, in its own words', snap.status.includes(NOTE), snap.status],
     ['the status line still leads with the decoded count every check parses', /^decoded \d+ game/.test(snap.status), snap.status],
     ['the cards drawn are the games decoded', Number(snap.status.match(/^decoded (\d+) game/)?.[1]) === snap.cards.length, `${snap.status.slice(0, 60)} / ${snap.cards.length} cards`],
     ['the MLS section holds three cards', mls?.cards === 3, JSON.stringify(mls)],
     ['the MLS section heading counts three', mls?.heading === 'MLS · 3', mls?.heading],
     ...STUBS.map(s => [`the stub ${s.teams} is not on the page`, !ids.has(s.id) && !teams.has(s.teams), `${[...ids].filter(i => i.includes('MLS-COM')).length} stub card(s) in the DOM`]),
     ...TWINS.map(t => [`the row with an ESPN id, ${t.teams}, is on the page`, ids.has(t.id) && teams.has(t.teams), `ids ${[...ids].filter(i => i.startsWith('MLS')).join(', ')}`]),
+    ...NHL_STUBS.map(s => [`the lowercase NHL row ${s.teams} is not on the page`, !ids.has(s.id), `${[...ids].filter(i => i.startsWith('nhl_')).length} lowercase NHL card(s) in the DOM`]),
+    ...NHL_TWINS.map(t => [`the NHL row with an ESPN id and a start time, ${t.teams}, is on the page`, ids.has(t.id), `ids ${[...ids].filter(i => i.startsWith('NHL_')).length} NHL`]),
     ['no MLS card reads "no start time"', snap.cards.filter(c => c.sport === 'MLS').every(c => !/no start time/.test(c.status)), snap.cards.filter(c => c.sport === 'MLS').map(c => c.status).join(' | ')],
   ]
 }
@@ -54,13 +66,13 @@ export const verdicts = snap => {
 export const WITHOUT_THE_RULE = {
   status: 'decoded 113 game(s) for 2026-11-21',
   groups: [{ sport: 'MLS', cards: 6, heading: 'MLS · 6' }],
-  cards: [...STUBS.map(s => ({ ...s, sport: 'MLS', status: 'Scheduled — no start time' })), ...TWINS.map(t => ({ ...t, sport: 'MLS', status: 'Final' }))],
+  cards: [...STUBS.map(s => ({ ...s, sport: 'MLS', status: 'Scheduled — no start time' })), ...TWINS.map(t => ({ ...t, sport: 'MLS', status: 'Final' })), ...NHL_STUBS.map(s => ({ ...s, sport: 'NHL', status: 'Final' })), ...NHL_TWINS.map(t => ({ ...t, sport: 'NHL', status: 'Final' }))],
 }
 /** The page as it should be. */
 export const WITH_THE_RULE = {
-  status: `decoded 3 game(s) for 2026-11-21${NOTE}`,
+  status: `decoded 5 game(s) for 2026-11-21${NOTE}`,
   groups: [{ sport: 'MLS', cards: 3, heading: 'MLS · 3' }],
-  cards: TWINS.map(t => ({ ...t, sport: 'MLS', status: 'Final' })),
+  cards: [...TWINS.map(t => ({ ...t, sport: 'MLS', status: 'Final' })), ...NHL_TWINS.map(t => ({ ...t, sport: 'NHL', status: 'Final' }))],
 }
 
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
@@ -68,7 +80,8 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const failing = snap => verdicts(snap).filter(([, ok]) => !ok).map(([name]) => name)
   check('a page that draws all six MLS cards fails the stub checks', failing(WITHOUT_THE_RULE).filter(n => n.startsWith('the stub ')).length === 3, failing(WITHOUT_THE_RULE).join(' | '))
   check('a page that draws all six MLS cards fails the section count', failing(WITHOUT_THE_RULE).includes('the MLS section holds three cards'))
-  check('a page that draws all six MLS cards fails the status note', failing(WITHOUT_THE_RULE).includes('the status line says three rows are not drawn, in its own words'))
+  check('a page that draws the lowercase NHL rows fails', failing(WITHOUT_THE_RULE).filter(n => n.startsWith('the lowercase NHL row')).length === 2, failing(WITHOUT_THE_RULE).join(' | '))
+  check('a page that draws all six MLS cards fails the status note', failing(WITHOUT_THE_RULE).includes('the status line says five rows are not drawn, in its own words'))
   check('a page as it should be passes every one', failing(WITH_THE_RULE).length === 0, failing(WITH_THE_RULE).join(' | '))
   check('a page that hides a row with an ESPN id fails', failing({ ...WITH_THE_RULE, cards: WITH_THE_RULE.cards.slice(1) }).some(n => n.startsWith('the row with an ESPN id')))
   check('a page whose count disagrees with its cards fails', failing({ ...WITH_THE_RULE, status: `decoded 4 game(s) for 2026-11-21${NOTE}` }).includes('the cards drawn are the games decoded'))
