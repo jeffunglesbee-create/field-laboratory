@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b03d569` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45058031285 |
+| `3233b0a` | 2026-11-22 | [live-capture-nfl-2026-11-22-1910Z.json](live-capture-nfl-2026-11-22-1910Z.json) | probe: the live /v2/games shape of nfl on 2026-11-22 [skip ci] |
 | `336ae76` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the other-sports session record names the commits and what CI said at each |
 | `bd6f715` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e5a8e47` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | probe: the deployed-page probe judges every sport the page asks the feed about; the registry check holds its keys, away-first set and windows to the compiled page |
