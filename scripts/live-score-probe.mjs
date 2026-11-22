@@ -228,13 +228,18 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
     const outs = byKey[key] ?? []
     const read = o => o.decoded.ok && gameFor(o.decoded.games, row) !== undefined
     // A game the runner sees live that the page never received a reading for, in or out of its window, whatever the polls did.
-    if (gameFor(runner.live.filter(g => g.key === key), row) !== undefined && !outs.some(read)) {
+    // The page does not ask about a card the archive has finalised (src/LiveScore.fs `pollableAt` reads `Final` as nothing to do), so a Final card has no reading to be missing: it is judged below.
+    if (!/^Final/.test(c.status) && gameFor(runner.live.filter(g => g.key === key), row) !== undefined && !outs.some(read)) {
       const ok = outs.filter(o => o.decoded.ok).length
       return { ...c, espnId: id, kind: 'live-unread', ok: false, reason: `the feed says live and the page never received a reading for it (${outs.length} poll(s) of ${key}, ${ok} readable)` }
     }
     const inWindow = Number.isFinite(row.startMs) && nowMs >= row.startMs && nowMs <= row.startMs + windowMsOf(c.sport)
     if (!inWindow) return { ...c, espnId: id, kind: 'out-of-window', ok: true, reason: '' }
     const last = outs.at(-1)
+    // Observed 2026-11-22 19:52Z (outbox/live-score-manifest-2026-11-22-20261122-1953Z.json): a La Liga card the archive had finalised, inside its three hours, read `never-asked` and failed the run, though the page is
+    // right not to ask about it. Final with no live note is a correct card whatever the feed was asked.
+    if (!last && /^Final/.test(c.status))
+      return c.live === '' ? { ...c, espnId: id, kind: 'final', ok: true, reason: '' } : { ...c, espnId: id, kind: 'final', ok: false, reason: `the card is Final and carries the note "${c.live}"` }
     if (!last) {
       if (nowMs - row.startMs <= JUST_OPENED_MS) return { ...c, espnId: id, kind: 'no-reading', ok: true, reason: '' }
       return { ...c, espnId: id, kind: 'never-asked', ok: false, reason: `the card is in its live window and the page never asked the feed for ${key}` }
@@ -484,6 +489,12 @@ if (SELF_TEST) {
   check('the join is the page\'s sameClub: initials join (NYR with New York Rangers), a subset joins, two different clubs do not',
     gameFor([nhl({ homeName: 'New York Rangers', awayName: 'Carolina Hurricanes' })], { espnId: '1', home: 'NYR', away: 'Hurricanes' }) !== undefined
       && gameFor([nhl()], { espnId: '1', home: 'Bruins', away: 'Capitals' }) !== undefined && gameFor([nhl()], { espnId: '1', home: 'Bruins', away: 'Oilers' }) === undefined)
+  // 2026-11-22 (the first deployed-page manifest): a card the archive has finalised is never asked about, so no poll for its key is correct; it is Final with no live note, or it fails.
+  check('a Final card in its window that the page never asked about is correct (the page does not ask about a finalised card), not never-asked; with a live note it fails',
+    (r => r.rows[0].kind === 'final' && r.rows[0].ok === true && r.verdict !== 'FAIL')(run({ cards: [card({ status: 'Final', live: '', score: '1–0' })], outcomes: [], runner: runnerOk() }))
+      && (r => r.rows[0].kind === 'final' && r.rows[0].ok === false && r.verdict === 'FAIL')(run({ cards: [card({ status: 'Final', live: "34'", score: '1–0' })], outcomes: [], runner: runnerOk() })))
+  check('...and a Final card is not live-unread when the runner sees its game live (the page does not ask about it)',
+    run({ cards: [card({ status: 'Final', live: '', score: '1–0' })], outcomes: [], runner: runnerOk('401911177') }).rows[0].kind === 'final')
   // Windows are per sport (src/LiveScore.fs `liveWindowFor`): NFL 4 h, MLB and CFB 4.5 h, NBA, WNBA, NHL, AFL 3.5 h, soccer 3 h.
   const at = (label, hours) => judge({ cards: [card({ sport: label, gameId: ROW_A })], rows, outcomes: [], runner: runnerOk(), requests: 0, nowMs: T0 + hours * 3600_000 - 1, decodeStatus: okStatus }).rows[0].kind
   check('the window follows the sport: just inside is judged (never-asked), just outside is out-of-window, for soccer, NBA, NFL and MLB',
