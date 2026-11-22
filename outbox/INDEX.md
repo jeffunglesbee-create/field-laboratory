@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `faa38df` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the drift sentinel's closing-odds line reads holds on the first scheduled run that probes an EPL matchday |
+| `faa38df` | 2026-11-22 | [drift-closing-odds-scope-2026-11-11.md](drift-closing-odds-scope-2026-11-11.md) | docs: the drift sentinel's closing-odds line reads holds on the first scheduled run that probes an EPL matchday |
 | `2844bc7` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `2844bc7` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
 | `2844bc7` | 2026-11-22 | [sport-vocabulary-2026-11-22T08-19-47-020Z.json](sport-vocabulary-2026-11-22T08-19-47-020Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
