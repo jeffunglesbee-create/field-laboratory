@@ -9079,7 +9079,7 @@ const MUTATIONS = [
     id: "browser-gate-later-steps-github-path",
     file: "scripts/check-browser-gate.py",
     claim: "a step that writes to `$GITHUB_PATH` changes the PATH of every later step and is unresolved",
-    find: "    if GITHUB_PATH_REF.search(text):",
+    find: "    if GITHUB_PATH_REF.search(seen):",
     replace: "    if False:",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
@@ -9087,7 +9087,7 @@ const MUTATIONS = [
     id: "browser-gate-later-steps-github-env",
     file: "scripts/check-browser-gate.py",
     claim: "a step that writes a dangerous variable to `$GITHUB_ENV` changes what every later step runs and is unresolved",
-    find: "    if GITHUB_ENV_REF.search(text):",
+    find: "    if GITHUB_ENV_REF.search(seen):",
     replace: "    if False:",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
@@ -9103,7 +9103,7 @@ const MUTATIONS = [
     id: "browser-gate-later-steps-npmrc",
     file: "scripts/check-browser-gate.py",
     claim: "a step that names a `.npmrc` file sets npm's config for every later `npm run` and is unresolved",
-    find: "    if NPMRC_REF.search(text):",
+    find: "    if NPMRC_REF.search(seen):",
     replace: "    if False:",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
@@ -9127,7 +9127,7 @@ const MUTATIONS = [
     id: "browser-gate-later-steps-wired",
     file: "scripts/check-browser-gate.py",
     claim: "read_commands asks the text of the whole step what it writes for the steps after it (a step that writes a dangerous name to $GITHUB_ENV, to $GITHUB_PATH or names a .npmrc is no longer unresolved)",
-    find: "    for trigger, why in later_step_effects(\"\\n\".join(cut + bodies)):",
+    find: "    for trigger, why in later_step_effects(\"\\n\".join(cut + bodies), \"\\n\".join(mentionless)):",
     replace: "    for trigger, why in []:",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
@@ -9672,16 +9672,16 @@ const MUTATIONS = [
     id: "browser-gate-heredoc-bodies-pool",
     file: "scripts/check-browser-gate.py",
     claim: "the bodies of data heredocs are not read for what the step writes: `cat >> \"$GITHUB_ENV\" <<EOF` with a dangerous name in its body is clean",
-    find: "later_step_effects(\"\\n\".join(cut + bodies))",
-    replace: "later_step_effects(\"\\n\".join(cut))",
+    find: "later_step_effects(\"\\n\".join(cut + bodies), \"\\n\".join(mentionless))",
+    replace: "later_step_effects(\"\\n\".join(cut), \"\\n\".join(mentionless))",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
     id: "browser-gate-heredoc-bodies-shown",
     file: "scripts/check-browser-gate.py",
     claim: "the refusal of a write in a heredoc body names the first command line, not the body line it is about",
-    find: "zip(lines + bodies, cut + bodies)",
-    replace: "zip(lines, cut)",
+    find: "shown = next((l for l, c in zip(lines + bodies, mentionless) if trigger.search(c)), None) or next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])",
+    replace: "shown = next((l for l, c in zip(lines, mentionless) if trigger.search(c)), None) or next((l for l, c in zip(lines, cut) if trigger.search(c)), (lines + bodies)[0])",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
@@ -10553,6 +10553,134 @@ const MUTATIONS = [
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
+  {
+    id: "browser-gate-mention-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "a mention-only command (echo, printf, a read-only test) is read as a write of what it names (item 9)",
+    find: "    return READONLY_TEST.sub(\"true\", MESSAGE_COMMAND.sub(\"true\", line))",
+    replace: "    return line",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-message-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "an echo or printf of a message is not cut from the text the references are read in",
+    find: "    return READONLY_TEST.sub(\"true\", MESSAGE_COMMAND.sub(\"true\", line))",
+    replace: "    return READONLY_TEST.sub(\"true\", line)",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-test-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "a read-only test of a path is not cut from the text the references are read in",
+    find: "    return READONLY_TEST.sub(\"true\", MESSAGE_COMMAND.sub(\"true\", line))",
+    replace: "    return MESSAGE_COMMAND.sub(\"true\", line)",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-names-seen",
+    file: "scripts/check-browser-gate.py",
+    claim: "the names a step writes to $GITHUB_ENV are read in the text without the mention-only commands: a name inside an echo of a group hides the write outside it",
+    find: "        names = sorted({n for n in ASSIGNED_NAME.findall(text) if dangerous_var(n)})",
+    replace: "        names = sorted({n for n in ASSIGNED_NAME.findall(seen) if dangerous_var(n)})",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-refs-raw",
+    file: "scripts/check-browser-gate.py",
+    claim: "the references are read in the raw text, mention-only commands included",
+    find: "    if NPMRC_REF.search(seen):",
+    replace: "    if NPMRC_REF.search(text):",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-subst-allowed",
+    file: "scripts/check-browser-gate.py",
+    claim: "a quoted string with a `$(` is a message: its command runs, and an always() step would be accepted",
+    find: "\\\\.|\\$(?![({]))*\"|'[^']*'|[\\w./:=@%+,-]+)\"\"\"",
+    replace: "\\\\.|\\$)*\"|'[^']*'|[\\w./:=@%+,-]+)\"\"\"",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-no-var",
+    file: "scripts/check-browser-gate.py",
+    claim: "a message may hold a variable (`$GITHUB_PATH`) without being a write of it",
+    find: "_MSG_ARG = r\"\"\"(?:\"(?:[^\"\\\\`$]|\\\\.|\\$(?![({]))*\"",
+    replace: "_MSG_ARG = r\"\"\"(?:\"(?:[^\"\\\\`$]|\\\\.)*\"",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-printf-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "printf is a message command as echo is",
+    find: "(?:echo|printf)(?:[ \\t]+\" + _MSG_ARG",
+    replace: "(?:echo)(?:[ \\t]+\" + _MSG_ARG",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-bareword-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "an echo of plain words is a message",
+    find: "|[\\w./:=@%+,-]+)\"\"\"\nMESSAGE_COMMAND",
+    replace: "|[\\w./:=@%+,-]+x)\"\"\"\nMESSAGE_COMMAND",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-single-off",
+    file: "scripts/check-browser-gate.py",
+    claim: "an echo of a single-quoted string is a message",
+    find: "|'[^']*'|[\\w./:=@%+,-]+)\"\"\"\nMESSAGE_COMMAND",
+    replace: "|[\\w./:=@%+,-]+)\"\"\"\nMESSAGE_COMMAND",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-test-ops",
+    file: "scripts/check-browser-gate.py",
+    claim: "every one of -f -e -d -r -s -w -x -L -h is a read-only test",
+    find: "-[fedrswxLh][ \\t]+\" + _TEST_OPERAND + r\"[ \\t]+\\]\\]?",
+    replace: "-[fed][ \\t]+\" + _TEST_OPERAND + r\"[ \\t]+\\]\\]?",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-test-keyword",
+    file: "scripts/check-browser-gate.py",
+    claim: "`test -d X` is a read-only test as `[ -d X ]` is",
+    find: "|test[ \\t]+-[fedrswxLh]",
+    replace: "|tst[ \\t]+-[fedrswxLh]",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-shown-seen",
+    file: "scripts/check-browser-gate.py",
+    claim: "the refusal quotes the line that writes: the line is looked for in the text without the mention-only commands first",
+    find: "        shown = next((l for l, c in zip(lines + bodies, mentionless) if trigger.search(c)), None) or next(",
+    replace: "        shown = next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), None) or next(",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+  {
+    id: "browser-gate-mention-shown-fallback",
+    file: "scripts/check-browser-gate.py",
+    claim: "the line a refusal quotes is looked for in the whole text when the cut text has none: a name inside an echoed group has no line of its own once the mention-only commands are cut",
+    find: "or next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])",
+    replace: "or (lines + bodies)[0]",
+    expect: "python3 scripts/check-browser-gate.py --self-test",
+  },
+
+
+
 
   {
     id: "browser-gate-exotic-dbl-bracket",
@@ -10906,8 +11034,8 @@ const MUTATIONS = [
     id: "browser-gate-later-step-is-per-line",
     file: "scripts/check-browser-gate.py",
     claim: "a write to `$GITHUB_ENV` of a dangerous name is read one line at a time again: a group written over several lines, a value held in a variable and the file held in a variable read as clean",
-    find: "for trigger, why in later_step_effects(\"\\n\".join(cut + bodies)):",
-    replace: "for trigger, why in [x for c in cut + bodies for x in later_step_effects(c)]:",
+    find: "for trigger, why in later_step_effects(\"\\n\".join(cut + bodies), \"\\n\".join(mentionless)):",
+    replace: "for trigger, why in [x for c, m in zip(cut + bodies, mentionless) for x in later_step_effects(c, m)]:",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
@@ -11074,15 +11202,15 @@ const MUTATIONS = [
     id: "browser-gate-later-step-joined-without-newline",
     file: "scripts/check-browser-gate.py",
     claim: "a write to $GITHUB_ENV is read over the step's lines joined with nothing between them, so a name at the start of a line after a line that ends in a word has no boundary before it",
-    find: "later_step_effects(\"\\n\".join(cut + bodies))",
-    replace: "later_step_effects(\"\".join(cut + bodies))",
+    find: "later_step_effects(\"\\n\".join(cut + bodies), \"\\n\".join(mentionless))",
+    replace: "later_step_effects(\"\".join(cut + bodies), \"\".join(mentionless))",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
   {
     id: "browser-gate-later-step-shown-first-line",
     file: "scripts/check-browser-gate.py",
     claim: "a refusal for a write to $GITHUB_ENV, $GITHUB_PATH or .npmrc quotes the first line of the step, not the line it is about",
-    find: "shown = next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])",
+    find: "shown = next((l for l, c in zip(lines + bodies, mentionless) if trigger.search(c)), None) or next((l for l, c in zip(lines + bodies, cut + bodies) if trigger.search(c)), (lines + bodies)[0])",
     replace: "shown = lines[0]",
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
