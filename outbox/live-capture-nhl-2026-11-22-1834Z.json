@@ -1,0 +1,469 @@
+{
+  "capturedAt": "2026-11-22T18:34:16.841Z",
+  "sport": "nhl",
+  "date": "2026-11-22",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "error": null,
+  "v2": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/v2/games?sport=nhl&date=2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public, max-age=15",
+    "age": null,
+    "date": "Sun, 22 Nov 2026 18:34:17 GMT",
+    "bytes": 2896,
+    "body": {
+      "sport": "nhl",
+      "date": "2026-11-22",
+      "games": [
+        {
+          "id": "nhl:2026020373",
+          "nhleGameId": 2026020373,
+          "sport": "nhl",
+          "league": "NHL",
+          "state": "live",
+          "start": "2026-11-22T17:30:00Z",
+          "home": {
+            "name": "New York Rangers",
+            "abbr": "NYR",
+            "score": 1
+          },
+          "away": {
+            "name": "Carolina Hurricanes",
+            "abbr": "CAR",
+            "score": 1
+          },
+          "periodNum": 1,
+          "periodLabel": "P1",
+          "clock": "02:57",
+          "venue": "Madison Square Garden",
+          "winProbState": "modelled",
+          "winProbLabel": "FIELD model probability",
+          "winProb": {
+            "homeWin": 0.515,
+            "draw": 0,
+            "awayWin": 0.485,
+            "source": "field-hockey-wp",
+            "label": "FIELD model probability",
+            "state": "modelled"
+          },
+          "openingWP": {
+            "homeWin": 0.5371,
+            "draw": 0,
+            "awayWin": 0.463,
+            "source": "field-hockey-wp",
+            "label": "FIELD pre-game prior",
+            "state": "prior",
+            "elapsed": 0,
+            "storedAt": 1795369001281
+          },
+          "wpDelta": {
+            "homeWin": 0,
+            "awayWin": 0,
+            "draw": 0
+          },
+          "recentWPHistory": [
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            },
+            {
+              "elapsed": 0,
+              "homeWin": 0.515,
+              "draw": 0
+            }
+          ]
+        },
+        {
+          "id": "nhl:2026020374",
+          "nhleGameId": 2026020374,
+          "sport": "nhl",
+          "league": "NHL",
+          "state": "pre",
+          "start": "2026-11-22T22:00:00Z",
+          "home": {
+            "name": "Tampa Bay Lightning",
+            "abbr": "TBL",
+            "score": null
+          },
+          "away": {
+            "name": "Buffalo Sabres",
+            "abbr": "BUF",
+            "score": null
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "",
+          "venue": "Benchmark International Arena"
+        },
+        {
+          "id": "nhl:2026020375",
+          "nhleGameId": 2026020375,
+          "sport": "nhl",
+          "league": "NHL",
+          "state": "pre",
+          "start": "2026-11-23T00:00:00Z",
+          "home": {
+            "name": "St. Louis Blues",
+            "abbr": "STL",
+            "score": null
+          },
+          "away": {
+            "name": "Edmonton Oilers",
+            "abbr": "EDM",
+            "score": null
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "",
+          "venue": "Enterprise Center"
+        },
+        {
+          "id": "nhl:2026020376",
+          "nhleGameId": 2026020376,
+          "sport": "nhl",
+          "league": "NHL",
+          "state": "pre",
+          "start": "2026-11-23T00:00:00Z",
+          "home": {
+            "name": "Dallas Stars",
+            "abbr": "DAL",
+            "score": null
+          },
+          "away": {
+            "name": "Pittsburgh Penguins",
+            "abbr": "PIT",
+            "score": null
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "",
+          "venue": "American Airlines Center"
+        },
+        {
+          "id": "nhl:2026020377",
+          "nhleGameId": 2026020377,
+          "sport": "nhl",
+          "league": "NHL",
+          "state": "pre",
+          "start": "2026-11-23T01:00:00Z",
+          "home": {
+            "name": "Vancouver Canucks",
+            "abbr": "VAN",
+            "score": null
+          },
+          "away": {
+            "name": "Chicago Blackhawks",
+            "abbr": "CHI",
+            "score": null
+          },
+          "periodNum": 0,
+          "periodLabel": "",
+          "clock": "",
+          "venue": "Rogers Arena"
+        }
+      ],
+      "count": 5,
+      "source": "nhle",
+      "ts": 1795372457167
+    },
+    "parseError": null
+  },
+  "archive": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public,max-age=300",
+    "age": null,
+    "date": "Sun, 22 Nov 2026 18:34:17 GMT",
+    "bytes": 292077,
+    "parseError": null,
+    "rowCount": 44
+  },
+  "games": [
+    {
+      "id": "nhl:2026020373",
+      "espnId": null,
+      "state": "live",
+      "homeScore": 1,
+      "awayScore": 1,
+      "scoresAreIntegers": true,
+      "clock": "02:57",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-22T17:30:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "home",
+        "id",
+        "league",
+        "nhleGameId",
+        "openingWP",
+        "periodLabel",
+        "periodNum",
+        "recentWPHistory",
+        "sport",
+        "start",
+        "state",
+        "venue",
+        "winProb",
+        "winProbLabel",
+        "winProbState",
+        "wpDelta"
+      ]
+    },
+    {
+      "id": "nhl:2026020374",
+      "espnId": null,
+      "state": "pre",
+      "homeScore": null,
+      "awayScore": null,
+      "scoresAreIntegers": false,
+      "clock": "",
+      "clockIsString": false,
+      "periodNum": 0,
+      "start": "2026-11-22T22:00:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "home",
+        "id",
+        "league",
+        "nhleGameId",
+        "periodLabel",
+        "periodNum",
+        "sport",
+        "start",
+        "state",
+        "venue"
+      ]
+    },
+    {
+      "id": "nhl:2026020375",
+      "espnId": null,
+      "state": "pre",
+      "homeScore": null,
+      "awayScore": null,
+      "scoresAreIntegers": false,
+      "clock": "",
+      "clockIsString": false,
+      "periodNum": 0,
+      "start": "2026-11-23T00:00:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "home",
+        "id",
+        "league",
+        "nhleGameId",
+        "periodLabel",
+        "periodNum",
+        "sport",
+        "start",
+        "state",
+        "venue"
+      ]
+    },
+    {
+      "id": "nhl:2026020376",
+      "espnId": null,
+      "state": "pre",
+      "homeScore": null,
+      "awayScore": null,
+      "scoresAreIntegers": false,
+      "clock": "",
+      "clockIsString": false,
+      "periodNum": 0,
+      "start": "2026-11-23T00:00:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "home",
+        "id",
+        "league",
+        "nhleGameId",
+        "periodLabel",
+        "periodNum",
+        "sport",
+        "start",
+        "state",
+        "venue"
+      ]
+    },
+    {
+      "id": "nhl:2026020377",
+      "espnId": null,
+      "state": "pre",
+      "homeScore": null,
+      "awayScore": null,
+      "scoresAreIntegers": false,
+      "clock": "",
+      "clockIsString": false,
+      "periodNum": 0,
+      "start": "2026-11-23T01:00:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "home",
+        "id",
+        "league",
+        "nhleGameId",
+        "periodLabel",
+        "periodNum",
+        "sport",
+        "start",
+        "state",
+        "venue"
+      ]
+    }
+  ],
+  "joins": [
+    {
+      "espnId": null,
+      "matched": false,
+      "archive": null,
+      "raw": null
+    },
+    {
+      "espnId": null,
+      "matched": false,
+      "archive": null,
+      "raw": null
+    },
+    {
+      "espnId": null,
+      "matched": false,
+      "archive": null,
+      "raw": null
+    },
+    {
+      "espnId": null,
+      "matched": false,
+      "archive": null,
+      "raw": null
+    },
+    {
+      "espnId": null,
+      "matched": false,
+      "archive": null,
+      "raw": null
+    }
+  ],
+  "summary": {
+    "gamesInFeed": 5,
+    "byState": {
+      "live": 1,
+      "pre": 4
+    },
+    "live": 1,
+    "liveWithIntegerScores": 1,
+    "liveWithClockString": 1,
+    "liveWithArchiveScoreNull": 0,
+    "liveFeedShape": 1,
+    "liveFullShape": 0,
+    "preWithScoreZero": 0,
+    "archiveMatched": 0,
+    "finalWithArchiveUnscored": 0
+  },
+  "coverage": "checked 0 of 5 games joined to an archive row; 1 live",
+  "gap": "final in the feed with an unscored archive row: 0 of 0 final game(s)",
+  "feedShapeSeen": true,
+  "proved": false
+}
