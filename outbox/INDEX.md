@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `273c623` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44974792865 |
+| `519af51` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | feat: one match under two ids is one card; the page does not draw the stub (CC-CMD Open question 3, option b) |
+| `519af51` | 2026-11-22 | [lineups-render-manifest.json](lineups-render-manifest.json) | feat: one match under two ids is one card; the page does not draw the stub (CC-CMD Open question 3, option b) |
+| `a6e18c6` | 2026-11-21 | [brief-first-saturday-2026-11-21.md](brief-first-saturday-2026-11-21.md) | docs: the first Saturday evening after the brief-phase id join reads PASS, 71 testable of 113 games |
 | `5b4899e` | 2026-11-21 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-21T23:35 [skip ci] |
 | `983a5ee` | 2026-11-21 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-21 [skip ci] |
 | `983a5ee` | 2026-11-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-21 [skip ci] |
