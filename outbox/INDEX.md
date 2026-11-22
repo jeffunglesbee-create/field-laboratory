@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c8ed2b9` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45035224340 |
+| `11efedf` | 2026-11-22 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-22T14:53 [skip ci] |
+| `d5781f3` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | feat: a row with no start time is a stub too; the lowercase NHL rows of 2026-11-21 are not drawn (CC-CMD Open question 4, option b) |
 | `faa38df` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the drift sentinel's closing-odds line reads holds on the first scheduled run that probes an EPL matchday |
 | `faa38df` | 2026-11-22 | [drift-closing-odds-scope-2026-11-11.md](drift-closing-odds-scope-2026-11-11.md) | docs: the drift sentinel's closing-odds line reads holds on the first scheduled run that probes an EPL matchday |
 | `2844bc7` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
