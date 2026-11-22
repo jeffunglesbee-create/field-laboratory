@@ -27,9 +27,9 @@ The review was 40 agents: four read-only lenses, two skeptics per finding. In th
 
 Moving the browser guard's pin, a regex rewrote a history comment on `scripts/no-launch-check.mjs` line 51 ("72 with `check-same-fixture.mjs`" became 73) and, separately, missed the "pin plus one" fixture, so the guard's own self-test failed 57/58. Both were found from the diff and the failing assertion, not the green summary, and fixed: the comment is restored with this change's entry added, and the fixtures moved 73 -> 74 for the pin-plus-one case.
 
-## STAGED, with unblock criteria (Rule 74)
+## First live run
 
-The check has not run against the live routes: this sandbox cannot reach workers.dev. Unblock: dispatch `drift-sentinel` after this lands, or wait for its next scheduled run. Done when the step "The relay's resolver reaches every club in the league" prints `VERDICT: covered` with `checked 20 of 20 league clubs against 2 feed(s)`. If it prints anything else, that is the finding, not a defect to tune away.
+Landed as `fca5a1c9` after verify-full 45045050398 scored 530/530 on `f6a33359`. drift-sentinel run 45055875318 (dispatched after the landing, 2026-11-22) ran the step on the live routes with the relay's real resolver: `checked 20 of 20 league clubs against 2 feed(s): fpl 20 name(s), 0 orphan(s), 0 unseen; archive 21 name(s), 0 orphan(s), 0 unseen (109 of 135 rows since 2026-07-01)`, `resolver: .relay-src/src/identity-resolver.js @ cb3c7d1`, `VERDICT: covered`. The step passed. That one reading is what is claimed: the check has not yet been seen on a red day, only mutated, stubbed and run against the relay's real pre-alias resolver.
 
 ## Not done
 
