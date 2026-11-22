@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `65e0637` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f7c98e4` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45036530728 |
 | `6d6ab9d` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | feat: a card whose live window has ended says live updates stopped and keeps its last score (CC-CMD Open question 1, option c) |
 | `02d66ec` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
