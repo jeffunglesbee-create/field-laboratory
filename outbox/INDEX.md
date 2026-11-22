@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `df39da2` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the twin-rows change on the deployed page reads one card per MLS match (Open question 3, option b) |
+| `39dd718` | 2026-11-22 | [live-score-2026-11-21-20261122-0225Z.png](live-score-2026-11-21-20261122-0225Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `39dd718` | 2026-11-22 | [live-score-manifest-2026-11-21-20261122-0225Z.json](live-score-manifest-2026-11-21-20261122-0225Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `9d14e29` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `273c623` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 44974792865 |
 | `519af51` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | feat: one match under two ids is one card; the page does not draw the stub (CC-CMD Open question 3, option b) |
 | `519af51` | 2026-11-22 | [lineups-render-manifest.json](lineups-render-manifest.json) | feat: one match under two ids is one card; the page does not draw the stub (CC-CMD Open question 3, option b) |
