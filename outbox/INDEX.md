@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e4a5cda` | 2026-11-22 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: item 9 of the browser gate guard residual CC-CMD is landed; the scored run, the landing and why it is a squash are recorded |
+| `8f187db` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `db3b9b5` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45075375013 |
 | `9b308b3` | 2026-11-22 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 75ca5ba [skip ci] |
 | `1f3d683` | 2026-11-22 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | docs: the first NBA halftime body reads live Q2 0.1 with no flag; the relay now flags it, the card's Half time read is armed for 00:05Z |
