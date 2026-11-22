@@ -59,6 +59,29 @@ export const sameTeam = (a, b) => {
 }
 
 /**
+ * Is `a` one word of three letters or more that is the INITIALS of every word of `b`, short words included?
+ *
+ * `NYCFC` is New York City Football Club and `LAFC` is Los Angeles Football Club: neither shares a word with its long name, so `sameTeam` cannot see them. Four real pairs of the committed
+ * captures are that (2026-08-29 `toronto_nycfc` and `dcunited_lafc`, 2026-10-10 `e761846` and `e761858`), each the same venue on both rows.
+ *
+ * This is NOT in `sameTeam`: six other probes import that and their sweeps would change. The laboratory's page matcher (`Desk.sameTeam`, src/Desk.fs) is subset OR initials, and
+ * scripts/check-same-fixture.mjs holds it to `sameClub` below.
+ */
+export const initialsOf = (a, b) => {
+  const words = t => norm(t).split(' ').filter(Boolean)
+  const wa = words(a), wb = words(b)
+  return wa.length === 1 && wa[0].length >= 3 && wb.length >= 2 && wb.map(w => w[0]).join('') === wa[0]
+}
+
+/** The same club under name drift or an abbreviation: `sameTeam`, or either name is the initials of the other. */
+export const sameClub = (a, b) => sameTeam(a, b) || initialsOf(a, b) || initialsOf(b, a)
+
+/** `sameFixture` over `sameClub`. */
+export const sameClubFixture = (x, y) =>
+  (sameClub(x.home, y.home) && sameClub(x.away, y.away)) ||
+  (sameClub(x.home, y.away) && sameClub(x.away, y.home))
+
+/**
  * Same fixture, or two different games wearing one event id?
  *
  * Checked BOTH WAYS ROUND. A row pair can disagree about which side is home —
@@ -163,6 +186,11 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('two genuinely different games are NOT one fixture',
     sameFixture(g('Chelsea', 'Brighton'), g('Leeds', 'Brentford')) === false)
 
+  check('AN ABBREVIATION IS THE SAME CLUB: LAFC and NYCFC are their long names', sameClub('LAFC', 'Los Angeles Football Club') && sameClub('New York City Football Club', 'NYCFC'))
+  check('...and the subset test alone cannot see it, which is why it is not folded into sameTeam', !sameTeam('LAFC', 'Los Angeles Football Club'))
+  check('initials need EVERY word: LAFC is not Los Angeles Galaxy, LAF is not Los Angeles Football Club (a prefix of the initials), and LA is too short to be initials',
+    !sameClub('LAFC', 'Los Angeles Galaxy') && !initialsOf('LAF', 'Los Angeles Football Club') && !initialsOf('LA', 'Los Angeles'))
+  check('a long name is not the initials of a short one', !initialsOf('Los Angeles Football Club', 'LAFC'))
   check('every group same-fixture → safe',
     verdictFor({ datesObserved: 30, rowsSeen: 1085, groups: [{ same: true }, { same: true }] }) === 'safe')
   check('ONE different-fixture group → unsafe, however many are fine',

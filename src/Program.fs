@@ -491,7 +491,16 @@ let private start () =
         | Error err ->
             reportFailed "decode-status" (sprintf "DECODE FAILED: %s" err)
         | Ok payload ->
-            let games = payload.Regular @ payload.Postseason
+            // One match under two ids is one card. The archive holds some matches twice, a row with an ESPN event id and a stub in the provider's own
+            // scheme with no start time and no score (Desk.withoutShadowedRows, owner ruling 2026-11-22: CC-CMD-2026-11-11-soccer-live-scores, Open
+            // question 3). The stub is dropped HERE, once, so the cards, the picks, the stats, the briefs and the poll all see the same slate, and the
+            // count below is of the rows drawn, which is what every check compares to the cards.
+            let games, notDrawnAsTwins =
+                Desk.withoutShadowedRows
+                    (match payload.Briefs with
+                     | Present rows -> rows
+                     | Absent | EmptyOrFailed -> [])
+                    (payload.Regular @ payload.Postseason)
 
             // The unnamed count is APPENDED, never folded into the game count.
             // `decoded N` is what every check parses, and a payload where one
@@ -502,6 +511,12 @@ let private start () =
                 if payload.Unnamed = 0 then ""
                 else sprintf " · %d row(s) not drawn — sides not named" payload.Unnamed
 
+            // The same rule for the second count: appended, never folded in. A stub is not an error, so it is said in its own words.
+            let twinsNote =
+                match List.length notDrawnAsTwins with
+                | 0 -> ""
+                | n -> sprintf " · %d row(s) not drawn — the same match is drawn from its ESPN id" n
+
             // `note` is non-empty ONLY on the fallback path, where the live
             // slate was unreachable and a committed capture is being served
             // instead. Same sentence, same game count, entirely different
@@ -509,7 +524,7 @@ let private start () =
             // rather than the same weight as a normal load.
             (if note = "" then report else reportWarn)
                 "decode-status"
-                (sprintf "decoded %d game(s) for %s%s%s" (List.length games) payload.Date note unnamed)
+                (sprintf "decoded %d game(s) for %s%s%s%s" (List.length games) payload.Date note unnamed twinsNote)
             if (queryParam "data").IsNone then
                 report "viewed-date" (viewedDate ())
                 // A live region announcing an unparseable string is half a fix.

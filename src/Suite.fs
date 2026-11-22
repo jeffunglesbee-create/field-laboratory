@@ -5292,6 +5292,173 @@ let private liveFeed () =
           oneBadOfTwo
           twoGood ]
 
+// ---------------------------------------------------------------------------
+// One match under two ids. docs/CC-CMD-2026-11-11-soccer-live-scores.md, Open question 3 (owner ruling 2026-11-22).
+//
+// The six rows of the first check are the MLS rows of data/context-2026-11-21.json, VERBATIM (captured by the capture-render-fixture workflow, run
+// 44968295236): three matches, each as a row with an ESPN event id and as a stub in the provider's own id scheme. Every other row is decoded through the
+// same `gameDecoder` from a minimal body, the way the lineup cards do, and every MustFail is the neighbouring case that breaks exactly one condition of the
+// rule, so a condition that stopped being read fails here instead of passing.
+// ---------------------------------------------------------------------------
+
+let private twinRows () =
+    let decode (json: string) =
+        match Thoth.Json.Decode.fromString gameDecoder json with
+        | Ok g -> g
+        | Error why -> failwithf "a test row did not decode: %s" why
+    let real =
+        [
+        """{"id":"MLS_2026-11-21_e401933733","sport":"MLS","league":"MLS","date":"2026-11-21","home":"New England","away":"Philadelphia","home_score":2,"away_score":0,"venue":"Gillette Stadium","streams":"Apple TV","note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 10:00:51","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:44.554Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":190,\"away\":120,\"draw\":255}}","closing_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T18:50:06.110Z\",\"moneyline\":{\"home\":200,\"away\":115,\"draw\":260},\"_kickoff\":{\"at\":\"2026-11-21T19:00Z\",\"verified\":true,\"late_minutes\":null}}","drama_peak":null,"drama_arc":null,"espn_event_id":"401933733","went_to_ot":0,"finalized_at":"2026-11-21 21:15:25","start_time":"2026-11-21T19:00Z","importance":null,"inplay_odds":null,"bsd_event_id":"654250"}"""
+        """{"id":"MLS_MLS-COM-000002_R16-07_roundonebestof3series_2026-11-21","sport":"MLS","series_key":"MLS-COM-000002_R16-07","round":"Round One Best-of-3 Series","game_number":1,"date":"2026-11-21","home":"New England Revolution","away":"Philadelphia Union","home_score":null,"away_score":null,"venue":"Gillette Stadium","streams":null,"note":null,"series_record":null,"series_margins":null,"importance":null,"league":"Major League Soccer - Cup Playoffs","crew":null,"created_at":"2026-11-09 21:22:33","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:45.083Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":190,\"away\":120,\"draw\":255}}","closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":null,"went_to_ot":null,"finalized_at":null,"start_time":null,"inplay_odds":null,"bsd_event_id":"654250"}"""
+        """{"id":"MLS_2026-11-21_e401933732","sport":"MLS","league":"MLS","date":"2026-11-21","home":"Dallas","away":"Portland","home_score":3,"away_score":0,"venue":"Toyota Stadium","streams":"Apple TV","note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 10:00:52","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:44.554Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-115,\"away\":245,\"draw\":295}}","closing_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T20:50:07.201Z\",\"moneyline\":{\"home\":-120,\"away\":260,\"draw\":290},\"_kickoff\":{\"at\":\"2026-11-21T21:00Z\",\"verified\":true,\"late_minutes\":null}}","drama_peak":null,"drama_arc":null,"espn_event_id":"401933732","went_to_ot":0,"finalized_at":"2026-11-21 23:15:25","start_time":"2026-11-21T21:00Z","importance":null,"inplay_odds":null,"bsd_event_id":"654251"}"""
+        """{"id":"MLS_MLS-COM-000002_R16-04_roundonebestof3series_2026-11-21","sport":"MLS","series_key":"MLS-COM-000002_R16-04","round":"Round One Best-of-3 Series","game_number":1,"date":"2026-11-21","home":"FC Dallas","away":"Portland Timbers","home_score":null,"away_score":null,"venue":"Toyota Stadium","streams":null,"note":null,"series_record":null,"series_margins":null,"importance":null,"league":"Major League Soccer - Cup Playoffs","crew":null,"created_at":"2026-11-09 21:22:34","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:45.083Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-115,\"away\":245,\"draw\":295}}","closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":null,"went_to_ot":null,"finalized_at":null,"start_time":null,"inplay_odds":null,"bsd_event_id":"654251"}"""
+        """{"id":"MLS_2026-11-21_e401933739","sport":"MLS","league":"MLS","date":"2026-11-21","home":"Miami","away":"Columbus","home_score":null,"away_score":null,"venue":"Nu Stadium","streams":"Apple TV","note":null,"tags":null,"crew":null,"local_note":null,"created_at":"2026-11-21 10:00:53","opening_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T10:02:44.554Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-170,\"away\":340,\"draw\":350}}","closing_odds":"{\"source\":\"draftkings\",\"captured_at\":\"2026-11-21T22:50:10.206Z\",\"moneyline\":{\"home\":-170,\"away\":350,\"draw\":340},\"_kickoff\":{\"at\":\"2026-11-21T23:00Z\",\"verified\":true,\"late_minutes\":null}}","drama_peak":null,"drama_arc":null,"espn_event_id":"401933739","went_to_ot":null,"finalized_at":null,"start_time":"2026-11-21T23:00Z","importance":null,"inplay_odds":null,"bsd_event_id":"654252"}"""
+        """{"id":"MLS_MLS-COM-000002_R16-08_roundonebestof3series_2026-11-21","sport":"MLS","series_key":"MLS-COM-000002_R16-08","round":"Round One Best-of-3 Series","game_number":1,"date":"2026-11-21","home":"Inter Miami CF","away":"Columbus Crew","home_score":null,"away_score":null,"venue":"Nu Stadium","streams":null,"note":null,"series_record":null,"series_margins":null,"importance":null,"league":"Major League Soccer - Cup Playoffs","crew":null,"created_at":"2026-11-09 21:22:34","opening_odds":null,"closing_odds":null,"drama_peak":null,"drama_arc":null,"espn_event_id":null,"went_to_ot":null,"finalized_at":null,"start_time":null,"inplay_odds":null,"bsd_event_id":"654252"}"""
+        ]
+        |> List.map decode
+    let eid (id: string) = sprintf ",\"espn_event_id\":\"%s\"" id
+    let row (id: string) (sport: string) (home: string) (away: string) (extra: string) =
+        decode (sprintf """{"id":"%s","sport":"%s","date":"2026-11-21","home":"%s","away":"%s"%s}""" id sport home away extra)
+    let ids (rows: Game list) = rows |> List.map (fun g -> g.Id)
+    let drawn (briefs: Brief list) (rows: Game list) = withoutShadowedRows briefs rows |> fst |> ids
+    let notDrawn (briefs: Brief list) (rows: Game list) = withoutShadowedRows briefs rows |> snd |> ids
+    let brief (gameId: string) (text: string) =
+        match Thoth.Json.Decode.fromString briefDecoder (sprintf """{"game_id":"%s","brief_text":"%s"}""" gameId text) with
+        | Ok b -> b
+        | Error why -> failwithf "a test brief did not decode: %s" why
+    // The stub as the provider writes it, and its twin as ESPN writes it: one match, two spellings of each club.
+    let stub = row "s1" "MLS" "FC Dallas" "Portland Timbers" ""
+    let twin = row "t1" "MLS" "Dallas" "Portland" (eid "7001")
+    let pair = [ stub; twin ]
+    let scoredBody = ",\"home_score\":1,\"away_score\":0"
+    // An opening line as the archive stores it: a JSON string inside the row's JSON, the way `opening_odds` arrives. The trailing space is part of the row's JSON, not of the odds.
+    let oddsBody = ""","opening_odds":"{\"source\":\"draftkings\",\"moneyline\":{\"home\":150,\"away\":140,\"draw\":275}}" """
+    let otherDay = Some(fieldDayAt (at "2026-11-22T12:00:00Z"))
+
+    [ Verify.check "the three real pairs of 2026-11-21: each stub is not drawn and each row with an ESPN id is, in the order they came"
+          (fun (rows: Game list) ->
+              drawn [] rows = [ "MLS_2026-11-21_e401933733"; "MLS_2026-11-21_e401933732"; "MLS_2026-11-21_e401933739" ]
+              && notDrawn [] rows = [ "MLS_MLS-COM-000002_R16-07_roundonebestof3series_2026-11-21"
+                                      "MLS_MLS-COM-000002_R16-04_roundonebestof3series_2026-11-21"
+                                      "MLS_MLS-COM-000002_R16-08_roundonebestof3series_2026-11-21" ])
+          real
+          (real |> List.map (fun g -> { g with Day = None }))
+
+      Verify.check "a stub is matched to a row of its own sport"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          pair
+          [ row "s1" "NBA" "FC Dallas" "Portland Timbers" ""; twin ]
+
+      Verify.check "a stub is matched to a row of its own day"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          pair
+          [ { stub with Day = otherDay }; twin ]
+
+      Verify.check "a stub is matched on both clubs, not on one"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          pair
+          [ row "s1" "MLS" "FC Dallas" "Seattle Sounders FC" ""; twin ]
+
+      Verify.check "the clubs match in either orientation, because writers disagree about which side is home"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          [ { stub with Home = stub.Away; Away = stub.Home }; twin ]
+          [ row "s1" "MLS" "Portland Timbers" "Seattle Sounders FC" ""; twin ]
+
+      Verify.check "one twin takes one stub: a second stub for the same match stays"
+          (fun (rows: Game list) -> drawn [] rows = [ "s2"; "t1" ])
+          [ stub; { stub with Id = "s2" }; twin ]
+          [ stub; { stub with Id = "s2" }; twin; { twin with Id = "t2" } ]
+
+      Verify.check "a row with an ESPN id is never dropped, whatever its twin"
+          (fun (rows: Game list) -> List.length (drawn [] rows) = 2)
+          [ { stub with EspnEventId = Some "7000" }; twin ]
+          pair
+
+      Verify.check "a stub that has a score its twin lacks stays"
+          (fun (rows: Game list) -> drawn [] rows = [ "s1"; "t1" ])
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" scoredBody; twin ]
+          pair
+
+      Verify.check "a scored stub whose twin is also scored is not drawn"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" scoredBody; row "t1" "MLS" "Dallas" "Portland" (eid "7001" + scoredBody) ]
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" scoredBody; twin ]
+
+      Verify.check "a stub that a brief joins to stays, because the brief would go with the card"
+          (fun (briefs: Brief list, rows: Game list) -> drawn briefs rows = [ "s1"; "t1" ])
+          ([ brief "s1" "A report." ], pair)
+          ([ brief "elsewhere" "A report." ], pair)
+
+      Verify.check "a brief with no text does not keep a stub"
+          (fun (briefs: Brief list, rows: Game list) -> drawn briefs rows = [ "t1" ])
+          ([ brief "s1" "   " ], pair)
+          ([ brief "s1" "A report." ], pair)
+
+      Verify.check "an event with no two clubs is never matched: two golf rows with the same names are both drawn"
+          (fun (rows: Game list) -> List.length (drawn [] rows) = 2)
+          [ row "s1" "golf" "FC Dallas" "Portland Timbers" ""; row "t1" "golf" "Dallas" "Portland" (eid "7001") ]
+          pair
+
+      Verify.check "a row whose day could not be read matches nothing, not even another row whose day could not be read"
+          (fun (rows: Game list) -> List.length (drawn [] rows) = 2)
+          [ { stub with Day = None }; { twin with Day = None } ]
+          pair
+
+      Verify.check "the rows that are drawn keep the order they came in"
+          (fun (rows: Game list) -> drawn [] rows = [ "a"; "t1"; "b" ])
+          [ row "a" "NBA" "Knicks" "Bucks" ""; stub; twin; row "b" "NHL" "Bruins" "Flames" "" ]
+          [ row "b" "NHL" "Bruins" "Flames" ""; row "a" "NBA" "Knicks" "Bucks" ""; stub; twin ]
+
+      Verify.check "a stub that has odds its twin lacks stays, so the card that is left does not read \"no odds\""
+          (fun (rows: Game list) -> drawn [] rows = [ "s1"; "t1" ])
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" oddsBody; twin ]
+          pair
+
+      Verify.check "a stub whose twin has odds too is not drawn"
+          (fun (rows: Game list) -> drawn [] rows = [ "t1" ])
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" oddsBody; row "t1" "MLS" "Dallas" "Portland" (eid "7001" + oddsBody) ]
+          [ row "s1" "MLS" "FC Dallas" "Portland Timbers" oddsBody; twin ]
+
+      Verify.check "a brief that joins the twin does not keep the stub: the brief is on the card that is drawn"
+          (fun (briefs: Brief list, rows: Game list) -> drawn briefs rows = [ "t1" ])
+          ([ brief "t1" "A report." ], pair)
+          ([ brief "s1" "A report." ], pair)
+
+      Verify.check "a brief keyed by the twin's ESPN id joins the twin, which is the key briefs really use"
+          (fun (briefs: Brief list, rows: Game list) -> drawn briefs rows = [ "t1" ])
+          ([ brief "7001" "A report." ], pair)
+          ([ brief "s1" "A report." ], pair)
+
+      Verify.check "an abbreviation is the same club, from either side: LAFC is Los Angeles Football Club"
+          (fun (a: string, b: string) -> sameTeam a b && sameTeam b a)
+          ("LAFC", "Los Angeles Football Club")
+          ("LAFC", "Los Angeles Galaxy")
+
+      Verify.check "initials must be those of every word of the long name"
+          (fun (a: string, b: string) -> not (sameTeam a b))
+          ("LAF", "Los Angeles Football Club")
+          ("LAFC", "Los Angeles Football Club")
+
+      Verify.check "initials of two letters are too few to identify a club"
+          (fun (a: string, b: string) -> not (sameTeam a b))
+          ("LA", "Los Angeles")
+          ("NYCFC", "New York City Football Club")
+
+      Verify.check "an accent does not separate a club from itself"
+          (fun (a: string, b: string) -> sameTeam a b)
+          ("Alavés", "Alaves")
+          ("Alavés", "Almería")
+
+      Verify.check "a short name is the same club as its long name, from either side"
+          (fun (a: string, b: string) -> sameTeam a b && sameTeam b a)
+          ("Miami", "Inter Miami CF")
+          ("Miami", "Inter Milan")
+
+      Verify.check "a name made only of short words matches nothing, even beside a name that contains it"
+          (fun (a: string, b: string) -> not (sameTeam a b))
+          ("FC", "FC Dallas")
+          ("Dallas", "FC Dallas") ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -5311,6 +5478,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Card forecasts", cardForecast ()
       "Live scores", liveScore ()
       "Live feed", liveFeed ()
+      "Twin rows", twinRows ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()

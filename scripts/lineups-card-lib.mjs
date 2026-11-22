@@ -118,23 +118,27 @@ export const unpinnedEventVerdict = ({ answer, fetchesBefore, fetchesAfter }) =>
  *  capture; only `bsd_event_id` is set, on three of them, and the manifest says
  *  which. Returns the payload and what was done, so nothing is implied.
  *
- *  - the first soccer row that has a brief, or else the first soccer row, gets
+ *  - ONLY soccer rows that carry an ESPN event id are routed. The page does not draw a row with no ESPN id and no score when a row with one is the same match
+ *    (`Desk.withoutShadowedRows`, owner ruling 2026-11-22), and an id routed onto a card that is not drawn is routed to nothing: this check lost its second card that way
+ *    on context-2026-09-05, where the first seven soccer rows are such rows. No fallback to a row without an id: if there is none, nothing is routed and the manifest says so;
+ *  - the first such row that has a brief, or else the first such row, gets
  *    5327, the event whose capture is committed. When no soccer row has a brief
  *    (true of both committed captures), that row also gets a brief whose text
  *    says it is a routed test brief, so a card that is a disclosure of its own
  *    exists to check the lineup click does not turn it. It is reported as
  *    `routedBrief`, never presented as a real one;
- *  - the next soccer row gets 5243, an event with no capture on a pinned page;
+ *  - the next such row gets 5243, an event with no capture on a pinned page;
  *  - the first row that is NOT soccer gets 5327 too, to show no affordance
  *    follows an id onto a sport that is not joined. */
 export const routedContext = (payload, soccerRelayLabels = RELAY_SOCCER) => {
   const clone = JSON.parse(JSON.stringify(payload))
   const rows = [...(clone.games?.regular ?? []), ...(clone.games?.postseason ?? [])]
   const soccer = rows.filter(r => soccerRelayLabels.includes(r.sport))
+  const drawable = soccer.filter(r => r.espn_event_id)
   const briefIds = new Set((clone.briefs ?? []).map(b => b.game_id))
-  const withBrief = soccer.find(r => briefIds.has(r.id))
-  const first = withBrief ?? soccer[0]
-  const second = soccer.find(r => r !== first)
+  const withBrief = drawable.find(r => briefIds.has(r.id))
+  const first = withBrief ?? drawable[0]
+  const second = drawable.find(r => r !== first)
   const notSoccer = rows.find(r => !soccerRelayLabels.includes(r.sport))
   const done = []
   let routedBrief = false
@@ -234,9 +238,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     games: {
       regular: [
         { id: 'a', sport: 'NBA', home: 'x', away: 'y' },
-        { id: 'b', sport: 'MLS', home: 'x', away: 'y' },
-        { id: 'c', sport: 'MLS', home: 'x', away: 'y' },
-        { id: 'd', sport: 'EPL', home: 'x', away: 'y' },
+        { id: 'b', sport: 'MLS', home: 'x', away: 'y', espn_event_id: '2' },
+        { id: 'c', sport: 'MLS', home: 'x', away: 'y', espn_event_id: '3' },
+        { id: 'd', sport: 'EPL', home: 'x', away: 'y', espn_event_id: '4' },
       ],
       postseason: [],
     },
@@ -252,6 +256,11 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('routed: it reports exactly what it did', r.routed.length === 3 && r.soccerRows === 3)
   check('routed: a soccer row that already has a brief is not given a second one',
     r.routedBrief === false && r.payload.briefs.length === 1)
+  const stubFirst = routedContext({ ...payload, games: { regular: [{ id: 's', sport: 'MLS', home: 'x', away: 'y' }, ...payload.games.regular], postseason: [] }, briefs: [] })
+  check('routed: a soccer row with no ESPN event id is never routed, because the page may not draw it',
+    stubFirst.payload.games.regular.find(x => x.id === 's').bsd_event_id === undefined && stubFirst.routed.every(x => x.id !== 's'))
+  check('routed: with no soccer row that carries an ESPN id, nothing soccer is routed and nothing is faked',
+    routedContext({ games: { regular: [{ id: 's', sport: 'MLS', home: 'x', away: 'y' }], postseason: [] }, briefs: [] }).routed.length === 0)
   const noBrief = routedContext({ ...payload, briefs: [] })
   check('routed: with no soccer brief, a LABELLED test brief is added to the chosen row, and reported',
     noBrief.routedBrief === true &&

@@ -170,6 +170,10 @@ if (isMain(import.meta.url)) {
   //      showing a difference here would be inventing one.
   //   1  Montreal v Winnipeg — ESPN serves nine CFL teams and ZERO colours.
   //
+  // 72 of 78 -> 61 of 66 on 2026-11-22, by MEASUREMENT: the page no longer draws a row that has no ESPN event id and no score when a row that has one is the same match
+  // (`Desk.withoutShadowedRows`, owner ruling "Option b", docs/CC-CMD-2026-11-11-soccer-live-scores.md Open question 3). This capture holds 15 rows with no ESPN id; 12 of them have a
+  // twin and are not drawn (11 of the 12 were tinted, one was plain: 72 - 11 = 61 tinted, 6 - 1 = 5 plain). `decoded 66 game(s) ... 12 row(s) not drawn`.
+  //
   // 71 -> 72 is the alias for `Los Angeles Football Club`, which shares no token
   // with ESPN's `LAFC` and so can only ever be a written fact. Its evidence is
   // in `generate-team-colours.mjs`: the 2026-08-29 slate carries both spellings
@@ -192,8 +196,8 @@ if (isMain(import.meta.url)) {
   // through `findTeam`, which refuses an ambiguous subset match, while the page
   // reads a table that now holds ESPN's own strings. The prediction was the
   // conservative one and the measurement is the number.
-  const EXPECTED_TINTED = 72
-  const EXPECTED_CARDS = 78
+  const EXPECTED_TINTED = 61
+  const EXPECTED_CARDS = 66
   check(`exactly ${EXPECTED_TINTED} of ${EXPECTED_CARDS} cards tint on this frozen capture`,
     tinted.length === EXPECTED_TINTED && cards.length === EXPECTED_CARDS,
     `saw ${tinted.length} tinted of ${cards.length} — a change here is a real change, not drift`)

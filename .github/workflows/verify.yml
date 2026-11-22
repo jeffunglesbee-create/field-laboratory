@@ -607,6 +607,12 @@ jobs:
         if: steps.chromium.outcome == 'success'
         run: npm run check:team-tints
 
+      # One match under two ids is one card: the capture of 2026-11-21 holds three MLS matches each as a row with an ESPN id and as a stub in the provider's own id
+      # scheme. The Suite proves the rule on rows; this proves the page draws what the rule returns (the cards, the section count, the status line).
+      - name: One match under two ids is one card, on the rendered page
+        if: steps.chromium.outcome == 'success'
+        run: npm run check:twin-cards
+
       # A check script must not be killed while its own output is in flight.
       # process.exit() drops pending stdout writes to a pipe, and checks.mjs
       # prints its ::error annotations immediately before exiting — so the lost
@@ -730,6 +736,11 @@ jobs:
       # The probe's key table is a hand copy of the registry (it runs on a runner that builds nothing); this holds it to the compiled registry.
       - name: The live score probe's key table against the registry
         run: npm run check:live-probe-keys
+
+      # docs/CC-CMD-2026-11-11-soccer-live-scores.md, Open question 3 (owner ruling 2026-11-22). `Desk.sameTeam` is a port of the probe's, which the page
+      # cannot import; this holds the compiled copy to it on every team name of every committed capture.
+      - name: The page's club matching against the probe's
+        run: npm run check:same-fixture
 
       # The probe's glue (listeners, the card reader, the manifest, the verdict) run against the rendered page with the relay's routes mocked and a
       # fake clock: a live match, the whistle, a page that never polls, a refused poll, a 503 after a good one, an unreadable body, the committed

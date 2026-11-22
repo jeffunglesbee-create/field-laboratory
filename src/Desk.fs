@@ -946,6 +946,100 @@ let briefsByGame (games: Game list) (briefs: Brief list) : Map<string, Brief> =
     |> List.choose (fun g -> pick g |> Option.map (fun b -> g.Id, b))
     |> Map.ofList
 
+// ── One match under two ids ──────────────────────────────────────────────────────────────────────────────────────────────
+//
+// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Open question 3. Owner ruling 2026-11-22: "Option b".
+//
+// The archive holds some matches twice. One row has an ESPN event id and a start time (`MLS_2026-11-21_e401933733`); the other is in the
+// provider's own id scheme (`MLS_MLS-COM-000002_R16-07_roundonebestof3series_2026-11-21`) and has neither, no score and no finalisation. The
+// capture of 2026-11-21 (data/context-2026-11-21.json) holds three such pairs, the same venue on both rows of each. The second card reads
+// `Scheduled — no start time` beside the first and can never get a live reading, because the poll joins by ESPN event id.
+//
+// The relay owns this (field-relay-nba docs/CC-CMD-2026-09-13-archive-duplicate-rows.md, and the closed CC-CMD-2026-09-01-mls-dual-writer-duplicate
+// that merged 53 pairs on 2026-09-03). This hides the stub on the page and fixes nothing in the archive; when the archive is merged there is no
+// stub left to hide and this does nothing.
+
+/// A team name as the matching reads it: accents and punctuation gone, one space between words, lower case. A copy of `norm` in
+/// scripts/probe-espn-id-collisions.mjs, which this cannot import; scripts/check-same-fixture.mjs holds the two to each other on every team name of every committed capture.
+let private normalised (name: string) : string =
+    let plain = System.Text.RegularExpressions.Regex.Replace(name.Normalize(System.Text.NormalizationForm.FormD), "[\u0300-\u036f]", "")
+    let spaced = System.Text.RegularExpressions.Regex.Replace(plain, "[^A-Za-z0-9 ]", " ")
+    System.Text.RegularExpressions.Regex.Replace(spaced, "\\s+", " ").Trim().ToLowerInvariant()
+
+/// The words of a team name that identify a club: only words of three letters or more (`FC`, `SC` and `CF` identify nothing). A copy of `tokens` in the probe.
+let teamWords (name: string) : Set<string> =
+    (normalised name).Split(' ')
+    |> Array.filter (fun w -> w.Length > 2)
+    |> Set.ofArray
+
+/// Is `short` one word of three letters or more that is the initials of EVERY word of `long`, short words included? `NYCFC` is New York City Football Club and `LAFC` is
+/// Los Angeles Football Club; neither shares a word with its long name, so the subset test cannot see them (four real pairs in the committed captures).
+let private isInitialsOf (short: string) (long: string) : bool =
+    let words (n: string) = (normalised n).Split(' ') |> Array.filter (fun w -> w <> "")
+    let s, l = words short, words long
+    s.Length = 1 && s.[0].Length >= 3 && l.Length >= 2 && (l |> Array.map (fun w -> string w.[0]) |> String.concat "") = s.[0]
+
+/// Is this the same club under name drift? Subset in EITHER direction, because one writer says `Dallas` and another `FC Dallas` and which is the short one is not
+/// knowable; or one name is the initials of the other. Two names with no word of three letters match nothing. Held to `sameClub` in the probe
+/// (the probe's `sameTeam` is the subset half alone, and other probes use it as it is).
+let sameTeam (a: string) (b: string) : bool =
+    let wa, wb = teamWords a, teamWords b
+    let subset =
+        if Set.isEmpty wa || Set.isEmpty wb then false
+        else
+            let small, big = if Set.count wa <= Set.count wb then wa, wb else wb, wa
+            Set.isSubset small big
+    subset || isInitialsOf a b || isInitialsOf b a
+
+/// The same two clubs, in either orientation (writers disagree about which side is home).
+let sameFixture (x: Game) (y: Game) : bool =
+    (sameTeam x.Home y.Home && sameTeam x.Away y.Away) || (sameTeam x.Home y.Away && sameTeam x.Away y.Home)
+
+/// `(drawn, notDrawn)`: the day's rows, with the ones that are the same match as a row carrying an ESPN event id taken out.
+///
+/// A row is not drawn only when ALL of these hold, each of them a way a row could be a different match or carry something its twin lacks:
+///   - it has no ESPN event id itself (an ESPN-id row is never dropped, and is what the others are matched to);
+///   - it is a contest with two named sides (a golf event is not a pair of clubs);
+///   - there is a row with an ESPN id, in the same sport on the same day, with the same two clubs, that no earlier row has already used: ONE
+///     twin per stub, so a doubleheader's two rows are two matches and a second stub stays;
+///   - it has no score the twin lacks (a final here must not be replaced by a card that is not yet scored);
+///   - it has no odds the twin lacks (two real stubs of the committed captures, both Red Bull New York, hold an opening line their twin does not, and the card that
+///     is left would read "no odds" where the stub's read a price);
+///   - no brief joins to it (`briefsByGame` is the one authority on that), because the brief would go with the card.
+/// Where one of the last three keeps a stub the page draws both cards, as it did before this rule: nothing is lost and the duplicate is not hidden.
+/// Not covered, and stated: the matching is token subsets and initials, so two DIFFERENT clubs that nest (`D.C. United` and `Atlanta United FC` on `united`) match, and
+/// it takes two rows of one sport on one day with BOTH clubs nesting, one of them with no ESPN id, to hide anything wrongly; and two rows that BOTH carry an id
+/// (two NHL matches of 2026-11-21 are written a second time with an NHL API id in `espn_event_id`) are outside this rule, whatever they are.
+/// A row with no day matches nothing: two unreadable dates are not the same date.
+let withoutShadowedRows (briefs: Brief list) (games: Game list) : Game list * Game list =
+    let isContest (g: Game) =
+        match (sportMeta g.Sport).Matchup with
+        | NotAContest _ -> false
+        | _ -> true
+    let scored (g: Game) = g.HomeScore.IsSome || g.AwayScore.IsSome
+    let hasOdds (g: Game) =
+        match g.OpeningOdds, g.ClosingOdds with
+        | Decoded _, _ | _, Decoded _ -> true
+        | _ -> false
+    let withId = games |> List.filter (fun t -> t.EspnEventId.IsSome)
+    let step (used: string list, drawn: Game list, notDrawn: Game list) (g: Game) =
+        let twin =
+            if g.EspnEventId.IsSome || not (isContest g) || g.Day.IsNone then None
+            else
+                withId
+                |> List.tryFind (fun t ->
+                    not (List.contains t.Id used)
+                    && t.Sport = g.Sport
+                    && t.Day = g.Day
+                    && sameFixture g t
+                    && (scored t || not (scored g))
+                    && (hasOdds t || not (hasOdds g)))
+        match twin with
+        | Some t when Map.isEmpty (briefsByGame [ g ] briefs) -> (t.Id :: used, drawn, g :: notDrawn)
+        | _ -> (used, g :: drawn, notDrawn)
+    let _, drawn, notDrawn = List.fold step ([], [], []) games
+    List.rev drawn, List.rev notDrawn
+
 /// A section of the Context Graph response.
 ///
 /// Three states, and the middle one is the finding. The relay assembles

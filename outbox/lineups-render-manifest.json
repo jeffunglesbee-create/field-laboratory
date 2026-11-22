@@ -118,15 +118,15 @@
   "context": "context-2026-09-05",
   "routed": [
    {
-    "id": "2026-09-05-mls-tor-chi",
-    "sport": "MLS",
+    "id": "EPL_2026-09-05_e401879286",
+    "sport": "EPL",
     "bsd_event_id": "5327",
     "hasBrief": true,
     "routedBrief": true
    },
    {
-    "id": "2026-09-05-mls-phi-mtl",
-    "sport": "MLS",
+    "id": "EPL_2026-09-05_e401879311",
+    "sport": "EPL",
     "bsd_event_id": "5243",
     "hasBrief": false,
     "routedBrief": false
@@ -140,14 +140,14 @@
    }
   ],
   "coverage": {
-   "cards": 126,
-   "soccerCards": 43,
-   "soccerWithAffordance": 43,
+   "cards": 119,
+   "soccerCards": 36,
+   "soccerWithAffordance": 36,
    "nonSoccerCards": 83,
    "nonSoccerWithAffordance": 0,
    "soccerStates": {
-    "joined": 2,
-    "not-joined": 41
+    "not-joined": 34,
+    "joined": 2
    },
    "ok": true
   },

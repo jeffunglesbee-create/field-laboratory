@@ -112,6 +112,8 @@
     "check:live-score-probe": "node scripts/live-score-probe.mjs --self-test",
     "check:live-score-probe-e2e": "node scripts/live-score-probe.mjs --e2e",
     "check:live-probe-keys": "node scripts/check-live-probe-keys.mjs",
+    "check:same-fixture": "node scripts/check-same-fixture.mjs --self-test && node scripts/check-same-fixture.mjs",
+    "check:twin-cards": "node scripts/twin-card-check.mjs --self-test && URL='http://localhost:8080/?data=context-2026-11-21' node scripts/twin-card-check.mjs",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",

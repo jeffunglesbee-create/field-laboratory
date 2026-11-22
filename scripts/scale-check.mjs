@@ -82,7 +82,9 @@ if (isMain(import.meta.url)) {
     process.exit(1)
   }
 
-  const expected = fixtureShape(JSON.parse(readFileSync(`data/${fixture}.json`, 'utf8')))
+  const payload = JSON.parse(readFileSync(`data/${fixture}.json`, 'utf8'))
+  const expected = fixtureShape(payload)
+  const rawRows = [...(payload.games?.regular ?? []), ...(payload.games?.postseason ?? [])]
   console.log(`\n  ${fixture}: ${expected.rows} row(s), ${expected.sports.length} sport(s)`)
   console.log(`  ${expected.sports.join(', ')}\n`)
 
@@ -118,12 +120,22 @@ if (isMain(import.meta.url)) {
   // accumulates them across a re-render, both leave a page that looks correct
   // in a screenshot. `check:nav` caught exactly that shape at 18 cards — cards
   // going 4 -> 6 -> 12 -> 16 -> 18 under a status line still reading "decoded 2".
-  check('every row in the payload is on the page',
-    seen.cards === expected.rows,
-    `${seen.cards} card(s) rendered from ${expected.rows} row(s)`)
+  // EVERY ROW IS ON THE PAGE, EXCEPT THE ONES THE PAGE SAYS IT DID NOT DRAW. A row with no ESPN event id and no score is not drawn when a row that has one is the same match
+  // (`Desk.withoutShadowedRows`, docs/CC-CMD-2026-11-11-soccer-live-scores.md Open question 3), and the status line says how many, in its own words. The number is read from
+  // that line, so it is bounded by the fixture: it cannot exceed the rows that carry no ESPN id, which is the only kind the page may leave out.
+  const notDrawn = Number(seen.status.match(/ · (\d+) row\(s\) not drawn — the same match is drawn from its ESPN id/)?.[1] ?? 0)
+  const idless = rawRows.filter(r => !r.espn_event_id).length
+  console.log(`  ${notDrawn} of ${expected.rows} row(s) not drawn as the same match as a row with an ESPN id (the fixture has ${idless} row(s) with no ESPN id)\n`)
+  check('the rows the page did not draw are only rows with no ESPN id',
+    notDrawn <= idless,
+    `${notDrawn} not drawn, ${idless} rows with no ESPN id`)
+
+  check('every row in the payload is on the page, except those the page says it did not draw',
+    seen.cards === expected.rows - notDrawn,
+    `${seen.cards} card(s) rendered from ${expected.rows} row(s), ${notDrawn} of them not drawn`)
 
   check('the status line agrees with the DOM',
-    new RegExp(`^decoded ${expected.rows} game`).test(seen.status),
+    new RegExp(`^decoded ${expected.rows - notDrawn} game`).test(seen.status),
     `status said ${JSON.stringify(seen.status)} with ${seen.cards} cards present`)
 
   check('every sport in the payload has a group',

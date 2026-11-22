@@ -48,9 +48,9 @@ const ROOT = new URL('..', import.meta.url).pathname
 // scripts/mutation-lib.mjs --self-test waits on a fake compiler's timings and fails under CPU starvation (measured 2026-11-15: 4 of 40 runs, 8 loops at once on a machine already busy; 0 of 3 at width 4): alone, it is not measured under load.
 export const HEAVY = new Set(['scripts/mutation-check.mjs', 'scripts/mutation-lib.mjs'])
 export const MIN_COMMANDS = 20     // coverage is not vacuous: an emitter that breaks must not read as "0 of 0 launched nothing"
-/** How many commands the guard's list holds today (`python3 scripts/check-browser-gate.py --plain-commands`, 2026-11-18: 71 with `weather-availability.mjs --self-test`). The list is the denominator of the verdict, so it is pinned: a command that drops out
+/** How many commands the guard's list holds today (`python3 scripts/check-browser-gate.py --plain-commands`, 2026-11-22: 72 with `check-same-fixture.mjs --self-test`; 2026-11-18: 71 with `weather-availability.mjs --self-test`). The list is the denominator of the verdict, so it is pinned: a command that drops out
  *  of it is a command no longer measured, and a floor of 20 read that as green. Change this number WITH the step that adds or removes a browser-free self-test or read-only mode. */
-export const EXPECTED_COMMANDS = 71
+export const EXPECTED_COMMANDS = 72
 
 const TRAP_BODY = `const trap = what => async () => { require('node:fs').appendFileSync(process.env.LAUNCH_LOG, what + '\\n'); throw new Error('launch trapped: ' + what) }
 const type = n => ({ launch: trap(n + '.launch'), launchServer: trap(n + '.launchServer'), launchPersistentContext: trap(n + '.launchPersistentContext'), connect: trap(n + '.connect'), connectOverCDP: trap(n + '.connectOverCDP'), executablePath: () => '/nonexistent' })
@@ -529,18 +529,18 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       `exit ${mainMixed.status}; ${mainMixed.out.slice(-400)}`)
     const PLAN_ARGS = { cmds: ['c'], trap: 't', dir: 'd', width: 3 }
     const askedOfGuard = mainOptions(null), askedOfFile = mainOptions('f.json')
-    check('MAIN ASKS OF THE GUARD\'S LIST WHAT IT ASKS, BY KEY (not by the order of the keys, round 5, A5): a floor of MIN_COMMANDS (20), the pinned count (71) and the scan of scripts/; `--commands FILE` asks a floor of one command, no pin and no scan',
-      askedOfGuard.floor === MIN_COMMANDS && askedOfGuard.expected === EXPECTED_COMMANDS && askedOfGuard.scan === true && askedOfFile.floor === 1 && askedOfFile.expected === null && askedOfFile.scan === false && MIN_COMMANDS === 20 && EXPECTED_COMMANDS === 71,
+    check('MAIN ASKS OF THE GUARD\'S LIST WHAT IT ASKS, BY KEY (not by the order of the keys, round 5, A5): a floor of MIN_COMMANDS (20), the pinned count (72) and the scan of scripts/; `--commands FILE` asks a floor of one command, no pin and no scan',
+      askedOfGuard.floor === MIN_COMMANDS && askedOfGuard.expected === EXPECTED_COMMANDS && askedOfGuard.scan === true && askedOfFile.floor === 1 && askedOfFile.expected === null && askedOfFile.scan === false && MIN_COMMANDS === 20 && EXPECTED_COMMANDS === 72,
       JSON.stringify([askedOfGuard, askedOfFile]))
     // planFor() is the whole of what main() hands to measure(): read BY KEY, for the guard's list and for `--commands`.
     const planGuard = planFor(null, PLAN_ARGS), planFile = planFor('f.json', PLAN_ARGS)
-    check('planFor, BY KEY, hands measure() the commands, the trap, the width and the directory it was given, and for the guard\'s list the floor 20, the pin 71 and a scan of scripts/ that read real scripts; for `--commands` a floor of 1, no pin and no scan',
-      planGuard.cmds === PLAN_ARGS.cmds && planGuard.trap === 't' && planGuard.dir === 'd' && planGuard.width === 3 && planGuard.floor === 20 && planGuard.expected === 71 && planGuard.scan !== null && planGuard.scan.files >= 50
+    check('planFor, BY KEY, hands measure() the commands, the trap, the width and the directory it was given, and for the guard\'s list the floor 20, the pin 72 and a scan of scripts/ that read real scripts; for `--commands` a floor of 1, no pin and no scan',
+      planGuard.cmds === PLAN_ARGS.cmds && planGuard.trap === 't' && planGuard.dir === 'd' && planGuard.width === 3 && planGuard.floor === 20 && planGuard.expected === 72 && planGuard.scan !== null && planGuard.scan.files >= 50
         && planFile.cmds === PLAN_ARGS.cmds && planFile.width === 3 && planFile.floor === 1 && planFile.expected === null && planFile.scan === null,
       JSON.stringify({ planGuard: { ...planGuard, scan: planGuard.scan && { files: planGuard.scan.files } }, planFile }))
     // THE REAL ENTRY ON THE DEFAULT PATH (round 5, A4 and A5): nothing ran main() with the options of the guard's list, because every fixture above passes `--commands`. This file is COPIED into a fixture root whose
     // scripts/check-browser-gate.py is a stand-in that prints N commands (each a clean `true`), and started with no arguments, as the CI step starts it: the floor, the pin and the scan of that root's scripts/ are asked of
-    // the list by exit status. The sizes are LITERAL (20 is the floor, 71 the pin), and the check below ties them to the constants.
+    // the list by exit status. The sizes are LITERAL (20 is the floor, 72 the pin), and the check below ties them to the constants.
     const cliRun = (name, n, extra = {}) => {
       const root = join(dir, `cli-${name}`)
       mkdirSync(join(root, 'scripts'), { recursive: true })
@@ -552,15 +552,15 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       const r = spawnSync(process.execPath, [join(root, 'scripts', 'no-launch-check.mjs')], { cwd: root, encoding: 'utf8', timeout: 120000, maxBuffer: 16 * 1024 * 1024, env: { ...process.env, NO_LAUNCH_JOBS: '2' } })
       return { status: r.status, out: `${r.stdout}${r.stderr}` }
     }
-    const cli20 = cliRun('20', 20), cli70 = cliRun('71', 71), cli71 = cliRun('72', 72), cli3 = cliRun('3', 3), cliScan = cliRun('scan', 71, { 'offender.mjs': "go({ NODE_OPTIONS: 'x' })\n" })
-    check('THE REAL ENTRY, GUARD LIST OF 20 (the floor is met, the pin is 71): exits non-zero and says the guard listed 20 and this check pins 71, and is not the floor that refused it',
-      cli20.status === 1 && /the guard listed 20 command\(s\) and this check pins 71/.test(cli20.out) && !/fewer than the 20/.test(cli20.out) && /verdict: NOT ESTABLISHED OR VIOLATED/.test(cli20.out), `exit ${cli20.status}; ${cli20.out.slice(-400)}`)
-    check('...A LIST OF 71 CLEAN COMMANDS exits 0, prints its denominator, the pin it was held to and the scan it made of the fixture root\'s scripts/',
-      cli70.status === 0 && /checked 71 of 71 commands: 71 exited 0 with 0 launches; controls: 3 of 3 saw a launch; the guard's list is the pinned 71; scanned \d+ scripts: (\d+) of \1 lines that name the node options are on the list, 0 listed line\(s\) are gone/.test(cli70.out) && /verdict: no browser-free self-test/.test(cli70.out), `exit ${cli70.status}; ${cli70.out.slice(-400)}`)
-    check('...A LIST OF 72 exits non-zero and names both numbers (72 listed, 71 pinned)', cli71.status === 1 && /the guard listed 72 command\(s\) and this check pins 71/.test(cli71.out), `exit ${cli71.status}; ${cli71.out.slice(-300)}`)
-    check('...A LIST OF 3 is refused by the FLOOR as well as the pin (both messages): the floor MIN_COMMANDS reaches measure() from main() unchanged', cli3.status === 1 && /only 3 command\(s\) were measured, fewer than the 20/.test(cli3.out) && /pins 71/.test(cli3.out), `exit ${cli3.status}; ${cli3.out.slice(-300)}`)
-    check('...AND A SCRIPT IN THE ROOT\'S scripts/ THAT NAMES THE NODE OPTIONS OFF THE LIST fails a list of 71 clean commands, naming the file and line: the scan of scripts/ reaches measure() from main()',
-      cliScan.status === 1 && /scripts\/offender\.mjs:1 names the node options in a line that is not on the list/.test(cliScan.out) && /71 exited 0 with 0 launches/.test(cliScan.out), `exit ${cliScan.status}; ${cliScan.out.slice(-400)}`)
+    const cli20 = cliRun('20', 20), cli70 = cliRun('72', 72), cli71 = cliRun('73', 73), cli3 = cliRun('3', 3), cliScan = cliRun('scan', 72, { 'offender.mjs': "go({ NODE_OPTIONS: 'x' })\n" })
+    check('THE REAL ENTRY, GUARD LIST OF 20 (the floor is met, the pin is 72): exits non-zero and says the guard listed 20 and this check pins 72, and is not the floor that refused it',
+      cli20.status === 1 && /the guard listed 20 command\(s\) and this check pins 72/.test(cli20.out) && !/fewer than the 20/.test(cli20.out) && /verdict: NOT ESTABLISHED OR VIOLATED/.test(cli20.out), `exit ${cli20.status}; ${cli20.out.slice(-400)}`)
+    check('...A LIST OF 72 CLEAN COMMANDS exits 0, prints its denominator, the pin it was held to and the scan it made of the fixture root\'s scripts/',
+      cli70.status === 0 && /checked 72 of 72 commands: 72 exited 0 with 0 launches; controls: 3 of 3 saw a launch; the guard's list is the pinned 72; scanned \d+ scripts: (\d+) of \1 lines that name the node options are on the list, 0 listed line\(s\) are gone/.test(cli70.out) && /verdict: no browser-free self-test/.test(cli70.out), `exit ${cli70.status}; ${cli70.out.slice(-400)}`)
+    check('...A LIST OF 73 exits non-zero and names both numbers (73 listed, 72 pinned)', cli71.status === 1 && /the guard listed 73 command\(s\) and this check pins 72/.test(cli71.out), `exit ${cli71.status}; ${cli71.out.slice(-300)}`)
+    check('...A LIST OF 3 is refused by the FLOOR as well as the pin (both messages): the floor MIN_COMMANDS reaches measure() from main() unchanged', cli3.status === 1 && /only 3 command\(s\) were measured, fewer than the 20/.test(cli3.out) && /pins 72/.test(cli3.out), `exit ${cli3.status}; ${cli3.out.slice(-300)}`)
+    check('...AND A SCRIPT IN THE ROOT\'S scripts/ THAT NAMES THE NODE OPTIONS OFF THE LIST fails a list of 72 clean commands, naming the file and line: the scan of scripts/ reaches measure() from main()',
+      cliScan.status === 1 && /scripts\/offender\.mjs:1 names the node options in a line that is not on the list/.test(cliScan.out) && /72 exited 0 with 0 launches/.test(cliScan.out), `exit ${cliScan.status}; ${cliScan.out.slice(-400)}`)
     const mainEmpty = mainOver('empty', [])
     check('...and an empty list exits 1 (a list that measured nothing is not a pass)', mainEmpty.status === 1 && /only 0 command\(s\) were measured/.test(mainEmpty.out), `exit ${mainEmpty.status}; ${mainEmpty.out.slice(-200)}`)
     // The floor of the guard's own list is MIN_COMMANDS, and `main()` applies it to the real list: measure() with that floor, not main()'s `--commands` one.
