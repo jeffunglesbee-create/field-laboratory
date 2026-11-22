@@ -452,3 +452,5 @@ check that uses the pair says so (`scripts/forecast-render-check.mjs`).
 - `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.
 
 - `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.
+
+- `context-2026-11-21.json` — captured 2026-11-22 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-21` by `scripts/capture-render-fixture.mjs`. 113 rows, 10 sports: Bundesliga, CFB, EPL, La Liga, Ligue 1, MLS, NBA, NHL, Serie A, golf. Unedited — a hand-modified fixture is an invented one.
