@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `65e0637`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `65e0637` at "The pitcher and records rows appear on the deployed page" — 1 of 17 steps did not run behind it — [run 45043449054](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45043449054)
 
 ## Is it published?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `65e0637` — newest deployable `6d6ab9d` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `65e0637` — behind newest deployable `afedae1` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-11-22 — 2 games, 0 malformed (233 runs logged)
+`ok` on 2026-11-22 — 44 games, 0 malformed (234 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)

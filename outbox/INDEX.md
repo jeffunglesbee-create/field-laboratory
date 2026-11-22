@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `83932f0` | 2026-11-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `83932f0` | 2026-11-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `83932f0` | 2026-11-22 | [sport-vocabulary-2026-11-22T18-35-42-513Z.json](sport-vocabulary-2026-11-22T18-35-42-513Z.json) | drift-sentinel: ok on 2026-11-22 [skip ci] |
+| `1edf9c0` | 2026-11-22 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of f6a3335 [skip ci] |
+| `afedae1` | 2026-11-22 | [cc-session-2026-11-22-epl-alias-coverage.md](cc-session-2026-11-22-epl-alias-coverage.md) | feat: a daily check that the relay's team resolver reaches every club in the league |
+| `a58f1e0` | 2026-11-22 | [live-capture-nfl-2026-11-22-1834Z.json](live-capture-nfl-2026-11-22-1834Z.json) | probe: the live /v2/games shape of nfl on 2026-11-22 [skip ci] |
+| `a8b9b2a` | 2026-11-22 | [live-capture-nhl-2026-11-22-1834Z.json](live-capture-nhl-2026-11-22-1834Z.json) | probe: the live /v2/games shape of nhl on 2026-11-22 [skip ci] |
+| `24ed115` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `65e0637` | 2026-11-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f7c98e4` | 2026-11-22 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45036530728 |
 | `6d6ab9d` | 2026-11-22 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | feat: a card whose live window has ended says live updates stopped and keeps its last score (CC-CMD Open question 1, option c) |
