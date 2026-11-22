@@ -503,7 +503,9 @@ type CardHandle =
       /// The archive's answer, set from outside the page's data (the test affordance).
       SetState: GameState -> unit
       /// What the live feed said about this game. `NoReading` puts the card back as the archive leaves it.
-      SetReading: LiveScore.LiveReading -> unit }
+      SetReading: LiveScore.LiveReading -> unit
+      /// The card's window has ended: a live answer it holds becomes `LiveStopped` (`LiveScore.stoppedFrom`). Any other reading, and no reading, is left alone, so calling it again changes nothing.
+      MarkStopped: unit -> unit }
 
 /// Builds the card and mounts it. Returns its handle so scores can be pushed
 /// reactively without re-rendering the card — the whole point of an island.
@@ -788,7 +790,15 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
       SetReading =
         fun r ->
             setReading r
-            setHeard (heard () + 1) }
+            setHeard (heard () + 1)
+      MarkStopped =
+        fun () ->
+            match reading () with
+            | LiveScore.LiveNow _
+            | LiveScore.HalfTime _ ->
+                setReading (LiveScore.stoppedFrom (reading ()))
+                setHeard (heard () + 1)
+            | _ -> () }
 
 /// Renders the whole slate, grouped by sport, and returns the card handles in
 /// DOM order so index 0 always addresses the first card on screen.

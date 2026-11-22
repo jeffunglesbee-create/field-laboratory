@@ -344,6 +344,10 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
 
     let tick () =
         let now = System.DateTimeOffset.UtcNow
+        // A card whose window has ended is no longer asked about and no longer told anything, so a live answer it holds is the last one it will hear: say so (CC-CMD Open question 1).
+        // Outside the visibility test on purpose: a hidden tab's timer still runs and the card must not come back to a frozen clock. Pull only: this reads the clock the tick already reads.
+        for h in handles do
+            if LiveScore.windowEndedAt now h.Game then h.MarkStopped()
         if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
         elif (string document?visibilityState) = "visible" then
             for key in LiveScore.liveKeysAt now (games ()) do

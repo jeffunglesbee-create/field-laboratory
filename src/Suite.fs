@@ -4654,6 +4654,47 @@ let private liveScore () =
           "2026-11-21T15:30:00Z"
           "2026-11-21T15:30:01Z"
 
+      // CC-CMD Open question 1 (owner, 2026-11-22, "Go with Claude's best recommendations"): the named state when a card's window ends.
+      Verify.check "a card's window has not ended at its last instant and has ended one second after"
+          (fun now -> not (LiveScore.windowEndedAt (at now) epl))
+          "2026-11-21T15:30:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "a row with no start time has no window to end"
+          (fun start -> not (LiveScore.windowEndedAt (at "2026-11-22T09:00:00Z") (game Sport.EPL start None None None)))
+          None
+          kickoff
+
+      Verify.check "a live answer becomes LiveStopped when the window ends, and keeps its score"
+          (fun reading -> LiveScore.stoppedFrom reading = LiveScore.LiveStopped(2, 1))
+          (LiveScore.LiveNow(2, 1, Some "88'"))
+          (LiveScore.LiveNow(2, 2, Some "88'"))
+
+      Verify.check "half time becomes LiveStopped too, because the break can outlast the window"
+          (fun reading -> LiveScore.stoppedFrom reading = LiveScore.LiveStopped(0, 1))
+          (LiveScore.HalfTime(0, 1))
+          (LiveScore.HalfTime(1, 0))
+
+      Verify.check "full time, an unavailable feed and no reading are left as they are when the window ends"
+          (fun reading -> LiveScore.stoppedFrom reading = reading)
+          (LiveScore.FullTime(2, 1))
+          (LiveScore.LiveNow(2, 1, None))
+
+      Verify.check "an unavailable feed is left as it is, with its reason"
+          (fun reading -> LiveScore.stoppedFrom reading = reading)
+          (LiveScore.LiveUnavailable "the feed did not answer: HTTP 503")
+          (LiveScore.HalfTime(0, 0))
+
+      Verify.check "a stopped card keeps its score and stays In progress (the archive has not finalised it)"
+          (fun archive -> LiveScore.foldReading archive (LiveScore.LiveStopped(2, 1)) = InProgress(2, 1))
+          Scheduled
+          (Final(2, 1, false))
+
+      Verify.check "a stopped card says live updates stopped, and says nothing once the archive finalises"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.LiveStopped(2, 1)) = "live updates stopped")
+          Scheduled
+          (Final(2, 1, false))
+
       Verify.check "a row with no start time is never in a window"
           (fun start -> LiveScore.inLiveWindowAt (at "2026-11-21T13:00:00Z") (game Sport.EPL start None None None))
           kickoff

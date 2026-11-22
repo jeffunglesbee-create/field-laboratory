@@ -30,6 +30,10 @@ type LiveReading =
     | HalfTime of home: int * away: int
     /// The feed says the game is over and the archive row has not finalised it yet. The card stays `In progress`, marked.
     | FullTime of home: int * away: int
+    /// The card's window ended while it still held a live answer (`LiveNow` or `HalfTime`): a suspended match, or a tie that ran past three hours after its start. The poll no longer asks
+    /// about this card, so its score is the last one heard and nothing else would say so. The card keeps that score, still `In progress`, and says in words that live updates stopped
+    /// (owner, 2026-11-22, "Go with Claude's best recommendations": CC-CMD Open question 1, the named state at the window's end; the review's `as of HH:mm` after two polls is not built).
+    | LiveStopped of home: int * away: int
     /// The feed failed, or has no game for this card. Said on the card in words; never a blank and never `Scheduled`.
     | LiveUnavailable of why: string
 
@@ -127,6 +131,20 @@ let liveWorkAheadAt (now: DateTimeOffset) (games: Game list) : bool =
             | Some start -> now <= start + liveWindowAfterStart
             | None -> false))
 
+/// Has the card's window ended at this instant? Strictly after its last instant (`inLiveWindowAt` is inclusive), and false for a row with no start time, which has no window.
+let windowEndedAt (now: DateTimeOffset) (g: Game) : bool =
+    match g.StartTime with
+    | Some start -> now > start + liveWindowAfterStart
+    | None -> false
+
+/// What a card holds once its window has ended: a live answer (`LiveNow`, `HalfTime`) becomes `LiveStopped` and keeps its score. Every other reading is left as it is: `FullTime` is
+/// the feed's own statement that the game is over and stays true, `LiveUnavailable` already says in words that there is no score, and no reading says nothing.
+let stoppedFrom (reading: LiveReading) : LiveReading =
+    match reading with
+    | LiveNow(h, a, _)
+    | HalfTime(h, a) -> LiveStopped(h, a)
+    | other -> other
+
 /// The state a card shows once the feed has spoken. The ARCHIVE's `Final` always wins: a reading is never allowed to take a game
 /// back from `Final`, and never to make one. A reading that adds a score turns a started `Scheduled` row into `InProgress`; no
 /// reading, or an unavailable one, leaves the archive's own answer.
@@ -137,7 +155,8 @@ let foldReading (archive: GameState) (reading: LiveReading) : GameState =
         match reading with
         | LiveNow(h, a, _)
         | HalfTime(h, a)
-        | FullTime(h, a) -> InProgress(h, a)
+        | FullTime(h, a)
+        | LiveStopped(h, a) -> InProgress(h, a)
         | NoReading
         | LiveUnavailable _ -> archive
 
@@ -150,6 +169,7 @@ let liveNoteText (reading: LiveReading) : string =
     | LiveNow(_, _, None) -> ""
     | HalfTime _ -> "Half time"
     | FullTime _ -> "Full time"
+    | LiveStopped _ -> "live updates stopped"
     | LiveUnavailable _ -> "live score unavailable"
 
 /// The note beside the score, given what the ARCHIVE says. A game the archive has finalised carries no live note: the card says

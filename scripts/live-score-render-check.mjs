@@ -57,6 +57,7 @@ export const WORDS = {
   halfTime: 'Half time',
   fullTime: 'Full time',
   unavailable: 'live score unavailable',
+  stopped: 'live updates stopped',
 }
 
 /** What differs between a card as read and as wanted. Empty means it is as wanted. Only the keys in `want` are compared. */
@@ -327,7 +328,7 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     const pg = await ctx.newPage()
     pg.on('pageerror', e => errors2.push(`pageerror: ${e.message}`))
     const feedRequests = []
-    const script = [feedBody('live', 1, 0, "34'"), feedBody('final', 2, 1, "90'+4'"), 'FAIL', feedBody('live', 3, 0, "70'"), 'GARBAGE']
+    const script = [feedBody('live', 1, 0, "34'"), feedBody('final', 2, 1, "90'+4'"), 'FAIL', feedBody('live', 3, 0, "70'"), 'GARBAGE', feedBody('live', 3, 1, "88'")]
     await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
     await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
     await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
@@ -379,6 +380,11 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       feedRequests.length === 5 && mismatches(fifth, { live: WORDS.unavailable, status: WORDS.passed }).length === 0, JSON.stringify({ n: feedRequests.length, card: fifth }))
     check('...and its reason says the body was unreadable', typeof fifth.why === 'string' && fifth.why.startsWith('unreadable'), JSON.stringify(fifth.why))
 
+    await pg.clock.fastForward(60_000)
+    const sixth = await settle(pg, EARLY, { score: '3–1' })
+    check('a later good answer puts the card back on the clock, with the new score',
+      feedRequests.length === 6 && mismatches(sixth, { score: '3–1', status: WORDS.inProgress, live: "88'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: sixth }))
+
     await pg.clock.fastForward(3 * 60 * 60 * 1000)
     await pg.waitForTimeout(300)
     const afterWindow = feedRequests.length
@@ -387,6 +393,11 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     await pg.waitForTimeout(300)
     check('once the card\'s window (three hours after the start) has passed the poll stops: no request at the next ticks',
       feedRequests.length === afterWindow, JSON.stringify({ afterWindow, now: feedRequests.length }))
+    // CC-CMD Open question 1: the card held a live answer (3-1, 88') when its window ended, so it keeps that score, stays In progress, and says in words that the updates stopped.
+    const stopped = await settle(pg, EARLY, { live: WORDS.stopped })
+    check('once the window has passed on a card that was live, it keeps its last score, stays In progress, and says live updates stopped',
+      mismatches(stopped, { score: '3–1', status: WORDS.inProgress, live: WORDS.stopped }).length === 0, JSON.stringify(stopped))
+    check('...with no reason attribute: it is not a failure of the feed', stopped.why === null, JSON.stringify(stopped.why))
     check('no page errors on the unpinned page', errors2.length === 0, errors2.join(' | '))
     await ctx.close()
   }
