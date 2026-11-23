@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `00200dc` | 2026-11-23 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | feat: AFLW is a sport of its own, with a live key, a window and a probe row (the lab half of the relay's AFLW CC-CMD) |
+| `b25899f` | 2026-11-23 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `378c624` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45093788594 |
 | `447f7d7` | 2026-11-23 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | test: a real NBA game at halftime is a row, and the NBA break is closed on the deployed page |
 | `d88ca19` | 2026-11-23 | [live-score-2026-11-22-20261123-0111Z.png](live-score-2026-11-22-20261123-0111Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
