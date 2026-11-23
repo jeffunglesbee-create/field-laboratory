@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `301dec0` | 2026-11-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-23 [skip ci] |
+| `301dec0` | 2026-11-23 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-23 [skip ci] |
+| `301dec0` | 2026-11-23 | [sport-vocabulary-2026-11-23T09-19-04-929Z.json](sport-vocabulary-2026-11-23T09-19-04-929Z.json) | drift-sentinel: ok on 2026-11-23 [skip ci] |
+| `ec8f10f` | 2026-11-23 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e290b24` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45108603022 |
 | `348dc26` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45107389122 |
 | `00200dc` | 2026-11-23 | [cc-session-2026-11-22-other-sports-live-scores.md](cc-session-2026-11-22-other-sports-live-scores.md) | feat: AFLW is a sport of its own, with a live key, a window and a probe row (the lab half of the relay's AFLW CC-CMD) |
