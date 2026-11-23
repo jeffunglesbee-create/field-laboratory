@@ -5567,6 +5567,9 @@ let private otherSports () =
     // A real NFL game at halftime, served after the relay fix (field-relay-nba 8bdac8e), 2026-11-22 22:30:39Z, `outbox/live-capture-nfl-2026-11-22-2230Z.json`: Jets 17 at Chargers 10, `state` live, Q2, clock 0:00, `situation.isHalftime` true.
     let nflHalftime =
         """{"games":[{"id":"espn:401873074","espnEventId":"401873074","sport":"nfl","league":"NFL","state":"live","start":"2026-11-22T21:05Z","home":{"name":"Los Angeles Chargers","abbr":"LAC","score":10,"curatedRank":99},"away":{"name":"New York Jets","abbr":"NYJ","score":17,"curatedRank":99},"periodNum":2,"periodLabel":"Q2","clock":"0:00","venue":"SoFi Stadium","round":11,"broadcasts":["Fox"],"streams":[{"label":"Fox","market":"National","type":"TV"}],"situation":{"down":1,"distance":10,"yardLine":35,"possession":null,"isRedZone":false,"isHalftime":true}}]}"""
+    // A real NBA game at halftime, served after the relay flag (field-relay-nba 72faa99), 2026-11-23 01:07:38Z, `outbox/live-capture-nba-2026-11-22-0107Z.json`: Nuggets 72 at Bulls 70, `state` live, Q2, clock 0.0, `situation.isHalftime` true. The capture of 01:02:14Z has the same game at Q2 56.1 with the flag false.
+    let nbaHalftime =
+        """{"games":[{"id":"espn:401910032","espnEventId":"401910032","sport":"nba","league":"NBA","state":"live","start":"2026-11-23T00:00Z","home":{"name":"Chicago Bulls","abbr":"CHI","score":70},"away":{"name":"Denver Nuggets","abbr":"DEN","score":72},"periodNum":2,"periodLabel":"Q2","clock":"0.0","venue":"United Center","situation":{"quarter":2,"clock":"0.0","possession":null,"isHalftime":true},"linescores":{"home":[31,39],"away":[33,39]},"round":null,"streams":[]}]}"""
     let card (sport: string) (home: string) (away: string) (espn: string option) : Game =
         let json =
             sprintf """{"id":"c1","sport":"%s","date":"2026-11-11","home":"%s","away":"%s"%s}"""
@@ -5709,6 +5712,11 @@ let private otherSports () =
           (fun g -> readFeed nflHalftime g = LiveScore.HalfTime(10, 17))
           (card "NFL" "Chargers" "Jets" (Some "401873074"))
           (card "NFL" "Chargers" "Jets" (Some "1"))
+
+      Verify.check "a real NBA game at halftime (2026-11-23, after the relay flag) is a break, not a clock: HalfTime, Nuggets 72 at Bulls 70, joined by its ESPN id"
+          (fun g -> readFeed nbaHalftime g = LiveScore.HalfTime(70, 72))
+          (card "NBA" "Bulls" "Nuggets" (Some "401910032"))
+          (card "NBA" "Bulls" "Nuggets" (Some "1"))
 
       // Built from the relay's adapter, no live body yet (2026-11-22): `adaptESPNFootball` gives `periodLabel` `Q<n>` and `clock` the displayClock.
       Verify.check "an NFL game in play reads its quarter and clock: Q3 4:12 (built from the adapter; the real NFL body is the row above)"
