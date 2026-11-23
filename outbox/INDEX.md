@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7cf8a68` | 2026-11-23 | [branch-cleanup-2026-11-23.md](branch-cleanup-2026-11-23.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
+| `7cf8a68` | 2026-11-23 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
+| `7cf8a68` | 2026-11-23 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
+| `7cf8a68` | 2026-11-23 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
 | `43d1ca4` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45223616096 |
 | `5e8fd8d` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader: a pure core that grades the census's gradeable calls against FIELD's own goal timelines, its check and its mutation harness (not yet run on the vendor's ledger) |
 | `d38578c` | 2026-11-23 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: the three merged branches of item 9 are deleted; what was checked, what was kept, and how |
