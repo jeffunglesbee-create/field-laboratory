@@ -12,14 +12,17 @@ export const timeline = (steps) => {
   return steps.map(([side, minute, extra]) => {
     if (side === 'home') home++
     else away++
-    return { type: 'goal', minute, home_score: home, away_score: away, is_home: side === 'home', goal_type: 'regular', player: 'P', ...(extra === undefined ? {} : extra) }
+    return { type: 'goal', minute, home_score: home, away_score: away, is_home: side === 'home', goal_type: 'regular', added_time: null, player: 'P', ...(extra === undefined ? {} : extra) }
   })
 }
 
 // an incidents.json body: the goal rows newest-first (or as given with ascending), among rows that are not goals
+// o.final = [home, away] adds a full-time period row (text o.finalText, default 'FT'); o.live adds a live 'Second half' row
 export const capture = (goalRows, o = {}) => ({
-  event_id: 0,
+  event_id: o.eventId === undefined ? 0 : o.eventId,
   incidents: [
+    ...(o.final === undefined ? [] : [{ type: 'period', text: o.finalText === undefined ? 'FT' : o.finalText, minute: 90, is_live: false, home_score: o.final[0], away_score: o.final[1] }]),
+    ...(o.live ? [{ type: 'period', text: 'Second half', minute: 90, is_live: true, home_score: 0, away_score: 0 }] : []),
     ...(o.ascending ? goalRows : goalRows.slice().reverse()),
     { type: 'period', text: 'HT', minute: 45, is_live: false, home_score: 0, away_score: 0 },
     { type: 'substitution', minute: 60, is_home: true },
