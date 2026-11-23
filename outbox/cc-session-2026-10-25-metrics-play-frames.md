@@ -2,7 +2,7 @@
 
 Owner: "the plays should be in the metric tab." Built as a fifth section of the
 Metrics tab, over the existing binary decoder, after a proposal file
-(`FieldLaboratorySurface.fs`, branch `jeffunglesbee-create-patch-1`) was compiled
+(`FieldLaboratorySurface.fs`, branch `jeffunglesbee-create-patch-1`, now the tag `archive/jeffunglesbee-create-patch-1`) was compiled
 here and found not to build under Fable.
 
 ## What the owner's file did under the real compiler

@@ -2,6 +2,8 @@
 
 Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 1 (APPROVED to build by the owner, 2026-11-18). Repo field-laboratory, work branch `gate-items-2-7`. Landed on `main`: see the last row of the table.
 
+The branch `gate-items-2-7` named here, and the shas of its commits cited below, are kept as the tag `archive/gate-items-2-7` (the branch was deleted 2026-11-23: `outbox/branch-cleanup-2026-11-23.md`): `git fetch origin 'refs/tags/archive/*:refs/tags/archive/*'`.
+
 ## HEAD progression
 
 | step | sha | state |

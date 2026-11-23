@@ -63,7 +63,7 @@ alias table in F#.
 - **The predicted mark is a property of each row, not a badge in a corner** (that CC-CMD's Task 2), and the
   non-answers are different things drawn differently (Task 3). This reuses `LineupsView.load`, which owns
   both. **Do not write a second sheet renderer.**
-- **`LaboratorySurfaceNew.fs` and `FieldLaboratorySurface.fs` (branches `jeffunglesbee-create-patch-1`, `-3`)
+- **`LaboratorySurfaceNew.fs` and `FieldLaboratorySurface.fs` (branches `jeffunglesbee-create-patch-1`, `-3`, now the tags `archive/jeffunglesbee-create-patch-1` and `-3`; the HUD harness draft `FieldLaboratoryHUDTest.html` is `archive/jeffunglesbee-create-patch-2`: `outbox/branch-cleanup-2026-11-23.md`)
   are not built on.** They do not compile here (Feliz, `StructLayout`, `System.Buffers.Binary`); measured in
   `outbox/cc-session-2026-10-25-metrics-play-frames.md`. Their 7-state lineup status has no source on the
   vendor payload; `Lineups.Standing` (Confirmed, Predicted) stays.
