@@ -73,6 +73,8 @@ let liveSportKey (sport: Sport) : string option =
     | Sport.NFL -> Some "nfl"
     | Sport.CFB -> Some "cfb"
     | Sport.AFL -> Some "afl"
+    // AFLW is not on ESPN: the relay serves it from the AFL's own API (field-relay-nba `/v2/games?sport=aflw`, deployed 2026-11-23; docs/CC-CMD-2026-11-22-aflw-live-source.md). Its feed games carry no `espnEventId`, so they join by the two club names, as NHL's do.
+    | Sport.AFLW -> Some "aflw"
     | _ -> None
 
 /// THE POLL'S NAMED CONDITIONS (the CC-CMD's "Design"; the owner may change them, and `check:live-score-poll` reads them).
@@ -110,6 +112,8 @@ let liveWindowFor (sport: Sport) : TimeSpan =
     | Sport.WNBA
     | Sport.NHL
     | Sport.AFL -> TimeSpan.FromHours 3.5
+    // AFLW: four 17-minute quarters, the last two minutes of each with time on, "the whole match is done and dusted in two hours" with the breaks (AFL.com.au's AFLW rules page, read 2026-11-22; a club page says about 90 minutes). CHOSEN, not measured: 3 hours, the soccer window, because no AFLW row with both a start and a finalisation has been read.
+    | Sport.AFLW -> TimeSpan.FromHours 3.0
     | Sport.NFL -> TimeSpan.FromHours 4.0
     | Sport.MLB
     | Sport.CFB -> TimeSpan.FromHours 4.5

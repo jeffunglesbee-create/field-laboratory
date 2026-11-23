@@ -272,6 +272,10 @@ type Matchup =
 [<RequireQualifiedAccess>]
 type Sport =
     | AFL
+    /// The AFL Women's competition ("NAB AFLW"), a case of its own and not folded into `AFL`: four AFL / AFLW double-headers a season put the same
+    /// clubs on one day, and the twin rule keys on `t.Sport = g.Sport`, so two cases cannot merge. The relay writes its rows (sport `AFLW`,
+    /// field-relay-nba `seedAflwArchive`, 2026-11-23) and serves its feed (`/v2/games?sport=aflw`); docs/CC-CMD-2026-11-22-aflw-live-source.md.
+    | AFLW
     | MLB
     | MLS
     | WNBA
@@ -414,11 +418,14 @@ type SportMeta =
 /// cases in this file's Sport DU, subtracts the payload-carrying one, and
 /// requires the two numbers to agree -- so a case added above and forgotten
 /// here fails the run.
-let allSports = [ Sport.AFL; Sport.MLB; Sport.MLS; Sport.WNBA; Sport.EFLCup; Sport.NFL; Sport.CFL; Sport.CFB; Sport.LaLiga; Sport.Bundesliga; Sport.EPL; Sport.Ligue1; Sport.SerieA; Sport.UEFAChampionsLeague; Sport.UEFAChampionsLeagueQualifying; Sport.UEFAEuropaLeague; Sport.UEFAEuropaLeagueQualifying; Sport.UEFAEuropaConferenceLeague; Sport.UEFAEuropaConferenceLeagueQualifying; Sport.FIFAWorldCup; Sport.EFLTrophy; Sport.FACup; Sport.NBA; Sport.NHL; Sport.Golf; Sport.PGATour; Sport.IPL; Sport.UFL ]
+let allSports = [ Sport.AFL; Sport.AFLW; Sport.MLB; Sport.MLS; Sport.WNBA; Sport.EFLCup; Sport.NFL; Sport.CFL; Sport.CFB; Sport.LaLiga; Sport.Bundesliga; Sport.EPL; Sport.Ligue1; Sport.SerieA; Sport.UEFAChampionsLeague; Sport.UEFAChampionsLeagueQualifying; Sport.UEFAEuropaLeague; Sport.UEFAEuropaLeagueQualifying; Sport.UEFAEuropaConferenceLeague; Sport.UEFAEuropaConferenceLeagueQualifying; Sport.FIFAWorldCup; Sport.EFLTrophy; Sport.FACup; Sport.NBA; Sport.NHL; Sport.Golf; Sport.PGATour; Sport.IPL; Sport.UFL ]
 
 let sportMeta (sport: Sport) : SportMeta =
     match sport with
     | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true; Omission = None }
+    // AFL.com.au writes "Collingwood v Hawthorn" for the women's competition as for the men's: home first, "v". The convention is the AFL's own, not read from the
+    // relay's feed (which names home and away explicitly), and it is the same one `Sport.AFL` carries.
+    | Sport.AFLW -> { Label = "AFLW"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true; Omission = None }
     | Sport.MLB -> { Label = "MLB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     // Association football names the home side first, everywhere. Both of these
     // are `IsSoccer = true`, which is the field Rule 50 names explicitly and
@@ -557,6 +564,7 @@ let sportMeta (sport: Sport) : SportMeta =
 let sportOfString (raw: string) : Sport =
     match raw with
     | "AFL" -> Sport.AFL
+    | "AFLW" -> Sport.AFLW
     | "MLB" -> Sport.MLB
     | "MLS" -> Sport.MLS
     | "WNBA" -> Sport.WNBA

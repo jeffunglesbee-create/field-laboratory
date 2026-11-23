@@ -65,21 +65,23 @@ export const LABEL_TO_KEY = {
   'EFL Trophy': 'efltrophy', 'FA Cup': 'facup',
   // Owner, 2026-11-22: the other sports the relay's /v2/games serves.
   'NBA': 'nba', 'WNBA': 'wnba', 'NHL': 'nhl', 'MLB': 'mlb', 'NFL': 'nfl', 'CFB': 'cfb', 'AFL': 'afl',
+  // AFLW (2026-11-23): the relay serves it from the AFL's own API, `/v2/games?sport=aflw`, with no `espnEventId`; the card joins by the two club names.
+  'AFLW': 'aflw',
 }
 /** The sixteen soccer labels, spelled out (src/Desk.fs `IsSoccer`). */
 export const SOCCER = [
   'EPL', 'MLS', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1', 'UEFA Champions League', 'UEFA Champions League Qualifying', 'UEFA Europa League',
   'UEFA Europa League Qualifying', 'UEFA Europa Conference League', 'UEFA Europa Conference League Qualifying', 'FIFA World Cup', 'EFL Cup', 'EFL Trophy', 'FA Cup',
 ]
-export const OTHER_LIVE = ['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB', 'AFL']
+export const OTHER_LIVE = ['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB', 'AFL', 'AFLW']
 export const LIVE_LABELS = [...SOCCER, ...OTHER_LIVE]
 /** The labels whose card shows the AWAY score first (src/Desk.fs `Matchup = AwayAtHome`); soccer and AFL are home first. `scripts/check-live-probe-keys.mjs` holds this to the compiled registry. */
 export const AWAY_FIRST = new Set(['NBA', 'WNBA', 'NHL', 'MLB', 'NFL', 'CFB'])
 
 /** The page's words, spelled out in full on purpose (a typo in the page must not be forgiven by a check that derives the same string). */
 export const WORDS = { inProgress: 'In progress', halfTime: 'Half time', fullTime: 'Full time', gameOver: 'Game over', unavailable: 'live score unavailable' }
-/** The poll's window after a start time, by label (src/LiveScore.fs `liveWindowFor`; `scripts/check-live-probe-keys.mjs` holds the table to it): soccer 3 h, NBA, WNBA, NHL and AFL 3.5 h, NFL 4 h, MLB and CFB 4.5 h. */
-export const WINDOW_H = { NBA: 3.5, WNBA: 3.5, NHL: 3.5, AFL: 3.5, NFL: 4, MLB: 4.5, CFB: 4.5 }
+/** The poll's window after a start time, by label (src/LiveScore.fs `liveWindowFor`; `scripts/check-live-probe-keys.mjs` holds the table to it): soccer 3 h, NBA, WNBA, NHL and AFL 3.5 h, AFLW 3 h, NFL 4 h, MLB and CFB 4.5 h. */
+export const WINDOW_H = { NBA: 3.5, WNBA: 3.5, NHL: 3.5, AFL: 3.5, AFLW: 3, NFL: 4, MLB: 4.5, CFB: 4.5 }
 export const windowMsOf = label => (WINDOW_H[label] ?? 3) * 3600_000
 /** The word for a game the feed says is over and the archive has not finalised: soccer keeps the owner's `Full time`, every other sport says `Game over`. */
 export const overWordOf = label => (SOCCER.includes(label) ? WORDS.fullTime : WORDS.gameOver)
@@ -498,7 +500,7 @@ if (SELF_TEST) {
   // Windows are per sport (src/LiveScore.fs `liveWindowFor`): NFL 4 h, MLB and CFB 4.5 h, NBA, WNBA, NHL, AFL 3.5 h, soccer 3 h.
   const at = (label, hours) => judge({ cards: [card({ sport: label, gameId: ROW_A })], rows, outcomes: [], runner: runnerOk(), requests: 0, nowMs: T0 + hours * 3600_000 - 1, decodeStatus: okStatus }).rows[0].kind
   check('the window follows the sport: just inside is judged (never-asked), just outside is out-of-window, for soccer, NBA, NFL and MLB',
-    [['EPL', 3], ['NBA', 3.5], ['NHL', 3.5], ['NFL', 4], ['MLB', 4.5], ['CFB', 4.5], ['WNBA', 3.5], ['AFL', 3.5]].every(([l, h]) => at(l, h) === 'never-asked' && at(l, h + 0.01) === 'out-of-window'),
+    [['EPL', 3], ['NBA', 3.5], ['NHL', 3.5], ['NFL', 4], ['MLB', 4.5], ['CFB', 4.5], ['WNBA', 3.5], ['AFL', 3.5], ['AFLW', 3]].every(([l, h]) => at(l, h) === 'never-asked' && at(l, h + 0.01) === 'out-of-window'),
     JSON.stringify(['EPL', 'NBA', 'NFL', 'MLB'].map(l => [l, at(l, WINDOW_H[l] ?? 3), at(l, (WINDOW_H[l] ?? 3) + 0.01)])))
   check('the coverage line names live-score cards and the Game over marker is seen on a finished NBA card',
     (r => /live-score cards/.test(r.checked) && r.gameOverMarker === true && r.fullTimeMarker === false)(judge({ cards: [nbaCard({ live: 'Game over', score: '99–97' })], rows: new Map([[ROW_A, { espnId: '401910024', startMs: T0, home: 'Knicks', away: 'Trail Blazers' }]]), outcomes: [poll([nba({ state: 'final', home: 97, away: 99 })], 'nba')], runner: runnerOk(), requests: 1, nowMs: NOW, decodeStatus: okStatus })))
@@ -569,8 +571,8 @@ if (SELF_TEST) {
     argsOf({}, '2026-11-21').date === '2026-11-21' && argsOf({}, '2026-11-21').watch === 70 && argsOf({ date: '2026-11-1' }, 'x').error !== undefined
       && argsOf({ watch: 'abc' }, '2026-11-21').error !== undefined && argsOf({ watch: '2' }, '2026-11-21').error !== undefined && argsOf({ watch: '70 --x' }, '2026-11-21').error !== undefined
       && argsOf({ date: '2026-11-21', watch: '90' }, 'x').watch === 90)
-  check('sixteen soccer labels and seven other sports, each with its own key', SOCCER.length === 16 && new Set(SOCCER).size === 16 && OTHER_LIVE.length === 7 && LIVE_LABELS.length === 23
-    && new Set(Object.values(LABEL_TO_KEY)).size === 23 && LIVE_LABELS.every(l => LABEL_TO_KEY[l] !== undefined))
+  check('sixteen soccer labels and eight other sports, each with its own key', SOCCER.length === 16 && new Set(SOCCER).size === 16 && OTHER_LIVE.length === 8 && LIVE_LABELS.length === 24
+    && new Set(Object.values(LABEL_TO_KEY)).size === 24 && LIVE_LABELS.every(l => LABEL_TO_KEY[l] !== undefined))
   // The exit code main uses is the tested one: the LAST `// --- main` marker in the file is main's own, and main exits through exitCodeOf and never with a bare 0.
   const src = readFileSync(new URL(import.meta.url), 'utf8')
   const mainSrc = src.slice(src.lastIndexOf('// --- main'))

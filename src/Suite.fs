@@ -5427,6 +5427,13 @@ let private twinRows () =
           [ stub; { stub with Id = "s2" }; twin ]
           [ stub; { stub with Id = "s2" }; twin; { twin with Id = "t2" } ]
 
+      // Four AFL / AFLW double-headers in 2026 put the same two clubs on one day (St Kilda v Carlton on 2026-08-09 is one). The twin rule keys on the sport, so a men's stub is not
+      // hidden by a women's row of the same two clubs, and the women's competition cannot swallow the men's match. The counterexample is the same pair as one sport, where the stub IS hidden.
+      Verify.check "an AFL stub is not hidden by an AFLW row of the same two clubs on the same day: both are drawn (the twin rule is per sport)"
+          (fun (rows: Game list) -> drawn [] rows = [ "m1"; "w1" ])
+          [ row "m1" "AFL" "St Kilda" "Carlton" ""; row "w1" "AFLW" "St Kilda" "Carlton" (eid "aflapi:8988" + ",\"start_time\":\"2026-11-21T06:35Z\"") ]
+          [ row "m1" "AFL" "St Kilda" "Carlton" ""; row "w1" "AFL" "St Kilda" "Carlton" (eid "401900001" + ",\"start_time\":\"2026-11-21T06:35Z\"") ]
+
       // The capture holds a recap for each of these four rows, keyed by the row's `espn_event_id` (the lowercase rows by their NHL API id). The text is not the point, the keys are.
       Verify.check "the two real NHL matches of 2026-11-21: the lowercase row with no start time is not drawn, though a recap joins it, because its twin has a recap too"
           (fun (rows: Game list) ->
@@ -5570,6 +5577,12 @@ let private otherSports () =
     // A real NBA game at halftime, served after the relay flag (field-relay-nba 72faa99), 2026-11-23 01:07:38Z, `outbox/live-capture-nba-2026-11-22-0107Z.json`: Nuggets 72 at Bulls 70, `state` live, Q2, clock 0.0, `situation.isHalftime` true. The capture of 01:02:14Z has the same game at Q2 56.1 with the flag false.
     let nbaHalftime =
         """{"games":[{"id":"espn:401910032","espnEventId":"401910032","sport":"nba","league":"NBA","state":"live","start":"2026-11-23T00:00Z","home":{"name":"Chicago Bulls","abbr":"CHI","score":70},"away":{"name":"Denver Nuggets","abbr":"DEN","score":72},"periodNum":2,"periodLabel":"Q2","clock":"0.0","venue":"United Center","situation":{"quarter":2,"clock":"0.0","possession":null,"isHalftime":true},"linescores":{"home":[31,39],"away":[33,39]},"round":null,"streams":[]}]}"""
+    // AFLW, as the relay serves it from aflapi.afl.com.au (field-relay-nba `/v2/games?sport=aflw`, deployed 2026-11-23, read through `probe_relay_route` the same day). No `espnEventId`: the game is not on ESPN, so the feed game is joined to a card by the two club names.
+    // The Grand Final of 2026-11-27, before kickoff (`pre`, scores null), and the 2026-11-21 preliminary final (`final`, Melbourne 75, Carlton 45).
+    let aflwGrandFinal =
+        """{"sport":"aflw","date":"2026-11-27","games":[{"id":"aflw:9081","aflapiMatchId":9081,"sport":"aflw","league":"AFLW","state":"pre","start":"2026-11-27T08:45:00.000Z","home":{"name":"North Melbourne","abbr":"NMFC","score":null},"away":{"name":"Melbourne","abbr":"MELB","score":null},"periodNum":0,"periodLabel":"NS","clock":"","venue":"IKON Park"}],"count":1,"source":"aflapi","ts":1795403170667}"""
+    let aflwPreliminaryFinal =
+        """{"sport":"aflw","date":"2026-11-21","games":[{"id":"aflw:9079","aflapiMatchId":9079,"sport":"aflw","league":"AFLW","state":"final","start":"2026-11-21T05:05:00.000Z","home":{"name":"Melbourne","abbr":"MELB","score":75},"away":{"name":"Carlton","abbr":"CARL","score":45},"periodNum":0,"periodLabel":"F","clock":"","venue":"IKON Park"}],"count":1,"source":"aflapi","ts":1795403171238}"""
     let card (sport: string) (home: string) (away: string) (espn: string option) : Game =
         let json =
             sprintf """{"id":"c1","sport":"%s","date":"2026-11-11","home":"%s","away":"%s"%s}"""
@@ -5717,6 +5730,26 @@ let private otherSports () =
           (fun g -> readFeed nbaHalftime g = LiveScore.HalfTime(70, 72))
           (card "NBA" "Bulls" "Nuggets" (Some "401910032"))
           (card "NBA" "Bulls" "Nuggets" (Some "1"))
+
+      Verify.check "AFLW has its own live key and its own window, apart from AFL's: aflw and 3 hours, afl and 3.5 hours"
+          (fun (triples: (Sport * string * float) list) -> triples |> List.forall (fun (sport, key, hours) -> LiveScore.liveSportKey sport = Some key && LiveScore.liveWindowFor sport = TimeSpan.FromHours(hours: float)))
+          [ (Sport.AFLW, "aflw", 3.0); (Sport.AFL, "afl", 3.5) ]
+          [ (Sport.AFLW, "afl", 3.5) ]
+
+      Verify.check "AFLW is a modelled sport that names the home side first, as the AFL does: label AFLW, HomeVersusAway, not soccer"
+          (fun sport -> (sportMeta sport).Label = "AFLW" && (sportMeta sport).Matchup = HomeVersusAway && not (sportMeta sport).IsSoccer && (sportMeta sport).Modelled)
+          Sport.AFLW
+          Sport.MLB
+
+      Verify.check "a real AFLW game before kickoff (the 2026-11-27 Grand Final, `pre`, no espnEventId) is no reading, joined by its two club names"
+          (fun g -> readFeed aflwGrandFinal g = LiveScore.NoReading)
+          (card "AFLW" "North Melbourne" "Melbourne" (Some "aflapi:9081"))
+          (card "AFLW" "Carlton" "Melbourne" (Some "aflapi:9081"))
+
+      Verify.check "a real finished AFLW game (the 2026-11-21 preliminary final: Melbourne 75, Carlton 45) is game over, joined by its two club names with no ESPN id on either side"
+          (fun g -> readFeed aflwPreliminaryFinal g = LiveScore.GameOver(75, 45))
+          (card "AFLW" "Melbourne" "Carlton" (Some "aflapi:9079"))
+          (card "AFLW" "Melbourne" "Sydney" (Some "aflapi:9079"))
 
       // Built from the relay's adapter, no live body yet (2026-11-22): `adaptESPNFootball` gives `periodLabel` `Q<n>` and `clock` the displayClock.
       Verify.check "an NFL game in play reads its quarter and clock: Q3 4:12 (built from the adapter; the real NFL body is the row above)"
