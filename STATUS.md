@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `00200dc`
+**FAILURE** on `00200dc` at "Every claim a document makes is still true" — 26 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45107389122](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45107389122)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `00200dc`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `348dc26` — failing step unknown: the run's steps could not be read — [run 45108181332](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45108181332)
 
 ## Is it published?
 
