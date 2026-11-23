@@ -4,7 +4,7 @@
 **Repo:** field-laboratory owns the proof (LAB-FIRST-A); the ledger can be read only with a BSD token, see "What only the owner unblocks"
 **Filed:** 2026-11-22 by CC, as the follow-on the census CC-CMD owes (Rule 87.4), from the census result
 **Type:** A (measurement) — no feature, no surface, nothing shown or pushed (ADR-002 Rules A and F)
-**Status:** IN PROGRESS 2026-11-23. Unblocked by the owner ("Yes, run from relays runner", 2026-11-23): the proof may run, from field-relay-nba's runner. The grader, its checks and the runner are built and were adversarially reviewed in two rounds (71 agents, 2026-11-23) before the first run; rule version 2026-11-23.3 below. Not yet run on the vendor's ledger.
+**Status:** DONE 2026-11-23. Run on field-relay-nba's runner (run 45263837691, artifact commit `e1f3a64`): 372 of 372 gradeable calls agree, 0 disagree, 0 not applicable, every premise counted held. Not an independent grade (below). Session doc: field-relay-nba `outbox/cc-session-2026-11-23-bsd-next-goal-grade.md`.
 
 ---
 
@@ -62,3 +62,23 @@ That FIELD's captures and the vendor's ledger both come from BSD is the census's
 ## Not in scope
 
 The relay's capture of untracked leagues (1,355 of the 1,746 calls: `bsd-live-capture-path`), any surface, route, push or display of a next-goal read, the plan and renewal decisions, anything in `src/`.
+
+## Result
+
+**2026-11-23T20:56Z, run 45263837691** (`bsd-next-goal-grade.yml` at field-relay-nba `377f434`, laboratory at `59af6e89b53d422cdcf720205ffcb13f96a1853a`, rule version 2026-11-23.3; artifacts `outbox/bsd-next-goal-grade-2026-11-23T20-56-23-290Z.json` and `-latest.json`, committed by the run as `e1f3a64`). All three jobs green: `verify` (both mutation harnesses, the checks, on the runner, no secret), `grade` (11 BSD requests of 16, 249 relay reads, `stopped` null, `analysisError` null, `reachedTarget` true) and `commit`. The artifact records the core's sha256 (`3d428dc2...`) and the runner's three file hashes. Coverage line, verbatim:
+
+> graded 372 of 372 gradeable calls (census: 372 gradeable of 1754) | agree 372, disagree 0, not applicable 0 | resolving goal at the ledger's resolved_minute for 372 of 372 graded | rule 2026-11-23.3
+
+**FIELD's own record of the match names the same side as the vendor's ledger for every one of the 372 calls.** The ledger had grown to 1,754 calls (from 1,746 at the census) and the census's gradeable count to 372 (17 by a full-time capture, 355 by the resolving goal itself), on 238 matches in nine directories.
+
+- The confusion matrix has both cells and nothing off the diagonal: ledger hit and FIELD hit 282, ledger miss and FIELD miss 90 (a miss is a call whose side the goal did not go to, so FIELD reading "the other side scored" 90 times is the check that the grader is not copying the ledger).
+- All 372 resolve on a goal at exactly the ledger's `resolved_minute` (distance 0). 372 calls sit on 367 distinct goals, none with a disagreeing call. 13 resolving goals carry added time (stoppage), 26 are penalties and 13 are own goals; every one agrees, and `is_home` agrees with the score rise on all 372 (so the own-goal premise, which rested on one real row and the relay's contract, now rests on 13).
+- By tag: 118 calls sit on captures with VAR rows (all agree), 1 on a capture that went to extra time (agrees), all 372 on captures whose own `event_id` is the ledger's.
+- The premises held on every capture that was read: no call without a side, score or call minute; no goal row without a running score; no capture whose totals are not 1..n; no tie and no clock out of order. The full-time row's score equals the last goal's on 12 of 12 evaluable full-time captures (one extra-time capture is not compared). **One observation not explained:** on one in-play capture (2 calls) the live row's score differs from the last goal's (224 of 225 evaluable in-play captures match); those 2 calls agree anyway. The artifact holds counts only, so the capture is not named; finding it needs a run that keeps its id.
+
+**What this does not say (Rule 73).** It is not an independent grade of the vendor: FIELD's captures and the vendor's ledger both come from BSD, the census had already found every `resolved_minute` to be a goal minute in the capture, and 372 of 372 agreement is what one feed read twice would give. It says the vendor's published ledger is internally consistent with the feed FIELD captured, on the 21.2% of its calls that fall in leagues FIELD captures (the other 1,265 have no capture). It says nothing about whether any call was a good prediction, nothing about the probabilities, and nothing about calls in untracked leagues. It is one snapshot (ledger newest-first, 20:56Z). An independent reference (a second source's goal timeline) would be its own CC-CMD; nothing here is owed to it.
+
+## What the run showed about the process (Rule 77, for the record)
+
+Two adversarial reviews (71 agents) ran before this run and found the first build unsafe: a vacuous harness, a zero-call grade that advanced latest, a vendor string that rewrote `Object.prototype`, a write credential beside the imported core, a stalled body that hung the run on Node 22, ties read from the nominal minute, a premise tally that mislabelled extra-time captures. All were fixed and pinned before the dispatch; the run needed no second attempt.
+
