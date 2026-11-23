@@ -33,7 +33,7 @@
 // distinct goals are counted. The census's premises are counted here as well: calls with no minute, captures with two goals in one
 // minute, captures whose minutes are not in total order, and whether the full-time row's score equals the last goal's.
 
-export const RULE_VERSION = '2026-11-23.2'
+export const RULE_VERSION = '2026-11-23.3'
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
@@ -43,6 +43,9 @@ const tally = () => Object.create(null)
 const bump = (o, k, n = 1) => { o[k] = (o[k] === undefined ? 0 : o[k]) + n }
 const GOAL_TYPE = /^[A-Za-z][A-Za-z0-9_-]{0,23}$/
 const FULL_TIME = /^(ft|aet|ap|pen)/i
+// a period row that says the match went past 90 minutes (real captures carry 'ET', a live 'Extra time' and 'PEN'): the full-time row's
+// score is then the score at 90, not the last goal's, so it is not compared with it
+const EXTENDED = /^(et|extra|pen)/i
 
 export const REASONS = {
   item: 'the item is not an object',
@@ -67,9 +70,17 @@ export function readGoals (json) {
   const goals = []
   let withoutScore = 0
   let final = null
+  let live = null
+  let extended = false
   for (const r of rows) {
     if (!isObj(r)) continue
     if (r.type === 'period') {
+      if (typeof r.text === 'string' && EXTENDED.test(r.text)) extended = true
+      if (live === null && r.is_live === true) {
+        const lh = num(r.home_score)
+        const la = num(r.away_score)
+        if (lh !== null && la !== null) live = { home: lh, away: la }
+      }
       if (final === null && r.is_live === false && typeof r.text === 'string' && FULL_TIME.test(r.text)) {
         const h = num(r.home_score)
         const a = num(r.away_score)
@@ -93,26 +104,41 @@ export function readGoals (json) {
   }
   goals.sort((x, y) => x.total - y.total)
   const sequential = withoutScore === 0 && goals.every((g, i) => g.total === i + 1)
+  // a goal at the nominal 45 or 90 with added time is a different moment from one at the plain 45 or 90, so the clock of a goal is its
+  // minute and its added time together (a tie is two goals at the same clock; out of order is a later total at an earlier clock)
   let twoInOneMinute = false
   let minuteOrderBroken = false
   const seen = new Set()
   let latest = null
   for (const g of goals) {
     if (g.minute === null) continue
-    if (seen.has(g.minute)) twoInOneMinute = true
-    seen.add(g.minute)
-    if (latest !== null && g.minute < latest) minuteOrderBroken = true
-    if (latest === null || g.minute > latest) latest = g.minute
+    const clock = g.minute * 1000 + (g.added === null ? 0 : g.added)
+    if (seen.has(clock)) twoInOneMinute = true
+    seen.add(clock)
+    if (latest !== null && clock < latest) minuteOrderBroken = true
+    if (latest === null || clock > latest) latest = clock
   }
-  return { ok: true, goals, withoutScore, sequential, final, twoInOneMinute, minuteOrderBroken }
+  return { ok: true, goals, withoutScore, sequential, final, live, extended, twoInOneMinute, minuteOrderBroken }
 }
 
-/** Does the full-time row's score equal the last goal's? Only said of a capture whose goal rows can be trusted. */
+const lastScore = (parsed) => (parsed.goals.length === 0 ? { home: 0, away: 0 } : parsed.goals[parsed.goals.length - 1])
+
+/** Does the full-time row's score equal the last goal's? Only said of a capture whose goal rows can be trusted and that did not go past 90. */
 export function finalAgreement (parsed) {
   if (!parsed || !parsed.sequential) return 'not evaluated'
+  if (parsed.extended) return 'not evaluated (extra time)'
   if (parsed.final === null) return 'no full-time score'
-  const last = parsed.goals.length === 0 ? { home: 0, away: 0 } : parsed.goals[parsed.goals.length - 1]
+  const last = lastScore(parsed)
   return last.home === parsed.final.home && last.away === parsed.final.away ? 'matches' : 'differs'
+}
+
+/** The same question of a capture taken in play: does the live row's running score equal the last goal's? (The free test for the in-play captures.) */
+export function liveAgreement (parsed) {
+  if (!parsed || !parsed.sequential) return 'not evaluated'
+  if (parsed.extended) return 'not evaluated (extra time)'
+  if (parsed.live === null) return 'no live row score'
+  const last = lastScore(parsed)
+  return last.home === parsed.live.home && last.away === parsed.live.away ? 'matches' : 'differs'
 }
 
 /** One call against one parsed capture (readGoals). Returns { graded: false, reason } or { graded: true, ... }. */
@@ -183,10 +209,11 @@ export function gradeCalls (items) {
     isHomeVersusScoreRise: { agrees: 0, disagrees: 0, absent: 0 },
     resolvedMinuteDistance: tally(),
     distinctGoals: { graded: 0, withADisagreeingCall: 0 },
+    stoppageResolvingGoals: { graded: 0, agree: 0, disagree: 0 },
     byTag: tally(),
     premises: {
       callsWithoutSideOrScore: 0,
-      callsWithoutAMinute: 0,
+      callsWithoutACallMinute: 0,
       callsOnCapturesWithAGoalRowLackingAScore: 0,
       callsOnCapturesWhoseTotalsAreNotOneToN: 0,
       callsWhoseScoreAtCallDisagreesWithTheCapture: 0,
@@ -196,6 +223,7 @@ export function gradeCalls (items) {
       distinctCapturesWithTwoGoalsInOneMinute: 0,
       distinctCapturesWhoseMinuteOrderIsNotTotalOrder: 0,
       fullTimeScoreVersusLastGoal: { calls: tally(), distinctCaptures: tally() },
+      liveRowScoreVersusLastGoal: { calls: tally(), distinctCaptures: tally() },
     },
   }
   for (const it of list) {
@@ -213,8 +241,9 @@ export function gradeCalls (items) {
       if (out.byTag[name][t] === undefined) out.byTag[name][t] = { graded: 0, agree: 0, disagree: 0, notApplicable: 0 }
       return out.byTag[name][t]
     }
-    if (isObj(it.call) && num(it.call.minute) === null) out.premises.callsWithoutAMinute++
+    if (isObj(it.call) && num(it.call.minute) === null) out.premises.callsWithoutACallMinute++
     bump(out.premises.fullTimeScoreVersusLastGoal.calls, finalAgreement(parsed))
+    bump(out.premises.liveRowScoreVersusLastGoal.calls, liveAgreement(parsed))
     if (!r.graded) {
       out.notApplicable.total++
       bump(out.notApplicable.byReason, r.reason)
@@ -244,6 +273,10 @@ export function gradeCalls (items) {
     if (r.isHomeAgreesWithRise === null) out.isHomeVersusScoreRise.absent++
     else if (r.isHomeAgreesWithRise) out.isHomeVersusScoreRise.agrees++
     else out.isHomeVersusScoreRise.disagrees++
+    if (r.stoppage) {
+      out.stoppageResolvingGoals.graded++
+      out.stoppageResolvingGoals[r.agree ? 'agree' : 'disagree']++
+    }
     const b = bucket(r.distance, r.stoppage)
     if (out.resolvedMinuteDistance[b] === undefined) out.resolvedMinuteDistance[b] = { graded: 0, agree: 0, disagree: 0 }
     out.resolvedMinuteDistance[b].graded++
@@ -266,6 +299,7 @@ export function gradeCalls (items) {
   out.premises.distinctCaptures = parsedByKey.size
   for (const p of parsedByKey.values()) {
     bump(out.premises.fullTimeScoreVersusLastGoal.distinctCaptures, finalAgreement(p))
+    bump(out.premises.liveRowScoreVersusLastGoal.distinctCaptures, liveAgreement(p))
     if (!p.ok) continue
     if (p.withoutScore > 0) out.premises.distinctCapturesWithAGoalRowLackingAScore++
     else if (!p.sequential) out.premises.distinctCapturesWhoseTotalsAreNotOneToN++

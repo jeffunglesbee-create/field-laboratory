@@ -19,6 +19,13 @@
 //   `latest !== null &&` before `g.minute < latest`: a minute is never below null (0) unless it is negative, and a minute cannot be.
 //   `!parsed.ok ||` and `parsed.withoutScore > 0 ||` in finalAgreement (removed from the code): `sequential` is undefined for an unreadable
 //     capture and false for one with a goal row lacking a score, so `!parsed.sequential` already says it.
+//   from the second-round reviewers' 203 mutants, the 29 that still survive were each read and are equivalent or out of scope: `bump` with `+ 1`
+//     for `+ n` (n is always 1); a sort that breaks ties by minute, by home score, or never returns 0 (totals are unique in a trusted capture, and
+//     an untrusted one is never graded); a join that compares one score instead of two (see above); a draw verdict (a side is home or away by
+//     then); `added > 0` against `added >= 1`, a distance bucket at 2.5 or 2.9 against 3, and `Math.abs(rm - minute) + 0` (minutes are whole);
+//     a tag looked up with `in` or read with `for-in`, or a tag value kept as text when it is text (plain objects, and `String` of text is text);
+//     a goal-type `i` flag (the class holds both cases); `coverageLine` printing n/a for a null census count or an array census (decisions, not
+//     defects: the runner passes numbers or nothing); `unreadable` tested in two steps; `list.sort(() => 0)` on the input (a stable no-op).
 //   the parse cache: recomputing a capture's goals for every call changes the cost, not a count.
 //
 // Usage: node scripts/mutate-bsd-next-goal-grade-core.mjs
@@ -27,6 +34,7 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { spawn, spawnSync } from 'node:child_process'
+import R2_MUTATIONS from './fixtures/bsd-next-goal-grade-mutants-r2.mjs'
 
 const SRC = 'scripts/bsd-next-goal-grade-core.mjs'
 const CHECK = 'scripts/check-bsd-next-goal-grade-core.mjs'
@@ -37,7 +45,7 @@ const before = Object.fromEntries(REAL.map((f) => [f, sha(f)]))
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mut-ngg-'))
 
 // [name, anchor, replacement] or [name, [[anchor, replacement], ...]]
-const SOURCE_MUTATIONS = [
+const OWN_MUTATIONS = [
   // ---- readGoals: which rows are read
   ['a non-array incidents is read', 'isObj(json) && Array.isArray(json.incidents) ? json.incidents : null', 'isObj(json) ? json.incidents : null'],
   ['a body with no incidents is readable', 'if (rows === null) return { ok: false }', ''],
@@ -86,21 +94,39 @@ const SOURCE_MUTATIONS = [
   ['any increasing totals are sequential', 'g.total === i + 1', 'g.total >= i + 1'],
   ['sequential is always true', 'const sequential = withoutScore === 0 && goals.every((g, i) => g.total === i + 1)', 'const sequential = true'],
   ['a goal with no minute is a tie', 'if (g.minute === null) continue', ''],
-  ['ties are not seen', 'if (seen.has(g.minute)) twoInOneMinute = true', ''],
-  ['every minute is a tie', 'if (seen.has(g.minute)) twoInOneMinute = true', 'twoInOneMinute = true'],
-  ['a tie is out of order', 'if (latest !== null && g.minute < latest) minuteOrderBroken = true', 'if (latest !== null && g.minute <= latest) minuteOrderBroken = true'],
-  ['a descent is not seen', 'if (latest !== null && g.minute < latest) minuteOrderBroken = true', ''],
-  ['an ascent is out of order', 'if (latest !== null && g.minute < latest) minuteOrderBroken = true', 'if (latest !== null && g.minute > latest) minuteOrderBroken = true'],
+  ['ties are not seen', 'if (seen.has(clock)) twoInOneMinute = true', ''],
+  ['every minute is a tie', 'if (seen.has(clock)) twoInOneMinute = true', 'twoInOneMinute = true'],
+  ['a tie is out of order', 'if (latest !== null && clock < latest) minuteOrderBroken = true', 'if (latest !== null && clock <= latest) minuteOrderBroken = true'],
+  ['a descent is not seen', 'if (latest !== null && clock < latest) minuteOrderBroken = true', ''],
+  ['an ascent is out of order', 'if (latest !== null && clock < latest) minuteOrderBroken = true', 'if (latest !== null && clock > latest) minuteOrderBroken = true'],
+  ['the clock ignores added time', 'const clock = g.minute * 1000 + (g.added === null ? 0 : g.added)', 'const clock = g.minute * 1000'],
+  ['the clock is only the added time', 'const clock = g.minute * 1000 + (g.added === null ? 0 : g.added)', 'const clock = g.added === null ? 0 : g.added'],
+  ['the clock weighs a minute as one added minute', 'const clock = g.minute * 1000 + (g.added === null ? 0 : g.added)', 'const clock = g.minute + (g.added === null ? 0 : g.added)'],
+  ['the clock weighs added time out of all proportion', 'const clock = g.minute * 1000 + (g.added === null ? 0 : g.added)', 'const clock = g.minute * 1000 + 1000 * (g.added === null ? 0 : g.added)'],
   // ---- finalAgreement
-  ['a missing capture is evaluated', "if (!parsed || !parsed.sequential) return 'not evaluated'", "if (!parsed.sequential) return 'not evaluated'"],
-  ['a gap in the totals is evaluated', "if (!parsed || !parsed.sequential) return 'not evaluated'", "if (!parsed) return 'not evaluated'"],
+  ['a missing capture is evaluated', "export function finalAgreement (parsed) {\n  if (!parsed || !parsed.sequential) return 'not evaluated'", "export function finalAgreement (parsed) {\n  if (!parsed.sequential) return 'not evaluated'"],
+  ['a missing capture is evaluated for the live row', "export function liveAgreement (parsed) {\n  if (!parsed || !parsed.sequential) return 'not evaluated'", "export function liveAgreement (parsed) {\n  if (!parsed.sequential) return 'not evaluated'"],
+  ['a gap in the totals is evaluated', "export function finalAgreement (parsed) {\n  if (!parsed || !parsed.sequential) return 'not evaluated'", "export function finalAgreement (parsed) {\n  if (!parsed) return 'not evaluated'"],
+  ['a gap in the totals is evaluated for the live row', "export function liveAgreement (parsed) {\n  if (!parsed || !parsed.sequential) return 'not evaluated'", "export function liveAgreement (parsed) {\n  if (!parsed) return 'not evaluated'"],
+  ['extra time is compared with the full-time row', "if (parsed.extended) return 'not evaluated (extra time)'\n  if (parsed.final === null)", "if (parsed.final === null)"],
+  ['extra time is compared with the live row', "if (parsed.extended) return 'not evaluated (extra time)'\n  if (parsed.live === null)", "if (parsed.live === null)"],
+  ['extra time has no label for the full-time row', "if (parsed.extended) return 'not evaluated (extra time)'\n  if (parsed.final === null)", "if (parsed.extended) return 'not evaluated'\n  if (parsed.final === null)"],
+  ['extra time has no label for the live row', "if (parsed.extended) return 'not evaluated (extra time)'\n  if (parsed.live === null)", "if (parsed.extended) return 'not evaluated'\n  if (parsed.live === null)"],
+  ['no live row score is evaluated', "if (parsed.live === null) return 'no live row score'", ''],
+  ['the live row has the full-time label', "if (parsed.live === null) return 'no live row score'", "if (parsed.live === null) return 'no full-time score'"],
+  ['a live row is compared by home only', "return last.home === parsed.live.home && last.away === parsed.live.away ? 'matches' : 'differs'", "return last.home === parsed.live.home ? 'matches' : 'differs'"],
+  ['a live row is compared by away only', "return last.home === parsed.live.home && last.away === parsed.live.away ? 'matches' : 'differs'", "return last.away === parsed.live.away ? 'matches' : 'differs'"],
+  ['a live row matches when either score does', "return last.home === parsed.live.home && last.away === parsed.live.away ? 'matches' : 'differs'", "return last.home === parsed.live.home || last.away === parsed.live.away ? 'matches' : 'differs'"],
+  ['the live row matches and differs are swapped', "last.away === parsed.live.away ? 'matches' : 'differs'", "last.away === parsed.live.away ? 'differs' : 'matches'"],
+  ['no goals is not 0-0 for the last score', 'const lastScore = (parsed) => (parsed.goals.length === 0 ? { home: 0, away: 0 } :', 'const lastScore = (parsed) => (parsed.goals.length === 0 ? { home: 9, away: 9 } :'],
+  ['the last score is the first goal', 'parsed.goals[parsed.goals.length - 1])', 'parsed.goals[0])'],
   ['no full-time row is evaluated', "if (parsed.final === null) return 'no full-time score'", ''],
   ['no goals is not 0-0', 'parsed.goals.length === 0 ? { home: 0, away: 0 } :', 'parsed.goals.length === 0 ? { home: 1, away: 0 } :'],
   ['the last goal is the first', 'parsed.goals[parsed.goals.length - 1]', 'parsed.goals[0]'],
   ['only the home score is compared', 'last.home === parsed.final.home && last.away === parsed.final.away ? \'matches\'', "last.home === parsed.final.home ? 'matches'"],
   ['only the away score is compared', 'last.home === parsed.final.home && last.away === parsed.final.away ? \'matches\'', "last.away === parsed.final.away ? 'matches'"],
   ['either score matching is a match', 'last.home === parsed.final.home && last.away === parsed.final.away ? \'matches\'', "last.home === parsed.final.home || last.away === parsed.final.away ? 'matches'"],
-  ['matches and differs are swapped', "? 'matches' : 'differs'", "? 'differs' : 'matches'"],
+  ['the full-time matches and differs are swapped', "last.away === parsed.final.away ? 'matches' : 'differs'", "last.away === parsed.final.away ? 'differs' : 'matches'"],
   // ---- gradeCall
   ['a call may be on no side', "if (side !== 'home' && side !== 'away') return", "if (false) return"],
   ['only home calls are sided', "if (side !== 'home' && side !== 'away') return", "if (side !== 'home') return"],
@@ -205,7 +231,7 @@ const SOURCE_MUTATIONS = [
   ['the side-or-score premise is not counted', 'if (r.reason === REASONS.side || r.reason === REASONS.score) out.premises.callsWithoutSideOrScore++', ''],
   ['the side premise ignores the score', 'if (r.reason === REASONS.side || r.reason === REASONS.score) out.premises', 'if (r.reason === REASONS.side) out.premises'],
   ['the score premise ignores the side', 'if (r.reason === REASONS.side || r.reason === REASONS.score) out.premises', 'if (r.reason === REASONS.score) out.premises'],
-  ['a call with no minute is not counted', 'if (isObj(it.call) && num(it.call.minute) === null) out.premises.callsWithoutAMinute++', ''],
+  ['a call with no minute is not counted', 'if (isObj(it.call) && num(it.call.minute) === null) out.premises.callsWithoutACallMinute++', ''],
   ['a text minute is a minute on a call', 'if (isObj(it.call) && num(it.call.minute) === null)', 'if (isObj(it.call) && it.call.minute === undefined)'],
   ['a call that is not an object has a minute', 'if (isObj(it.call) && num(it.call.minute) === null)', 'if (num(it.call.minute) === null)'],
   ['every call is without a minute', 'if (isObj(it.call) && num(it.call.minute) === null)', 'if (isObj(it.call))'],
@@ -239,8 +265,38 @@ const SOURCE_MUTATIONS = [
   ['no goal at distance 0 throws', "grade.resolvedMinuteDistance['0'] === undefined ? 0 :", "false ? 0 :"],
   ['the exact count is the agreeing ones', "grade.resolvedMinuteDistance['0'].graded", "grade.resolvedMinuteDistance['0'].agree"],
   ['the distance-0 phrase is lost', ' | resolving goal at the ledger\'s resolved_minute for ${exact} of ${grade.graded} graded', ''],
-  ['the rule version has no date', "export const RULE_VERSION = '2026-11-23.2'", "export const RULE_VERSION = 'v1'"],
-  ['the rule changed and the version did not', "export const RULE_VERSION = '2026-11-23.2'", "export const RULE_VERSION = '2026-11-23.1'"],
+  ['the rule version has no date', "export const RULE_VERSION = '2026-11-23.3'", "export const RULE_VERSION = 'v1'"],
+  ['the rule changed and the version did not', "export const RULE_VERSION = '2026-11-23.3'", "export const RULE_VERSION = '2026-11-23.1'"],
+  // ---- readGoals: extra time, the live row (added after the second review)
+  ['extra time is never detected', "if (typeof r.text === 'string' && EXTENDED.test(r.text)) extended = true", ''],
+  ['every period row is extra time', "if (typeof r.text === 'string' && EXTENDED.test(r.text)) extended = true", 'extended = true'],
+  ['extra time ignores an ET row', 'const EXTENDED = /^(et|extra|pen)/i', 'const EXTENDED = /^(extra|pen)/i'],
+  ['extra time ignores an Extra time row', 'const EXTENDED = /^(et|extra|pen)/i', 'const EXTENDED = /^(et|pen)/i'],
+  ['extra time ignores a shootout row', 'const EXTENDED = /^(et|extra|pen)/i', 'const EXTENDED = /^(et|extra)/i'],
+  ['extra time is case sensitive', 'const EXTENDED = /^(et|extra|pen)/i', 'const EXTENDED = /^(et|extra|pen)/'],
+  ['extra time may begin anywhere in the text', 'const EXTENDED = /^(et|extra|pen)/i', 'const EXTENDED = /(et|extra|pen)/i'],
+  ['the live row is not read', 'if (live === null && r.is_live === true) {', 'if (false) {'],
+  ['a row with no is_live flag is the live row', 'if (live === null && r.is_live === true) {', 'if (live === null && r.is_live !== false) {'],
+  ['the last live row wins', 'if (live === null && r.is_live === true) {', 'if (r.is_live === true) {'],
+  ['half a live score is a score', 'if (lh !== null && la !== null) live', 'if (lh !== null || la !== null) live'],
+  ['the live home score is the away score', 'const lh = num(r.home_score)\n        const la = num(r.away_score)', 'const lh = num(r.away_score)\n        const la = num(r.away_score)'],
+  ['the live away score is the home score', 'const lh = num(r.home_score)\n        const la = num(r.away_score)', 'const lh = num(r.home_score)\n        const la = num(r.home_score)'],
+  ['a live row that is not live is read', "if (live === null && r.is_live === true) {\n        const lh", "if (live === null) {\n        const lh"],
+  ['readGoals does not return the live row', 'return { ok: true, goals, withoutScore, sequential, final, live, extended, twoInOneMinute, minuteOrderBroken }', 'return { ok: true, goals, withoutScore, sequential, final, live: null, extended, twoInOneMinute, minuteOrderBroken }'],
+  ['readGoals does not return extra time', 'return { ok: true, goals, withoutScore, sequential, final, live, extended, twoInOneMinute, minuteOrderBroken }', 'return { ok: true, goals, withoutScore, sequential, final, live, extended: false, twoInOneMinute, minuteOrderBroken }'],
+  // ---- gradeCalls: the stoppage tally and the live-row tally
+  ['stoppage goals are not counted', '      out.stoppageResolvingGoals.graded++\n', ''],
+  ['stoppage agreement is not split', "out.stoppageResolvingGoals[r.agree ? 'agree' : 'disagree']++", 'out.stoppageResolvingGoals.agree++'],
+  ['every graded call is a stoppage goal', '    if (r.stoppage) {\n      out.stoppageResolvingGoals', '    if (true) {\n      out.stoppageResolvingGoals'],
+  ['no graded call is a stoppage goal', '    if (r.stoppage) {\n      out.stoppageResolvingGoals', '    if (false) {\n      out.stoppageResolvingGoals'],
+  ['the live-row score is not tallied per call', '    bump(out.premises.liveRowScoreVersusLastGoal.calls, liveAgreement(parsed))\n', ''],
+  ['the live-row score is not tallied per capture', '    bump(out.premises.liveRowScoreVersusLastGoal.distinctCaptures, liveAgreement(p))\n', ''],
+  ['the live-row tally uses the full-time answer for calls', 'bump(out.premises.liveRowScoreVersusLastGoal.calls, liveAgreement(parsed))', 'bump(out.premises.liveRowScoreVersusLastGoal.calls, finalAgreement(parsed))'],
+  ['the live-row tally uses the full-time answer for captures', 'bump(out.premises.liveRowScoreVersusLastGoal.distinctCaptures, liveAgreement(p))', 'bump(out.premises.liveRowScoreVersusLastGoal.distinctCaptures, finalAgreement(p))'],
+  ['the full-time tally uses the live answer for calls', 'bump(out.premises.fullTimeScoreVersusLastGoal.calls, finalAgreement(parsed))', 'bump(out.premises.fullTimeScoreVersusLastGoal.calls, liveAgreement(parsed))'],
+  ['the full-time tally uses the live answer for captures', 'bump(out.premises.fullTimeScoreVersusLastGoal.distinctCaptures, finalAgreement(p))', 'bump(out.premises.fullTimeScoreVersusLastGoal.distinctCaptures, liveAgreement(p))'],
+  ['the live-row tally has a prototype', 'liveRowScoreVersusLastGoal: { calls: tally(), distinctCaptures: tally() },', 'liveRowScoreVersusLastGoal: { calls: {}, distinctCaptures: tally() },'],
+  ['the stoppage tally is not in the output', '    stoppageResolvingGoals: { graded: 0, agree: 0, disagree: 0 },\n', ''],
   // ---- the source may not reach out (each is asserted of the source text)
   ['the source imports something', 'export const RULE_VERSION', "import os from 'node:os'\nexport const RULE_VERSION"],
   ['the source reads the environment', 'const isObj = (v) =>', 'const _env = typeof process\nconst isObj = (v) =>'],
@@ -248,6 +304,9 @@ const SOURCE_MUTATIONS = [
   ['the source reads the clock', 'const isObj = (v) =>', 'const _clock = typeof Date\nconst isObj = (v) =>'],
   ['the source is random', 'const isObj = (v) =>', 'const _rnd = typeof Math.random\nconst isObj = (v) =>'],
 ]
+
+// the second-round reviewers' mutants (see the file), each caught by the check
+const SOURCE_MUTATIONS = [...OWN_MUTATIONS, ...R2_MUTATIONS.map(([name, a, b]) => [`reviewer: ${name}`, a, b])]
 
 // The check's own purity list, one broken grader per pattern: a source holding exactly that token must turn the real check red,
 // and the check with that one pattern removed must stay green on it. `import` cannot be a bare identifier, so it is a statement.
@@ -278,11 +337,11 @@ const CHECK_MUTATIONS = [
   ['blind', 'eq never fails', 'if (stable(got) !== stable(want)) {', 'if (false) {', BROKEN_FOR_ANALYSIS],
   ['blind', 'the exit code ignores failures', 'finished = true\nprocess.exit(failed === 0 ? 0 : 1)', 'finished = true\nprocess.exit(0)', BROKEN_FOR_ANALYSIS],
   ['blind', 'an early exit is not noticed', "process.on('exit', (code) => {", "process.on('never', (code) => {", BROKEN_EXITS_AT_IMPORT],
-  ['red', 'MIN_SCENARIOS is one above the real count', 'const MIN_SCENARIOS = 18', 'const MIN_SCENARIOS = 19'],
-  ['red', 'MIN_ASSERTIONS is one above the real count', 'const MIN_ASSERTIONS = 134', 'const MIN_ASSERTIONS = 135'],
+  ['red', 'MIN_SCENARIOS is one above the real count', 'const MIN_SCENARIOS = 22', 'const MIN_SCENARIOS = 23'],
+  ['red', 'MIN_ASSERTIONS is one above the real count', 'const MIN_ASSERTIONS = 200', 'const MIN_ASSERTIONS = 201'],
   ['red', 'the finished capture pin is wrong', "'cf327cb385aa3c18ef473d607b3c371fb047307f3f9f274bf50a48ad3ad59922'", "'0000000000000000000000000000000000000000000000000000000000000000'"],
   ['red', 'the in-play capture pin is wrong', "'c4a96597e2925eb52cfa3434d6688ac3a667f8f049e04cbc356e607e3c352eb0'", "'0000000000000000000000000000000000000000000000000000000000000000'"],
-  ['red', 'the rule version pin is wrong', "RULE_VERSION, '2026-11-23.2'", "RULE_VERSION, '2026-11-23.3'"],
+  ['red', 'the rule version pin is wrong', "RULE_VERSION, '2026-11-23.3'", "RULE_VERSION, '2026-11-23.4'"],
   ['red', 'the comment stripper is removed (the real source has forbidden words in its comments)', ".replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/(^|[^:])\\/\\/.*$/gm, '$1')", ''],
 ]
 
