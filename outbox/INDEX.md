@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b26b450` | 2026-11-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-23 [skip ci] |
+| `b26b450` | 2026-11-23 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-23 [skip ci] |
 | `9718c82` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45263778407 |
 | `59af6e8` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader, second review: extra-time captures are not compared with the full-time row, ties and order read the clock, the live-row score and stoppage goals are tallied, 81 blind spots pinned, 159 reviewer mutants kept |
 | `0ab4a38` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45246831384 |
