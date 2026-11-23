@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9718c82` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45263778407 |
+| `59af6e8` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader, second review: extra-time captures are not compared with the full-time row, ties and order read the clock, the live-row score and stoppage goals are tallied, 81 blind spots pinned, 159 reviewer mutants kept |
 | `0ab4a38` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45246831384 |
 | `c3a5ffa` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader, revised after adversarial review: agree and disagree by distance to the ledger's resolved_minute, distinct goals, the premises counted, prototype-free tallies, real captures in the check |
 | `c64e15c` | 2026-11-23 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-23T18:44 [skip ci] |

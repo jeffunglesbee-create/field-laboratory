@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `c3a5ffa` at "No script a workflow depends on became unreachable" — 24 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45246831384](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45246831384)
+**FAILURE** on `59af6e8` at "No script a workflow depends on became unreachable" — 24 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45263778407](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45263778407)
 
 ## Is the live artifact healthy?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e290b24` — behind newest deployable `c3a5ffa` (deploy not landed) |
+| Cloudflare Workers | live | `e290b24` — behind newest deployable `59af6e8` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
