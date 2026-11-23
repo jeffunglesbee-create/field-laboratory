@@ -1,0 +1,857 @@
+{
+  "capturedAt": "2026-11-23T01:02:14.045Z",
+  "sport": "nba",
+  "date": "2026-11-22",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "error": null,
+  "v2": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/v2/games?sport=nba&date=2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public, max-age=15",
+    "age": null,
+    "date": "Mon, 23 Nov 2026 01:02:14 GMT",
+    "bytes": 3532,
+    "body": {
+      "sport": "nba",
+      "date": "2026-11-22",
+      "games": [
+        {
+          "id": "espn:401910029",
+          "espnEventId": "401910029",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "final",
+          "start": "2026-11-22T20:30Z",
+          "home": {
+            "name": "Atlanta Hawks",
+            "abbr": "ATL",
+            "score": 107
+          },
+          "away": {
+            "name": "Detroit Pistons",
+            "abbr": "DET",
+            "score": 97
+          },
+          "periodNum": 4,
+          "periodLabel": "F",
+          "clock": "12:00",
+          "venue": "State Farm Arena",
+          "situation": null,
+          "linescores": {
+            "home": [
+              29,
+              22,
+              23,
+              33
+            ],
+            "away": [
+              26,
+              26,
+              33,
+              12
+            ]
+          },
+          "round": null,
+          "streams": []
+        },
+        {
+          "id": "espn:401910030",
+          "espnEventId": "401910030",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "live",
+          "start": "2026-11-22T23:00Z",
+          "home": {
+            "name": "Miami Heat",
+            "abbr": "MIA",
+            "score": 103
+          },
+          "away": {
+            "name": "Oklahoma City Thunder",
+            "abbr": "OKC",
+            "score": 87
+          },
+          "periodNum": 4,
+          "periodLabel": "Q4",
+          "clock": "8:51",
+          "venue": "Kaseya Center",
+          "situation": {
+            "quarter": 4,
+            "clock": "8:51",
+            "possession": null,
+            "isHalftime": false
+          },
+          "linescores": {
+            "home": [
+              36,
+              31,
+              28,
+              8
+            ],
+            "away": [
+              24,
+              30,
+              26,
+              7
+            ]
+          },
+          "round": null,
+          "streams": [
+            {
+              "label": "KSBI",
+              "market": "Away",
+              "type": "TV"
+            },
+            {
+              "label": "Thunder App",
+              "market": "Away",
+              "type": "Streaming"
+            }
+          ]
+        },
+        {
+          "id": "espn:401910031",
+          "espnEventId": "401910031",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "live",
+          "start": "2026-11-23T00:00Z",
+          "home": {
+            "name": "Washington Wizards",
+            "abbr": "WSH",
+            "score": 55
+          },
+          "away": {
+            "name": "Orlando Magic",
+            "abbr": "ORL",
+            "score": 46
+          },
+          "periodNum": 2,
+          "periodLabel": "Q2",
+          "clock": "2:34",
+          "venue": "Capital One Arena",
+          "situation": {
+            "quarter": 2,
+            "clock": "2:34",
+            "possession": null,
+            "isHalftime": false
+          },
+          "linescores": {
+            "home": [
+              38,
+              17
+            ],
+            "away": [
+              21,
+              25
+            ]
+          },
+          "round": null,
+          "streams": [
+            {
+              "label": "MNMT",
+              "market": "Home",
+              "type": "TV"
+            }
+          ]
+        },
+        {
+          "id": "espn:401910032",
+          "espnEventId": "401910032",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "live",
+          "start": "2026-11-23T00:00Z",
+          "home": {
+            "name": "Chicago Bulls",
+            "abbr": "CHI",
+            "score": 64
+          },
+          "away": {
+            "name": "Denver Nuggets",
+            "abbr": "DEN",
+            "score": 69
+          },
+          "periodNum": 2,
+          "periodLabel": "Q2",
+          "clock": "56.1",
+          "venue": "United Center",
+          "situation": {
+            "quarter": 2,
+            "clock": "56.1",
+            "possession": null,
+            "isHalftime": false
+          },
+          "linescores": {
+            "home": [
+              31,
+              33
+            ],
+            "away": [
+              33,
+              36
+            ]
+          },
+          "round": null,
+          "streams": []
+        },
+        {
+          "id": "espn:401910033",
+          "espnEventId": "401910033",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "live",
+          "start": "2026-11-23T00:00Z",
+          "home": {
+            "name": "Utah Jazz",
+            "abbr": "UTAH",
+            "score": 55
+          },
+          "away": {
+            "name": "Dallas Mavericks",
+            "abbr": "DAL",
+            "score": 60
+          },
+          "periodNum": 2,
+          "periodLabel": "Q2",
+          "clock": "1:03",
+          "venue": "Delta Center",
+          "situation": {
+            "quarter": 2,
+            "clock": "1:03",
+            "possession": null,
+            "isHalftime": false
+          },
+          "linescores": {
+            "home": [
+              35,
+              20
+            ],
+            "away": [
+              33,
+              27
+            ]
+          },
+          "round": null,
+          "streams": [
+            {
+              "label": "KJZZ-TV",
+              "market": "Home",
+              "type": "TV"
+            },
+            {
+              "label": "Jazz+",
+              "market": "Home",
+              "type": "Streaming"
+            },
+            {
+              "label": "KFAA-TV",
+              "market": "Away",
+              "type": "TV"
+            },
+            {
+              "label": "MavsTV",
+              "market": "Away",
+              "type": "Streaming"
+            }
+          ]
+        },
+        {
+          "id": "espn:401910034",
+          "espnEventId": "401910034",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "pre",
+          "start": "2026-11-23T01:00Z",
+          "home": {
+            "name": "New York Knicks",
+            "abbr": "NY",
+            "score": 0
+          },
+          "away": {
+            "name": "Indiana Pacers",
+            "abbr": "IND",
+            "score": 0
+          },
+          "periodNum": 0,
+          "periodLabel": "NS",
+          "clock": "0.0",
+          "venue": "Madison Square Garden",
+          "situation": null,
+          "linescores": {
+            "home": [],
+            "away": []
+          },
+          "round": null,
+          "streams": [
+            {
+              "label": "DAZN IND",
+              "market": "Away",
+              "type": "Streaming"
+            }
+          ]
+        },
+        {
+          "id": "espn:401910035",
+          "espnEventId": "401910035",
+          "sport": "nba",
+          "league": "NBA",
+          "state": "pre",
+          "start": "2026-11-23T01:30Z",
+          "home": {
+            "name": "Golden State Warriors",
+            "abbr": "GS",
+            "score": 0
+          },
+          "away": {
+            "name": "Boston Celtics",
+            "abbr": "BOS",
+            "score": 0
+          },
+          "periodNum": 0,
+          "periodLabel": "NS",
+          "clock": "0.0",
+          "venue": "Chase Center",
+          "situation": null,
+          "linescores": {
+            "home": [],
+            "away": []
+          },
+          "round": null,
+          "streams": []
+        }
+      ],
+      "count": 7,
+      "source": "espn-wc",
+      "ts": 1795395734533
+    },
+    "parseError": null
+  },
+  "archive": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-22",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public,max-age=300",
+    "age": null,
+    "date": "Mon, 23 Nov 2026 01:02:14 GMT",
+    "bytes": 323006,
+    "parseError": null,
+    "rowCount": 46
+  },
+  "games": [
+    {
+      "id": "espn:401910029",
+      "espnId": "401910029",
+      "state": "final",
+      "homeScore": 107,
+      "awayScore": 97,
+      "scoresAreIntegers": true,
+      "clock": "12:00",
+      "clockIsString": true,
+      "periodNum": 4,
+      "start": "2026-11-22T20:30Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910030",
+      "espnId": "401910030",
+      "state": "live",
+      "homeScore": 103,
+      "awayScore": 87,
+      "scoresAreIntegers": true,
+      "clock": "8:51",
+      "clockIsString": true,
+      "periodNum": 4,
+      "start": "2026-11-22T23:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910031",
+      "espnId": "401910031",
+      "state": "live",
+      "homeScore": 55,
+      "awayScore": 46,
+      "scoresAreIntegers": true,
+      "clock": "2:34",
+      "clockIsString": true,
+      "periodNum": 2,
+      "start": "2026-11-23T00:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910032",
+      "espnId": "401910032",
+      "state": "live",
+      "homeScore": 64,
+      "awayScore": 69,
+      "scoresAreIntegers": true,
+      "clock": "56.1",
+      "clockIsString": true,
+      "periodNum": 2,
+      "start": "2026-11-23T00:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910033",
+      "espnId": "401910033",
+      "state": "live",
+      "homeScore": 55,
+      "awayScore": 60,
+      "scoresAreIntegers": true,
+      "clock": "1:03",
+      "clockIsString": true,
+      "periodNum": 2,
+      "start": "2026-11-23T00:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910034",
+      "espnId": "401910034",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0.0",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-23T01:00Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    },
+    {
+      "id": "espn:401910035",
+      "espnId": "401910035",
+      "state": "pre",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "0.0",
+      "clockIsString": true,
+      "periodNum": 0,
+      "start": "2026-11-23T01:30Z",
+      "hasSituation": false,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "linescores",
+        "periodLabel",
+        "periodNum",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue"
+      ]
+    }
+  ],
+  "joins": [
+    {
+      "espnId": "401910029",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910029",
+        "home_score": 107,
+        "away_score": 97,
+        "finalized_at": "2026-11-22 23:00:26",
+        "start_time": "2026-11-22T20:30Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910029",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Hawks",
+        "away": "Pistons",
+        "home_score": 107,
+        "away_score": 97,
+        "venue": "State Farm Arena",
+        "streams": null,
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:25",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":110,\"away\":-130},\"spread\":{\"home\":2.5,\"away\":-2.5,\"homePrice\":-113,\"awayPrice\":-107},\"total\":{\"over\":225.5,\"under\":225.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T20:20:11.832Z\",\"moneyline\":{\"home\":114,\"away\":-135},\"spread\":{\"home\":2.5,\"away\":-2.5,\"homePrice\":-114,\"awayPrice\":-106},\"total\":{\"over\":224.5,\"under\":224.5},\"_kickoff\":{\"at\":\"2026-11-22T20:30Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910029",
+        "went_to_ot": 0,
+        "finalized_at": "2026-11-22 23:00:26",
+        "start_time": "2026-11-22T20:30Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910030",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910030",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T23:00Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910030",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Heat",
+        "away": "Thunder",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Kaseya Center",
+        "streams": "KSBI, Thunder App",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:26",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-139,\"away\":117},\"spread\":{\"home\":-2.5,\"away\":2.5,\"homePrice\":-110,\"awayPrice\":-110},\"total\":{\"over\":231.5,\"under\":231.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T22:50:14.650Z\",\"moneyline\":{\"home\":-191,\"away\":160},\"spread\":{\"home\":-4.5,\"away\":4.5,\"homePrice\":-114,\"awayPrice\":-106},\"total\":{\"over\":226.5,\"under\":226.5},\"_kickoff\":{\"at\":\"2026-11-22T23:00Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910030",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-22T23:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910031",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910031",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910031",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Wizards",
+        "away": "Magic",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Capital One Arena",
+        "streams": "MNMT",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:26",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":185,\"away\":-222},\"spread\":{\"home\":5.5,\"away\":-5.5,\"homePrice\":-110,\"awayPrice\":-110},\"total\":{\"over\":222.5,\"under\":222.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T23:50:10.613Z\",\"moneyline\":{\"home\":164,\"away\":-196},\"spread\":{\"home\":4.5,\"away\":-4.5,\"homePrice\":-108,\"awayPrice\":-112},\"total\":{\"over\":219.5,\"under\":219.5},\"_kickoff\":{\"at\":\"2026-11-23T00:00Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910031",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910032",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910032",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910032",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Bulls",
+        "away": "Nuggets",
+        "home_score": null,
+        "away_score": null,
+        "venue": "United Center",
+        "streams": null,
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:26",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":298,\"away\":-375},\"spread\":{\"home\":8.5,\"away\":-8.5,\"homePrice\":-106,\"awayPrice\":-115},\"total\":{\"over\":237.5,\"under\":237.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T23:50:10.698Z\",\"moneyline\":{\"home\":328,\"away\":-419},\"spread\":{\"home\":9.5,\"away\":-9.5,\"homePrice\":-104,\"awayPrice\":-117},\"total\":{\"over\":237.5,\"under\":237.5},\"_kickoff\":{\"at\":\"2026-11-23T00:00Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910032",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910033",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910033",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910033",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Jazz",
+        "away": "Mavericks",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Delta Center",
+        "streams": "KJZZ-TV, Jazz+, KFAA-TV, MavsTV",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:27",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":105,\"away\":-125},\"spread\":{\"home\":1.5,\"away\":-1.5,\"homePrice\":-105,\"awayPrice\":-115},\"total\":{\"over\":225.5,\"under\":225.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T23:50:10.789Z\",\"moneyline\":{\"home\":114,\"away\":-135},\"spread\":{\"home\":2.5,\"away\":-2.5,\"homePrice\":-114,\"awayPrice\":-106},\"total\":{\"over\":225.5,\"under\":225.5},\"_kickoff\":{\"at\":\"2026-11-23T00:00Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910033",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T00:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910034",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910034",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:00Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910034",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Knicks",
+        "away": "Pacers",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Madison Square Garden",
+        "streams": "DAZN IND",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:27",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":-380,\"away\":301},\"spread\":{\"home\":-9.5,\"away\":9.5,\"homePrice\":-105,\"awayPrice\":-115},\"total\":{\"over\":216.5,\"under\":216.5}}",
+        "closing_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-23T00:50:01.105Z\",\"moneyline\":{\"home\":-237,\"away\":196},\"spread\":{\"home\":-6.5,\"away\":6.5,\"homePrice\":-110,\"awayPrice\":-110},\"total\":{\"over\":215.5,\"under\":215.5},\"_kickoff\":{\"at\":\"2026-11-23T01:00Z\",\"verified\":true,\"late_minutes\":null}}",
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910034",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401910035",
+      "matched": true,
+      "archive": {
+        "id": "NBA_2026-11-22_e401910035",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:30Z"
+      },
+      "raw": {
+        "id": "NBA_2026-11-22_e401910035",
+        "sport": "NBA",
+        "league": "NBA",
+        "date": "2026-11-22",
+        "home": "Warriors",
+        "away": "Celtics",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Chase Center",
+        "streams": null,
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-22 10:00:28",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-11-22T10:01:20.945Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":312,\"away\":-395},\"spread\":{\"home\":9.5,\"away\":-9.5,\"homePrice\":-110,\"awayPrice\":-110},\"total\":{\"over\":211.5,\"under\":211.5}}",
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401910035",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-23T01:30Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    }
+  ],
+  "summary": {
+    "gamesInFeed": 7,
+    "byState": {
+      "final": 1,
+      "live": 4,
+      "pre": 2
+    },
+    "live": 4,
+    "liveWithIntegerScores": 4,
+    "liveWithClockString": 4,
+    "liveWithArchiveScoreNull": 4,
+    "liveFeedShape": 4,
+    "liveFullShape": 4,
+    "preWithScoreZero": 2,
+    "archiveMatched": 7,
+    "finalWithArchiveUnscored": 0
+  },
+  "coverage": "checked 7 of 7 games joined to an archive row; 4 live",
+  "gap": "final in the feed with an unscored archive row: 0 of 1 final game(s)",
+  "feedShapeSeen": true,
+  "proved": true
+}
