@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0ab4a38` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45246831384 |
+| `c3a5ffa` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader, revised after adversarial review: agree and disagree by distance to the ledger's resolved_minute, distinct goals, the premises counted, prototype-free tallies, real captures in the check |
+| `c64e15c` | 2026-11-23 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-23T18:44 [skip ci] |
+| `af04697` | 2026-11-23 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 5c9d1b2 [skip ci] |
 | `7cf8a68` | 2026-11-23 | [branch-cleanup-2026-11-23.md](branch-cleanup-2026-11-23.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
 | `7cf8a68` | 2026-11-23 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
 | `7cf8a68` | 2026-11-23 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: the branch cleanup of 2026-11-23: 34 branches deleted, 9 kept as archive tags, nothing needed merging |
