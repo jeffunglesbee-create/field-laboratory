@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `17ff11d` — but that is not `main` HEAD
+**FAILURE** on `5e8fd8d` at "No script a workflow depends on became unreachable" — 24 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45223616096](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45223616096)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `8e5fd05`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `8e5fd05` at "The pitcher and records rows appear on the deployed page" — 1 of 17 steps did not run behind it — [run 45198474360](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45198474360)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e290b24` — newest deployable `00200dc` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `e290b24` — behind newest deployable `5e8fd8d` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

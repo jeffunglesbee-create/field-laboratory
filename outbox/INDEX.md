@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `43d1ca4` | 2026-11-23 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45223616096 |
+| `5e8fd8d` | 2026-11-23 | [cc-session-2026-11-23-bsd-next-goal-grade-core.md](cc-session-2026-11-23-bsd-next-goal-grade-core.md) | BSD next-goal grader: a pure core that grades the census's gradeable calls against FIELD's own goal timelines, its check and its mutation harness (not yet run on the vendor's ledger) |
+| `d38578c` | 2026-11-23 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: the three merged branches of item 9 are deleted; what was checked, what was kept, and how |
 | `301dec0` | 2026-11-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-23 [skip ci] |
 | `301dec0` | 2026-11-23 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-23 [skip ci] |
 | `301dec0` | 2026-11-23 | [sport-vocabulary-2026-11-23T09-19-04-929Z.json](sport-vocabulary-2026-11-23T09-19-04-929Z.json) | drift-sentinel: ok on 2026-11-23 [skip ci] |
