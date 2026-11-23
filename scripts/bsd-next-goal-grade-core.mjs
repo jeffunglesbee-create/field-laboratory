@@ -1,0 +1,196 @@
+// Grade BSD's published next-goal calls against FIELD's own captured goal timelines. PURE: this file imports nothing, reads no
+// file, no environment variable and no network, and returns counts. It is executed inside field-relay-nba's runner, in the same
+// process as the BSD token, so it is kept unable to touch any of them; scripts/check-bsd-next-goal-grade-core.mjs asserts that
+// of the source text, not of this comment.
+//
+// WHY. docs/CC-CMD-2026-11-22-bsd-next-goal-grade-against-field-timelines.md. The census
+// (field-relay-nba docs/CC-CMD-2026-11-22-bsd-next-goal-ledger-census.md) found 370 of 1,746 ledger calls gradeable: a hit or miss,
+// with a resolved_minute, on a match whose R2 capture saw full time or holds the resolving goal. This asks whether the vendor's
+// `outcome` agrees with what FIELD's own record of the match says happened next.
+//
+// WHAT IT IS NOT. Not an independent grade: FIELD's captures and the vendor's ledger both come from BSD, and the census found
+// the ledger's resolved_minute equal to a goal minute in the capture for 370 of 370. Agreement is therefore expected; a
+// disagreement is the finding. Not a verdict on probabilities (no Brier, no calibration): those need a rule of their own.
+//
+// THE RULE, fixed before the first run (RULE_VERSION below is bumped by any change to it):
+//   For a call with side S, outcome O and score_at_call (a, b), k = a + b.
+//   1. The capture's goal rows are read with their running scores (home_score, away_score after the goal). A capture lists its
+//      incidents newest-first and two goals can share a minute, so goals are ordered by running total, never by position or
+//      minute. If any goal row lacks a running score, or the totals are not exactly 1, 2, ..., n, the capture is not trusted:
+//      every call on it is "not applicable" under a named reason. There is no fallback to minute order.
+//   2. The resolving goal is the goal with running total k + 1. The capture's score before it must equal score_at_call;
+//      otherwise the call is not applicable (the join between the ledger and the capture is not what the rule assumes).
+//   3. FIELD's side is the side whose running score rose by exactly one on that goal. `is_home` is NOT used for the side (an own
+//      goal may flip it); its agreement with the rise is tallied, so the reason for the choice stays visible.
+//   4. FIELD's verdict is "hit" if FIELD's side equals S, else "miss". The call AGREES when FIELD's verdict equals O.
+// Every call lands in exactly one place: agree, disagree, or one named not-applicable reason. Nothing is dropped.
+
+export const RULE_VERSION = '2026-11-23.1'
+
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
+const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+const count = (v) => (Number.isInteger(v) && v >= 0 ? v : null)
+const bump = (o, k, n = 1) => { o[k] = (o[k] === undefined ? 0 : o[k]) + n }
+
+export const REASONS = {
+  side: 'the ledger row has no home or away side',
+  score: 'the ledger row has no whole-number score_at_call',
+  outcome: 'the outcome is not hit or miss',
+  unreadable: 'the capture has no incidents array',
+  noScore: 'a goal row in the capture has no running score',
+  sequence: 'the capture goal rows are not running totals 1 to n',
+  none: 'the capture holds no goal after the score at the call',
+  join: 'score_at_call does not match the capture score before that goal',
+  rise: 'the running score did not rise by one on one side',
+}
+
+/** One capture's goal rows, ordered by running total. `sequential` is false unless every goal row has both scores and the totals are exactly 1..n. */
+export function readGoals (json) {
+  const rows = isObj(json) && Array.isArray(json.incidents) ? json.incidents : null
+  if (rows === null) return { ok: false }
+  const goals = []
+  let withoutScore = 0
+  for (const r of rows) {
+    if (!isObj(r) || r.type !== 'goal') continue
+    const home = num(r.home_score)
+    const away = num(r.away_score)
+    if (home === null || away === null) { withoutScore++; continue }
+    goals.push({
+      minute: num(r.minute),
+      home,
+      away,
+      total: home + away,
+      type: typeof r.goal_type === 'string' ? r.goal_type : '(none)',
+      isHome: typeof r.is_home === 'boolean' ? r.is_home : null,
+    })
+  }
+  goals.sort((x, y) => x.total - y.total)
+  const sequential = withoutScore === 0 && goals.every((g, i) => g.total === i + 1)
+  return { ok: true, goals, withoutScore, sequential }
+}
+
+/** One call against one parsed capture (readGoals). Returns { graded: false, reason } or { graded: true, ... }. */
+export function gradeCall (call, parsed) {
+  const side = isObj(call) ? call.side : undefined
+  if (side !== 'home' && side !== 'away') return { graded: false, reason: REASONS.side }
+  const sc = call.score_at_call
+  const a = isObj(sc) ? count(sc.home) : null
+  const b = isObj(sc) ? count(sc.away) : null
+  if (a === null || b === null) return { graded: false, reason: REASONS.score }
+  if (call.outcome !== 'hit' && call.outcome !== 'miss') return { graded: false, reason: REASONS.outcome }
+  if (!parsed || !parsed.ok) return { graded: false, reason: REASONS.unreadable }
+  if (parsed.withoutScore > 0) return { graded: false, reason: REASONS.noScore }
+  if (!parsed.sequential) return { graded: false, reason: REASONS.sequence }
+  const k = a + b
+  const resolving = parsed.goals[k]
+  if (resolving === undefined) return { graded: false, reason: REASONS.none }
+  const prev = k === 0 ? { home: 0, away: 0 } : parsed.goals[k - 1]
+  if (prev.home !== a || prev.away !== b) return { graded: false, reason: REASONS.join }
+  const dh = resolving.home - prev.home
+  const da = resolving.away - prev.away
+  let fieldSide = null
+  if (dh === 1 && da === 0) fieldSide = 'home'
+  else if (dh === 0 && da === 1) fieldSide = 'away'
+  if (fieldSide === null) return { graded: false, reason: REASONS.rise }
+  const verdict = fieldSide === side ? 'hit' : 'miss'
+  const rm = num(call.resolved_minute)
+  return {
+    graded: true,
+    verdict,
+    agree: verdict === call.outcome,
+    goalType: resolving.type,
+    isHomeAgreesWithRise: resolving.isHome === null ? null : resolving.isHome === (fieldSide === 'home'),
+    distance: rm === null || resolving.minute === null ? null : Math.abs(resolving.minute - rm),
+  }
+}
+
+const bucket = (d) => (d === null ? 'no minute' : d >= 3 ? '3+' : String(d))
+
+/**
+ * items: [{ call, capture, key, tags }] where `capture` is an incidents.json body, `key` an opaque id for counting distinct
+ * captures (it is never returned), and `tags` a flat object of labels (for example { slug, state }) tallied for agreement.
+ * Returns counts only.
+ */
+export function gradeCalls (items) {
+  const list = Array.isArray(items) ? items : []
+  const parsedByKey = new Map()
+  const parsedOf = (it) => {
+    if (!parsedByKey.has(it.key)) parsedByKey.set(it.key, readGoals(it.capture))
+    return parsedByKey.get(it.key)
+  }
+  const out = {
+    ruleVersion: RULE_VERSION,
+    population: list.length,
+    graded: 0,
+    agree: 0,
+    disagree: 0,
+    notApplicable: { total: 0, byReason: {} },
+    confusion: {},
+    byLedgerOutcome: {},
+    resolvingGoalType: {},
+    isHomeVersusScoreRise: { agrees: 0, disagrees: 0, absent: 0 },
+    resolvedMinuteDistance: {},
+    byTag: {},
+    premises: {
+      callsWithoutSideOrScore: 0,
+      callsOnCapturesWithAGoalRowLackingAScore: 0,
+      callsOnCapturesWhoseTotalsAreNotOneToN: 0,
+      callsWhoseScoreAtCallDisagreesWithTheCapture: 0,
+      distinctCaptures: 0,
+      distinctCapturesWithAGoalRowLackingAScore: 0,
+      distinctCapturesWhoseTotalsAreNotOneToN: 0,
+    },
+  }
+  for (const it of list) {
+    const parsed = parsedOf(it)
+    const r = gradeCall(it.call, parsed)
+    const tags = isObj(it.tags) ? it.tags : {}
+    const cell = (name, value) => {
+      if (!isObj(out.byTag[name])) out.byTag[name] = {}
+      const t = String(value)
+      if (!isObj(out.byTag[name][t])) out.byTag[name][t] = { graded: 0, agree: 0, disagree: 0, notApplicable: 0 }
+      return out.byTag[name][t]
+    }
+    if (!r.graded) {
+      out.notApplicable.total++
+      bump(out.notApplicable.byReason, r.reason)
+      for (const name of Object.keys(tags)) cell(name, tags[name]).notApplicable++
+      if (r.reason === REASONS.side || r.reason === REASONS.score) out.premises.callsWithoutSideOrScore++
+      if (r.reason === REASONS.noScore) out.premises.callsOnCapturesWithAGoalRowLackingAScore++
+      if (r.reason === REASONS.sequence) out.premises.callsOnCapturesWhoseTotalsAreNotOneToN++
+      if (r.reason === REASONS.join) out.premises.callsWhoseScoreAtCallDisagreesWithTheCapture++
+      continue
+    }
+    out.graded++
+    if (r.agree) out.agree++
+    else out.disagree++
+    bump(out.confusion, `ledger ${it.call.outcome}, FIELD ${r.verdict}`)
+    if (!isObj(out.byLedgerOutcome[it.call.outcome])) out.byLedgerOutcome[it.call.outcome] = { graded: 0, agree: 0, disagree: 0 }
+    out.byLedgerOutcome[it.call.outcome].graded++
+    out.byLedgerOutcome[it.call.outcome][r.agree ? 'agree' : 'disagree']++
+    if (!isObj(out.resolvingGoalType[r.goalType])) out.resolvingGoalType[r.goalType] = { graded: 0, agree: 0, disagree: 0 }
+    out.resolvingGoalType[r.goalType].graded++
+    out.resolvingGoalType[r.goalType][r.agree ? 'agree' : 'disagree']++
+    if (r.isHomeAgreesWithRise === null) out.isHomeVersusScoreRise.absent++
+    else if (r.isHomeAgreesWithRise) out.isHomeVersusScoreRise.agrees++
+    else out.isHomeVersusScoreRise.disagrees++
+    bump(out.resolvedMinuteDistance, bucket(r.distance))
+    for (const name of Object.keys(tags)) {
+      const c = cell(name, tags[name])
+      c.graded++
+      c[r.agree ? 'agree' : 'disagree']++
+    }
+  }
+  out.premises.distinctCaptures = parsedByKey.size
+  for (const p of parsedByKey.values()) {
+    if (p.ok && p.withoutScore > 0) out.premises.distinctCapturesWithAGoalRowLackingAScore++
+    if (p.ok && p.withoutScore === 0 && !p.sequential) out.premises.distinctCapturesWhoseTotalsAreNotOneToN++
+  }
+  return out
+}
+
+/** The one line a reader sees first, with every denominator (Rule 91). */
+export function coverageLine (grade, census) {
+  const c = isObj(census) ? census : {}
+  return `graded ${grade.graded} of ${grade.population} gradeable calls (census: ${c.gradeable === undefined ? 'n/a' : c.gradeable} gradeable of ${c.uniqueCalls === undefined ? 'n/a' : c.uniqueCalls}) | agree ${grade.agree}, disagree ${grade.disagree}, not applicable ${grade.notApplicable.total} | rule ${grade.ruleVersion}`
+}
