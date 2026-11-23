@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `00200dc` at "Every claim a document makes is still true" — 26 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45107389122](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45107389122)
+**green** on `17ff11d` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `348dc26` — failing step unknown: the run's steps could not be read — [run 45108181332](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45108181332)
+`live-check` (post-deploy, against the deployed page): **running** on `e290b24`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `378c624` — behind newest deployable `00200dc` (deploy not landed) |
+| Cloudflare Workers | live | `e290b24` — newest deployable `00200dc` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
