@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `8e5fd05` at "The pitcher and records rows appear on the deployed page" — 1 of 17 steps did not run behind it — [run 45198474360](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45198474360)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `43d1ca4` — failing step unknown: the run's steps could not be read — [run 45225309939](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45225309939)
 
 ## Is it published?
 
