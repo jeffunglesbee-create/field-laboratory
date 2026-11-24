@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b7ee4d3` | 2026-11-24 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45473543164 |
+| `77647dc` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-mutate.mjs](step16-page-error-names-request-2026-11-24-mutate.mjs) | fix: step 16 names the request behind a "Failed to load resource" page error |
+| `77647dc` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-probe.cjs](step16-page-error-names-request-2026-11-24-probe.cjs) | fix: step 16 names the request behind a "Failed to load resource" page error |
+| `77647dc` | 2026-11-24 | [step16-page-error-names-request-2026-11-24.txt](step16-page-error-names-request-2026-11-24.txt) | fix: step 16 names the request behind a "Failed to load resource" page error |
+| `6e32367` | 2026-11-24 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-24T18:17 [skip ci] |
 | `db00b56` | 2026-11-24 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45442481067 |
 | `bd5eda8` | 2026-11-24 | [live-score-2026-11-27-20261124-1204Z.png](live-score-2026-11-27-20261124-1204Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `bd5eda8` | 2026-11-24 | [live-score-manifest-2026-11-27-20261124-1204Z.json](live-score-manifest-2026-11-27-20261124-1204Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
