@@ -2405,13 +2405,8 @@
   {
     "date": "2026-11-24",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-24",
-    "at": "2026-11-24T11:12:59.874Z",
+    "at": "2026-11-24T22:13:54.458Z",
     "sports": {
-      "golf": {
-        "rows": 1,
-        "withOdds": 0,
-        "withDraw": 0
-      },
       "NBA": {
         "rows": 3,
         "withOdds": 3,
@@ -2440,6 +2435,11 @@
       "CFB": {
         "rows": 2,
         "withOdds": 2,
+        "withDraw": 0
+      },
+      "golf": {
+        "rows": 2,
+        "withOdds": 0,
         "withDraw": 0
       }
     }
