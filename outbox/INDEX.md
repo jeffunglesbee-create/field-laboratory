@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `eb39f1b` | 2026-11-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-24 [skip ci] |
+| `eb39f1b` | 2026-11-24 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-24 [skip ci] |
+| `eb39f1b` | 2026-11-24 | [sport-vocabulary-2026-11-24T22-14-08-505Z.json](sport-vocabulary-2026-11-24T22-14-08-505Z.json) | drift-sentinel: ok on 2026-11-24 [skip ci] |
+| `bd354be` | 2026-11-24 | [cc-session-2026-11-24-step16-names-the-request.md](cc-session-2026-11-24-step16-names-the-request.md) | docs: step 16 names the request, closed: session record, CC-CMD to DONE, the runner's reading of the fix |
+| `bd354be` | 2026-11-24 | [step16-exit-drains-regression-2026-11-24.txt](step16-exit-drains-regression-2026-11-24.txt) | docs: step 16 names the request, closed: session record, CC-CMD to DONE, the runner's reading of the fix |
+| `bd354be` | 2026-11-24 | [step16-page-error-names-request-2026-11-24.txt](step16-page-error-names-request-2026-11-24.txt) | docs: step 16 names the request, closed: session record, CC-CMD to DONE, the runner's reading of the fix |
 | `88e4c18` | 2026-11-24 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45478103493 |
 | `c67aa5c` | 2026-11-24 | [step16-exit-drains-regression-2026-11-24.txt](step16-exit-drains-regression-2026-11-24.txt) | fix: step 16's request naming lives in its own module, so verify's early-exit count is back at 63 |
 | `c67aa5c` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-mutate.mjs](step16-page-error-names-request-2026-11-24-mutate.mjs) | fix: step 16's request naming lives in its own module, so verify's early-exit count is back at 63 |
