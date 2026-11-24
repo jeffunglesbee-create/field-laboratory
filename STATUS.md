@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `77647dc` at "No check script kills itself mid-write" — 51 of 121 steps did not run behind it — [run 45473543164](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45473543164)
+**FAILURE** on `c67aa5c` at "The mutate scripts break a copy, never the tracked tree" — 22 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45478103493](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45478103493)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `b7ee4d3` — failing step unknown: the run's steps could not be read — [run 45474635142](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45474635142)
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `c67aa5c` at "The deploy landed (published is the newest deployable commit)" — 9 of 18 steps did not run behind it — [run 45478165204](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45478165204)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e290b24` — behind newest deployable `77647dc` (deploy not landed) |
+| Cloudflare Workers | live | `e290b24` — behind newest deployable `c67aa5c` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

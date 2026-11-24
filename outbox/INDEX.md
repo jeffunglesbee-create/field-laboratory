@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `88e4c18` | 2026-11-24 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45478103493 |
+| `c67aa5c` | 2026-11-24 | [step16-exit-drains-regression-2026-11-24.txt](step16-exit-drains-regression-2026-11-24.txt) | fix: step 16's request naming lives in its own module, so verify's early-exit count is back at 63 |
+| `c67aa5c` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-mutate.mjs](step16-page-error-names-request-2026-11-24-mutate.mjs) | fix: step 16's request naming lives in its own module, so verify's early-exit count is back at 63 |
 | `b7ee4d3` | 2026-11-24 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45473543164 |
 | `77647dc` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-mutate.mjs](step16-page-error-names-request-2026-11-24-mutate.mjs) | fix: step 16 names the request behind a "Failed to load resource" page error |
 | `77647dc` | 2026-11-24 | [step16-page-error-names-request-2026-11-24-probe.cjs](step16-page-error-names-request-2026-11-24-probe.cjs) | fix: step 16 names the request behind a "Failed to load resource" page error |
