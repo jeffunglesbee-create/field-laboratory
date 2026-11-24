@@ -31,3 +31,18 @@ fetch-silently-empty-probe.mjs
 # widening the walker. It was not: the walker now harvests `scripts/X.mjs` from
 # the source of every reachable script, which sees both edges exactly, and the
 # ledger's second assertion is what forced the deletion of these two lines.
+
+# Run from the RELAY, not from a laboratory workflow (declared 2026-11-24).
+# The BSD next-goal grader's rule lives here and its runner lives in field-relay-nba
+# (docs/CC-CMD-2026-11-22-bsd-next-goal-grade-against-field-timelines.md, Unblocked
+# 2026-11-23, item 2: the laboratory holds the rule, the relay runs it). The relay's
+# .github/workflows/bsd-next-goal-grade.yml checks this repository out at a pinned
+# lab_ref SHA and, in its `verify` job, runs `node scripts/check-bsd-next-goal-grade-core.mjs`
+# (with --self-test) from the checkout and `node scripts/mutate-bsd-next-goal-grade-core.mjs`
+# with working-directory lab; its `grade` job import()s bsd-next-goal-grade-core.mjs through
+# LAB_CORE. No workflow in THIS repository names them, which is what this check sees; read
+# 2026-11-24 from the relay workflow's lines 84-99 and 141. Delete these three lines in the
+# commit that wires them here, or if the relay stops running them.
+bsd-next-goal-grade-core.mjs
+check-bsd-next-goal-grade-core.mjs
+mutate-bsd-next-goal-grade-core.mjs
