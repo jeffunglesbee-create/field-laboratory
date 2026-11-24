@@ -1,0 +1,60 @@
+{
+  "deployed": "e290b2454385190b7bb105138fd6547e30bd3405",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-27",
+  "probedAt": "2026-11-24T12:03:16.071Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "aflw"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 1 game(s) for 2026-11-27"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 1,
+  "pageOutcomes": [],
+  "runnerFeeds": {
+    "aflw": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [],
+  "runnerLiveGames": [],
+  "verdict": "NOTHING-TO-JUDGE",
+  "reasons": [
+    "no game of a sport the page asks the feed about is live on this slate"
+  ],
+  "cardState": null,
+  "scoreMatchesFeed": false,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "gameOverMarker": false,
+  "runnerLiveUnclaimed": [],
+  "halfTimeMarker": false,
+  "requestsToV2Games": 0,
+  "checked": "checked 0 of 1 live-score cards against the page's own last /v2/games answer (0 with no ESPN id, 1 outside their window, 0 with no reading yet); 0 live; 0 live id-less feed game(s) no card claims",
+  "rows": [
+    {
+      "gameId": "AFLW_2026-11-27_northmelbourne_melbourne",
+      "teams": "North Melbourne v Melbourne",
+      "sport": "AFLW",
+      "score": "—",
+      "status": "Scheduled 2026-11-27T08:45Z (parsed 08:45)",
+      "live": "",
+      "forecast": null,
+      "espnId": "aflapi:9081",
+      "kind": "out-of-window",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": false,
+  "screenshot": "outbox/live-score-2026-11-27-20261124-1204Z.png"
+}
