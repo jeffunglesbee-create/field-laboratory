@@ -1,0 +1,164 @@
+step 16 names the request behind a page error
+2026-11-24 (Tue)   field-laboratory main   base 18606cb7 (the CC-CMD)
+CC-CMD: docs/CC-CMD-2026-11-24-step16-names-the-request.md
+
+THIS ENTRY IS PAIRED WITH THE SOURCE COMMIT (the staged-outbox rule: a commit that stages src/ or
+scripts/ stages an outbox entry). Sections 1 to 6 are what existed when that commit was made.
+Section 7 (the commit hash, the live-check dispatch, the runner reading) is appended by the docs
+commit that follows it: CC-CMD Tasks 5 and 6.
+
+WHAT CHANGED
+  scripts/schedule-live-check.mjs
+    describeConsoleError(text, requestUrl) appends " — <url>" to text that starts "Failed to load
+    resource", when the message carries a URL. The console handler passes m.location()?.url.
+    --self-test: five cases, no browser.
+  scripts/schedule-live-check-names-request.mjs  (new)
+    Runs the real script against a stub page on 127.0.0.1 (two requests answered 429, one app-level
+    console.error) and reads what it printed: seven checks.
+  .github/workflows/live-check.yml
+    One step, "Step 16 names the request behind a page error", before the always-last Chromium step.
+    Runs the self-test and the stub check. Gated on the Chromium install only, not on "The deploy landed".
+  Not changed: the check's verdict, its tolerance, any retry, any assertion; render-check.mjs;
+  brief-phase-live-check.mjs.
+  Files beside this entry: ...-probe.cjs (section 2) and ...-mutate.mjs (sections 3 and 5).
+
+1. THE PROBLEM (read with gh api on 2026-11-24)
+  Step 16 red, "Failed to load resource: the server responded with a status of 429 (Too Many Requests)"
+  and nothing else on each line:
+    45043449054  2026-11-22T16:22Z  30 errors   render step of that run: 30 weather requests
+    45057926734  2026-11-22T18:56Z  30 errors   30 weather requests
+    45198474360  2026-11-23T14:50Z   6 errors    6 weather requests
+  (A log prints each error twice, the check detail and its annotation echo: 60, 60 and 12 lines.
+   The errors and the weather requests number the same; that does not show the errors ARE the
+   weather requests, which is the thing the URL on each line will show.)
+  Run 45185605230 (2026-11-23T13:36Z) passed on the same commit, 8e5fd05e, as 45198474360.
+  Hosts a page request can go to, by grep of src/*.fs: field-relay-nba.jeffunglesbee.workers.dev,
+  statsapi.mlb.com, api.open-meteo.com.
+  Six live-check runs between 2026-11-22 and 2026-11-24 stopped at "The deploy landed" and did not
+  reach step 16: 45058439044, 45064392698, 45107749792, 45311168327, 45395655828, 45411734756.
+  Browser pair: package.json ^1.62.1 (lock 1.62.1), Chromium revision 1234 (151.0.7922.34) on the
+  runner; this sandbox has revision 1243 and launches it by executablePath.
+
+2. THE PREMISE, TRIED TO REFUTE IT (outbox/step16-page-error-names-request-2026-11-24-probe.cjs)
+  $ node outbox/step16-page-error-names-request-2026-11-24-probe.cjs
+  playwright 1.62.1 | ports app 40791 third 41381 dead 45107
+  checked 7 console error(s)
+  {"text":"app-level console.error call","url":"http://127.0.0.1:40791/"}
+  {"text":"Failed to load resource: the server responded with a status of 429 (Too Many Requests)","url":"http://127.0.0.1:41381/with-cors/v1/forecast?latitude=1&longitude=2"}
+  {"text":"Failed to load resource: net::ERR_CONNECTION_REFUSED","url":"http://127.0.0.1:45107/refused"}
+  {"text":"Access to fetch at 'http://127.0.0.1:41381/no-cors/v1/forecast?latitude=3&longitude=4' from origin 'http://127.0.0.1:40791' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.","url":"http://127.0.0.1:40791/"}
+  {"text":"Failed to load resource: net::ERR_FAILED","url":"http://127.0.0.1:41381/no-cors/v1/forecast?latitude=3&longitude=4"}
+  {"text":"Failed to load resource: the server responded with a status of 429 (Too Many Requests)","url":"http://127.0.0.1:40791/same-origin-429"}
+  {"text":"Failed to load resource: the server responded with a status of 429 (Too Many Requests)","url":"http://127.0.0.1:40791/favicon.ico"}
+  
+  PASS  a 429 with CORS headers is named by its URL
+  PASS  a same-origin 429 is named by its URL
+  PASS  a refused connection is named by its URL
+  PASS  a response with no CORS headers (net::ERR_FAILED) is named by its URL
+  PASS  a CORS refusal names the request in its text
+  PASS  a CORS refusal carries the PAGE as its location, not the request
+  PASS  an app-level console.error carries the page that called it as its location
+  
+  checked 7 expectation(s): 7 held, 0 did not
+  exit: 0
+  The same probe with one expectation broken on purpose (the refused-connection URL altered in a copy,
+  anchor present once): "FAIL a refused connection is named by its URL", 6 held, 1 did not, exit 1.
+
+3. RED FIRST: the stub check against the script as it stood at 18606cb7
+  $ node scripts/schedule-live-check-names-request.mjs --script <git show 18606cb7:scripts/schedule-live-check.mjs>
+  script under test: scripts/before.mjs
+  what it printed for the failing check:
+    → Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+    → Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+    → stub app error
+  
+  PASS  the script failed, because the stub produces page errors
+  PASS  that was its ONLY failing check, so nothing else about the stub page drifted
+  FAIL  the first 429 is named by its URL
+        → lines naming it: 0
+  FAIL  the second 429 is named by its URL
+        → lines naming it: 0
+  PASS  Chromium's own words come first on the line
+  PASS  an app-level console.error is printed as it was, with no URL added
+  PASS  exactly three page errors reach the check, none dropped or duplicated
+  
+  5/7 checks passed
+  exit: 1
+
+4. GREEN, AND STABLE
+  $ node scripts/schedule-live-check.mjs --self-test
+  PASS  a refused request is named by its URL, with Chromium's own words first
+  PASS  a connection that never opened is named too
+  PASS  no URL on the message adds nothing, not a dangling dash
+  PASS  a CORS refusal names the request already, and its location is the PAGE: left alone
+  PASS  an app-level console.error carries its script as location: left alone
+  
+  5/5 checks passed
+  exit: 0
+
+  $ node scripts/schedule-live-check-names-request.mjs
+  script under test: scripts/schedule-live-check.mjs
+  what it printed for the failing check:
+    → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:34411/stub-429?venue=a
+    → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:34411/stub-429?venue=b
+    → stub app error
+  
+  PASS  the script failed, because the stub produces page errors
+  PASS  that was its ONLY failing check, so nothing else about the stub page drifted
+  PASS  the first 429 is named by its URL
+  PASS  the second 429 is named by its URL
+  PASS  Chromium's own words come first on the line
+  PASS  an app-level console.error is printed as it was, with no URL added
+  PASS  exactly three page errors reach the check, none dropped or duplicated
+  
+  7/7 checks passed
+  exit: 0
+
+  stability, ten runs of the stub check on the edited script:
+    run 1: exit 0
+    run 2: exit 0
+    run 3: exit 0
+    run 4: exit 0
+    run 5: exit 0
+    run 6: exit 0
+    run 7: exit 0
+    run 8: exit 0
+    run 9: exit 0
+    run 10: exit 0
+  stability: 10 of 10 runs passed
+
+5. MUTATIONS (outbox/step16-page-error-names-request-2026-11-24-mutate.mjs)
+  $ node outbox/step16-page-error-names-request-2026-11-24-mutate.mjs
+  CAUGHT     M0 the script before the change (red first) | self-test n/a | stub check RED (5/7 checks passed)
+  CAUGHT     M1 drop the append (return the text) | self-test RED | stub check RED (5/7 checks passed)
+  CAUGHT     M2 drop the prefix guard (always append) | self-test RED | stub check RED (6/7 checks passed)
+  CAUGHT     M3 URL first, text second | self-test RED | stub check RED (6/7 checks passed)
+  CAUGHT     M4 drop the empty-URL guard | self-test RED | stub check green (7/7 checks passed)
+  CAUGHT     M5 the handler reads the wrong field (.urlx) | self-test green | stub check RED (5/7 checks passed)
+  CAUGHT     M6 the handler stops calling the helper | self-test green | stub check RED (5/7 checks passed)
+  
+  applied 7 variant(s), each anchor unique; 0 not caught
+  exit: 0
+  Three variants are caught by both checks (M1, M2, M3), the empty-URL guard only by the self-test
+  (M4), and the wrong field and the missing call only by the stub check (M5, M6). That split is the
+  reason both checks exist. M0 is the red-first run of section 3.
+
+6. GATES (npm run --silent <gate>, locally, 2026-11-24, before the commit; all exit 0)
+  check:browser-gate       verdict: gated
+  check:workflows          71/71 checks passed
+  check:push-lands         OK: all 27 push-retry loop(s) verify that the push landed.
+  check:import-purity      3/3 checks passed
+  check:short-circuit      9/9 checks passed
+  check:script-orphans     PASS  3/3 checks passed
+  check:clean-source       5/5 checks passed
+  check:citations          PASS  bare citations do not grow (budget 0)
+  check:harness            11/11 checks passed
+  check:no-launch          verdict: no browser-free self-test or declared read-only mode launches a browser
+  check:gate-rows          7/7 checks passed
+  check:mutation-anchors   221/221 checks passed
+  check:staged-verifier      cross-repo        0  (well-formed; existence is the other repo's to assert)
+  check:boundary           boundary 2c4ec40: reachable
+  check:setup-script       1/1 checks passed
+  The commit itself runs the pre-commit gate again; a refused commit is the failure signal.
+
+7. RUNNER READING: appended by the docs commit that follows the source commit
