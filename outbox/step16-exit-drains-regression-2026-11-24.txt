@@ -18,7 +18,8 @@ verify run 45473543164, push of 77647dc1, created 2026-11-24T19:45:18Z, finished
 
 The verify job stops at its first failing step. Everything after it was skipped on this commit, so the run says
 nothing about those steps: "No script a workflow depends on became unreachable", "The mutate scripts break a copy,
-never the tracked tree" (red on main since run 45223616096, the BSD grader's, not mine) and 49 others.
+never the tracked tree" (the BSD grader's, not mine: it fails the same way on run 45442481067 at f248b808, before
+either of my commits, section 6g) and 49 others.
 
 
 2. REPRODUCED BEFORE ANYTHING WAS CHANGED  (isolated worktree at 77647dc1, the same command the step runs)
@@ -140,7 +141,7 @@ imported without that. A module of its own can be imported by the driver and by 
       failing: 28 55 56 66 70 73 74 75 76 78 90
       On 6e32367a the same 11 fail, and for each the output is IDENTICAL to the fixed tree's once the worktree path and
       the timings are normalised (14, 21, 16, 136, 18, 72, 14, 21, 21, 520 and 15 lines). None is mine.
-      Step 70 is the BSD grader's, red on a runner since run 45223616096. Steps 55, 75 and 76 stop on something missing
+      Step 70 is the BSD grader's (section 6g). Steps 55, 75 and 76 stop on something missing
       from build/ ("The requested module '../build/LiveScore.js' does not provide an export named 'liveWindowFor'";
       Scout.js has no 'chooseScoutAt'; build/DeepCuts.js is absent). Steps 28 and 56 throw a TypeError on a value taken
       from build/. Steps 66, 73, 74, 78 and 90 fail assertions (for example "sports.modelled says 26, actual 25").
@@ -163,6 +164,64 @@ imported without that. A module of its own can be imported by the driver and by 
                                                                            bytes; the follow-up commit writes it)
     The 13 other quick rows pass on all three. A full run was not made here: the mutation row alone took 3,967 s on
     2026-11-04 (docs/GATE-TIMING.md), and the browser and .NET rows need what this sandbox does not have.
+
+6g. THE RUNNER, ON THE FIX
+    Numbering: section 6d numbers the steps as the workflow file does, from the first step. The runner counts "Set up
+    job" as its step 1, so every runner number is one higher (6d's step 38 is the runner's 39, 6d's 70 is its 71).
+    Here the runner's number comes first and 6d's follows in brackets where they differ.
+
+    verify run 45478103493, push of c67aa5cd, created 2026-11-24T20:11:10Z, finished 20:19:20Z. Conclusion: failure.
+      guards 45478103404                                                                             success
+      drama-backfill, claim-sweep, patent-watch, browser-gate, push-lands, weather-availability      success
+      verify (job 138743614011)    126 rows: 100 success, 1 failure, 25 skipped
+        the 25 skipped: the 21 steps after the failure (72 to 92), step 60 (keeps a screenshot only when the tints check
+        fails), step 122 (runs only when the Chromium install failed), and two post-job cleanups.
+
+    The step that failed on 77647dc1, "No check script kills itself mid-write" (39 [38]): success.
+        scanned 207 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    63  (ratchet, budget 63)
+        4/4 checks passed
+
+    The one failure: 71 [70] "The mutate scripts break a copy, never the tracked tree" (npm run check:mutate-copy),
+    82/86. The four failing clauses are all bsd-next-goal-grade-core's: "runs to the end and every mutation is caught",
+    "prints the positive control", "a copy that cannot run stops it" and "a copy whose self-test never ran stops it too".
+    The same step on run 45442481067 (workflow_dispatch, f248b808, 2026-11-24T16:54:09Z), which is four commits
+    before mine (git diff --stat f248b808 6e32367a over scripts/, src/, .github/ and package.json prints nothing): the
+    same 82/86 and the same four clauses. The two log sections, each cut from the step's group
+    header to the next step's, are 148 lines each; diff reports 0 lines differing, timings and paths included.
+    It is not mine. It is not explained here: this session did not read why bsd-next-goal-grade-core fails.
+
+    What this run says about the steps after it:
+      72 to 92 [71 to 91], 21 steps: skipped, because verify stops at its first failure. On the fixed tree here, 20 of
+        the 21 ran (section 6d): 14 passed, and 6 failed, which are 74, 75, 76, 77, 79 and 91 [73, 74, 75, 76, 78, 90],
+        each identical on 6e32367a. The 21st, 92 "Games are separated from each other", ran nowhere in this session.
+        Why those six fail locally was not established (section 6d); the runner did not run them on this commit.
+      93 to 121 [92 to 120], 29 steps, the block that runs after a failure: 29 of 29 success.
+      122, which runs only when the Chromium install failed: skipped, as it should be.
+
+    What this run says about section 6d's eleven steps that fail locally on both trees:
+      Four of them, 29, 56, 57 and 67 [28, 55, 56, 66], are before the stop, and all four PASS on the runner on this
+      commit ("Pick decoders", "The live score probe's key table against the registry", "The page's club matching
+      against the probe's", "Every claim a document makes is still true"). So those four fail only in this sandbox.
+      That settles the sentence 6d ends on for step 66 [the "sports.modelled says 26, actual 25" failure]: it is not a
+      property of the tree. A stale build/ is the likely cause and is not what was measured.
+      One, 71 [70], is the BSD grader's (above).
+      Six, 74, 75, 76, 77, 79 and 91 [73, 74, 75, 76, 78, 90], are after the stop. The runner did not run them on this
+      commit, and why they fail locally was not established.
+
+    WHERE THE BSD STEP HAS BEEN SEEN RED. Every verify run on main since the last green one (45108603022, 2026-11-23T03:53Z,
+    workflow_dispatch) has failed. The step each stopped at, read with gh api on 2026-11-24:
+      45223616096   69  No script a workflow depends on became unreachable
+      45246831384   69  No script a workflow depends on became unreachable
+      45263778407   69  No script a workflow depends on became unreachable
+      45442481067   71  The mutate scripts break a copy, never the tracked tree
+      45473543164   39  No check script kills itself mid-write                       (mine, section 1)
+      45478103493   71  The mutate scripts break a copy, never the tracked tree
+    So step 71 has been SEEN red on two runs. On the three before them it did not run, and nothing here says whether it
+    would have failed. All six runs skipped the same 21 steps (72 to 92), so since 2026-11-23T03:53Z no verify run on
+    main has run, in verify.yml's verify job, the steps after the BSD one on a runner: among them 91 [90], "The F# suite,
+    on the F# harness". Whether another workflow runs that suite in the meantime was not read here.
 
 
 7. THE GAP THIS SHOWS (not fixed here)

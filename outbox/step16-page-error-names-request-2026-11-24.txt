@@ -2,12 +2,21 @@ step 16 names the request behind a page error
 2026-11-24 (Tue)   field-laboratory main   base 18606cb7 (the CC-CMD)
 CC-CMD: docs/CC-CMD-2026-11-24-step16-names-the-request.md
 
-THIS ENTRY IS PAIRED WITH THE SOURCE COMMIT (the staged-outbox rule: a commit that stages src/ or
-scripts/ stages an outbox entry). Sections 1 to 6 are what existed when that commit was made.
-Section 7 (the commit hash, the live-check dispatch, the runner reading) is appended by the docs
-commit that follows it: CC-CMD Tasks 5 and 6.
+THIS ENTRY IS THE RECORD OF 77647dc1, THE FIRST LAYOUT. It was paired with that source commit (the
+staged-outbox rule: a commit that stages src/ or scripts/ stages an outbox entry). Sections 1 to 6 are
+what existed when that commit was made and are kept as written. Section 7 is the runner's reading,
+added by the docs commit that closes the CC-CMD (Tasks 5 and 6).
 
-WHAT CHANGED
+THE LAYOUT CHANGED IN c67aa5cd. 77647dc1 turned verify red: the --self-test branch below ended in an
+early process.exit, the 64th against a ratchet of 63. The helper moved to scripts/console-error-text.mjs
+and the five self-test cases became the first five checks of the stub driver, so there is one command
+and 12 checks, not two commands and 5 + 7. Read this entry for the measurements: sections 1 to 3 do not
+depend on the layout. Read outbox/step16-exit-drains-regression-2026-11-24.txt for the final layout's
+numbers, including its mutation matrix (its section 6b). The mutation script named in section 5 was
+rewritten for the new layout; section 5's output is what its first version printed, which is
+`git show 77647dc1:outbox/step16-page-error-names-request-2026-11-24-mutate.mjs`.
+
+WHAT CHANGED (as of 77647dc1)
   scripts/schedule-live-check.mjs
     describeConsoleError(text, requestUrl) appends " — <url>" to text that starts "Failed to load
     resource", when the message carries a URL. The console handler passes m.location()?.url.
@@ -161,4 +170,39 @@ WHAT CHANGED
   check:setup-script       1/1 checks passed
   The commit itself runs the pre-commit gate again; a refused commit is the failure signal.
 
-7. RUNNER READING: appended by the docs commit that follows the source commit
+7. RUNNER READING (added by the docs commit; read with gh api on 2026-11-24)
+
+  77647dc1 (the layout above)
+    live-check, workflow_dispatch, run 45473584970, head 77647dc1, created 2026-11-24T19:45:32Z, finished
+    19:46:31Z, job 138727762187. Conclusion: failure, as predicted. Step 9 "The deploy landed (published is
+    the newest deployable commit)" failed and steps 10 to 17 were skipped. Step 18 "Step 16 names the request
+    behind a page error": success. Chromium on that runner: Chrome for Testing 151.0.7922.34 (playwright
+    chromium v1234). The step's log, the lines that matter:
+      5/5 checks passed
+      script under test: scripts/schedule-live-check.mjs
+      what it printed for the failing check:
+        → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:42355/stub-429?venue=a
+        → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:42355/stub-429?venue=b
+        → stub app error
+      7/7 checks passed
+    verify, push, run 45473543164, head 77647dc1: FAILURE at "No check script kills itself mid-write"
+    (check:exit-drains: 64 early report exits against a budget of 63). Cause, fix and proof:
+    outbox/step16-exit-drains-regression-2026-11-24.txt.
+
+  c67aa5cd (the final layout)
+    live-check, workflow_dispatch, run 45478165204, head c67aa5cd, job 138743847234, created 20:11:32Z,
+    finished 20:12:28Z. The same failure at step 9 ("DEPLOY NOT LANDED — published e290b24 is behind the
+    newest deployable commit c67aa5c"); step 18 success, same Chromium. The step's log:
+      script under test: scripts/schedule-live-check.mjs
+      what it printed for the failing check:
+        → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:38273/stub-429?venue=a
+        → Failed to load resource: the server responded with a status of 429 (Too Many Requests) — http://127.0.0.1:38273/stub-429?venue=b
+        → stub app error
+      12/12 checks passed
+    verify, push, run 45478103493, head c67aa5cd: section 6g of the regression record. The step that failed
+    on 77647dc1 passes; the one failure is the BSD grader's, identical to the run before either of my commits.
+
+  NOT OBSERVED: the naming against a real third-party 429 on the deployed page. Everything above ran against
+  a stub on 127.0.0.1. Step 16 itself cannot run until a deploy lands. Blocker, unblock event, the command
+  that reads it and the scheduled read (Thu 2026-11-26 13:00 ET): the Residual section of
+  docs/CC-CMD-2026-11-24-step16-names-the-request.md.
