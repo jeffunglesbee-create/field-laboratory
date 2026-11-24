@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `59af6e8` at "No script a workflow depends on became unreachable" — 24 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45263778407](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45263778407)
+**FAILURE** on `f248b80` at "The mutate scripts break a copy, never the tracked tree" — 22 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45442481067](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45442481067)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `aaf2dff`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `db00b56` — failing step unknown: the run's steps could not be read — [run 45444456013](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45444456013)
 
 ## Is it published?
 
