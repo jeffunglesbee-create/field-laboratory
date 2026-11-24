@@ -3,17 +3,20 @@
 // scripts/schedule-live-check.mjs prints every page error it saw when its "no page errors"
 // check fails. Chromium words a failed request "Failed to load resource: ... 429 ..." and
 // puts the URL on the message's location, not in its text, so that script appends it
-// (`describeConsoleError`, there). This runs that script, unmodified, against a stub page on
-// 127.0.0.1 that fires two requests answered 429 and one app-level console.error, and reads
-// what it printed. A real browser, the lab's pinned Playwright, the script's own handler:
-// the only thing replaced is the page, which is the part that cannot be made to 429 on demand.
+// (`describeConsoleError`, in scripts/console-error-text.mjs). The checks below come in two
+// parts, in one tally.
 //
-// WHY THIS EXISTS BESIDE `schedule-live-check.mjs --self-test`. The self-test feeds the helper
-// strings and URLs typed by hand, which are a copy of what Playwright passes it. Of the six
-// mutations applied on 2026-11-24 (outbox/step16-page-error-names-request-2026-11-24.txt)
-// this catches the two the self-test cannot see, the handler passing the helper the wrong
-// field and the handler not calling it, and it is the one reading on the Chromium revision
-// the runner installs rather than the one the authoring sandbox has.
+// THE FIRST FIVE call that helper directly with strings and URLs typed by hand, which are a
+// copy of what Playwright passes it. They need no browser, and they reach the shapes a stub
+// page does not produce.
+//
+// THE REST run scripts/schedule-live-check.mjs, unmodified, against a stub page on 127.0.0.1
+// that fires two requests answered 429 and one app-level console.error, and read what it
+// printed. A real browser, the lab's pinned Playwright, the script's own handler: the only
+// thing replaced is the page, which is the part that cannot be made to 429 on demand. This is
+// the part that sees the handler pass the helper the wrong field or not call it at all, and
+// the one reading on the Chromium revision the runner installs rather than the one the
+// authoring sandbox has. Which mutation each part catches: outbox/step16-exit-drains-regression-2026-11-24.txt, section 6b.
 //
 // WHY IT RUNS WITHOUT THE DEPLOY. It reads a stub, not the deployed page, so nothing it
 // asserts depends on what has been published. On 2026-11-24 a stuck deploy kept step 16
@@ -27,6 +30,7 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { createChecks, finish } from './checks.mjs'
+import { describeConsoleError } from './console-error-text.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const at = process.argv.indexOf('--script')
@@ -86,6 +90,33 @@ for (const l of detail) console.log(`  ${l.trim()}`)
 console.log('')
 
 const { check, summarize } = createChecks()
+
+// The helper on its own, five cases. A refused request, a connection that never opened, a message
+// with no URL, a CORS refusal and an app-level console.error: the last three are the shapes where
+// appending a URL would be wrong or would dangle.
+const FAILED = 'Failed to load resource: the server responded with a status of 429 (Too Many Requests)'
+const REFUSED = 'Failed to load resource: net::ERR_CONNECTION_REFUSED'
+const FORECAST = 'https://api.open-meteo.com/v1/forecast?latitude=40.8296&longitude=-73.9262'
+const CORS = "Access to fetch at 'https://api.open-meteo.com/v1/forecast?latitude=1&longitude=2' from origin " +
+  "'https://field-laboratory.jeffunglesbee.workers.dev' has been blocked by CORS policy: No " +
+  "'Access-Control-Allow-Origin' header is present on the requested resource."
+
+check('a refused request is named by its URL, with Chromium\'s own words first',
+  describeConsoleError(FAILED, FORECAST) === `${FAILED} — ${FORECAST}`,
+  JSON.stringify(describeConsoleError(FAILED, FORECAST)))
+check('a connection that never opened is named too',
+  describeConsoleError(REFUSED, 'http://127.0.0.1:1/refused') === `${REFUSED} — http://127.0.0.1:1/refused`,
+  JSON.stringify(describeConsoleError(REFUSED, 'http://127.0.0.1:1/refused')))
+check('no URL on the message adds nothing, not a dangling dash',
+  describeConsoleError(FAILED, '') === FAILED && describeConsoleError(FAILED, undefined) === FAILED,
+  JSON.stringify([describeConsoleError(FAILED, ''), describeConsoleError(FAILED, undefined)]))
+check('a CORS refusal names the request already, and its location is the PAGE: left alone',
+  describeConsoleError(CORS, 'https://field-laboratory.jeffunglesbee.workers.dev/') === CORS,
+  JSON.stringify(describeConsoleError(CORS, 'https://field-laboratory.jeffunglesbee.workers.dev/')))
+check('an app-level console.error carries its script as location: left alone',
+  describeConsoleError('stub app error', 'https://field-laboratory.jeffunglesbee.workers.dev/app.js') === 'stub app error',
+  JSON.stringify(describeConsoleError('stub app error', 'https://field-laboratory.jeffunglesbee.workers.dev/app.js')))
+
 check('the script failed, because the stub produces page errors',
   exitCode === 1 && out.includes('FAIL  no page errors during the schedule fetch'),
   `exit ${exitCode}`)

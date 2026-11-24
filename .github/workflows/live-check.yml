@@ -343,11 +343,11 @@ jobs:
       # The message step 16 prints for a page error, read against a stub rather than the deployed page.
       #
       # Chromium puts a failed request's URL on the console message's location and not in its text, so
-      # scripts/schedule-live-check.mjs appends it; without that, the 30-line and 6-line reds of
-      # 2026-11-22 and 2026-11-23 could not say which host answered 429. The self-test feeds the helper
-      # strings typed by hand. The second command runs the real script against a stub that answers 429
-      # and reads what it prints, on the Chromium revision THIS job installed, which is the one step 16
-      # runs on and not the one the authoring sandbox has.
+      # scripts/schedule-live-check.mjs appends it (the helper is scripts/console-error-text.mjs); without
+      # that, the 30-line and 6-line reds of 2026-11-22 and 2026-11-23 could not say which host answered
+      # 429. The check feeds the helper strings typed by hand, then runs the real script against a stub
+      # that answers 429 and reads what it prints, on the Chromium revision THIS job installed, which is
+      # the one step 16 runs on and not the one the authoring sandbox has.
       #
       # Gated on the Chromium install and NOT on `steps.landed`: it reads a stub, so nothing it asserts
       # depends on what has been published, and a stuck deploy (six live-check runs between 2026-11-22
@@ -355,9 +355,7 @@ jobs:
       # docs/CC-CMD-2026-11-24-step16-names-the-request.md
       - name: Step 16 names the request behind a page error
         if: "!cancelled() && steps.chromium.outcome == 'success'"
-        run: |
-          node scripts/schedule-live-check.mjs --self-test
-          node scripts/schedule-live-check-names-request.mjs
+        run: node scripts/schedule-live-check-names-request.mjs
 
       # LAST, and `always()`: without this a failed install would leave the job green with every browser check of the deployed page
       # skipped. The outcome comes in through `env:`; scripts/check-browser-gate.py RUNS this script under `bash -e` for each outcome and

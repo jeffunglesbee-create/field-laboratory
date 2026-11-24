@@ -22,57 +22,9 @@
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { createChecks, finish } from './checks.mjs'
+import { describeConsoleError } from './console-error-text.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
-
-// WHICH REQUEST FAILED.
-//
-// Chromium reports a failed request to the console as "Failed to load resource: the
-// server responded with a status of 429 (Too Many Requests)" and puts the request's
-// URL on the message's LOCATION, not in its text. Printing only the text cannot say
-// which host refused. This step went red on 2026-11-22 with 30 identical lines of that
-// text and on 2026-11-23 with 6; src/ names three hosts a page request can go to (the
-// relay, statsapi.mlb.com, api.open-meteo.com) and neither log said which one.
-//
-// MEASURED 2026-11-24, playwright 1.62.1 (the lab's pin) on Chromium revision 1243:
-// `location().url` is the failed request, for a 429 and for net::ERR_*, same-origin and
-// cross-origin. For the other two shapes this handler sees it is NOT: a CORS refusal
-// already names the request in its text and carries the PAGE as its location, and an
-// app-level console.error carries its script. Appending the URL to those would blame
-// the page, so only "Failed to load resource" lines get one. The runner installs
-// revision 1234; scripts/schedule-live-check-names-request.mjs reads this script's
-// output against a stub 429 on that build in every live-check run
-// (docs/CC-CMD-2026-11-24-step16-names-the-request.md).
-const describeConsoleError = (text, requestUrl) =>
-  text.startsWith('Failed to load resource') && requestUrl ? `${text} — ${requestUrl}` : text
-
-if (process.argv.includes('--self-test')) {
-  const { check, summarize } = createChecks()
-  const FAILED = 'Failed to load resource: the server responded with a status of 429 (Too Many Requests)'
-  const REFUSED = 'Failed to load resource: net::ERR_CONNECTION_REFUSED'
-  const FORECAST = 'https://api.open-meteo.com/v1/forecast?latitude=40.8296&longitude=-73.9262'
-  const CORS = "Access to fetch at 'https://api.open-meteo.com/v1/forecast?latitude=1&longitude=2' from origin " +
-    "'https://field-laboratory.jeffunglesbee.workers.dev' has been blocked by CORS policy: No " +
-    "'Access-Control-Allow-Origin' header is present on the requested resource."
-
-  check('a refused request is named by its URL, with Chromium\'s own words first',
-    describeConsoleError(FAILED, FORECAST) === `${FAILED} — ${FORECAST}`,
-    JSON.stringify(describeConsoleError(FAILED, FORECAST)))
-  check('a connection that never opened is named too',
-    describeConsoleError(REFUSED, 'http://127.0.0.1:1/refused') === `${REFUSED} — http://127.0.0.1:1/refused`,
-    JSON.stringify(describeConsoleError(REFUSED, 'http://127.0.0.1:1/refused')))
-  check('no URL on the message adds nothing, not a dangling dash',
-    describeConsoleError(FAILED, '') === FAILED && describeConsoleError(FAILED, undefined) === FAILED,
-    JSON.stringify([describeConsoleError(FAILED, ''), describeConsoleError(FAILED, undefined)]))
-  check('a CORS refusal names the request already, and its location is the PAGE: left alone',
-    describeConsoleError(CORS, 'https://field-laboratory.jeffunglesbee.workers.dev/') === CORS,
-    JSON.stringify(describeConsoleError(CORS, 'https://field-laboratory.jeffunglesbee.workers.dev/')))
-  check('an app-level console.error carries its script as location: left alone',
-    describeConsoleError('stub app error', 'https://field-laboratory.jeffunglesbee.workers.dev/app.js') === 'stub app error',
-    JSON.stringify(describeConsoleError('stub app error', 'https://field-laboratory.jeffunglesbee.workers.dev/app.js')))
-
-  process.exit(summarize() === 0 ? 0 : 1)
-}
 
 const sessionChromium = '/opt/pw-browsers/chromium'
 const browser = await chromium.launch(
@@ -81,6 +33,7 @@ const page = await browser.newPage()
 
 const errors = []
 page.on('pageerror', e => errors.push(e.message))
+// A failed request's URL is on the message's location, not in its text (scripts/console-error-text.mjs).
 page.on('console', m => {
   if (m.type() === 'error') errors.push(describeConsoleError(m.text(), m.location()?.url))
 })

@@ -1,0 +1,178 @@
+step 16's naming of the failing request turned verify red at "No check script kills itself mid-write"
+2026-11-24 (Tue), field-laboratory
+
+Broken by   77647dc1  fix: step 16 names the request behind a "Failed to load resource" page error
+Fixed by    the commit that carries this file
+Read with   docs/CC-CMD-2026-11-24-step16-names-the-request.md
+            outbox/step16-page-error-names-request-2026-11-24.txt   (the measurements of 77647dc1's layout)
+            outbox/step16-page-error-names-request-2026-11-24-mutate.mjs   (the matrix, rewritten for the new layout)
+
+
+1. WHAT FAILED
+--------------
+verify run 45473543164, push of 77647dc1, created 2026-11-24T19:45:18Z, finished 19:51:13Z, job 138727604296.
+  patent-watch, browser-gate, push-lands, drama-backfill, claim-sweep, weather-availability   success
+  verify                                                                                     failure
+  verify job: 72 steps success, 1 failure, 53 skipped.
+  The failure: "No check script kills itself mid-write"  (npm run check:exit-drains).
+
+The verify job stops at its first failing step. Everything after it was skipped on this commit, so the run says
+nothing about those steps: "No script a workflow depends on became unreachable", "The mutate scripts break a copy,
+never the tracked tree" (red on main since run 45223616096, the BSD grader's, not mine) and 49 others.
+
+
+2. REPRODUCED BEFORE ANYTHING WAS CHANGED  (isolated worktree at 77647dc1, the same command the step runs)
+------------------------------------------------------------------------------------------------------------
+  scanned 206 script(s) in scripts/
+  terminal report exits: 0  (must be 0 -- finish() is a drop-in)
+  early report exits:    64  (ratchet, budget 63)
+  PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE -- use finish(summarize())
+  PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+  FAIL  early report exits do not grow
+        -> 64 now, budget 63 -- the new one(s) are among: scripts/axis-check.mjs:164, ... scripts/schedule-live-check.mjs:74, ...
+  FAIL  ...and the budget is not loose
+        -> 64 now, budget 63 -- lower the budget to 64
+  2/4 checks passed
+
+The same step on 6e32367a, the commit before my two: exit 0.
+The path in the list is the one I added: scripts/schedule-live-check.mjs:74.
+
+
+3. CAUSE
+--------
+The --self-test branch I added to scripts/schedule-live-check.mjs in 77647dc1 ended with
+
+    process.exit(summarize() === 0 ? 0 : 1)
+
+and the live half of the script (the browser launch) came after it. That is an EARLY report exit by the definition in
+scripts/check-exit-drains.mjs: a process.exit(summarize(...)) with code after it. The check freezes the count at the
+number in docs/early-exit-budget.txt (63) and fails when it grows. brief-phase-live-check.mjs holds three of the 63;
+I took the pattern from there because finish() sets process.exitCode and does not stop, and the self-test must not fall
+through into a browser. The header of check-exit-drains.mjs names exactly that trade-off. I did not run the check
+that counts the choice.
+
+Why it got through, each read from the file named:
+  - My own list before the commit was sixteen gates I chose by hand. check:exit-drains was not on it.
+  - .githooks/pre-commit runs twelve `npm run` lines (clean-source, workflows, staged-outbox, staged-verifier,
+    boundary, import-purity, mutation-anchors, citations, short-circuit, setup-script, browser-gate, push-lands).
+    It does not run check:exit-drains. 77647dc1 passed the hook; its first attempt was refused by
+    check:staged-outbox, for a different reason (source staged with no outbox entry), and the second was not.
+  - The confidence gate (npm run gate, 23 rows, docs/gate-rows.txt) has no row for it either. Quick mode scores
+    230/270 = 85/100 on 77647dc1 and on 6e32367a alike, with the same two rows red (section 6f).
+  - The only place check:exit-drains runs is verify's step 38, after the push.
+
+
+4. NOT DONE, AND WHY
+--------------------
+  - docs/early-exit-budget.txt was not raised to 64. The check's second FAIL line says "lower the budget to 64",
+    which is only the arithmetic of equality. The header says the count may not grow, and gives the measurement behind
+    that. A number edited to match the new exit turns the ratchet off.
+  - The exit was not re-spelled so the pattern misses it (a variable between summarize() and process.exit). The
+    REPORT_EXIT expression matches `process.exit(summarize(` and `process.exit(ss(`. Hiding the call from the counter
+    keeps the hazard it counts (process.exit drops pending stdout writes to a pipe) and removes the only thing that
+    sees it.
+  - finish(summarize()) in place was not used: it does not stop, so the self-test would run on into the browser.
+
+
+5. THE FIX
+----------
+Nothing in the script exits early now, because the cases do not live in the script.
+
+  scripts/console-error-text.mjs                       NEW. describeConsoleError and the comment that explains it, moved
+                                                       from the script. No imports, no top-level work, nothing exits.
+  scripts/schedule-live-check.mjs                      -49 lines (the helper, its comment, the --self-test branch);
+                                                       +2 lines (the import, and a one-line comment at the handler).
+                                                       Against 18606cb7 (before the change) the diff is the import,
+                                                       one comment line and the console handler
+                                                       (git diff --numstat: 5 insertions, 1 deletion).
+  scripts/schedule-live-check-names-request.mjs        the five helper cases moved in, ahead of the seven stub-page
+                                                       checks; one tally, 12 checks. Ends in finish(summarize()) as before.
+  .github/workflows/live-check.yml                     the step runs one command instead of two, and its comment says so.
+  outbox/step16-page-error-names-request-2026-11-24-mutate.mjs   rewritten for the new layout (section 6).
+
+The self-test was a flag on a script that launches a browser the moment it is imported; the helper could not be
+imported without that. A module of its own can be imported by the driver and by anything later.
+
+
+6. PROOF, ON THE FIXED TREE
+---------------------------
+6a. The combined check, 12 of 12, ten runs of ten:
+    $ node scripts/schedule-live-check-names-request.mjs      (12/12 checks passed, exit 0)
+    stability: 10 of 10 runs exit 0 with 12/12
+
+6b. Mutation matrix, Rule 90, the control first. Each anchor asserted unique and each mutated text asserted to differ
+    before anything ran. Output verbatim:
+
+    CONTROL GREEN C0 control: nothing mutated (must pass) (12/12 checks passed)
+    CAUGHT     M0 the script before the change (red first) | helper cases green | stub run RED 2 (10/12 checks passed)
+    CAUGHT     M1 drop the append (return the text) | helper cases RED 2 | stub run RED 2 (8/12 checks passed)
+    CAUGHT     M2 drop the prefix guard (always append) | helper cases RED 2 | stub run RED 1 (9/12 checks passed)
+    CAUGHT     M3 URL first, text second | helper cases RED 2 | stub run RED 1 (9/12 checks passed)
+    CAUGHT     M4 drop the empty-URL guard | helper cases RED 1 | stub run green (11/12 checks passed)
+    CAUGHT     M5 the handler reads the wrong field (.urlx) | helper cases green | stub run RED 2 (10/12 checks passed)
+    CAUGHT     M6 the handler stops calling the helper | helper cases green | stub run RED 2 (10/12 checks passed)
+
+    applied 7 variant(s) after the control, each anchor unique; 0 not caught
+
+    The split is the one the first layout measured: the empty-URL guard (M4) is seen only by the helper cases, which
+    hand the helper a message with no URL; the handler passing the wrong field or not calling the helper (M5, M6) is
+    seen only by the run against the stub page; the other three are seen by both.
+
+6c. The check that failed, on the fixed tree:
+    $ npm run check:exit-drains
+      scanned 207 script(s) in scripts/
+      terminal report exits: 0  (must be 0 -- finish() is a drop-in)
+      early report exits:    63  (ratchet, budget 63)
+      4/4 checks passed
+
+6d. Every non-browser step of the verify job, run in an isolated worktree on the fixed tree and, for each step that
+    failed, on 6e32367a (the commit before mine). `build/` and `public/` were copied from the working directory, not
+    rebuilt here; they are the same on both trees.
+
+    COVERAGE: 83 of the 121 steps of the verify job ran. The 38 that did not:
+      8 are actions with no command (checkout, setup-dotnet, setup-node, two uploads and three more)
+      4 are install, build, compile and the Chromium install
+     21 need the browser, gated on the Chromium install; the sandbox's Chromium is not the pinned revision
+      4 read a live endpoint (the relay, Open-Meteo, the GitHub API)
+      1 is the always-last step that runs only when the Chromium install failed
+
+    Fixed tree: 60 of the steps numbered 2 to 90 ran, 49 passed, 11 failed.
+      failing: 28 55 56 66 70 73 74 75 76 78 90
+      On 6e32367a the same 11 fail, and for each the output is IDENTICAL to the fixed tree's once the worktree path and
+      the timings are normalised (14, 21, 16, 136, 18, 72, 14, 21, 21, 520 and 15 lines). None is mine.
+      Step 70 is the BSD grader's, red on a runner since run 45223616096. Steps 55, 75 and 76 stop on something missing
+      from build/ ("The requested module '../build/LiveScore.js' does not provide an export named 'liveWindowFor'";
+      Scout.js has no 'chooseScoutAt'; build/DeepCuts.js is absent). Steps 28 and 56 throw a TypeError on a value taken
+      from build/. Steps 66, 73, 74, 78 and 90 fail assertions (for example "sports.modelled says 26, actual 25").
+      Why the last group fails was NOT established here: build/ was not rebuilt. It is established only that all
+      eleven fail the same way, in the same words, on 6e32367a.
+      Step 38, the one that failed on the runner, passes.
+    Steps 92 to 112, 117 and 118 (the always-on steps): 23 of 23 pass on the fixed tree. These include
+      "Importing a module never runs it" (check:import-purity, which now enrols scripts/console-error-text.mjs because
+      it has an export) and "Every mutation's anchor still exists" (check:mutation-anchors).
+
+6e. The jobs the workflow edit touches, on the fixed tree:
+    $ python3 scripts/check-browser-gate.py --self-test     1467/1467 checks passed
+    $ python3 scripts/check-browser-gate.py                  verdict: gated
+    $ python3 scripts/check-push-lands.py                    OK: all 27 push-retry loop(s) verify that the push landed.
+
+6f. The confidence gate, quick mode (npm run gate -- --quick), on 6e32367a, on 77647dc1 and on the fixed tree:
+    all three  230/270 points = 85/100, "NOT a pass" (quick mode skips 10 rows)
+    all three  FAIL 0/30 pick decoders match the recorded live response   (the same build/ failure as step 28)
+    all three  FAIL 0/10 this session wrote its outbox                    (needs an outbox .md dated today, over 1500
+                                                                           bytes; the follow-up commit writes it)
+    The 13 other quick rows pass on all three. A full run was not made here: the mutation row alone took 3,967 s on
+    2026-11-04 (docs/GATE-TIMING.md), and the browser and .NET rows need what this sandbox does not have.
+
+
+7. THE GAP THIS SHOWS (not fixed here)
+--------------------------------------
+check:exit-drains runs in verify step 38 and nowhere before a push. It costs 0.6 s (docs/GATE-TIMING.md: 22 clauses).
+docs/CC-CMD-2026-11-15-hook-runs-the-workflow-guards.md put two guards that had gone red after landing into the hook
+on the same evidence, at about 4 s against a hook of 44 to 48 s. Whether this one goes there is the owner's call: the hook
+says it is "kept short on purpose". The proposal is item F1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md, added
+by the commit that carries this file; that document's own rule is that an item whose trigger has been observed is built
+in its own commit with its artifact beside it.
+
+Until it is built: before a commit that touches scripts/, run the non-browser steps of verify, not a list chosen by hand.
+The runner used here is in the scratch directory of this session and is not committed.
