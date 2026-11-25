@@ -4,7 +4,7 @@
 **Repo:** field-laboratory owns the proof (LAB-FIRST-A); the ledger needs `BSD_API_TOKEN`, so it runs from field-relay-nba's runner exactly as the previous grade did (the owner's arrangement of 2026-11-23)
 **Filed:** 2026-11-23 by CC, on the owner's "Yes" to the offer in the previous grade's result
 **Type:** A (measurement) — no feature, no surface, nothing shown or pushed (ADR-002 Rules A and F), nothing under `src/`
-**Status:** FILED 2026-11-23. **Task 0 RAN 2026-11-24** (result in "Task 0 result" below, with two corrections to this document's own text); **the backfill ran 2026-11-25 and the reach is now 170 of 245 matches** (section "After the backfill" below); **Task 1 BUILT 2026-11-25** (section "Task 1 built" below); **Task 2 DONE 2026-11-25** (section "Task 2 result"); Task 3 dispatched 2026-11-25 (run recorded below when it ends); Task 4 not started. Starting them is the owner's call: it is a second verdict on the vendor, and the previous proof's two adversarial reviews (71 agents) cost more than the owner's weekly usage allows to repeat, so this one is scoped to build with one targeted review, below. **E2 rewritten 2026-11-23** after reading the relay's existing BSD-to-archive join (next section): the laboratory does not build a name join, it counts what the existing one reaches.
+**Status:** FILED 2026-11-23. **Task 0 RAN 2026-11-24** (result in "Task 0 result" below, with two corrections to this document's own text); **the backfill ran 2026-11-25 and the reach is now 170 of 245 matches** (section "After the backfill" below); **Task 1 BUILT 2026-11-25** (section "Task 1 built" below); **Task 2 DONE 2026-11-25** (section "Task 2 result"); **Task 3 RAN 2026-11-25** (run 45689623116, section "Task 3 result"); **Task 4 DONE** (this section, the relay's HANDOFF and session doc). Starting them is the owner's call: it is a second verdict on the vendor, and the previous proof's two adversarial reviews (71 agents) cost more than the owner's weekly usage allows to repeat, so this one is scoped to build with one targeted review, below. **E2 rewritten 2026-11-23** after reading the relay's existing BSD-to-archive join (next section): the laboratory does not build a name join, it counts what the existing one reaches.
 
 ---
 
@@ -132,6 +132,30 @@ One independent reader (a fresh read-only agent, told to attack the premises and
 **Counts after:** the core's check 84 → 119 assertions, harness 78 → 122 mutants; the Task 0 lib 78 → 81 assertions, 77 → 84 mutants; the runner's check 49 → 69 assertions, harness 50 → 73 mutants; all caught. The harnesses also found redundant guards in the runner's new partition rule (removed) and a run-check table that did not isolate its cases (rewritten), and three mutants the reader did not name that survived my first assertions.
 
 **Not fixed, and why.** The guard for a capture with no full-time row is ONE-SIDED: a join to a wrong match whose capture is not ahead of ESPN's final (a k=0 call on a different match, say) is not caught by it, and the join check at k=0 is vacuous (ESPN's score before the first goal is 0-0 for any match). Step A and the distance buckets would show such a join as disagreement; the guard cannot refuse it. Making the grade refuse every capture that disagrees with ESPN on its prefix would hide exactly the disagreements this grade exists to measure, so it does not. The relay's BSD-to-archive join stays the one the CC-CMD fixed; a second one is not built here.
+
+## Task 3 result (2026-11-25)
+
+Run 45689623116 (field-relay-nba `espn-reference-grade.yml`, dispatched on `main` at `5e2e62a` with `lab_ref` `af3500da353d8bc0fba26398d595e8b97c65365b`): `verify` (every check and harness, no secret), `grade` (BSD token, no write credential) and `commit` all succeeded; the artifact is `outbox/espn-reference-grade-latest.json` in field-relay-nba with `reachedTarget` true, `stopped` null, `analysisError` null. Both cores are recorded by hash and rule version (`2026-11-25.2`). The artifact is counts only (scanned for stray ids, names and the token: none).
+
+**Coverage line (Rule 91, as the artifact prints it):** graded 268 of 382 gradeable calls on 246 matches (agree 268, disagree 0, not applicable 114); 170 of 246 matches with a usable ESPN timeline; the 76 matches not reached are the 57 `ucl or europa: archive rows, outside the join's sports` (89 calls) and the 19 `eflchamp: no archive rows` (25 calls), by design and not by failure.
+
+| what | count |
+|---|---|
+| ESPN summaries read | 170 of 170 reached; every one HTTP 200; the event id on the summary matched the one asked for 170 of 170 (absent 0, differing 0); no two matches share an ESPN id |
+| usable timelines | 170 of 170 (no unreadable row, no count or sides mismatch, no convention failure) |
+| graded calls | 268 agree, 0 disagree, on 264 distinct goals (0 with a disagreement) |
+| distance between ESPN's resolving goal and the ledger's `resolved_minute` | 267 at 0 minutes, 1 at 1 minute |
+| by directory | mls 59 of 59, seriea 50 of 50, laliga 59 of 59, bundesliga 42 of 42, epl 31 of 31, ligue1 27 of 27 |
+| final-score guard | equal 9; no full-time row and not ahead of ESPN 161; (ahead 0, differs 0) |
+| step A (ESPN against BSD's own capture) on 170 matches | identical 148, cut short 22, different in number 0, in order 0, in minute 0 |
+| BSD's capture on the resolving goal | agrees with ESPN on 268 of 268 |
+| own goals (E3) | ESPN's own-goal row carries the side that is CREDITED (convention `same` in 20 matches, `none` in 150, ambiguous 0); 21 own goals, all "is the side BSD credits" |
+
+**What it says.** For the 268 calls on the 170 matches both sources have, ESPN's goal timeline gives the same resolving goal side the ledger's `outcome` implies, at the minute the ledger records (267 of 268 to the minute). E3 is measured: ESPN credits an own goal to the beneficiary, as BSD does. E4 holds on all 170 (ESPN's goal count equals its final score and its clocks put the goals in one order; no tie reached a resolving goal).
+
+**What it does not say, per E5 of this document.** Step A found ZERO differences between ESPN's goal list and BSD's capture on 170 matches (148 identical, 22 identical on the part a cut-off capture holds). E5 says that if the two feeds never differ the second source adds nothing, and that is the finding: this run cannot tell a second vendor's independent confirmation from one provider's feed licensed to both. It shows the vendor's `outcome` is not contradicted by a second published record; it does not show the two records are independent. It says nothing about the probabilities.
+
+**Limits, plainly.** (1) 114 of 382 calls are not graded: the UEFA matches (the join does not look at their labels) and the EFL Championship (no archive rows); both are owner decisions listed under "Not in scope". (2) The final-score guard is a full equality on 9 matches only; on 161 it is the one-sided "not ahead of ESPN" test, and the k=0 join check is vacuous. What argues against a wrong-match join is the 267 of 268 at 0 minutes and 148 identical step A lists, not the guard. (3) 22 matches are cut-off captures that agree on the goals they hold; whether BSD's goal list simply ends early there is not measured. (4) The census gradeable count moved from 370 to 382 and matches from 245 to 246 between the backfill and this run: the ledger grows.
 
 ## Budget (Rule 78)
 
