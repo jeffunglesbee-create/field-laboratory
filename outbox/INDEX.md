@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c60e2ef` | 2026-11-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
+| `c60e2ef` | 2026-11-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
+| `c60e2ef` | 2026-11-25 | [sport-vocabulary-2026-11-25T10-00-13-844Z.json](sport-vocabulary-2026-11-25T10-00-13-844Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
 | `f2ba811` | 2026-11-24 | [cc-session-2026-11-24-hook-runs-exit-drains.md](cc-session-2026-11-24-hook-runs-exit-drains.md) | docs: F1 is built (the hook runs check:exit-drains), with the runner's reading |
 | `f2ba811` | 2026-11-24 | [cc-session-2026-11-24-step16-names-the-request.md](cc-session-2026-11-24-step16-names-the-request.md) | docs: F1 is built (the hook runs check:exit-drains), with the runner's reading |
 | `dc68d38` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45535289999 |
