@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3ac8a46` | 2026-11-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-25 [skip ci] |
+| `3ac8a46` | 2026-11-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-25 [skip ci] |
+| `3ac8a46` | 2026-11-25 | [sport-vocabulary-2026-11-25T21-30-16-858Z.json](sport-vocabulary-2026-11-25T21-30-16-858Z.json) | drift-sentinel: ok on 2026-11-25 [skip ci] |
+| `63181b9` | 2026-11-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f11e792` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45685520705 |
 | `af3500d` | 2026-11-25 | [cc-session-2026-11-25-espn-core-v2.md](cc-session-2026-11-25-espn-core-v2.md) | fix: the ESPN reference grade's core, version 2026-11-25.2, after the independent reader |
 | `4be8e21` | 2026-11-25 | [cc-session-2026-11-25-mutate-copy-protocol.md](cc-session-2026-11-25-mutate-copy-protocol.md) | docs: the reds clean-up's result, read from the runs |
