@@ -4,7 +4,7 @@
 **Repo:** field-laboratory owns the proof (LAB-FIRST-A); the ledger needs `BSD_API_TOKEN`, so it runs from field-relay-nba's runner exactly as the previous grade did (the owner's arrangement of 2026-11-23)
 **Filed:** 2026-11-23 by CC, on the owner's "Yes" to the offer in the previous grade's result
 **Type:** A (measurement) — no feature, no surface, nothing shown or pushed (ADR-002 Rules A and F), nothing under `src/`
-**Status:** FILED 2026-11-23. **Task 0 RAN 2026-11-24** (result in "Task 0 result" below, with two corrections to this document's own text); **the backfill ran 2026-11-25 and the reach is now 170 of 245 matches** (section "After the backfill" below); **Task 1 BUILT 2026-11-25** (section "Task 1 built" below); Tasks 2 to 4 not started. Starting them is the owner's call: it is a second verdict on the vendor, and the previous proof's two adversarial reviews (71 agents) cost more than the owner's weekly usage allows to repeat, so this one is scoped to build with one targeted review, below. **E2 rewritten 2026-11-23** after reading the relay's existing BSD-to-archive join (next section): the laboratory does not build a name join, it counts what the existing one reaches.
+**Status:** FILED 2026-11-23. **Task 0 RAN 2026-11-24** (result in "Task 0 result" below, with two corrections to this document's own text); **the backfill ran 2026-11-25 and the reach is now 170 of 245 matches** (section "After the backfill" below); **Task 1 BUILT 2026-11-25** (section "Task 1 built" below); **Task 2 DONE 2026-11-25** (section "Task 2 result"); Task 3 dispatched 2026-11-25 (run recorded below when it ends); Task 4 not started. Starting them is the owner's call: it is a second verdict on the vendor, and the previous proof's two adversarial reviews (71 agents) cost more than the owner's weekly usage allows to repeat, so this one is scoped to build with one targeted review, below. **E2 rewritten 2026-11-23** after reading the relay's existing BSD-to-archive join (next section): the laboratory does not build a name join, it counts what the existing one reaches.
 
 ---
 
@@ -113,6 +113,25 @@ By R2 directory, matches reached of matches: epl 21 of 21, seriea 33 of 33, ligu
 **Not verified (Rule 74):** the workflow has not been dispatched, so no real ESPN read has gone through the runner; the first one is Task 3. ESPN's own-goal convention (E3) is unmeasured until then (the core fits each match to ESPN's own final score and tallies which convention fit). The summary header's `details` carry no `shootout` flag, so a shootout kick would break the goal-count guard and surface as a named reason, not a wrong grade. UEFA matches are not reached at all (see above).
 
 **Next, in this order.** Task 2: one independent reader of the join and the rule against the Task 0 manifest, told to attack the premises and the harness. Task 3, on the owner's word: dispatch `espn-reference-grade.yml` on `main` with `lab_ref` set to the laboratory's full SHA at that time. Task 4: record.
+
+## Task 2 result (2026-11-25)
+
+One independent reader (a fresh read-only agent, told to attack the premises and the harness, given the files and not my conclusions; 44 tool calls, 12 minutes). Every finding was checked by a command before anything changed. Approved by the owner with Task 3 ("Once that is complete, task 2 and task 3 are approved").
+
+| # | finding | checked how | what was done |
+|---|---|---|---|
+| A1 | the final-score guard is idle for a capture with no full-time row | `outbox/bsd-next-goal-census-latest.json` (field-relay-nba): `withFullTimeCapture` 16 of 370 gradeable calls, 354 in-play; the core's line `'not compared (no full-time row)'` | a capture with no full-time row must not be ahead of ESPN's final on either side, else the match is not applicable (reason `captureAhead`); counted and printed |
+| A2 | step A calls a cut-off capture "different in number" and hides an order disagreement behind the length | the core's step A returned before comparing anything when the counts differed | compared on the goals the capture has: `cutShort`, `cutShortNoGoals`, or different in order or minute; E3 only where the lists still line up |
+| A3 | the runner never checks the summary is the event it asked for | no recorded artifact carries `header.id` | `summaryEventId`; the run counts matched, absent, differing and refuses a differing one |
+| B4 | the harness header called the sort tie-break equivalent | removing it left the check green and changed step A's order | header corrected; an assertion and a mutant |
+| B5 | mutants of clock widths, sort multipliers, distance buckets, coverage-line pieces, the stoppage minute and E3 alignment survived | each applied to a copy and the check run | each is a mutant now, with the assertion that kills it |
+| B6 | the run check let a hard-coded side and outcome, a body parsed at any status, a weak leak test and a trusted `partitions` boolean through | each applied to a copy of the runner | a call that is away and a miss; a 500 with a valid body; distinctive ids the leak test searches for; the runner adds the sums up again |
+| B7 | per-call counts read as per-goal; the spec's T absent; a 5xx read as "no timeline"; "no goal" tested before "join" | read from the code and the spec | distinct goals and the usable-timeline count in the line; a read that is not 200 or 404 makes the run not a result; join before none |
+| C | dead `nominal`; ESPN's completed status unchecked; two matches sharing one ESPN id | read | `nominal` removed; shared ids counted (both); the completed status is left, and said so |
+
+**Counts after:** the core's check 84 → 119 assertions, harness 78 → 122 mutants; the Task 0 lib 78 → 81 assertions, 77 → 84 mutants; the runner's check 49 → 69 assertions, harness 50 → 73 mutants; all caught. The harnesses also found redundant guards in the runner's new partition rule (removed) and a run-check table that did not isolate its cases (rewritten), and three mutants the reader did not name that survived my first assertions.
+
+**Not fixed, and why.** The guard for a capture with no full-time row is ONE-SIDED: a join to a wrong match whose capture is not ahead of ESPN's final (a k=0 call on a different match, say) is not caught by it, and the join check at k=0 is vacuous (ESPN's score before the first goal is 0-0 for any match). Step A and the distance buckets would show such a join as disagreement; the guard cannot refuse it. Making the grade refuse every capture that disagrees with ESPN on its prefix would hide exactly the disagreements this grade exists to measure, so it does not. The relay's BSD-to-archive join stays the one the CC-CMD fixed; a second one is not built here.
 
 ## Budget (Rule 78)
 
