@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f2ba811` | 2026-11-24 | [cc-session-2026-11-24-hook-runs-exit-drains.md](cc-session-2026-11-24-hook-runs-exit-drains.md) | docs: F1 is built (the hook runs check:exit-drains), with the runner's reading |
+| `f2ba811` | 2026-11-24 | [cc-session-2026-11-24-step16-names-the-request.md](cc-session-2026-11-24-step16-names-the-request.md) | docs: F1 is built (the hook runs check:exit-drains), with the runner's reading |
 | `dc68d38` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45535289999 |
 | `20c661a` | 2026-11-25 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-25T02:46 [skip ci] |
 | `a2fe413` | 2026-11-24 | [hook-runs-exit-drains-2026-11-24.patch](hook-runs-exit-drains-2026-11-24.patch) | ci: the pre-commit hook runs check:exit-drains |
