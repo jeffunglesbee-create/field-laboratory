@@ -2420,12 +2420,37 @@
   {
     "date": "2026-11-25",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-25",
-    "at": "2026-11-25T09:59:39.170Z",
+    "at": "2026-11-25T21:29:51.496Z",
     "sports": {
-      "MLS": {
-        "rows": 8,
+      "NBA": {
+        "rows": 9,
+        "withOdds": 9,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 14,
+        "withOdds": 14,
+        "withDraw": 0
+      },
+      "UEFA Champions League": {
+        "rows": 9,
         "withOdds": 0,
         "withDraw": 0
+      },
+      "NFL": {
+        "rows": 1,
+        "withOdds": 1,
+        "withDraw": 0
+      },
+      "EFL Trophy": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLS": {
+        "rows": 8,
+        "withOdds": 4,
+        "withDraw": 4
       }
     }
   }
