@@ -46,3 +46,18 @@ fetch-silently-empty-probe.mjs
 bsd-next-goal-grade-core.mjs
 check-bsd-next-goal-grade-core.mjs
 mutate-bsd-next-goal-grade-core.mjs
+
+# Run from the RELAY, not from a laboratory workflow (declared 2026-11-25).
+# The ESPN reference grade's rule lives here and its runner lives in field-relay-nba
+# (docs/CC-CMD-2026-11-23-bsd-next-goal-independent-reference.md, Task 1: the laboratory holds
+# the rule, the relay runs it). The relay's .github/workflows/espn-reference-grade.yml checks
+# this repository out at a pinned lab_ref SHA and, in its `verify` job, runs
+# `node scripts/check-espn-reference-grade-core.mjs` from the checkout (line 100) and
+# `node scripts/mutate-espn-reference-grade-core.mjs` with working-directory lab (line 112);
+# its `grade` job import()s espn-reference-grade-core.mjs through LAB_DIR (scripts/espn-reference-grade.mjs
+# in the relay, loadCores). No workflow in THIS repository names them, which is what this check
+# sees; read 2026-11-25 from the relay workflow at 431c0cc. Delete these three lines in the commit
+# that wires them here, or if the relay stops running them.
+espn-reference-grade-core.mjs
+check-espn-reference-grade-core.mjs
+mutate-espn-reference-grade-core.mjs
