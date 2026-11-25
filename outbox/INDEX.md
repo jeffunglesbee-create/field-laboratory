@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `292c7b9` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45676518707 |
+| `bc6059d` | 2026-11-25 | [cc-session-2026-11-25-mutate-copy-protocol.md](cc-session-2026-11-25-mutate-copy-protocol.md) | fix: the two grade-core mutation harnesses follow the copy protocol, so verify's mutate-copy step passes |
 | `09e5f53` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45672033558 |
 | `5a40e73` | 2026-11-25 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-25T17:37 [skip ci] |
 | `b3127b7` | 2026-11-25 | [cc-session-2026-11-25-espn-reference-grade-core.md](cc-session-2026-11-25-espn-reference-grade-core.md) | docs: Task 1 of the independent-reference CC-CMD is built; the relay half is recorded |
