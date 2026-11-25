@@ -4,6 +4,8 @@
 // anchored run of 2026-08-30): scoringPlay, shootout, ownGoal, team.id, clock.value (seconds), clock.displayValue ("29'" or "90'+2'").
 // Exit 1 and a FAIL line on any difference; scripts/mutate-espn-reference-grade-core.mjs proves each assertion can fail.
 // Nothing is exported: a check that exits on import must not export (the laboratory's import-purity gate).
+// `--self-test` is accepted and changes nothing: it is the form the mutation harness starts this file in, from a copy outside the repo, because scripts/mutate-copy-check.mjs
+// proves a harness's control by making every `--self-test` process started there fail or fall silent. CORE_FILE names the core to read (the harness's mutant).
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

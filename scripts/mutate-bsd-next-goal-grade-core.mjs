@@ -42,7 +42,10 @@ const FIX = 'scripts/fixtures/bsd-next-goal-grade-synthetic.mjs'
 const REAL = [SRC, CHECK, FIX]
 const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')
 const before = Object.fromEntries(REAL.map((f) => [f, sha(f)]))
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mut-ngg-'))
+// TMP is the REAL path, and it is removed when the script ends however it ends: scripts/mutate-copy-check.mjs runs this with $TMPDIR behind a symlink and requires
+// nothing left in it (a copy reached through a symlinked path is not the entry point of its own file).
+const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'mut-ngg-')))
+process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }))
 
 // [name, anchor, replacement] or [name, [[anchor, replacement], ...]]
 const OWN_MUTATIONS = [
@@ -381,6 +384,17 @@ const b1 = await exec(CHECK, SRC)
 console.log(`baseline: the check on the real grader exits ${b1.status}`)
 if (b1.status !== 0) { console.log('FAIL  the check is already red; every mutation would be "caught" for the wrong reason'); process.exit(1) }
 
+// POSITIVE CONTROL, ENFORCED, FROM A COPY. scripts/ is copied into the temp directory and the check's own --self-test is started from that copy, outside the repo: a
+// process started there with --self-test is the one scripts/mutate-copy-check.mjs makes fail (a second run) or fall silent (a third), so a copy that cannot run stops
+// this script here with UNMUTATED in its line, instead of reading as every mutation caught. The self-test prints OK only when it ran to its end.
+fs.cpSync('scripts', path.join(tmp, 'scripts'), { recursive: true })
+const control = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-bsd-next-goal-grade-core.mjs'), '--self-test', '--source', path.join(tmp, 'scripts', 'bsd-next-goal-grade-core.mjs')], { encoding: 'utf8', timeout: 60000 })
+if (!(control.status === 0 && /^OK: check self-test$/m.test(control.stdout ?? ''))) {
+  console.log(`FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation (copy's --self-test exit ${control.status}).`)
+  process.exit(1)
+}
+console.log('positive control: the unmutated copy passes')
+
 console.log(`\nHALF 1: the grader, broken (${SOURCE_MUTATIONS.length} mutations)`)
 const lines = []
 await pool(SOURCE_MUTATIONS, 4, async ([name, a, b], i) => {
@@ -436,5 +450,6 @@ const moved = REAL.filter((f) => sha(f) !== before[f])
 fs.rmSync(tmp, { recursive: true, force: true })
 const total = SOURCE_MUTATIONS.length + CHECK_MUTATIONS.length + purity.length
 console.log(`\nmutations ${total}: caught ${caught}, NOT CAUGHT ${notCaught}, NOT APPLIED ${notApplied}; real files moved: ${moved.length}`)
+console.log(`${caught} of ${total} mutations caught.`)
 if (moved.length) console.log(`FAIL  the real file(s) changed: ${moved.join(', ')}`)
 process.exit(notCaught === 0 && notApplied === 0 && moved.length === 0 ? 0 : 1)

@@ -118,20 +118,33 @@ const MUTANTS = [
   M('coverage line: step A left out', ' | step A on ${a.matchesCompared} matches', ''),
 ]
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'espn-ref-mutate-'))
-const tmpCore = path.join(tmp, 'espn-reference-grade-core.mjs')
+// THE MUTATION IS MADE ON A COPY in a temp directory, and the tracked scripts/ is only read (scripts/mutate-copy-check.mjs holds every mutate-* script to it). The
+// check is run FROM THAT COPY with --self-test: the flag changes nothing in the check, but a process started from outside the repo with it is the one the copy-check
+// makes fail (a second run) or silent (a third), so a copy that cannot run stops this script at its control instead of reading as every mutation caught. TMP is the
+// REAL path: reached through a symlink a copy is not the entry point of its own file (macOS's $TMPDIR is under /var, which is one).
+const TMP = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'espn-ref-mutate-')))
+process.on('exit', () => fs.rmSync(TMP, { recursive: true, force: true }))
+fs.cpSync(dir, path.join(TMP, 'scripts'), { recursive: true })
+const CHECK_COPY = path.join(TMP, 'scripts', 'check-espn-reference-grade-core.mjs')
+const tmpCore = path.join(TMP, 'espn-reference-grade-core.mjs')
 function runWith (text) {
   fs.writeFileSync(tmpCore, text)
   const parse = spawnSync(process.execPath, ['--check', tmpCore], { encoding: 'utf8' })
   if (parse.status !== 0) return { invalid: true, detail: (parse.stderr || '').split('\n').slice(0, 3).join(' | ') }
-  const r = spawnSync(process.execPath, [CHECK], { encoding: 'utf8', timeout: 30000, env: { ...process.env, CORE_FILE: tmpCore } })
+  const r = spawnSync(process.execPath, [CHECK_COPY, '--self-test'], { encoding: 'utf8', timeout: 30000, env: { ...process.env, CORE_FILE: tmpCore } })
   return { status: r.status, out: `${r.stdout}${r.stderr}`, timedOut: r.error !== undefined && r.error.code === 'ETIMEDOUT' }
 }
 let bad = 0
 const problems = []
 const clean = runWith(src)
 const m = clean.invalid ? null : /^ok (\d+) assertions/m.exec(clean.out)
-if (clean.invalid || clean.status !== 0 || m === null || Number(m[1]) < MIN_ASSERTIONS) { bad++; problems.push(`CONTROL unmodified copy did not pass with at least ${MIN_ASSERTIONS} assertions: ${clean.invalid ? clean.detail : clean.out.slice(0, 300)}`) }
+// POSITIVE CONTROL, ENFORCED: the unmutated copy must pass and must PRINT its tally (a copy that exits 0 saying nothing is not a pass), or every "caught" below could
+// mean only that the copy cannot run. The script stops here, with UNMUTATED in its line, which is what scripts/mutate-copy-check.mjs looks for.
+if (clean.invalid || clean.status !== 0 || m === null || Number(m[1]) < MIN_ASSERTIONS) {
+  console.log(`FAIL — the UNMUTATED copy is red, or ran fewer than ${MIN_ASSERTIONS} assertions, so no verdict below would be about the mutation: ${clean.invalid ? clean.detail : clean.out.slice(0, 300)}`)
+  process.exit(1)
+}
+console.log('positive control: the unmutated copy passes\n')
 const comment = runWith(`${src}\n// harmless\n`)
 if (comment.invalid || comment.status !== 0) { bad++; problems.push('CONTROL a comment-only change turned the check red') }
 let caught = 0
