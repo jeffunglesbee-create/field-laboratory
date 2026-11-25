@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `c67aa5c` at "The mutate scripts break a copy, never the tracked tree" — 22 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45478103493](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45478103493)
+**FAILURE** on `a2fe413` at "The mutate scripts break a copy, never the tracked tree" — 22 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45535289999](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45535289999)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `521b79b`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `dc68d38` — failing step unknown: the run's steps could not be read — [run 45536290157](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45536290157)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e290b24` — behind newest deployable `c67aa5c` (deploy not landed) |
+| Cloudflare Workers | live | `e290b24` — behind newest deployable `a2fe413` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

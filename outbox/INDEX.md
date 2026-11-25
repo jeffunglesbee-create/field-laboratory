@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `dc68d38` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45535289999 |
+| `20c661a` | 2026-11-25 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-25T02:46 [skip ci] |
+| `a2fe413` | 2026-11-24 | [hook-runs-exit-drains-2026-11-24.patch](hook-runs-exit-drains-2026-11-24.patch) | ci: the pre-commit hook runs check:exit-drains |
+| `a2fe413` | 2026-11-24 | [hook-runs-exit-drains-proof-2026-11-24-mutate.mjs](hook-runs-exit-drains-proof-2026-11-24-mutate.mjs) | ci: the pre-commit hook runs check:exit-drains |
+| `a2fe413` | 2026-11-24 | [hook-runs-exit-drains-proof-2026-11-24.mjs](hook-runs-exit-drains-proof-2026-11-24.mjs) | ci: the pre-commit hook runs check:exit-drains |
+| `a2fe413` | 2026-11-24 | [hook-runs-exit-drains-proof-2026-11-24.txt](hook-runs-exit-drains-proof-2026-11-24.txt) | ci: the pre-commit hook runs check:exit-drains |
 | `eb39f1b` | 2026-11-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-24 [skip ci] |
 | `eb39f1b` | 2026-11-24 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-24 [skip ci] |
 | `eb39f1b` | 2026-11-24 | [sport-vocabulary-2026-11-24T22-14-08-505Z.json](sport-vocabulary-2026-11-24T22-14-08-505Z.json) | drift-sentinel: ok on 2026-11-24 [skip ci] |
