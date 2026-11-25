@@ -50,7 +50,7 @@ The first version of this Done condition named a `--self-test` flag, 5/5 and 7/7
 
 `77647dc1`, the first source commit, turned `verify` red at "No check script kills itself mid-write". Its `--self-test` branch ended in `process.exit(summarize() …)`, an early report exit: the 64th against a ratchet of 63 (`docs/early-exit-budget.txt`). The sixteen gates I ran before that commit were chosen by hand, and `check:exit-drains` was not among them; the pre-commit hook does not run it either, so the commit passed the hook and the failure appeared on the runner. `c67aa5cd` moves the helper into `scripts/console-error-text.mjs` and its five cases into the stub driver, so nothing in the script exits early. The budget was not raised and the exit was not re-spelled to dodge the pattern. The record, with the reproduction, the fix and the runner's reading: `outbox/step16-exit-drains-regression-2026-11-24.txt`.
 
-The hook's gap is item F1 of `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md` (BUILD-ON-A: added to that open CC-CMD, not filed again). Its trigger reads "built when the owner agrees that this check belongs in the hook", so it waits for the owner's word, not for an event.
+The hook's gap is item F1 of `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md` (BUILD-ON-A: added to that open CC-CMD, not filed again). Its trigger read "built when the owner agrees that this check belongs in the hook". The owner's word came the same evening ("Hook", Tue 2026-11-24 21:16 ET) and F1 is built: `a2fe413e`, with the proof in `outbox/hook-runs-exit-drains-proof-2026-11-24.txt`.
 
 ## Not in scope
 
