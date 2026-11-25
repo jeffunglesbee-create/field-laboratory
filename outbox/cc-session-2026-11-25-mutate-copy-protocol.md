@@ -15,6 +15,13 @@
 - Both harnesses now make the mutation on a copy of `scripts/` in a real-path temp directory removed when the script ends, run the check FROM THAT COPY with `--self-test` (the BSD check's own self-test; for the ESPN check the flag is accepted and changes nothing, documented in its header), print `positive control: the unmutated copy passes`, stop with `UNMUTATED` in the line when the copy is red or silent, and print `N of N mutations caught.`
 - `node scripts/mutate-copy-check.mjs --only bsd-next-goal-grade-core` and `--only espn-reference-grade-core`: 9 of 9 checks each (all seven clauses). The BSD harness still catches 430 of 430, the ESPN harness 78 of 78.
 
+## Result (read from the runs, 2026-11-25)
+
+- `verify` run 45676518707 on `bc6059d6`: **success** (the first green on main since the BSD grader's harness landed; it ran the whole `check:mutate-copy`, so `weather-availability`'s `build` error was local to a container with no `build/`).
+- `deploy` run 45678111888 (workflow_run on that verify): **success**; the published build is no longer behind.
+- `live-check` on `292c7b9` (18:46Z): **success**, so "The deploy landed" passes; it was red on `b3127b7` (45663912109) only because verify had skipped the deploy.
+- `guards` on `8be63509` and `bc6059d6`: success.
+
 ## Not verified
 
-- The whole `npm run check:mutate-copy` on a runner: locally one more script, `weather-availability`, fails with `ENOENT: no such file or directory, lstat 'build'` because this container has no `build/` (verify builds it first). It is not touched here; the dispatched verify run is the proof.
+- Nothing about the three reds is open. The owner's decision on Task 3 of the independent-reference CC-CMD is unrelated and still waits.
