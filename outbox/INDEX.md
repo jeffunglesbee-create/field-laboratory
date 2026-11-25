@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d1781c9` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45638917631 |
+| `49f53f0` | 2026-11-25 | [cc-session-2026-11-25-espn-reference-grade-core.md](cc-session-2026-11-25-espn-reference-grade-core.md) | feat: the ESPN reference grade's pure core, its check and its mutation harness (Task 1, laboratory half) |
 | `c60e2ef` | 2026-11-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
 | `c60e2ef` | 2026-11-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
 | `c60e2ef` | 2026-11-25 | [sport-vocabulary-2026-11-25T10-00-13-844Z.json](sport-vocabulary-2026-11-25T10-00-13-844Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-25 [skip ci] |
