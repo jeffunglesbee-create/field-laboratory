@@ -15,3 +15,7 @@ The Task 0 ESPN probe now takes `ANCHOR_DATE`. Anchored at 2026-08-30: all 7 lea
 ## Not verified
 
 The core has only met synthetic payloads; the runner (relay half) is next and will meet real ones. ESPN's own-goal convention (E3) is unmeasured until the run. `clock.displayValue` formats other than `M'` and `M'+A'` (a clock the probe did not sample) make a goal row unreadable and the match not applicable: counted, never repaired.
+
+## Update, 2026-11-25: the relay half is built
+
+The runner, its run check (3 scenarios, 49 assertions, real laboratory cores against stub BSD, relay and ESPN servers), its mutation harness (50 of 50 caught) and the dispatch-only workflow are in field-relay-nba (`6d23457`, `431c0cc`; the lib additions `92718a8`). The workflow has not been dispatched. Record and the open items: this repository's `docs/CC-CMD-2026-11-23-bsd-next-goal-independent-reference.md`, section "Task 1 built"; relay session doc `outbox/cc-session-2026-11-25-espn-reference-grade-runner.md`.
