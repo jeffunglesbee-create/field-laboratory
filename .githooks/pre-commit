@@ -101,5 +101,16 @@ npm run --silent check:setup-script
 # the point.
 npm run --silent check:browser-gate
 npm run --silent check:push-lands
+# Added 2026-11-24. check:exit-drains ran only in verify.yml, so a commit that ended a
+# script in an early process.exit(summarize(...)) was first counted on the runner:
+# 77647dc1 put the 64th such exit, against a budget of 63, into
+# scripts/schedule-live-check.mjs, passed this hook, and turned verify red at "No check
+# script kills itself mid-write" (run 45473543164), which skipped every step after it.
+# Like every line here it runs on every commit: the hook has no staged-path condition to
+# get wrong, and the check reads files and runs nothing (no network, no build, no
+# browser). Shown in scratch worktrees, outbox/hook-runs-exit-drains-proof-2026-11-24.txt:
+# without this line the hook let the tree of 77647dc1 through, and with it the hook stops
+# there.
+npm run --silent check:exit-drains
 
 echo "pre-commit: ok"

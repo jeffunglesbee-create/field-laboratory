@@ -1,0 +1,502 @@
+hook-runs-exit-drains proof, 2026-11-24
+=======================================
+
+Item F1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md, built on the owner's word "Hook" (Tue 2026-11-24 21:16 ET).
+
+ASK, as filed: one `npm run --silent check:exit-drains` line after `check:push-lands` in .githooks/pre-commit, with the dated comment the other lines carry. Red first (Rule 90): the hook run on the tree of 77647dc1 refuses at that line, and on the tree that fixed it passes.
+
+DONE CONDITION, as a probe output (Rule 87.2): `node outbox/hook-runs-exit-drains-proof-2026-11-24.mjs` exits 0 and prints "COVERAGE: 5 of 5 cases ran" and "RESULT: all 5 cases behaved as expected." Section 5 is that output, verbatim. Reproduce: run it from the repo root; it needs the hook patch beside it (outbox/hook-runs-exit-drains-2026-11-24.patch) and takes about six minutes.
+
+CONTENTS
+  1. Premises (Rule 100), and the commands that tried to refute them
+  2. The change
+  3. The harness, and the check of its own predicates
+  4. The two earlier runs, which stopped on a scratch-tree fault and on a refuted premise
+  5. The final run, verbatim
+  6. Cost
+  7. Found while proving it
+  8. What this does not establish
+
+
+1. PREMISES (Rule 100)
+----------------------
+
+  P1  The hook does not run the check.                                                HELD
+      `git show HEAD:.githooks/pre-commit | grep -c exit-drains` prints 0, and .githooks holds one file.
+  P2  Nothing else that runs before a push runs it.                                   HELD
+      `.github/workflows` names it once, at verify.yml line 623. Six scripts mention it, five in a comment and
+      scripts/mutation-check.mjs in entries that mutate the check itself; no row of docs/gate-rows.txt names it.
+  P3  The check reads files and runs nothing.                                         HELD
+      Its imports are node:fs and two local modules. scripts/checks.mjs also imports execSync, used only inside
+      `runIdentity()`, which this script does not call: it takes `check` and `summarize` from `createChecks()`.
+  P4  A scratch worktree is a fair stand-in for a session's checkout.                 REFUTED in run 1, then provisioned
+      A worktree has no node_modules. In run 1 the hook refused the control tree at check:import-purity. Reproduced
+      by hand in a worktree at 178458de (session transcript, between run 1 at 21:26 ET and run 2 at 21:28 ET):
+        node -e "import('./scripts/venue-source.mjs')..."  ->  ERR_MODULE_NOT_FOUND, Cannot find package '@xmldom/xmldom'
+        npm run --silent check:import-purity               ->  "2/3 checks passed", exit 1
+        the same with node_modules linked to the main tree's  ->  "3/3 checks passed", exit 0
+      The remedy is to link the main tree's installed copy, after showing the worktree's package.json and
+      package-lock.json byte-identical to the main tree's (the harness asserts this per case; the probe block below
+      shows both bases identical to main's).
+  P5  A budget-only edit passes the hook, so the line is needed to close that gap.    REFUTED in run 2
+      The first draft of the hook comment said so, and the first draft of the harness had two cases for it. Run 2's
+      control showed the hook as it stands REFUSING a docs/early-exit-budget.txt edit from 63 to 64, at
+      check:mutation-anchors: "STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63". The mutation
+      entry `exit-budget-loose` carries `find: "63"` on that file (probe block). The claim was removed from the hook
+      comment before the commit, and the two cases became C5, which records which line refuses the edit.
+  P6  The harness's own predicates can fail for the reason claimed.                   REFUTED in run 2, fixed, then mutated
+      `ok` was a substring test for "pre-commit: ok". check:mutation-anchors prints a clause name that quotes that
+      text, so a hook refused two checks later read as a success, and C2's refusal was reported NOT AS EXPECTED while
+      its exit status and HEAD said it was refused. `ok` is now the hook's last line; seven predicate tests run before
+      any commit is attempted, and section 3 shows four variants of the predicates caught four of four.
+  P7  Appending a line cannot break what pins the hook's text.                        HELD
+      scripts/mutation-check.mjs has two entries anchored on the mutation-anchors line and a self-test that runs the
+      real hook with a stubbed npm. check:mutation-anchors runs BEFORE the new line and cases C2, C3 and C4 reached the
+      new line with the patched hook, so that check, with its self-test, passed against the patched text.
+
+PROBE BLOCK (run 2026-11-24, 21:42 ET; the timings are the three-run measurements of section 6):
+
+  $ git show HEAD:.githooks/pre-commit | grep -c exit-drains
+  0
+  (grep exit 1: no match)
+  
+  $ git ls-tree --name-only HEAD .githooks/
+  .githooks/pre-commit
+  
+  $ grep -rn exit-drains .github/workflows
+  .github/workflows/verify.yml:623:        run: npm run check:exit-drains
+  
+  $ git grep -ln exit-drains -- docs/gate-rows.txt scripts/
+  scripts/clean-source-check.mjs
+  scripts/gate-mode.mjs
+  scripts/mutation-check.mjs
+  scripts/row-confidence.mjs
+  scripts/schedule-live-check-names-request.mjs
+  scripts/strip-non-code.mjs
+  
+  $ grep -nE "^import " scripts/check-exit-drains.mjs
+  48:import { readFileSync, readdirSync, existsSync } from 'node:fs'
+  49:import { createChecks, isMain, finish } from './checks.mjs'
+  50:import { blankNonCode } from './strip-non-code.mjs'
+  
+  $ cat docs/early-exit-budget.txt
+  63
+  
+  $ grep -n -A6 "id: 'exit-budget-loose'" scripts/mutation-check.mjs
+  7827:    id: 'exit-budget-loose',
+  7828-    file: 'docs/early-exit-budget.txt',
+  7829-    claim: "the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it",
+  7830-    find: "63",
+  7831-    replace: "64",
+  7832-    expect: 'node scripts/check-exit-drains.mjs',
+  7833-  },
+  
+  $ git diff --stat 18606cb7 178458de -- package.json package-lock.json     (empty output = identical)
+  
+  $ git diff --stat 6db94829 178458de -- package.json package-lock.json     (empty output = identical)
+  
+  $ for r in 77647dc1^ c67aa5cd^ 178458de; do git rev-parse --short $r; done
+  18606cb7
+  6db94829
+  178458de
+  
+  $ for i in 1 2 3; do ( time npm run --silent check:exit-drains >/dev/null ) 2>&1 | grep real; done   (Tue 2026-11-24 21:42 ET, nothing else running in the container)
+  real	0m1.024s
+  real	0m1.049s
+  real	0m1.105s
+  
+  $ for i in 1 2 3; do ( time ( node scripts/check-exit-drains.mjs --self-test >/dev/null && node scripts/check-exit-drains.mjs >/dev/null ) ) 2>&1 | grep real; done
+  real	0m1.103s
+  real	0m0.949s
+  real	0m1.092s
+
+
+2. THE CHANGE
+-------------
+
+.githooks/pre-commit, after `npm run --silent check:push-lands` and before the final echo; mode 100755 unchanged; 12 -> 13 `npm run` lines. The patch, verbatim (outbox/hook-runs-exit-drains-2026-11-24.patch, the input of the harness's "after" cases):
+
+  diff --git a/.githooks/pre-commit b/.githooks/pre-commit
+  index 34fd1c13..e94ccfad 100755
+  --- a/.githooks/pre-commit
+  +++ b/.githooks/pre-commit
+  @@ -101,5 +101,16 @@ npm run --silent check:setup-script
+   # the point.
+   npm run --silent check:browser-gate
+   npm run --silent check:push-lands
+  +# Added 2026-11-24. check:exit-drains ran only in verify.yml, so a commit that ended a
+  +# script in an early process.exit(summarize(...)) was first counted on the runner:
+  +# 77647dc1 put the 64th such exit, against a budget of 63, into
+  +# scripts/schedule-live-check.mjs, passed this hook, and turned verify red at "No check
+  +# script kills itself mid-write" (run 45473543164), which skipped every step after it.
+  +# Like every line here it runs on every commit: the hook has no staged-path condition to
+  +# get wrong, and the check reads files and runs nothing (no network, no build, no
+  +# browser). Shown in scratch worktrees, outbox/hook-runs-exit-drains-proof-2026-11-24.txt:
+  +# without this line the hook let the tree of 77647dc1 through, and with it the hook stops
+  +# there.
+  +npm run --silent check:exit-drains
+   
+   echo "pre-commit: ok"
+
+
+3. THE HARNESS
+--------------
+
+outbox/hook-runs-exit-drains-proof-2026-11-24.mjs. Five real `git commit` attempts, each in its own scratch worktree, each running the repo's real .githooks/pre-commit with the real npm; nothing is stubbed. Trees are rebuilt by `git cherry-pick -n <sha>` onto the commit's parent, which reproduces what the hook saw at that commit. The "after" cases apply the patch to the worktree's copy of the hook.
+
+  C1  hook before   77647dc1 as the hook saw it (parent 18606cb7)          control: the gap, must be let through
+  C2  hook after    the same tree                                          must be refused, 64 early exits
+  C3  hook after    c67aa5cd, the fix (parent 6db94829)                    must pass, 63 early exits
+  C4  hook after    178458de, main before this change, clean tree          must pass, 63 early exits
+  C5  hook before   178458de with docs/early-exit-budget.txt 63 -> 64      records which line refuses a budget-only edit
+
+Asserted before each hook runs (Rule 90: a case whose mutation was not applied is a pass for nothing): the worktree is at the commit named; every file of a replayed commit is staged; the patch applies and leaves exactly one check:exit-drains line (12 -> 13 `npm run` lines); the budget file changed; package.json and package-lock.json equal the main tree's; the linked node_modules holds playwright and @xmldom/xmldom. The check is also run directly on each tree before the commit attempt, so each case shows what the hook's answer should be. At the end the main tree's node_modules is asserted intact (the links are removed before the worktrees are).
+
+The control comes first: if the hook WITHOUT the line refused the tree of 77647dc1, the run says so and stops, because the gap this item claims would not exist.
+
+Predicates (Rule 90 applied to the apparatus): the harness decides each case by reading the hook's text, so seven tests of those predicates run on fixed text before any commit is attempted ("predicate self-test: 7 of 7 held" in section 5). outbox/hook-runs-exit-drains-proof-2026-11-24-mutate.mjs breaks four of them in copies of the harness, with each anchor asserted unique, each mutated text asserted to differ and each copy asserted to parse, and requires the copy to stop at that self-test, naming the clause, before any case runs. Its output, verbatim:
+
+  CAUGHT      ok back to a substring test  (exit 1; names its clause: true; before any case: true)
+  CAUGHT      early reads the first report line, not the last  (exit 1; names its clause: true; before any case: true)
+  CAUGHT      failLines loses its anchor  (exit 1; names its clause: true; before any case: true)
+  CAUGHT      early stops reading the count  (exit 1; names its clause: true; before any case: true)
+  COVERAGE: 4 variants applied, each anchor unique, each copy parsed; 4 of 4 caught
+
+
+4. THE TWO EARLIER RUNS
+-----------------------
+
+Run 1, 2026-11-24 21:26 ET. It stopped at C1: the control was refused, by check:import-purity, because the worktree had no node_modules (P4). The harness said "A CONTROL IS NOT AS EXPECTED" and stopped, which is what a control is for. Output verbatim:
+
+  started: Tue 2026-11-24 21:26:06 EST
+  scratch: /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/hook-f1
+  hook text under test: outbox/hook-runs-exit-drains-2026-11-24.patch (11 lines added)
+  trees: broken 77647dc1, fixed c67aa5cd, main-before 178458de
+  
+  === C1  hook before  77647dc1 as the hook saw it (parent 18606cb7, its changes staged): the gap, control
+    worktree at 18606cb7; 6 files staged from 77647dc1; hook has 12 npm run lines
+    the check run directly on this tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+    git commit: exit 1; HEAD unchanged; 9.0 s
+    hook output, last 14 lines:
+            → scripts/forecast-render-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/lineups-render-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/live-score-probe.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/live-score-render-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/team-tint-render-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/twin-card-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/venue-collisions.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/venue-infobox-read.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/venue-infobox.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/venue-source.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/venue-wikidata-statements.mjs: the import terminated the process (exit 1) — code after the import never ran
+            → scripts/viewport-overflow-check.mjs: the import terminated the process (exit 1) — code after the import never ran
+      
+      2/3 checks passed
+    AS EXPECTED  the tree really has the 64th early exit (the check run directly exits non-zero, count 64)
+    NOT AS EXPECTED  the hook WITHOUT the line lets the commit through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  and the hook never asked the question (no "early report exits" in its output)
+  
+  A CONTROL IS NOT AS EXPECTED. Read its hook output above before concluding anything about the gap: a fault in the scratch worktree (a missing module, say) looks the same. Stopping before the rest is read.
+  COVERAGE: 1 of 6 cases ran; 1 real git commit attempts, each with the real hook and the real npm, none stubbed; worktrees removed.
+  whole-hook wall time, one run each: C1 9.0 s
+    (C1 and C5 run the hook without the line, C2 to C4 and C6 with it; the cases differ in tree as well, so this is a range and not a measurement of the line)
+  RESULT: 1 expectation(s) not as expected, 1 of 6 cases run.
+  harness-exit=1
+  finished: Tue 2026-11-24 21:26:19 EST
+
+
+Run 2, 2026-11-24 21:28 ET, with node_modules linked. C1 passed (the gap: the hook without the line let the tree of 77647dc1 through, 76.4 s). C2 showed the hook with the line refusing that tree at the line (exit 1, count 64), and one expectation NOT AS EXPECTED, the `ok` predicate (P6). C3 and C4 passed. C5, as designed then, was the control for a docs-only gap, and it stopped the run: the hook without the line refused the budget edit at check:mutation-anchors (P5). Output verbatim:
+
+  started: Tue 2026-11-24 21:28:04 EST
+  scratch: /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/hook-f1b
+  hook text under test: outbox/hook-runs-exit-drains-2026-11-24.patch (11 lines added)
+  trees: broken 77647dc1, fixed c67aa5cd, main-before 178458de
+  
+  === C1  hook before  77647dc1 as the hook saw it (parent 18606cb7, its changes staged): the gap, control
+    worktree at 18606cb7; 6 files staged from 77647dc1; hook has 12 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+    git commit: exit 0; HEAD moved; 76.4 s
+    hook output, last 14 lines:
+        workflows parsed   : 56 of 56
+        loops GUARDED      : 27
+        loops UNGUARDED    : 0
+      
+        verdict: all-guarded
+      
+      COVERAGE: 56 workflow(s) parsed, 27 push-retry loop(s) found. It checks
+      that a landing verification FOLLOWS each loop, not that the loop has any
+      particular shape — five shapes were found by the 2026-09-19 sweep and a sixth
+      is expected. A bare `git push` outside a loop is out of scope: it fails under
+      set -e on its own.
+      
+      OK: all 27 push-retry loop(s) verify that the push landed.
+      pre-commit: ok
+    AS EXPECTED  the tree really has the 64th early exit (the check run directly exits non-zero, count 64)
+    AS EXPECTED  the hook WITHOUT the line lets the commit through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  and the hook never asked the question (no "early report exits" in its output)
+  
+  === C2  hook after  the same tree, hook WITH the line
+    worktree at 18606cb7; 6 files staged from 77647dc1; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+    git commit: exit 1; HEAD unchanged; 75.9 s
+    hook output, last 14 lines:
+      22/22 checks passed
+      
+        scanned 206 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    64  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      FAIL  early report exits do not grow
+            → 64 now, budget 63 — the new one(s) are among: scripts/axis-check.mjs:164, scripts/boundary-reachable-check.mjs:82, scripts/brief-phase-live-check.mjs:303, scripts/brief-phase-live-check.mjs:382, scripts/brief-phase-live-check.mjs:409, scripts/cc-cmd-followup.mjs:759, scripts/check-ignore-parity.mjs:99, scripts/check-lineups-pull-only.mjs:315, scripts/computed-chrome-check.mjs:867, scripts/confidence-record-check.mjs:494, scripts/deploy-claim-consistency-check.mjs:120, scripts/deploy-landed-check.mjs:124, scripts/design-tokens-check.mjs:33, scripts/device-chrome-check.mjs:145, scripts/docs-check.mjs:195, scripts/draw-render-check.mjs:43, scripts/exit-truncation-probe.mjs:115, scripts/exposed-secret-check.mjs:204, scripts/game-id-check.mjs:104, scripts/generate-team-colours.mjs:351, scripts/glyph-check.mjs:55, scripts/glyph-check.mjs:80, scripts/history-check.mjs:241, scripts/import-purity-check.mjs:218, scripts/install-adhd-skill.mjs:200, scripts/lineups-render-check.mjs:116, scripts/merge-duplicate-pairs.mjs:268, scripts/mutation-check.mjs:22009, scripts/not-observable.mjs:80, scripts/odds-shape-census.mjs:186, scripts/palette-check.mjs:58, scripts/pick-shape-check.mjs:75, scripts/probe-alternate-colours.mjs:158, scripts/probe-archive-scheme-duplicates.mjs:134, scripts/probe-dash-scheme-writer.mjs:88, scripts/probe-espn-id-collisions.mjs:254, scripts/probe-fixture-identity-duplicates.mjs:152, scripts/probe-id-scheme-migration-exposure.mjs:150, scripts/probe-mls-pair-discriminators.mjs:188, scripts/probe-open-meteo-egress.mjs:97, scripts/probe-plain-card-causes.mjs:115, scripts/probe-team-colour-coverage.mjs:221, scripts/probe-unrecognised-id-shapes.mjs:96, scripts/probe-unresolved-spellings.mjs:123, scripts/red-main-issue.mjs:452, scripts/red-main-rehearsal.mjs:60, scripts/relay-brief-watch.mjs:139, scripts/relay-duplicate-fixture-watch.mjs:259, scripts/row-confidence.mjs:257, scripts/scale-check.mjs:74, scripts/schedule-live-check.mjs:74, scripts/scoreline-check.mjs:188, scripts/session-ready-check.mjs:89, scripts/session-ready-check.mjs:121, scripts/setup-script-check.mjs:108, scripts/short-circuit-check.mjs:136, scripts/skill-drift-check.mjs:233, scripts/status-state-check.mjs:105, scripts/sync-adhd-skill.mjs:97, scripts/team-tint-render-check.mjs:66, scripts/typography-check.mjs:43, scripts/verify-render-check.mjs:53, scripts/viewport-overflow-check.mjs:174, scripts/wp-check.mjs:29
+      FAIL  ...and the budget is not loose
+            → 64 now, budget 63 — lower the budget to 64
+      
+      2/4 checks passed
+    NOT AS EXPECTED  the commit is refused (non-zero exit, HEAD unchanged, no "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: it printed the count, 64
+    AS EXPECTED  and the failure names the ratchet ("early report exits do not grow")
+  
+  === C3  hook after  c67aa5cd, the fix, as the hook saw it (parent 6db94829, its changes staged), hook WITH the line
+    worktree at 6db94829; 7 files staged from c67aa5cd; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 0; early report exits 63; no FAIL line
+    git commit: exit 0; HEAD moved; 76.5 s
+    hook output, last 14 lines:
+      
+      22/22 checks passed
+      
+        scanned 207 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    63  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      PASS  early report exits do not grow
+      PASS  ...and the budget is not loose
+      
+      4/4 checks passed
+      pre-commit: ok
+    AS EXPECTED  the commit goes through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: count 63
+  
+  === C4  hook after  178458de (main before this change), clean tree, hook WITH the line
+    worktree at 178458de; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 0; early report exits 63; no FAIL line
+    git commit: exit 0; HEAD moved; 79.3 s
+    hook output, last 14 lines:
+      
+      22/22 checks passed
+      
+        scanned 207 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    63  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      PASS  early report exits do not grow
+      PASS  ...and the budget is not loose
+      
+      4/4 checks passed
+      pre-commit: ok
+    AS EXPECTED  no false positive: the commit goes through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: count 63
+  
+  === C5  hook before  178458de with docs/early-exit-budget.txt 63 -> 64 staged: the docs-only gap, control
+    worktree at 178458de; docs/early-exit-budget.txt 63 -> 64 staged; hook has 12 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 63; FAIL  ...and the budget is not loose
+    git commit: exit 1; HEAD unchanged; 12.7 s
+    hook output, last 14 lines:
+      
+        not checked here, needs a build: scripts/bdb-census.mjs
+        not checked here, needs a build: scripts/favourite-band-census.mjs
+        not checked here, needs a build: scripts/forecast-run.mjs
+        not checked here, needs a build: scripts/second-wind-population.mjs
+        not checked here, needs a build: scripts/weather-availability.mjs
+      PASS  no module-scope script has acquired an export, which would make this probe RUN it
+      PASS  there are exporting modules to check
+      PASS  importing a module never runs it or exits the process
+      
+      3/3 checks passed
+      checked 3 files (.mutation-state/active.json, .mutation-state/nested/active.json, .mutation-state/driver.json); 0 hold a marker; 0 name a build driver a dead run left running
+      checked 2243 of 2246 mutation anchors; 1 stale
+        STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63
+    AS EXPECTED  the budget edit is really bad (the check run directly exits non-zero, "budget is not loose")
+    NOT AS EXPECTED  the hook WITHOUT the line lets the commit through (exit 0, HEAD moved, "pre-commit: ok")
+  
+  A CONTROL IS NOT AS EXPECTED. Read its hook output above before concluding anything about the gap: a fault in the scratch worktree (a missing module, say) looks the same. Stopping before the rest is read.
+  the main tree's node_modules after cleanup: intact (playwright and @xmldom/xmldom present)
+  COVERAGE: 5 of 6 cases ran; 5 real git commit attempts, each with the real hook and the real npm, none stubbed; worktrees removed.
+  whole-hook wall time, one run each: C1 76.4 s, C2 75.9 s, C3 76.5 s, C4 79.3 s, C5 12.7 s
+    (C1 and C5 run the hook without the line, C2 to C4 and C6 with it; the cases differ in tree as well, so this is a range and not a measurement of the line)
+  RESULT: 2 expectation(s) not as expected, 5 of 6 cases run.
+  harness-exit=1
+  finished: Tue 2026-11-24 21:33:38 EST
+
+
+5. THE FINAL RUN, VERBATIM
+--------------------------
+
+Run 3, started 21:35 ET, after the predicate fix, the predicate self-test, the new C5 and the hook comment without the budget claim:
+
+  started: Tue 2026-11-24 21:35:24 EST
+  scratch: /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/hook-f1c
+  hook text under test: outbox/hook-runs-exit-drains-2026-11-24.patch (11 lines added)
+  trees: broken 77647dc1, fixed c67aa5cd, main-before 178458de
+  predicate self-test: 7 of 7 held
+  
+  === C1  hook before  77647dc1 as the hook saw it (parent 18606cb7, its changes staged): the gap, control
+    worktree at 18606cb7; 6 files staged from 77647dc1; hook has 12 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+    git commit: exit 0; HEAD moved; 75.4 s
+    hook output, last 14 lines:
+        workflows parsed   : 56 of 56
+        loops GUARDED      : 27
+        loops UNGUARDED    : 0
+      
+        verdict: all-guarded
+      
+      COVERAGE: 56 workflow(s) parsed, 27 push-retry loop(s) found. It checks
+      that a landing verification FOLLOWS each loop, not that the loop has any
+      particular shape — five shapes were found by the 2026-09-19 sweep and a sixth
+      is expected. A bare `git push` outside a loop is out of scope: it fails under
+      set -e on its own.
+      
+      OK: all 27 push-retry loop(s) verify that the push landed.
+      pre-commit: ok
+    AS EXPECTED  the tree really has the 64th early exit (the check run directly exits non-zero, count 64)
+    AS EXPECTED  the hook WITHOUT the line lets the commit through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  and the hook never asked the question (no "early report exits" in its output)
+  
+  === C2  hook after  the same tree, hook WITH the line
+    worktree at 18606cb7; 6 files staged from 77647dc1; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+    git commit: exit 1; HEAD unchanged; 77.2 s
+    hook output, last 14 lines:
+      22/22 checks passed
+      
+        scanned 206 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    64  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      FAIL  early report exits do not grow
+            → 64 now, budget 63 — the new one(s) are among: scripts/axis-check.mjs:164, scripts/boundary-reachable-check.mjs:82, scripts/brief-phase-live-check.mjs:303, scripts/brief-phase-live-check.mjs:382, scripts/brief-phase-live-check.mjs:409, scripts/cc-cmd-followup.mjs:759, scripts/check-ignore-parity.mjs:99, scripts/check-lineups-pull-only.mjs:315, scripts/computed-chrome-check.mjs:867, scripts/confidence-record-check.mjs:494, scripts/deploy-claim-consistency-check.mjs:120, scripts/deploy-landed-check.mjs:124, scripts/design-tokens-check.mjs:33, scripts/device-chrome-check.mjs:145, scripts/docs-check.mjs:195, scripts/draw-render-check.mjs:43, scripts/exit-truncation-probe.mjs:115, scripts/exposed-secret-check.mjs:204, scripts/game-id-check.mjs:104, scripts/generate-team-colours.mjs:351, scripts/glyph-check.mjs:55, scripts/glyph-check.mjs:80, scripts/history-check.mjs:241, scripts/import-purity-check.mjs:218, scripts/install-adhd-skill.mjs:200, scripts/lineups-render-check.mjs:116, scripts/merge-duplicate-pairs.mjs:268, scripts/mutation-check.mjs:22009, scripts/not-observable.mjs:80, scripts/odds-shape-census.mjs:186, scripts/palette-check.mjs:58, scripts/pick-shape-check.mjs:75, scripts/probe-alternate-colours.mjs:158, scripts/probe-archive-scheme-duplicates.mjs:134, scripts/probe-dash-scheme-writer.mjs:88, scripts/probe-espn-id-collisions.mjs:254, scripts/probe-fixture-identity-duplicates.mjs:152, scripts/probe-id-scheme-migration-exposure.mjs:150, scripts/probe-mls-pair-discriminators.mjs:188, scripts/probe-open-meteo-egress.mjs:97, scripts/probe-plain-card-causes.mjs:115, scripts/probe-team-colour-coverage.mjs:221, scripts/probe-unrecognised-id-shapes.mjs:96, scripts/probe-unresolved-spellings.mjs:123, scripts/red-main-issue.mjs:452, scripts/red-main-rehearsal.mjs:60, scripts/relay-brief-watch.mjs:139, scripts/relay-duplicate-fixture-watch.mjs:259, scripts/row-confidence.mjs:257, scripts/scale-check.mjs:74, scripts/schedule-live-check.mjs:74, scripts/scoreline-check.mjs:188, scripts/session-ready-check.mjs:89, scripts/session-ready-check.mjs:121, scripts/setup-script-check.mjs:108, scripts/short-circuit-check.mjs:136, scripts/skill-drift-check.mjs:233, scripts/status-state-check.mjs:105, scripts/sync-adhd-skill.mjs:97, scripts/team-tint-render-check.mjs:66, scripts/typography-check.mjs:43, scripts/verify-render-check.mjs:53, scripts/viewport-overflow-check.mjs:174, scripts/wp-check.mjs:29
+      FAIL  ...and the budget is not loose
+            → 64 now, budget 63 — lower the budget to 64
+      
+      2/4 checks passed
+    AS EXPECTED  the commit is refused (non-zero exit, HEAD unchanged, no "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: it printed the count, 64
+    AS EXPECTED  and the failure names the ratchet ("early report exits do not grow")
+  
+  === C3  hook after  c67aa5cd, the fix, as the hook saw it (parent 6db94829, its changes staged), hook WITH the line
+    worktree at 6db94829; 7 files staged from c67aa5cd; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 0; early report exits 63; no FAIL line
+    git commit: exit 0; HEAD moved; 77.9 s
+    hook output, last 14 lines:
+      
+      22/22 checks passed
+      
+        scanned 207 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    63  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      PASS  early report exits do not grow
+      PASS  ...and the budget is not loose
+      
+      4/4 checks passed
+      pre-commit: ok
+    AS EXPECTED  the commit goes through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: count 63
+  
+  === C4  hook after  178458de (main before this change), clean tree, hook WITH the line
+    worktree at 178458de; hook has 13 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 0; early report exits 63; no FAIL line
+    git commit: exit 0; HEAD moved; 77.5 s
+    hook output, last 14 lines:
+      
+      22/22 checks passed
+      
+        scanned 207 script(s) in scripts/
+        terminal report exits: 0  (must be 0 — finish() is a drop-in)
+        early report exits:    63  (ratchet, budget 63)
+      
+      PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+      PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+      PASS  early report exits do not grow
+      PASS  ...and the budget is not loose
+      
+      4/4 checks passed
+      pre-commit: ok
+    AS EXPECTED  no false positive: the commit goes through (exit 0, HEAD moved, "pre-commit: ok")
+    AS EXPECTED  the hook reached the line: count 63
+  
+  === C5  hook before  178458de with docs/early-exit-budget.txt 63 -> 64 staged, hook as it stands: not the line under test, which line already refuses a budget-only edit
+    worktree at 178458de; docs/early-exit-budget.txt 63 -> 64 staged; hook has 12 npm run lines; node_modules linked (package files identical to the main tree's)
+    the check run directly on this tree: exit 1; early report exits 63; FAIL  ...and the budget is not loose
+    git commit: exit 1; HEAD unchanged; 13.3 s
+    hook output, last 14 lines:
+      
+        not checked here, needs a build: scripts/bdb-census.mjs
+        not checked here, needs a build: scripts/favourite-band-census.mjs
+        not checked here, needs a build: scripts/forecast-run.mjs
+        not checked here, needs a build: scripts/second-wind-population.mjs
+        not checked here, needs a build: scripts/weather-availability.mjs
+      PASS  no module-scope script has acquired an export, which would make this probe RUN it
+      PASS  there are exporting modules to check
+      PASS  importing a module never runs it or exits the process
+      
+      3/3 checks passed
+      checked 3 files (.mutation-state/active.json, .mutation-state/nested/active.json, .mutation-state/driver.json); 0 hold a marker; 0 name a build driver a dead run left running
+      checked 2243 of 2246 mutation anchors; 1 stale
+        STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63
+    AS EXPECTED  the budget edit is bad for the check (run directly: non-zero, "budget is not loose")
+    AS EXPECTED  the hook as it stands REFUSES it (non-zero exit, HEAD unchanged, last line is not "pre-commit: ok")
+    AS EXPECTED  at check:mutation-anchors, naming the pinned budget entry (STALE  exit-budget-loose)
+    AS EXPECTED  and the exit-drains check was never asked (no "early report exits" in its output)
+  
+  the main tree's node_modules after cleanup: intact (playwright and @xmldom/xmldom present)
+  COVERAGE: 5 of 5 cases ran; 5 real git commit attempts, each with the real hook and the real npm, none stubbed; worktrees removed.
+  whole-hook wall time, one run each: C1 75.4 s, C2 77.2 s, C3 77.9 s, C4 77.5 s, C5 13.3 s
+    (C1 and C5 run the hook without the line, C2 to C4 with it; the cases differ in tree as well, so this is a range and not a measurement of the line)
+  RESULT: all 5 cases behaved as expected.
+  harness-exit=0
+  finished: Tue 2026-11-24 21:40:58 EST
+
+
+6. COST
+-------
+
+The line alone, three runs at 21:42 ET with nothing else running in the container (probe block above):
+  through npm (what the hook runs):   1.024 s, 1.049 s, 1.105 s
+  node only (self-test, then check):  1.103 s, 0.949 s, 1.092 s
+
+The whole hook, one run each in the final run (the trees differ, so this is a range and not a measurement of the line):
+  without the line (C1)    75.4 s
+  with the line (C2-C4)    77.2 s, 77.9 s, 77.5 s
+
+The F1 row quoted 0.6 s for the check (docs/GATE-TIMING.md) and a hook of 44 to 48 s (docs/CC-CMD-2026-11-15-hook-runs-the-workflow-guards.md). This container measured 1.0 to 1.1 s and 75 to 78 s on 2026-11-24. The earlier figures are from other dates and loads; why they differ was not established. In either reading the line is about 1 s of a hook of more than 40.
+
+
+7. FOUND WHILE PROVING IT
+-------------------------
+
+a. The exit budget is pinned twice. docs/early-exit-budget.txt holds 63, and the mutation entry `exit-budget-loose` in scripts/mutation-check.mjs carries `find: "63"` on that file, so any change of the budget leaves the entry's anchor stale. The hook already refuses a budget-only edit for that reason (C5). A legitimate change, an early exit converted or one added on purpose, moves both files in one commit, and the check's own message for a loose budget ("lower the budget to N") names only the first. Nothing is changed here (TOUCH-ONLY-A). The next session that edits the budget will meet the STALE line; this paragraph is where it is explained.
+
+b. Two figures in earlier documents read differently today (section 6). They are not corrected here: docs/GATE-TIMING.md is a dated measurement, and the F1 row is edited only to say the row is built.
+
+
+8. WHAT THIS DOES NOT ESTABLISH
+------------------------------
+
+- The line has not refused a real commit in a live session. The five cases replay history in scratch worktrees, with the hook text from the patch. Unobserved. Read it when a session's commit trips it: the hook prints `early report exits:    N  (ratchet, budget 63)` and then `FAIL  early report exits do not grow`, and the commit does not exist.
+- The hook runs only where core.hooksPath is .githooks. scripts/install_pkgs.sh sets it in cloud sessions; a local machine opts in, as the hook's own header says. verify.yml still runs the check and is unchanged, so a session without the hook is caught on the runner, as 77647dc1 was.
+- `git commit --no-verify` skips the hook, and so this line.
+- The cases cover one tree with a 64th early exit, the tree that fixed it, one clean tree and one budget edit. They are not every way the check can fail; its 22 clauses and its mutation entries are what cover that.
+- The scratch worktrees use the main tree's installed node_modules after the package files are shown identical. A fresh session's own install was not exercised.
+- The timings are one container on one evening.
+- The runner's reading of verify on the commit that carries this file is not here, because this file is in that commit. It is in outbox/cc-session-2026-11-24-hook-runs-exit-drains.md.
