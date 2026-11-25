@@ -84,11 +84,11 @@ eq('convention: neither reproduces ESPN\'s final score', reasonOf(espn([row('H',
 eq('convention: a normal goal is never flipped', timelineOf(espn([row('A', "10'", 590, { ownGoal: false })], 0, 1)).goals[0].side, 'away')
 
 // ---- bsdSidesOf: the first grade's parsed capture, as sides
-eq('bsdSidesOf: sides from the running score; the minute is the minute plus the added time', bsdSidesOf(bsdOf([bg(45, 1, 0, 2), bg(60, 1, 1)], { home: 1, away: 1 })), { goals: [{ side: 'home', minute: 47, nominal: 45 }, { side: 'away', minute: 60, nominal: 60 }], final: { home: 1, away: 1 }, extended: false })
+eq('bsdSidesOf: sides from the running score; the minute is the minute plus the added time', bsdSidesOf(bsdOf([bg(45, 1, 0, 2), bg(60, 1, 1)], { home: 1, away: 1 })), { goals: [{ side: 'home', minute: 47 }, { side: 'away', minute: 60 }], final: { home: 1, away: 1 }, running: { home: 1, away: 1 }, extended: false })
 eq('bsdSidesOf: a capture that is not sequential, or not ok, or not an object', [bsdSidesOf({ ...bsd3, sequential: false }), bsdSidesOf({ ok: false }), bsdSidesOf(null)], [null, null, null])
 eq('bsdSidesOf: a goal that moves a score by two is not read', bsdSidesOf(bsdOf([bg(10, 2, 0)], null)), null)
 eq('bsdSidesOf: a goal that moves neither score is not read', bsdSidesOf(bsdOf([bg(10, 0, 0)], null)), null)
-eq('bsdSidesOf: an absent minute stays absent, and the extra-time flag is carried', bsdSidesOf(bsdOf([{ minute: null, added: null, home: 1, away: 0 }], null, { extended: true })), { goals: [{ side: 'home', minute: null, nominal: null }], final: null, extended: true })
+eq('bsdSidesOf: an absent minute stays absent, and the extra-time flag is carried', bsdSidesOf(bsdOf([{ minute: null, added: null, home: 1, away: 0 }], null, { extended: true })), { goals: [{ side: 'home', minute: null }], final: null, running: { home: 1, away: 0 }, extended: true })
 
 // ---- one match, graded: the rule, call by call
 const base = { key: 'm1', slug: 'epl', reach: { reached: true, reason: null }, espn: espn(row3, 2, 1), bsd: bsd3 }
@@ -136,7 +136,17 @@ eq('ESPN 2-1 against a full-time capture of 2-2: every call on the match is not 
 g = one({ ...base, bsd: bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(75, 2, 1), bg(110, 2, 2)], { home: 1, away: 1 }, { extended: true }), calls: [call('home', 'hit', 0, 0, 10)] })
 eq('an extra-time capture is not compared, and is counted as not compared', [g.graded, g.finalGuard], [1, { 'not compared (extra time)': 1 }])
 g = one({ ...base, bsd: bsdOf([bg(10, 1, 0)], null), calls: [call('home', 'hit', 0, 0, 10)] })
-eq('a capture with no full-time row is not compared, and is counted', [g.graded, g.finalGuard], [1, { 'not compared (no full-time row)': 1 }])
+eq('a capture with no full-time row whose running score is not ahead of ESPN is graded, and counted as such', [g.graded, g.finalGuard], [1, { 'no full-time row, not ahead of ESPN': 1 }])
+g = one({ ...base, bsd: bsdOf([bg(10, 1, 0), bg(40, 2, 0), bg(60, 3, 0)], null), calls: [call('home', 'hit', 0, 0, 10), call('home', 'hit', 1, 0, 40)] })
+eq('a capture with no full-time row whose HOME score is ahead of ESPN (3-0 against 2-1) is a join to the wrong match: nothing is graded', [g.graded, g.notApplicable.byReason, g.finalGuard, g.matchesByOutcome], [0, { [REASONS.captureAhead]: 2 }, { 'no full-time row, ahead of ESPN': 1 }, { 'capture ahead of ESPN': 1 }])
+g = one({ ...base, bsd: bsdOf([bg(10, 0, 1), bg(40, 0, 2)], null), calls: [call('home', 'hit', 0, 0, 10)] })
+eq('... and so is one whose AWAY score is ahead (0-2 against 2-1), so each side is tested on its own', [g.graded, g.notApplicable.byReason], [0, { [REASONS.captureAhead]: 1 }])
+g = one({ ...base, bsd: bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(75, 2, 1)], null), calls: [call('home', 'hit', 0, 0, 10)] })
+eq('a capture with no full-time row that has exactly ESPN\'s score is not ahead (the boundary is inclusive)', [g.graded, g.finalGuard], [1, { 'no full-time row, not ahead of ESPN': 1 }])
+g = one({ ...base, bsd: bsdOf([bg(10, 1, 0), bg(40, 2, 0)], null, { extended: true }), calls: [call('home', 'hit', 0, 0, 10)] })
+eq('an extra-time capture is not compared even when it is ahead', [g.graded, g.finalGuard], [1, { 'not compared (extra time)': 1 }])
+g = one({ ...base, bsd: bsdOf([], null), calls: [call('home', 'hit', 0, 0, 10)] })
+eq('a capture with no goals and no full-time row is not ahead of anything', [g.graded, g.finalGuard], [1, { 'no full-time row, not ahead of ESPN': 1 }])
 g = one({ ...base, bsd: null, calls: [call('home', 'hit', 0, 0, 10)] })
 eq('no capture: graded on ESPN alone, with the guard and the step A comparison both absent', [g.graded, g.finalGuard, g.stepA.matchesCompared, g.agreeByBsdOnGoal], [1, { 'no trusted capture': 1 }, 0, { 'agree / no capture to compare': 1 }])
 g = one({ ...base, bsd: { ...bsd3, sequential: false }, calls: [call('home', 'hit', 0, 0, 10)] })
@@ -181,11 +191,26 @@ eq("under the 'same' convention the row's own team is credited: E3 says it IS th
 g = one({ ...ogBase, bsd: null, espn: espn([row('A', "10'", 590, { ownGoal: true }), row('H', "20'", 1190, { ownGoal: true })], 1, 1), calls: [call('home', 'hit', 0, 0, 10), call('home', 'hit', 1, 0, 20)] })
 eq('an ambiguous own goal, as the resolving goal and before it, is not applicable and never guessed', [g.graded, g.notApplicable.byReason, g.conventions], [0, { [REASONS.ownGoal]: 2 }, { ambiguous: 1 }])
 g = one({ ...ogBase, bsd: null, espn: espn([row('A', "10'", 590, { ownGoal: true }), row('H', "20'", 1190, { ownGoal: true })], 1, 1), calls: [call('home', 'hit', 5, 5, 20)] })
-eq("a join that cannot be evaluated because an earlier own goal is ambiguous is the own-goal reason, not a pass", g.notApplicable.byReason, { [REASONS.none]: 1 })
+eq("a call at 5-5 on a match ESPN says had two goals is a join to the wrong match, not 'no goal'", g.notApplicable.byReason, { [REASONS.join]: 1 })
+g = one({ ...base, bsd: null, calls: [call('home', 'hit', 2, 1, 90)] })
+eq("a call at 2-1 on a match ESPN says ended 2-1 has no goal after it: 'no goal', the join holds", g.notApplicable.byReason, { [REASONS.none]: 1 })
+g = one({ ...base, bsd: null, calls: [call('home', 'hit', 1, 2, 90)] })
+eq("a call at 1-2 on a match ESPN says ended 2-1 (the same number of goals, the other way round) is a join to the wrong match", g.notApplicable.byReason, { [REASONS.join]: 1 })
+g = one({ ...ogBase, bsd: null, espn: espn([row('A', "10'", 590, { ownGoal: true }), row('H', "20'", 1190, { ownGoal: true })], 1, 1), calls: [call('home', 'hit', 2, 0, 90)] })
+eq("a call after the last goal when an own goal's side is ambiguous: the sides cannot be added up, so 'no goal'", g.notApplicable.byReason, { [REASONS.none]: 1 })
 
 // ---- step A: the two sources against each other
 const sa = (espnRows, h, a, bsd) => one({ key: 'x', slug: 'epl', reach: { reached: true, reason: null }, espn: espn(espnRows, h, a), bsd, calls: [] }).stepA
-eq('step A: a different number of goals', sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1)], null)), { matchesCompared: 1, identical: 0, differentInNumber: 1, differentInOrder: 0, differentInMinute: 0, ownGoalRowTeam: {} })
+const SA0 = { matchesCompared: 0, identical: 0, cutShort: 0, cutShortNoGoals: 0, differentInNumber: 0, differentInOrder: 0, differentInMinute: 0, ownGoalRowTeam: {} }
+const saWith = (o) => ({ ...SA0, matchesCompared: 1, ...o })
+eq('step A: a capture with no full-time row that holds fewer goals and agrees on them is CUT SHORT, not different in number', sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1)], null)), saWith({ cutShort: 1 }))
+eq('step A: a capture WITH its full-time row (equal to the ESPN final) that holds fewer goals is different in number', sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1)], { home: 2, away: 1 })), saWith({ differentInNumber: 1 }))
+eq('step A: an extra-time capture that holds fewer goals is different in number', sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1)], null, { extended: true })), saWith({ differentInNumber: 1 }))
+eq('step A: a capture that holds MORE goals than ESPN is different in number when it has its full-time row or is extra time, and never reaches step A when it has neither (it is ahead of ESPN and the guard has already refused it)', [sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(75, 2, 1), bg(80, 3, 1)], { home: 2, away: 1 })).differentInNumber, sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(75, 2, 1), bg(80, 3, 1)], null, { extended: true })).differentInNumber, sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(75, 2, 1), bg(80, 3, 1)], null)).matchesCompared], [1, 1, 0])
+eq('step A: a capture with no goals and no full-time row is cut short with no goals, and says so apart', sa(row3, 2, 1, bsdOf([], null)), saWith({ cutShortNoGoals: 1 }))
+eq("step A: a cut-short capture whose FIRST goal is on the other side is different in ORDER (the disagreement is not hidden behind the length)", sa(row3, 2, 1, bsdOf([bg(10, 0, 1), bg(40, 1, 1)], null)), saWith({ differentInOrder: 1 }))
+eq('step A: a cut-short capture whose goals are in the right order but a minute apart by more than 1 is different in minute', sa(row3, 2, 1, bsdOf([bg(13, 1, 0), bg(40, 1, 1)], null)), saWith({ differentInMinute: 1 }))
+eq('step A: a capture of the same length with a goal 1 minute off is identical, 2 minutes off is different in minute', [sa(row3, 2, 1, bsdOf([bg(11, 1, 0), bg(40, 1, 1), bg(75, 2, 1)], { home: 2, away: 1 })).identical, sa(row3, 2, 1, bsdOf([bg(12, 1, 0), bg(40, 1, 1), bg(75, 2, 1)], { home: 2, away: 1 })).differentInMinute], [1, 1])
 eq('step A: the same number, a different order of sides', sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 2, 0), bg(75, 2, 1)], null)).differentInOrder, 1)
 eq('step A: the same sides, one minute off by two', [sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(78, 2, 1)], null)).differentInMinute, sa(row3, 2, 1, bsdOf([bg(11, 1, 0), bg(39, 1, 1), bg(76, 2, 1)], null)).identical], [1, 1])
 eq('step A: a minute two off is a difference, one off is not', [sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(77, 2, 1)], null)).differentInMinute, sa(row3, 2, 1, bsdOf([bg(10, 1, 0), bg(40, 1, 1), bg(76, 2, 1)], null)).identical], [1, 1])
@@ -193,9 +218,47 @@ eq('step A: ambiguous own goals have no side to agree with: the order differs, i
 eq("step A: ESPN's 90'+2' is the capture's 90 plus 2 added minutes", sa([row('H', "90'+2'", 5400)], 1, 0, bsdOf([bg(90, 1, 0, 2)], null)).identical, 1)
 eq('step A: a capture goal with no minute cannot match a minute', sa(row3, 2, 1, bsdOf([{ minute: null, added: null, home: 1, away: 0 }, bg(40, 1, 1), bg(75, 2, 1)], null)).differentInMinute, 1)
 
+// ---- the gaps the independent reader found (2026-11-25): each is a mutant the first check let through
+t = timelineOf(espn([row('A', "70'", 4230), row('H', "70'", 4210)], 1, 1))
+eq('timelineOf: two goals at one displayed clock are ordered by clock.value, the earlier first', t.goals.map((g) => g.rowSide), ['home', 'away'])
+eq('timelineOf: two goals at one displayed clock where one has no clock.value keep the order of the rows, whichever is missing', [timelineOf(espn([row('A', "70'", null), row('H', "70'", 4210)], 1, 1)).goals.map((g) => g.rowSide), timelineOf(espn([row('H', "70'", 4210), row('A', "70'", null)], 1, 1)).goals.map((g) => g.rowSide)], [['away', 'home'], ['home', 'away']])
+eq("step A: that order is what step A sees, so the capture's home-then-away is identical to it", sa([row('A', "70'", 4230), row('H', "70'", 4210)], 1, 1, bsdOf([bg(70, 1, 0), bg(70, 1, 1)], { home: 1, away: 1 })).identical, 1)
+eq("timelineOf: a goal in extra time, 105', is read (the clock allows three digits)", [timelineOf(espn([row('H', "105'", 6300)], 1, 0)).ok, timelineOf(espn([row('H', "105'", 6300)], 1, 0)).goals[0].m], [true, 105])
+eq("timelineOf: stoppage of ten minutes, 90'+10', is read (the added minutes allow two digits)", [timelineOf(espn([row('H', "90'+10'", 5400)], 1, 0)).ok, timelineOf(espn([row('H', "90'+10'", 5400)], 1, 0)).goals[0].a], [true, 10])
+eq("timelineOf: 45'+12' is before 46' (the added minutes are weighed under a hundred, not under ten or fifty)", timelineOf(espn([row('A', "46'", 2760), row('H', "45'+12'", 2700)], 1, 1)).goals.map((g) => g.rowSide), ['home', 'away'])
+eq("timelineOf: 45'+60' is before 46' too (the added minutes are weighed under a hundred for every value the clock allows, not under fifty)", timelineOf(espn([row('A', "46'", 2760), row('H', "45'+60'", 2700)], 1, 1)).goals.map((g) => g.rowSide), ['home', 'away'])
+eq("timelineOf: 45'+49' is still before 46' and 90' is after both", timelineOf(espn([row('A', "90'", 5400), row('H', "46'", 2760), row('A', "45'+49'", 2700)], 1, 2)).goals.map((g) => `${g.m}+${g.a}`), ['45+49', '46+0', '90+0'])
+g = one({ ...base, calls: [call('away', 'hit', 1, 0, 38), call('away', 'hit', 1, 0, 37), call('away', 'hit', 1, 0, 39)] })
+eq("distance: 2 minutes is its own bucket, 3 is '3+', and 1 is its own", g.distance, { 'agree @ 2': 1, 'agree @ 3+': 1, 'agree @ 1': 1 })
+g = one({ key: 'm', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "90'+3'", 5400)], 1, 0), bsd: null, calls: [call('home', 'hit', 0, 0, 80)] })
+eq("distance: a goal in stoppage time that is 3 or more minutes from resolved_minute is '3+ stoppage'", g.distance, { 'agree @ 3+ stoppage': 1 })
+g = one({ key: 'm', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "90'+2'", 5400)], 1, 0), bsd: bsdOf([bg(90, 1, 0, 2)], { home: 1, away: 0 }), calls: [call('home', 'hit', 0, 0, 92)] })
+eq("BSD's own minute 90+2 places the goal where ESPN's 90'+2' does: 'BSD agrees with ESPN' (ESPN's added minutes count)", g.agreeByBsdOnGoal, { 'agree / BSD agrees with ESPN': 1 })
+g = one({ key: 'm', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "90'+2'", 5400)], 1, 0), bsd: bsdOf([bg(90, 1, 0, 6)], { home: 1, away: 0 }), calls: [call('home', 'hit', 0, 0, 92)] })
+eq("... and a capture 4 minutes off in stoppage is 'BSD differs from ESPN'", g.agreeByBsdOnGoal, { 'agree / BSD differs from ESPN': 1 })
+g = one({ ...base, calls: [call('home', 'hit', 0, 0, 10), call('away', 'miss', 0, 0, 10), call('home', 'miss', 0, 0, 10), call('away', 'hit', 1, 0, 40)] })
+eq('distinct goals: four graded calls rest on two ESPN goals, and one of them has a disagreeing call', [g.graded, g.goals], [4, { graded: 2, withDisagreement: 1 }])
+eq('distinct goals: with no disagreement there is none counted', one({ ...base, calls: [call('home', 'hit', 0, 0, 10), call('home', 'hit', 0, 0, 10)] }).goals, { graded: 1, withDisagreement: 0 })
+g = one({ key: 'x', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "10'", 590), row('A', "20'", 1190, { ownGoal: true })], 2, 0), bsd: bsdOf([bg(10, 0, 1), bg(20, 1, 1)], { home: 2, away: 0 }), calls: [] })
+eq("E3: an own goal after an earlier goal that the two sources place on different sides is not compared, and is counted as such", [g.stepA.differentInOrder, g.stepA.ownGoalRowTeam], [1, { 'not compared (an earlier goal differs)': 1 }])
+g = one({ key: 'x', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "10'", 590), row('A', "50'", 2990, { ownGoal: true })], 2, 0), bsd: bsdOf([bg(10, 1, 0)], null), calls: [] })
+eq("E3: an own goal beyond the end of a cut-short capture is not compared, and the match is cut short, not different", [g.stepA.cutShort, g.stepA.ownGoalRowTeam], [1, { 'not compared (BSD has no goal there)': 1 }])
+g = one({ key: 'x', slug: 'epl', reach: { reached: true, reason: null }, espn: espn([row('H', "10'", 590), row('A', "20'", 1190, { ownGoal: true })], 2, 0), bsd: bsdOf([bg(10, 1, 0), bg(20, 2, 0)], { home: 2, away: 0 }), calls: [] })
+eq("E3: when the sources agree on every earlier goal, the own goal's row team is compared with the side BSD credits", g.stepA.ownGoalRowTeam, { 'is the other side': 1 })
+
+g = one({ ...ogBase, bsd: null, espn: espn([row('A', "10'", 590, { ownGoal: true }), row('H', "20'", 1190, { ownGoal: true })], 1, 1), calls: [call('home', 'hit', 1, 1, 90)] })
+eq("a call at 1-1 after two goals whose sides are ambiguous cannot be added up, so it is 'no goal' and not a join failure (an ambiguous side is not counted as home)", g.notApplicable.byReason, { [REASONS.none]: 1 })
+
 // ---- the whole run
 const all = gradeAgainstEspn([{ ...base, calls }, { key: 'm2', slug: 'eflchamp', reach: { reached: false, reason: 'eflchamp: no archive rows' }, espn: null, bsd: null, calls: [call('home', 'hit', 0, 0, 5), call('away', 'miss', 0, 0, 6)] }, { ...ogBase, espn: espn([row('H', "10'", 590), row('A', "50'", 2990, { ownGoal: true })], 2, 0), calls: [call('home', 'hit', 1, 0, 50)] }])
 eq('the run: 3 matches, 12 calls, 5 graded, 7 not applicable, partitioned', [all.matches, all.population, all.graded, all.notApplicable.total, all.partitions], [3, 12, 5, 7, true])
+const line = coverageLine(all)
+eq('the run: every piece of the coverage line, each with its denominator, hand-derived (3 matches, 12 calls; 2 usable timelines; 4 distinct goals, 2 disputed; the guard equal twice; step A identical twice)',
+  ['graded 5 of 12 calls on 3 matches', 'agree 3, disagree 2, not applicable 7', `${REASONS.none}: 1`, `${REASONS.join}: 1`, `${REASONS.side}: 1`, `${REASONS.score}: 1`, `${REASONS.outcome}: 1`, 'no ESPN id for the match: eflchamp: no archive rows: 2',
+    '2 of 3 matches with a usable ESPN timeline', 'graded calls rest on 4 distinct goals, 2 with a disagreement', 'final-score guard [equal: 2]',
+    'step A on 2 matches: identical 2, cut short 0, cut short with no goals 0, different in number 0, in order 0, in minute 0', `rule ${RULE_VERSION}`].map((x) => line.includes(x)),
+  [true, true, true, true, true, true, true, true, true, true, true, true, true])
+eq('the run: the distinct goals, the guard and the own-goal table are counted', [all.goals, all.finalGuard, all.stepA.ownGoalRowTeam], [{ graded: 4, withDisagreement: 2 }, { equal: 2 }, { 'is the other side': 1 }])
 eq('the run: by directory', all.bySlug, { epl: { calls: 10, graded: 5, agree: 3, disagree: 2, notApplicable: 5 }, eflchamp: { calls: 2, graded: 0, agree: 0, disagree: 0, notApplicable: 2 } })
 eq('the run: the coverage line carries every denominator', coverageLine(all).includes('graded 5 of 12 calls on 3 matches') && coverageLine(all).includes('not applicable 7') && coverageLine(all).includes('step A on 2 matches') && coverageLine(all).includes(RULE_VERSION), true)
 eq('the run: the rule version is a dated string', /^\d{4}-\d{2}-\d{2}\.\d+$/.test(RULE_VERSION), true)

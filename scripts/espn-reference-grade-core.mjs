@@ -27,14 +27,19 @@
 //   score_at_call (the join), else the call is not applicable. A tie at the resolving goal's position, or an own goal whose side is ambiguous, is
 //   not applicable. The verdict is `hit` when the resolving goal's side equals the call's side, else `miss`; the call AGREES when it equals outcome.
 //   The guard. If the capture is at full time and ESPN's final score differs from the capture's, every call on the match is not applicable (a
-//   join to the wrong match); an extra-time capture or one with no full-time row is not compared, and that is counted.
+//   join to the wrong match). A capture with NO full-time row (354 of the 370 gradeable calls in the 2026-11 census: the capture ended while the
+//   match was in play) is held to the one thing it can show: its last running score must not be ahead of ESPN's final score on either side, else
+//   the match is not applicable (the capture holds a goal ESPN's match does not). An extra-time capture is not compared. Each is counted.
 // Every call lands in exactly one place: agree, disagree, or one named not-applicable reason. Nothing is dropped.
 //
 // STEP A (source against source, no call involved) is counted once per match with a usable ESPN timeline and a trusted capture: goals in number,
 // in the order of their sides, and in minute (each within 1), and, for each ESPN own goal, whether its team id is the side BSD credits or the other.
 // It says whether ESPN is independent enough to DISAGREE with BSD at all (E5): zero differences would mean the second source adds nothing.
+// A capture with no full-time row may simply end early, so it is compared on the goals it HAS: if it holds fewer than ESPN and agrees on all of
+// them it is `cutShort` (or `cutShortNoGoals` when it holds none), not "different in number"; if it differs in order or minute on those goals it is
+// counted so. More goals than ESPN, or fewer in a capture that DOES have its full-time row, is "different in number".
 
-export const RULE_VERSION = '2026-11-25.1'
+export const RULE_VERSION = '2026-11-25.2'
 
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 const count = (v) => (Number.isInteger(v) && v >= 0 ? v : null)
@@ -62,6 +67,7 @@ export const REASONS = {
   join: "ESPN's score before that goal is not score_at_call",
   tie: 'two ESPN goals share one clock at the resolving goal',
   ownGoal: "an own goal at or before the resolving goal has a side ESPN's data leaves ambiguous",
+  captureAhead: "the capture's running score is ahead of ESPN's final score",
 }
 const reachReason = (r) => `no ESPN id for the match: ${safe(isObj(r) ? r.reason : null)}`
 
@@ -117,10 +123,10 @@ export function bsdSidesOf (bsd) {
     const da = g.away - prev.away
     const side = dh === 1 && da === 0 ? 'home' : dh === 0 && da === 1 ? 'away' : null
     if (side === null) return null
-    out.push({ side, minute: num(g.minute) === null ? null : g.minute + (num(g.added) === null ? 0 : g.added), nominal: num(g.minute) })
+    out.push({ side, minute: num(g.minute) === null ? null : g.minute + (num(g.added) === null ? 0 : g.added) })
     prev = { home: g.home, away: g.away }
   }
-  return { goals: out, final: isObj(bsd.final) ? bsd.final : null, extended: bsd.extended === true }
+  return { goals: out, final: isObj(bsd.final) ? bsd.final : null, running: { home: prev.home, away: prev.away }, extended: bsd.extended === true }
 }
 
 const bucket = (d, stoppage) => (d === null ? 'no minute' : d >= 3 ? (stoppage ? '3+ stoppage' : '3+') : String(d))
@@ -130,16 +136,30 @@ function stepA (tl, bsd, a) {
   a.matchesCompared++
   const e = tl.goals
   const b = bsd.goals
-  if (e.length !== b.length) { a.differentInNumber++; return }
-  const sameSides = e.every((g, i) => g.side === null ? false : g.side === b[i].side)
-  const sameMinutes = e.every((g, i) => b[i].minute !== null && Math.abs((g.m + g.a) - b[i].minute) <= 1)
+  const noFullTime = bsd.final === null && bsd.extended !== true
+  const shorter = b.length < e.length
+  if (b.length > e.length || (shorter && !noFullTime)) { a.differentInNumber++; return }
+  const n = b.length
+  let sameSides = true
+  let sameMinutes = true
+  for (let i = 0; i < n; i++) {
+    if (e[i].side === null || e[i].side !== b[i].side) sameSides = false
+    if (b[i].minute === null || Math.abs((e[i].m + e[i].a) - b[i].minute) > 1) sameMinutes = false
+  }
   if (!sameSides) a.differentInOrder++
   else if (!sameMinutes) a.differentInMinute++
+  else if (shorter) { if (n === 0) a.cutShortNoGoals++; else a.cutShort++ }
   else a.identical++
-  // E3: for each ESPN own goal, is its team id the side BSD credits (so ESPN credits the beneficiary) or the other
+  // E3: for each ESPN own goal, is its team id the side BSD credits (so ESPN credits the beneficiary) or the other. Only where the two lists
+  // still line up: BSD must have a goal there and every earlier goal must agree on its side.
+  let aligned = true
   for (let i = 0; i < e.length; i++) {
-    if (!e[i].own) continue
-    bump(a.ownGoalRowTeam, e[i].rowSide === b[i].side ? 'is the side BSD credits' : 'is the other side')
+    if (e[i].own) {
+      if (i >= n) bump(a.ownGoalRowTeam, 'not compared (BSD has no goal there)')
+      else if (!aligned) bump(a.ownGoalRowTeam, 'not compared (an earlier goal differs)')
+      else bump(a.ownGoalRowTeam, e[i].rowSide === b[i].side ? 'is the side BSD credits' : 'is the other side')
+    }
+    if (i >= n || e[i].side === null || e[i].side !== b[i].side) aligned = false
   }
 }
 
@@ -153,7 +173,8 @@ export function gradeAgainstEspn (matches) {
     notApplicable: { total: 0, byReason: tally() },
     matchesByOutcome: tally(), bySlug: tally(),
     distance: tally(), agreeByBsdOnGoal: tally(), conventions: tally(), finalGuard: tally(),
-    stepA: { matchesCompared: 0, identical: 0, differentInNumber: 0, differentInOrder: 0, differentInMinute: 0, ownGoalRowTeam: tally() },
+    stepA: { matchesCompared: 0, identical: 0, cutShort: 0, cutShortNoGoals: 0, differentInNumber: 0, differentInOrder: 0, differentInMinute: 0, ownGoalRowTeam: tally() },
+    goals: { graded: 0, withDisagreement: 0 },
   }
   const na = (slug, reason, n = 1) => {
     out.notApplicable.total += n
@@ -183,11 +204,18 @@ export function gradeAgainstEspn (matches) {
     const bsd = bsdSidesOf(m.bsd)
     // the guard: a full-time capture and ESPN must agree on the final score
     let guard = 'no trusted capture'
-    if (bsd !== null) guard = bsd.extended ? 'not compared (extra time)' : bsd.final === null ? 'not compared (no full-time row)' : (bsd.final.home === tl.final.home && bsd.final.away === tl.final.away ? 'equal' : 'differs')
+    if (bsd !== null) {
+      if (bsd.extended) guard = 'not compared (extra time)'
+      else if (bsd.final !== null) guard = bsd.final.home === tl.final.home && bsd.final.away === tl.final.away ? 'equal' : 'differs'
+      else guard = bsd.running.home <= tl.final.home && bsd.running.away <= tl.final.away ? 'no full-time row, not ahead of ESPN' : 'no full-time row, ahead of ESPN'
+    }
     bump(out.finalGuard, guard)
     if (guard === 'differs') { naAll(REASONS.finalDiffers, 'final score differs'); continue }
+    if (guard === 'no full-time row, ahead of ESPN') { naAll(REASONS.captureAhead, 'capture ahead of ESPN'); continue }
     bump(out.matchesByOutcome, 'timeline usable')
     if (bsd !== null) stepA(tl, bsd, out.stepA)
+    const gradedAt = new Set()
+    const disagreedAt = new Set()
     for (const call of calls) {
       const side = isObj(call) ? call.side : undefined
       if (side !== 'home' && side !== 'away') { na(slug, REASONS.side); continue }
@@ -198,7 +226,16 @@ export function gradeAgainstEspn (matches) {
       if (call.outcome !== 'hit' && call.outcome !== 'miss') { na(slug, REASONS.outcome); continue }
       const k = a + b
       const resolving = tl.goals[k]
-      if (resolving === undefined) { na(slug, REASONS.none); continue }
+      if (resolving === undefined) {
+        // ESPN has no (k + 1)th goal. If it has fewer than k goals, or k goals that are not the score at the call, the join is wrong; otherwise the
+        // match simply ended without another goal. (A side that is ambiguous cannot be added up, so that case is "no goal".)
+        const seen = { home: 0, away: 0 }
+        let known = true
+        for (const g of tl.goals) { if (g.side === null) { known = false; break } seen[g.side]++ }
+        if (tl.goals.length < k || (known && (seen.home !== a || seen.away !== b))) na(slug, REASONS.join)
+        else na(slug, REASONS.none)
+        continue
+      }
       const before = { home: 0, away: 0 }
       let beforeKnown = true
       for (let i = 0; i < k; i++) { const s = tl.goals[i].side; if (s === null) { beforeKnown = false; break } before[s]++ }
@@ -210,7 +247,8 @@ export function gradeAgainstEspn (matches) {
       const agree = verdict === call.outcome
       out.graded++
       S.graded++
-      if (agree) { out.agree++; S.agree++ } else { out.disagree++; S.disagree++ }
+      gradedAt.add(k)
+      if (agree) { out.agree++; S.agree++ } else { out.disagree++; S.disagree++; disagreedAt.add(k) }
       const rm = num(call.resolved_minute)
       const key = `${agree ? 'agree' : 'disagree'} @ ${bucket(rm === null ? null : Math.abs(resolving.m - rm), resolving.a > 0)}`
       bump(out.distance, key)
@@ -222,6 +260,8 @@ export function gradeAgainstEspn (matches) {
       }
       bump(out.agreeByBsdOnGoal, `${agree ? 'agree' : 'disagree'} / ${onGoal}`)
     }
+    out.goals.graded += gradedAt.size
+    out.goals.withDisagreement += disagreedAt.size
   }
   out.partitions = out.population === out.graded + out.notApplicable.total && out.graded === out.agree + out.disagree
     && out.notApplicable.total === Object.values(out.notApplicable.byReason).reduce((x, y) => x + y, 0)
@@ -231,6 +271,8 @@ export function gradeAgainstEspn (matches) {
 /** The coverage line, every denominator in it (CLAUDE.md Rule 91). */
 export function coverageLine (g) {
   const per = Object.entries(g.notApplicable.byReason).map(([r, n]) => `${r}: ${n}`).join('; ')
+  const guard = Object.entries(g.finalGuard).map(([r, n]) => `${r}: ${n}`).join('; ')
   const a = g.stepA
-  return `graded ${g.graded} of ${g.population} calls on ${g.matches} matches (agree ${g.agree}, disagree ${g.disagree}, not applicable ${g.notApplicable.total}${per === '' ? '' : ` [${per}]`}) | step A on ${a.matchesCompared} matches: identical ${a.identical}, different in number ${a.differentInNumber}, in order ${a.differentInOrder}, in minute ${a.differentInMinute} | rule ${g.ruleVersion}`
+  const usable = g.matchesByOutcome['timeline usable'] === undefined ? 0 : g.matchesByOutcome['timeline usable']
+  return `graded ${g.graded} of ${g.population} calls on ${g.matches} matches (agree ${g.agree}, disagree ${g.disagree}, not applicable ${g.notApplicable.total}${per === '' ? '' : ` [${per}]`}) | ${usable} of ${g.matches} matches with a usable ESPN timeline | graded calls rest on ${g.goals.graded} distinct goals, ${g.goals.withDisagreement} with a disagreement | final-score guard [${guard}] | step A on ${a.matchesCompared} matches: identical ${a.identical}, cut short ${a.cutShort}, cut short with no goals ${a.cutShortNoGoals}, different in number ${a.differentInNumber}, in order ${a.differentInOrder}, in minute ${a.differentInMinute} | rule ${g.ruleVersion}`
 }
