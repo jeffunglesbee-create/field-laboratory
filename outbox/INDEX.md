@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f11e792` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45685520705 |
+| `af3500d` | 2026-11-25 | [cc-session-2026-11-25-espn-core-v2.md](cc-session-2026-11-25-espn-core-v2.md) | fix: the ESPN reference grade's core, version 2026-11-25.2, after the independent reader |
+| `4be8e21` | 2026-11-25 | [cc-session-2026-11-25-mutate-copy-protocol.md](cc-session-2026-11-25-mutate-copy-protocol.md) | docs: the reds clean-up's result, read from the runs |
+| `75e85ba` | 2026-11-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `292c7b9` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45676518707 |
 | `bc6059d` | 2026-11-25 | [cc-session-2026-11-25-mutate-copy-protocol.md](cc-session-2026-11-25-mutate-copy-protocol.md) | fix: the two grade-core mutation harnesses follow the copy protocol, so verify's mutate-copy step passes |
 | `09e5f53` | 2026-11-25 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45672033558 |
