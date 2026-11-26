@@ -5783,6 +5783,101 @@ let private otherSports () =
           (LiveScore.FullTime(2, 1))
           (LiveScore.LiveUnavailable "the feed did not answer: HTTP 503") ]
 
+// ---------------------------------------------------------------------------
+// Live sources: the two BSD live feeds, read for "is it live" (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6b)
+// ---------------------------------------------------------------------------
+//
+// The bodies are the fields the decoder reads, taken from the real captures of 2026-11-26 23:38Z (outbox/live-capture-bsd-tennis-live-20261126-2338Z.json,
+// matches 61272 and 61315; outbox/live-capture-bsd-events-live-20261126-2338Z.json, event 7362, whole). The tennis route's odds and ~40 statistics
+// fields are left out of the inline copy because the decoder does not read them. Every check below holds on the good input and FAILS on its counter.
+
+let private liveSources () =
+    let tennisTwo =
+        """[{"id":61272,"tournament":{"id":904,"name":"San Salvador, El Salvador"},"player1":{"name":"Lucas Andrade Da Silva"},"player2":{"name":"Diego Duran"},"is_doubles":false,"match_date":"2026-11-26T20:30:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":1,"current_set":3,"winner_id":null},{"id":61315,"tournament":{"id":215,"name":"Buenos Aires, Argentina"},"player1":{"name":"Maria Carle"},"player2":{"name":"Nadia Podoroska"},"is_doubles":false,"match_date":"2026-11-26T21:50:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":0,"current_set":2,"winner_id":null}]"""
+    let tennisOnly215 =
+        """[{"id":61315,"tournament":{"id":215,"name":"Buenos Aires, Argentina"},"player1":{"name":"Maria Carle"},"player2":{"name":"Nadia Podoroska"},"is_doubles":false,"match_date":"2026-11-26T21:50:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":0,"current_set":2,"winner_id":null}]"""
+    let tennisSuspended = tennisTwo.Replace("\"status\":\"live\",\"round_name\":\"Round of 16\",\"player1_sets\":1,\"player2_sets\":1", "\"status\":\"suspended\",\"round_name\":\"Round of 16\",\"player1_sets\":1,\"player2_sets\":1")
+    let soccerBody =
+        """{"count":1,"events":[{"id":7362,"league_id":9,"league_name":"Brasileirão Serie A","home_team_id":158,"home_team":"São Paulo","away_team_id":372,"away_team":"Remo","event_date":"2026-11-26T23:00:00Z","status":"inprogress","period":"1st_half","current_minute":37,"home_score":0,"away_score":0,"penalty_shootout":null,"extra_time_score":null,"home_score_ht":0,"away_score_ht":0,"live_websocket":true,"websocket_plus":true,"last_updated":"2026-11-26T23:38:12Z"}]}"""
+    let soccerFinished = soccerBody.Replace("\"status\":\"inprogress\"", "\"status\":\"finished\"")
+    let core (i: LiveSources.LiveItem) = (i.Id, i.Label, i.TournamentId, i.Liveness)
+
+    [ Verify.check "captured live tennis matches decode as Live, each with its tournament id (904, 215) and both names"
+          (fun body ->
+              let got = LiveSources.decodeTennis body |> Result.map (List.map core)
+              let expected =
+                  Ok [ (61272, "Lucas Andrade Da Silva v Diego Duran", Some 904, LiveSources.Live)
+                       (61315, "Maria Carle v Nadia Podoroska", Some 215, LiveSources.Live) ]
+              got = expected)
+          tennisTwo
+          tennisSuspended
+
+      Verify.check "a tennis status word not seen before is a named unknown, never Live"
+          (fun body ->
+              let got = LiveSources.decodeTennis body |> Result.map (List.map (fun i -> i.Liveness))
+              let expected = Ok [ LiveSources.UnknownWord "suspended"; LiveSources.Live ]
+              got = expected)
+          tennisSuspended
+          tennisTwo
+
+      Verify.check "a tennis body that is not an array is an error, never an empty answer"
+          (fun body -> LiveSources.decodeTennis body |> Result.isError)
+          """{"error":"tournament must be a numeric BSD tournament id"}"""
+          tennisTwo
+
+      Verify.check "the captured soccer event decodes Live with its label, its detail and the feed's own last_updated"
+          (fun body ->
+              let got =
+                  LiveSources.decodeSoccer body
+                  |> Result.map (List.map (fun i -> (i.Label, i.Detail, i.Liveness, i.LastUpdated)))
+              let expected =
+                  Ok [ ("São Paulo v Remo", "Brasileirão Serie A · 1st_half · 37'", LiveSources.Live, Some "2026-11-26T23:38:12Z") ]
+              got = expected)
+          soccerBody
+          soccerFinished
+
+      Verify.check "a soccer body with no events list is an error, never an empty answer"
+          (fun body -> LiveSources.decodeSoccer body |> Result.isError)
+          """{"count":0}"""
+          soccerBody
+
+      Verify.check "an answered empty feed is Answered [], and an unreadable one is Unavailable: never the same state"
+          (fun body -> LiveSources.stateOf (LiveSources.decodeSoccer body) = LiveSources.Answered [])
+          """{"count":0,"events":[]}"""
+          "<html>502</html>"
+
+      Verify.check "a draw is live when a live match carries ITS tournament id (joined by id, not by name)"
+          (fun body -> LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)) = LiveSources.DrawLive 1)
+          tennisTwo
+          tennisOnly215
+
+      Verify.check "an unreadable tennis feed makes the draw UNKNOWN, never not-live"
+          (fun body ->
+              match LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)) with
+              | LiveSources.DrawUnknown _ -> true
+              | _ -> false)
+          "<html>502</html>"
+          "[]"
+
+      Verify.check "a match of the draw's own tournament with an unseen status word makes the draw UNKNOWN, not not-live"
+          (fun body ->
+              match LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)) with
+              | LiveSources.DrawUnknown _ -> true
+              | _ -> false)
+          tennisSuspended
+          tennisOnly215
+
+      Verify.check "the Live now text names an unreadable feed as unknown with its reason, never as zero live"
+          (fun body ->
+              (LiveSources.feedText LiveSources.BsdTennis (LiveSources.stateOf (LiveSources.decodeTennis body))).StartsWith "BSD tennis: unknown (")
+          "<html>502</html>"
+          tennisTwo
+
+      Verify.check "the Live now text counts live items per source"
+          (fun body -> LiveSources.feedText LiveSources.BsdTennis (LiveSources.stateOf (LiveSources.decodeTennis body)) = "BSD tennis: 2 live")
+          tennisTwo
+          tennisOnly215 ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -5802,6 +5897,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Card forecasts", cardForecast ()
       "Live scores", liveScore ()
       "Live feed", liveFeed ()
+      "Live sources", liveSources ()
       "Twin rows", twinRows ()
       "Live scores, other sports", otherSports ()
       "Flow", flow ()

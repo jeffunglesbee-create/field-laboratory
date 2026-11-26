@@ -73,6 +73,7 @@
     <Compile Include="LiveScore.fs" />
     <!-- The relay's /v2/games as the laboratory reads it: the decoder and the reading for a card. -->
     <Compile Include="LiveFeed.fs" />
+    <Compile Include="LiveSources.fs" />
     <Compile Include="Pick.fs" />
     <Compile Include="Lineups.fs" />
     <!-- The lineup drawing, above Scoreboard.fs: a soccer card opens its game's
