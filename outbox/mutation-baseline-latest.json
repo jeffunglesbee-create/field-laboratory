@@ -1,12 +1,10 @@
 {
-  "at": "2026-11-23T18:41:51.634Z",
+  "at": "2026-11-26T03:40:21.867Z",
   "scope": "full",
   "ran": 115,
-  "from_mutations": 2245,
+  "from_mutations": 2250,
   "failing": 0,
-  "notApplicable": [
-    "node scripts/run-row.mjs \"this session wrote its outbox\""
-  ],
+  "notApplicable": [],
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -154,8 +152,7 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": false,
-      "notApplicable": true
+      "passed": true
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -474,16 +471,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      3640160,
-      3931661,
-      4662968,
-      3720695,
-      4477496,
-      3788426,
-      4359479,
-      3486062
+      3421043,
+      4620832,
+      3802483,
+      3734760,
+      3219559,
+      4226278,
+      4223130,
+      4553423
     ],
-    "longestMs": 4662968,
-    "sumMs": 32066947
+    "longestMs": 4620832,
+    "sumMs": 31801508
   }
 }
