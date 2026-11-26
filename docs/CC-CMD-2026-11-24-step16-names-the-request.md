@@ -74,3 +74,7 @@ gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/<job id>/logs | 
 ```
 
 Each error prints twice in a log, so the counts read double. Run on a synthetic log of two Open-Meteo errors and one relay error, each printed twice, it printed `4 https://api.open-meteo.com` and `2 https://field-relay-nba.jeffunglesbee.workers.dev`. A red whose "Failed to load resource" lines carry no URL after ` — ` would mean the runner's Chromium differs from the one measured here, which the stub check in the same run would have reported first.
+
+## Results
+
+2026-11-26: six live-check runs reached step 16 and all passed; no real-host 429 seen, so the question of which host answers a 429 is still open. Only the stub check's 127.0.0.1 429s appear in logs. Record: `outbox/step16-host-read-2026-11-26.md`.
