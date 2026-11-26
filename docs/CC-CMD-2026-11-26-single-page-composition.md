@@ -46,6 +46,16 @@ One new surface, `tonight`: the panels the owner's question keeps, in one scroll
 
 Left out of the stack: Lineups (the card's lineup button covers it), Briefs, Metrics, Verify.
 
+### Task 6a RESULT (run on `e29d6cec`, `outbox/live-sources-probe-latest.txt`, 2026-11-26 23:32Z; checked 29 of 30 sports)
+
+- `/bsd/tennis/matches/live`: a JSON ARRAY of 3 matches, each with `status:"live"`, `tournament:{id,name,circuit,category,surface}`, `player1_sets`, `player2_sets`, `sets_detail`, `match_date`, `round_name`. **The tournament id is on every live match**, so a draw (whose URL carries a numeric tournament id) can be joined to live play by id, not by name.
+- `/bsd/events/live`: `{count, events[]}`, 1 event: Brasileirao Serie A, `status:"inprogress"`, `period:"1st_half"`, `current_minute:30`, `live_websocket:true`.
+- `/v2/games` by sport: exactly 1 of 29 sports had a game in state `live` (NFL: 1 live, 1 post, 1 pre). The other sports answered 200 with an empty `games` or only finals. `pga` answered 200 with NO `games` array (golf is not served by this route in this shape).
+- **THE GAP, measured:** the Brasileirao game is live on `/bsd/events/live` and its league is **not in `/v2/games`' supported list of 30**. A "Live now" line built only from the cards' existing readings would not show it. Whether the archive slate carries that game as a card at all was not read.
+- Not probed: golf liveness (`/v2/golf/*`), and whether the three feeds agree on a game that is on all of them (no soccer game on `/v2/games` was live at the sample time).
+
+Design consequence: `Live now` is the UNION of three feeds, each shown with its source name: the cards' `/v2/games` readings, `/bsd/events/live` (any league), `/bsd/tennis/matches/live`. A live item that has no card is listed as its own line, not dropped. The draw section is LIVE when any live match has `tournament.id` equal to the draw's tournament id.
+
 ## Tasks
 
 0. **Probe first.** Artifact: `outbox/single-page-probe-2026-11-26.txt` holding (a) the `pick` value from `/analytics/newspaper/2026-11-26` read on a runner (`gh workflow run` is broken account-wide; use the `outbox/.trigger-*` push pattern) and (b) the draw payload's tournament dates. Stop condition: if the `pick` value is non-empty while the panel says none, that is a defect and gets its own CC-CMD before anything is stacked on it.
