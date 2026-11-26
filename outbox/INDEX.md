@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `705085d` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45740763182 |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-2026-11-25.patch](exit-budget-advice-2026-11-25.patch) | fix: exit-drains budget message names both files and the direction |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-entries-probe-2026-11-25-mutate.mjs](exit-budget-advice-entries-probe-2026-11-25-mutate.mjs) | fix: exit-drains budget message names both files and the direction |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-entries-probe-2026-11-25.mjs](exit-budget-advice-entries-probe-2026-11-25.mjs) | fix: exit-drains budget message names both files and the direction |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-proof-2026-11-25-mutate.mjs](exit-budget-advice-proof-2026-11-25-mutate.mjs) | fix: exit-drains budget message names both files and the direction |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-proof-2026-11-25.mjs](exit-budget-advice-proof-2026-11-25.mjs) | fix: exit-drains budget message names both files and the direction |
+| `08c30f0` | 2026-11-25 | [exit-budget-advice-proof-2026-11-25.txt](exit-budget-advice-proof-2026-11-25.txt) | fix: exit-drains budget message names both files and the direction |
+| `d2a011c` | 2026-11-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-26T01:57 [skip ci] |
+| `ff712d3` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `28ace61` | 2026-11-26 | [cc-session-2026-11-26-uefa-efl-reach.md](cc-session-2026-11-26-uefa-efl-reach.md) | docs: the grade re-run after the UEFA join and the EFL Championship seed: 382 of 387 calls graded, 382 agree; the 4 unreached matches and the reach-reason correction |
 | `3ac8a46` | 2026-11-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-25 [skip ci] |
 | `3ac8a46` | 2026-11-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-25 [skip ci] |
