@@ -215,6 +215,19 @@
   .tabs button:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   [role="tabpanel"][hidden] { display: none; }
 
+  /* TONIGHT (the one-page view). Only under body[data-view="tonight"], so every other surface is unchanged. A stacked panel keeps its
+     own heading; a section with nothing to show is NOT hidden: the renderer sets data-collapse to the reason, and the section becomes one
+     line that names itself and says why, so a quiet section and a missing one stay distinguishable. */
+  .tonight-head { font-size: 1.05rem; margin: 1rem 0 .25rem; }
+  body[data-view="tonight"] [data-stack] { margin-block: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border, rgba(127,127,127,.25)); }
+  body[data-view="tonight"] #panel-scoreboard { margin-top: 0; border-top: 0; padding-top: 0; }
+  body[data-view="tonight"] [data-stack][data-collapse] > * { display: none; }
+  body[data-view="tonight"] [data-stack][data-collapse]::before {
+    content: attr(data-label) " \00b7  " attr(data-collapse);
+    font-size: .85rem; opacity: .65;
+  }
+  body:not([data-view="tonight"]) #panel-tonight { display: none; }
+
   .pick-panel { max-width: 46rem; }
   .pick-panel h2 { font-size: .95rem; margin: 0 0 .35rem; }
   .pick-panel__what { font-size: .82rem; opacity: .65; margin: 0 0 1.25rem; }
@@ -1075,6 +1088,7 @@
        WAI-ARIA tabs pattern; the panels are real tabpanels, not divs that get
        display:none, so a screen reader is told what changed. -->
   <div class="tabs" role="tablist" aria-label="Laboratory surfaces">
+    <button role="tab" id="tab-tonight" aria-controls="panel-tonight" aria-selected="false" tabindex="-1">Tonight</button>
     <button role="tab" id="tab-scoreboard" aria-controls="panel-scoreboard" aria-selected="true" tabindex="0">Scoreboard</button>
     <button role="tab" id="tab-field-pick" aria-controls="panel-field-pick" aria-selected="false" tabindex="-1">Field's Pick</button>
     <button role="tab" id="tab-scout-pick" aria-controls="panel-scout-pick" aria-selected="false" tabindex="-1">Scout's Pick</button>
@@ -1117,18 +1131,24 @@
          report nothing while looking like it reports something. -->
     <div id="schedule"></div>
   </div>
-  <div role="tabpanel" id="panel-scoreboard" aria-labelledby="tab-scoreboard" tabindex="0">
+  <!-- TONIGHT: the one-page view (docs/CC-CMD-2026-11-26-single-page-composition.md). Its own panel holds only the heading. Selecting
+       this tab shows the panels below that carry data-stack TOGETHER, in this document order, as labelled regions; no renderer's mount
+       moves, so every `getElementById "panel-..."` still finds its node. Metrics, Verify, Briefs and Lineups are not stacked. -->
+  <div role="tabpanel" id="panel-tonight" aria-labelledby="tab-tonight" tabindex="0" hidden>
+    <h2 class="tonight-head">Tonight</h2>
+  </div>
+  <div role="tabpanel" id="panel-scoreboard" aria-labelledby="tab-scoreboard" tabindex="0" data-stack data-label="Scoreboard">
     <div id="desk"></div>
   </div>
-  <div role="tabpanel" id="panel-field-pick" aria-labelledby="tab-field-pick" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-scout-pick" aria-labelledby="tab-scout-pick" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-deep-cuts" aria-labelledby="tab-deep-cuts" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-pickem" aria-labelledby="tab-pickem" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-weather" aria-labelledby="tab-weather" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-field-pick" aria-labelledby="tab-field-pick" tabindex="0" hidden data-stack data-label="Field's Pick"></div>
+  <div role="tabpanel" id="panel-scout-pick" aria-labelledby="tab-scout-pick" tabindex="0" hidden data-stack data-label="Scout's Pick"></div>
+  <div role="tabpanel" id="panel-deep-cuts" aria-labelledby="tab-deep-cuts" tabindex="0" hidden data-stack data-label="Deep Cuts"></div>
+  <div role="tabpanel" id="panel-pickem" aria-labelledby="tab-pickem" tabindex="0" hidden data-stack data-label="Pick'em"></div>
+  <div role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" tabindex="0" hidden data-stack data-label="Stats"></div>
+  <div role="tabpanel" id="panel-weather" aria-labelledby="tab-weather" tabindex="0" hidden data-stack data-label="Weather"></div>
   <div role="tabpanel" id="panel-briefs" aria-labelledby="tab-briefs" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-lineups" aria-labelledby="tab-lineups" tabindex="0" hidden></div>
-  <div role="tabpanel" id="panel-draw" aria-labelledby="tab-draw" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-draw" aria-labelledby="tab-draw" tabindex="0" hidden data-stack data-label="Draw"></div>
   <div role="tabpanel" id="panel-metrics" aria-labelledby="tab-metrics" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-verify" aria-labelledby="tab-verify" tabindex="0" hidden></div>
 

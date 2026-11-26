@@ -52,7 +52,7 @@ const topTabs = () => page.$$(TABS)
 // "six" long after the Briefs tab made it seven, and stayed red without saying
 // WHICH tab was unaccounted for.
 const EXPECTED_TABS = [
-  'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick', 'tab-deep-cuts',
+  'tab-tonight', 'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick', 'tab-deep-cuts',
   'tab-pickem', 'tab-weather', 'tab-stats', 'tab-lineups', 'tab-briefs', 'tab-draw', 'tab-metrics', 'tab-verify',
 ]
 const tabIds = await page.$$eval(TABS, ts => ts.map(t => t.id))
@@ -475,6 +475,66 @@ const atEnd = await edgesAt()
 check('scrolled to the end, the right edge is no longer marked',
   !atEnd.right && atEnd.left, JSON.stringify(atEnd))
 await phone.close()
+
+// --- TONIGHT: the one-page view (docs/CC-CMD-2026-11-26-single-page-composition.md) ---------------------------------------------------
+// The properties the CC-CMD's done condition names, read from the rendered page. Each was broken on purpose first (scripts/tab-check-mutations
+// entry "tonight-*" in outbox/single-page-mutations-2026-11-26.txt) and the check went red before it was trusted (Rule 90).
+const STACK = ['panel-scoreboard', 'panel-field-pick', 'panel-scout-pick', 'panel-deep-cuts', 'panel-pickem', 'panel-stats', 'panel-weather', 'panel-draw']
+const NOT_STACKED = ['panel-briefs', 'panel-lineups', 'panel-metrics', 'panel-verify']
+await page.goto(URL_BASE + (URL_BASE.includes('?') ? '&' : '?') + 'tab=tonight', { waitUntil: 'networkidle' })
+const shown = await page.evaluate(ids => ids.map(id => {
+  const el = document.getElementById(id)
+  const r = el.getBoundingClientRect()
+  return { id, hidden: el.hasAttribute('hidden') || getComputedStyle(el).display === 'none', role: el.getAttribute('role'), top: r.top + scrollY }
+}), [...STACK, ...NOT_STACKED])
+const stackRows = shown.filter(x => STACK.includes(x.id))
+check('tonight: every stacked section is visible at once',
+  stackRows.every(x => !x.hidden), `hidden: ${JSON.stringify(stackRows.filter(x => x.hidden).map(x => x.id))}`)
+check('tonight: the stacked sections run in the stated order, top to bottom',
+  stackRows.every((x, i) => i === 0 || x.top >= stackRows[i - 1].top), JSON.stringify(stackRows.map(x => [x.id, Math.round(x.top)])))
+check('tonight: Briefs, Lineups, Metrics and Verify are not in the stack',
+  shown.filter(x => NOT_STACKED.includes(x.id)).every(x => x.hidden),
+  `visible: ${JSON.stringify(shown.filter(x => NOT_STACKED.includes(x.id) && !x.hidden).map(x => x.id))}`)
+check('tonight: stacked sections are labelled regions, not several tabpanels',
+  stackRows.every(x => x.role === 'region'), JSON.stringify(stackRows.map(x => [x.id, x.role])))
+check('tonight: the URL names the surface', new URL(page.url()).searchParams.get('tab') === 'tonight', page.url())
+
+// A section with nothing to show is one line that says why: the renderer sets data-collapse from its own state, the children are hidden,
+// and the label comes from the section's own name. Scanned over what the page actually rendered, so a capture with no empty section proves
+// the "not collapsed" half and the self-mutation below proves the other.
+const collapse = await page.evaluate(ids => ids.map(id => {
+  const el = document.getElementById(id)
+  const kid = el.firstElementChild
+  return { id, collapse: el.getAttribute('data-collapse'), label: el.getAttribute('data-label'), kidDisplay: kid ? getComputedStyle(kid).display : null,
+    textLength: (el.innerText || '').trim().length }
+}), STACK)
+for (const c of collapse) {
+  if (c.collapse !== null) {
+    check(`tonight: ${c.id} is collapsed to one line, with a reason and a name`,
+      c.collapse.length > 0 && !!c.label && (c.kidDisplay === null || c.kidDisplay === 'none'), JSON.stringify(c))
+  } else {
+    check(`tonight: ${c.id} is not collapsed, so it has its own content`, c.textLength > 0 && c.kidDisplay !== 'none', JSON.stringify(c))
+  }
+}
+
+// On a pinned capture two sections have a known state, so the collapse is checked against an expectation and not only against itself: the
+// draw's default capture is a finished tournament, and a pinned page never fetches weather. Without this, a renderer that stopped setting
+// data-collapse would leave every section "not collapsed, with content" and pass.
+if (URL_BASE.includes('data=')) {
+  const by = Object.fromEntries(collapse.map(c => [c.id, c.collapse]))
+  check('tonight: a finished draw collapses, naming why', by['panel-draw'] === 'tournament finished', String(by['panel-draw']))
+  check('tonight: weather on a pinned capture says it was not fetched', by['panel-weather'] === 'not fetched on a pinned capture', String(by['panel-weather']))
+}
+
+await page.click('#tab-scoreboard')
+const after = await page.evaluate(ids => ({
+  view: document.body.getAttribute('data-view'),
+  roles: ids.map(id => [id, document.getElementById(id).getAttribute('role')]),
+  hiddenOthers: ids.filter(id => id !== 'panel-scoreboard').every(id => document.getElementById(id).hasAttribute('hidden')),
+}), STACK)
+check('leaving tonight clears the view mode', after.view === null, JSON.stringify(after))
+check('leaving tonight makes every panel a tabpanel again', after.roles.every(([, r]) => r === 'tabpanel'), JSON.stringify(after.roles))
+check('leaving tonight hides every panel but the selected one', after.hiddenOthers, JSON.stringify(after))
 
 await browser.close()
 finish(summarize())

@@ -1,0 +1,13 @@
+Rule 90 record for the Tonight checks in scripts/tab-check.mjs (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 4).
+Each line: a deliberate break, then the check that went red. Pinned page: ?data=games-2026-08-09. Baseline 85/85; each break was restored and 85/85 re-measured.
+
+M1 panel-stats loses data-stack (index.html)            -> RED "tonight: every stacked section is visible at once" (hidden: panel-stats) and "...run in the stated order"
+M2 setTonight leaves role=tabpanel (Program.fs)          -> RED "tonight: stacked sections are labelled regions, not several tabpanels"
+M3 collapse CSS rule removed (index.html)                -> RED "tonight: panel-draw is collapsed to one line..." (child display block, 6544 chars)
+M4 panel-metrics gains data-stack (index.html)           -> RED "tonight: Briefs, Lineups, Metrics and Verify are not in the stack" (visible: panel-metrics)
+M5 DrawView stops setting data-collapse (DrawView.fs)    -> RED "tonight: a finished draw collapses, naming why" (got null)
+M6 setTonight never clears data-view on leaving (Program.fs) -> RED "leaving tonight clears the view mode" (view still "tonight")
+
+Coverage (Rule 91): 6 mutations, one per property the CC-CMD's done condition names that this pinned page can exercise. NOT exercised here: the
+draw lazy load on a live slate, weather fetching on an unpinned page, and the pick strip with a real pick (every pick panel is non-collapsed on
+this capture). Those need the deployed page and a runner.

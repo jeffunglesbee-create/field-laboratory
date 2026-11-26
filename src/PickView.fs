@@ -48,6 +48,9 @@ let private reasonChips (reasons: string list) =
 
 let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
     mount.innerHTML <- ""
+    // The one-page view collapses a section with nothing to show to one line that says why (index.html, `data-collapse`). Set from the
+    // outcome, never from the rendered prose.
+    mount.removeAttribute "data-collapse"
     let panel = child mount (el "div" "pick-panel" "")
     child panel (el "h2" "" "Field's Pick") |> ignore
     child panel (el "p" "pick-panel__what"
@@ -56,6 +59,7 @@ let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
 
     match outcome with
     | NoPickSection ->
+        mount.setAttribute ("data-collapse", "no pick section in this payload")
         // Deliberately not "no pick tonight". An absent section means the
         // analytics run has not produced one, which is a pipeline fact, not an
         // editorial one.
@@ -125,6 +129,7 @@ let private gateAnswerText (answer: GateAnswer) =
 
 let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int) =
     mount.innerHTML <- ""
+    mount.removeAttribute "data-collapse"
     let panel = child mount (el "div" "pick-panel" "")
     child panel (el "h2" "" "Scout's Pick") |> ignore
     child panel (el "p" "pick-panel__what"
@@ -136,6 +141,7 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
     // No gate names in this text: tab-check reads gate lines by splitting on them.
     match chooseScout games seriesEntries with
     | AllFinished qualified ->
+        mount.setAttribute ("data-collapse", "every qualifying game has finished")
         child panel (el "p" "pick-empty"
                         (sprintf "Every game that qualified on this slate has finished (%d). "
                                  qualified
@@ -157,11 +163,13 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
                             (sprintf "%d qualifier%s already finished, so the pick has moved on."
                                      choice.Finished (if choice.Finished = 1 then "" else "s"))) |> ignore
     | AllHeldOnBroadcast held ->
+        mount.setAttribute ("data-collapse", "held: broadcast cannot be told from this payload")
         child panel (el "p" "pick-empty"
                         (sprintf "No pick: %d game%s would qualify, but %s broadcast cannot be told from this payload, "
                                  held (if held = 1 then "" else "s") (if held = 1 then "its" else "their")
                          + "so whether it is on national TV is not known.")) |> ignore
     | NoneQualify ->
+        mount.setAttribute ("data-collapse", "no game qualifies on this slate")
         // The honest result on this payload, and the whole point of the
         // exercise. Production's gates are JS booleans, so a gate with no input
         // returns false and reads as "does not qualify". Here it reports what
@@ -218,6 +226,9 @@ let renderDeepCuts (mount: HTMLElement) (slateDate: string) (games: Game list) (
                      + "A game belongs to the window it kicks off in (ET). Its own list: Field's Pick, "
                      + "Scout's Pick and Pick'em are unchanged.")) |> ignore
     let b = DeepCuts.board slateDate games seriesEntries
+    mount.removeAttribute "data-collapse"
+    if not (b.Windows |> List.exists (fun r -> match r.Outcome with Chosen _ -> true | _ -> false)) then
+        mount.setAttribute ("data-collapse", "no deep cut on this slate")
     for r in b.Windows do
         let section = child panel (el "div" "deep-cut" "")
         section.setAttribute ("data-window", r.Window.Id)

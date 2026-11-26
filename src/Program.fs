@@ -154,6 +154,8 @@ let private loadWeatherOnce () =
         match document.getElementById "panel-weather" with
         | null -> ()
         | mount ->
+            // A pinned page marked this section "not fetched" for the one-page view; opening it fetches, so the mark goes.
+            mount.removeAttribute "data-collapse"
             WeatherView.renderIdle mount
             WeatherView.fetchSlate weatherVenues
             |> Promise.iter (fun (outcome, unlocated) ->
@@ -755,6 +757,13 @@ let private start () =
             // right one here: the render checks all pin a capture, so they stay
             // free of a third-party request, while a real viewer gets the chips.
             if (queryParam "data").IsNone then loadWeatherOnce ()
+            else
+                // Said, not left blank: the one-page view would otherwise show an empty Weather section on a pinned capture, which is
+                // indistinguishable from a broken one. Opening the Weather tab still fetches (loadWeatherOnce clears this).
+                match document.getElementById "panel-weather" with
+                | null -> ()
+                | mount when not weatherLoaded -> mount.setAttribute ("data-collapse", "not fetched on a pinned capture")
+                | _ -> ()
 
             // Prove the units are live, not just declared: a real probability
             // formatted through the only sanctioned conversion.
@@ -825,7 +834,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-deep-cuts"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-metrics"; "tab-verify" ]
+    let ids = [ "tab-tonight"; "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-deep-cuts"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-metrics"; "tab-verify" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -871,6 +880,34 @@ let private wireTabs () =
             elif right + fade > s.scrollLeft + s.clientWidth then s.scrollLeft <- right + fade - s.clientWidth
             markEdges ()
 
+    /// TONIGHT lazy load of the draw. The draw makes its own network call and is opened only from its tab, so the one-page view loads it
+    /// when its section first comes within two screens of the viewport. Weather needs nothing here: an unpinned render already calls
+    /// loadWeatherOnce itself (see the `queryParam "data"` gate in `start`), and a pinned one must not touch the network. A scroll listener
+    /// and getBoundingClientRect, not a new binding.
+    let mutable lazyWired = false
+    let lazyInView () =
+        if not (isNull (document.body.getAttribute "data-view")) then
+            let near (id: string) =
+                match document.getElementById id with
+                | null -> false
+                | el -> el.getBoundingClientRect().top < window.innerHeight * 2.0
+            if near "panel-draw" then loadDrawOnce ()
+
+    let setTonight (on: bool) =
+        if on then document.body.setAttribute ("data-view", "tonight")
+        else document.body.removeAttribute "data-view"
+        let stacked = document.querySelectorAll "[data-stack]"
+        for i in 0 .. stacked.length - 1 do
+            let panel = stacked.[i] :?> Browser.Types.HTMLElement
+            // Stacked together they are labelled regions, not tabpanels: a tabpanel is the one panel its tab controls.
+            panel.setAttribute ("role", (if on then "region" else "tabpanel"))
+            if on then panel.removeAttribute "hidden"
+        if on then
+            if not lazyWired then
+                lazyWired <- true
+                window.addEventListener ("scroll", fun _ -> lazyInView ())
+            lazyInView ()
+
     /// `focusIt` is false when the selection comes from the URL rather than
     /// from the user — on boot, and on back/forward. Focusing then would steal
     /// focus from wherever the reader actually is and scroll the tab strip,
@@ -890,6 +927,7 @@ let private wireTabs () =
             | panel ->
                 if selected then panel.removeAttribute "hidden"
                 else panel.setAttribute ("hidden", "true")
+        setTonight (target.id = "tab-tonight")
         // REPLACE, NEVER PUSH. Arrow keys move selection on every press, so a
         // pushState here would put seven entries in the history for one sweep
         // of the tab strip and leave the back button unable to reach the

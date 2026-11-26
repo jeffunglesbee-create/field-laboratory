@@ -201,6 +201,10 @@ let render (mount: HTMLElement)
            (scorelines: Map<int, string * string>)
            (refusals: (int * Tennis.DecodeError) list) =
     mount.innerHTML <- ""
+    // The one-page view shows a draw only while it is being played: a finished draw collapses to one line (index.html, `data-collapse`).
+    // Read off the built draw, never from the tournaments route, which carries no dates.
+    mount.removeAttribute "data-collapse"
+    if isComplete d then mount.setAttribute ("data-collapse", "tournament finished")
     let panel = child mount (el "div" "dv-panel" "")
 
     let head = child panel (el "header" "dv-head" "")
