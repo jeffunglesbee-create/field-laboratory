@@ -1,0 +1,27 @@
+{
+  "count": 1,
+  "events": [
+    {
+      "id": 7362,
+      "league_id": 9,
+      "league_name": "Brasileirão Serie A",
+      "home_team_id": 158,
+      "home_team": "São Paulo",
+      "away_team_id": 372,
+      "away_team": "Remo",
+      "event_date": "2026-11-26T23:00:00Z",
+      "status": "inprogress",
+      "period": "1st_half",
+      "current_minute": 37,
+      "home_score": 0,
+      "away_score": 0,
+      "penalty_shootout": null,
+      "extra_time_score": null,
+      "home_score_ht": 0,
+      "away_score_ht": 0,
+      "live_websocket": true,
+      "websocket_plus": true,
+      "last_updated": "2026-11-26T23:38:12Z"
+    }
+  ]
+}
