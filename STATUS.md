@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `62c28c3` at "The browser-free steps' self-tests and read-only modes launch no browser (a trap, not a reading)" — 74 of 121 steps did not run behind it — [run 45907706915](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45907706915)
+**FAILURE** on `e1bf0e2` at "The chrome, measured on the rendered page" — 59 of 121 steps did not run behind it — [run 45908694036](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45908694036)
 
 ## Is the live artifact healthy?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `b5990eb` — behind newest deployable `62c28c3` (deploy not landed) |
+| Cloudflare Workers | live | `b5990eb` — behind newest deployable `e1bf0e2` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

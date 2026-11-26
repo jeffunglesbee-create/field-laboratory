@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9e8ec75` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45908694036 |
+| `e1bf0e2` | 2026-11-26 | [cc-session-2026-11-26-verify-red-since-feature-census.md](cc-session-2026-11-26-verify-red-since-feature-census.md) | fix: the no-launch check's pin follows the guard's list, 73 to 74 (feature-census added a command) |
 | `cfe7cbf` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45907706915 |
 | `62c28c3` | 2026-11-26 | [single-page-mutations-2026-11-26.txt](single-page-mutations-2026-11-26.txt) | feat: Tonight, the non-diagnostic features as one scroll (Tasks 1-4 of the single-page CC-CMD) |
 | `468ee78` | 2026-11-26 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-11-26 [skip ci] |
