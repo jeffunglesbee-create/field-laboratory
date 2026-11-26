@@ -1,0 +1,55 @@
+# Task 0 of docs/CC-CMD-2026-11-26-single-page-composition.md: the newspaper `pick` value and the tennis draw route, read on a runner.
+# CI-as-proxy: the authoring sandbox cannot reach *.workers.dev. Facts into outbox/single-page-probe-2026-11-26.txt; no verdict.
+#
+# Triggers: a push of outbox/.trigger-single-page-probe, or workflow_dispatch. NO SCHEDULE: it answers one question; a monitor is a recurring
+# Actions cost (CLAUDE.md, "Actions budget"). The trigger file is removed by this workflow's own commit so a later merge cannot re-fire it.
+name: single-page-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-single-page-probe'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: The probe's own logic, before it measures anything
+        run: node scripts/single-page-probe.mjs --self-test
+      - name: Read the live relay
+        id: probe
+        continue-on-error: true
+        run: |
+          node scripts/single-page-probe.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git rm -q --ignore-unmatch outbox/.trigger-single-page-probe
+          git add outbox/single-page-probe-2026-11-26.txt 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: newspaper pick value and tennis draw route [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's result decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "single-page-probe did not complete: see the step summary"
+          exit 1
