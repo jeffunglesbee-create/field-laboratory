@@ -38,7 +38,7 @@ jobs:
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
           git rm -q --ignore-unmatch outbox/.trigger-live-sources-probe
-          git add outbox/live-sources-probe-latest.txt 2>/dev/null || true
+          git add outbox/live-sources-probe-latest.txt outbox/live-capture-bsd-*.json 2>/dev/null || true
           git diff --staged --quiet && exit 0
           git commit -m "probe: what is live right now, by source [skip ci]"
           for i in 1 2 3; do

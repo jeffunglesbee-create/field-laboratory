@@ -9,6 +9,9 @@
 import { fileURLToPath } from 'node:url'
 import { mkdirSync, writeFileSync } from 'node:fs'
 
+/** The raw body of a live feed, saved whole as a fixture for the decoders (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6b). The name carries the capture minute, so a second capture never overwrites the first. Pure. */
+export const captureName = (feed, now) => `live-capture-${feed}-${now.toISOString().slice(0, 16).replace(/[-:T]/g, '').replace(/^(\d{8})(\d{4})$/, '$1-$2')}Z.json`
+
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const etDay = (d = new Date()) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
@@ -44,6 +47,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     eq('empty games is an empty count', stateCounts({ games: [] }), {})
     eq('shape object', shape({ a: [1, 2], b: 'x' }), { keys: ['a', 'b'], arrays: { a: 2 } })
     eq('shape array', shape([1]), { array: 1 })
+    eq('capture name', captureName('bsd-tennis-live', new Date('2026-11-26T23:32:32Z')), 'live-capture-bsd-tennis-live-20261126-2332Z.json')
     // Rule 90: a wrong expectation must be refused, or this self-test cannot fail.
     const n0 = bad.length; eq('MUST-FAIL', stateCounts({ games: [{ state: 'live' }] }), { live: 9 })
     if (bad.length === n0 + 1) bad.pop(); else bad.push('the deliberately wrong expectation was accepted')
@@ -54,6 +58,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const p of ['/bsd/tennis/matches/live', '/bsd/events/live']) {
     const r = await get(p)
     out.push(`GET ${p} -> ${r.status}`)
+    if (r.json) { // the whole body, untrimmed, as a committed fixture
+      const name = captureName(p === '/bsd/events/live' ? 'bsd-events-live' : 'bsd-tennis-live', new Date())
+      mkdirSync('outbox', { recursive: true }); writeFileSync(`outbox/${name}`, JSON.stringify(r.json, null, 2) + '\n'); out.push(`  captured outbox/${name}`)
+    }
     if (r.json) {
       out.push(`  shape: ${trim(shape(r.json), 400)}`)
       const arr = Array.isArray(r.json) ? r.json : (r.json.events ?? r.json.matches ?? r.json.results ?? null)
