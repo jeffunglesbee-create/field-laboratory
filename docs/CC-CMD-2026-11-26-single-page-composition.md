@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (LAB-FIRST-A: this is new composition work, so it lands here, not in jubilant-bassoon)
 **Filed:** 2026-11-26, from the owner's question "what is the optimal combination of non-diagnostic features that can be displayed on a single webpage?" and the census it ordered
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** OPEN
+**Status:** OPEN. Task 0 DONE 2026-11-26 (run 45894400464, `outbox/single-page-probe-2026-11-26.txt`): the relay serves `pick = null` for 2026-11-26 and `preview = "Off night..."`, so the empty Field's Pick panel is correct, not a defect. `/bsd/tennis/tournaments` carries id, name, category, surface and `is_active` but no dates, and `is_active` is true on every one of the first four (alphabetical) rows, so it cannot gate the draw. The draw's own payload (match states) must.
 
 ---
 
@@ -42,7 +42,7 @@ One new surface, `tonight`: the panels the owner's question keeps, in one scroll
 3. Pick'em
 4. Stats
 5. Weather (lazy: fetched when scrolled into view)
-6. Draw, only when its event is live
+6. Draw, only when its own payload has a match not yet final (the tournaments route cannot say: no dates, `is_active` not discriminating)
 
 Left out of the stack: Lineups (the card's lineup button covers it), Briefs, Metrics, Verify.
 
