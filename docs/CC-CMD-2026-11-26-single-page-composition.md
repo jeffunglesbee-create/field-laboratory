@@ -1,0 +1,70 @@
+# Claude Code Command — one page: the non-diagnostic features as one scroll
+
+**Branch:** main — commit directly, no feature branch, no PR
+**Repo:** field-laboratory (LAB-FIRST-A: this is new composition work, so it lands here, not in jubilant-bassoon)
+**Filed:** 2026-11-26, from the owner's question "what is the optimal combination of non-diagnostic features that can be displayed on a single webpage?" and the census it ordered
+**Confidence gate:** `npm run gate` must score >= 95 before any commit
+**Status:** OPEN
+
+---
+
+## BUILD-ON-A: what this touches, and what it may not undo
+
+Searched by content (`tab`, `single page`, `per-card`, `panel-`), not by title, 2026-11-26.
+
+| existing | what it rules | consequence here |
+|---|---|---|
+| `CC-CMD-2026-11-11-live-scores-tabs.md` | Pick'em and Stats read the live reading so the tabs agree with the card | the stacked page must keep every section reading the same reading; no section may re-derive a state |
+| `CC-CMD-2026-10-17-metrics-tab-render-path.md` | Metrics is a tab with its own render path | Metrics and Verify stay tabs. They are diagnostic and are not stacked |
+| `Program.fs` weather comment (loadWeatherOnce) | Weather is **lazy on purpose**: the first version fetched on every render and put ~30 Open-Meteo requests on every date navigation | the stacked page may not fetch weather on load. It fetches when its section is first scrolled into view |
+| `Route.fs` "THE DEFAULT SURFACE IS OMITTED" | `?tab=scoreboard` and no `tab` mean the same | the new surface gets its own slug; flipping the default is a separate, last commit |
+| ADR-002 / `PICK-PROOF.md` | the pick score is sealed and never rendered | the stack renders the existing panels unchanged; no new reader of the score |
+
+## Evidence (probed, not remembered)
+
+`outbox/feature-census-latest.json`, run 45865985936, `main` at `351a0da7`, 2026-11-26 ET. **Coverage: 10 of 12 tabs, 7 of 108 routes.**
+
+| tab | today |
+|---|---|
+| scoreboard, stats, weather, lineups, pickem | content (scoreboard 41 games) |
+| draw | content, Roland Garros 2026 (a finished event; its date was not read) |
+| field-pick, scout-pick, deep-cuts | empty ("No pick section in this payload" / "No game qualifies" / "No games") |
+| briefs | diagnostic content (model-quality audit), not prose |
+
+Census defects, mine: `/v2/games` needs `sport`, `/bsd/tennis/draw` needs parameters. Both rows answered 400 and say nothing about those features. The relay's `/analytics/newspaper/{date}` carries a `pick` key whose value was **not read**, so whether the pick panels are empty because of the day or because of a defect is open (Task 0).
+
+## The design
+
+One new surface, `tonight`: the panels the owner's question keeps, in one scroll, each under a heading, with an anchor row in place of the strip.
+
+1. Scoreboard (cards already carry temperature, lineup button, brief line and `no odds`)
+2. Pick strip: Field's Pick, Scout's Pick, Deep Cuts, each collapsed to one line when it has no content, expanded when it does
+3. Pick'em
+4. Stats
+5. Weather (lazy: fetched when scrolled into view)
+6. Draw, only when its event is live
+
+Left out of the stack: Lineups (the card's lineup button covers it), Briefs, Metrics, Verify.
+
+## Tasks
+
+0. **Probe first.** Artifact: `outbox/single-page-probe-2026-11-26.txt` holding (a) the `pick` value from `/analytics/newspaper/2026-11-26` read on a runner (`gh workflow run` is broken account-wide; use the `outbox/.trigger-*` push pattern) and (b) the draw payload's tournament dates. Stop condition: if the `pick` value is non-empty while the panel says none, that is a defect and gets its own CC-CMD before anything is stacked on it.
+1. **Build `tonight`.** Extend `wireTabs` and the panel markup; add the slug to `Route.fs` and `tabIds`. Do not move or rename any existing `panel-*` mount (every renderer addresses them by id).
+2. **Collapse rule for the pick strip**, taken from the renderer's own state (the `PickView` outcome), never from matching its prose.
+3. **Lazy weather and draw** through an IntersectionObserver that calls the existing `loadWeatherOnce` / `loadDrawOnce`.
+4. **Check.** Extend `scripts/tab-check.mjs` (do not add a second harness). Mutation first (Rule 90): break each property below, watch the check go red, restore.
+5. **Flip the default** to `tonight` in its own commit, after Task 4 is green on the deployed page.
+6. **Outbox manifest** last: commit hashes, the run id, the manifest below.
+
+## Done condition (artifacts, not actions)
+
+`outbox/single-page-manifest-*.json`, written by a runner against the deployed page, with booleans and counts:
+
+- `visibleSections` lists the six above in order, each with `textLength > 0` or a collapsed-empty marker
+- `metricsVisible: false`, `verifyVisible: false`, `briefsPanelVisible: false`
+- `openMeteoRequestsBeforeWeatherInView: 0` and `>= 1` after scrolling it into view
+- `scoreOrDramaNumberInDom: false` (the check `tab-check.mjs` already makes)
+- `pageErrors: []`
+- a `checked N of M` line, per Rule 91
+
+`node scripts/tab-check.mjs` exits 0 with the mutation entries for each property above recorded as caught.
