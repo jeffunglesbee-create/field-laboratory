@@ -1,0 +1,90 @@
+exit-budget-advice: the older entries that expect check-exit-drains, and the framework's own self-test
+======================================================================================================
+
+Run Wed 2026-11-25 21:18:12 EST, after the code commit 08c30f0a. Item G1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md.
+
+WHY. The proof record (outbox/exit-budget-advice-proof-2026-11-25.txt) ran the five new entries and exit-budget-loose through the framework. It did not run the
+eleven older entries whose expectation is the same check, and it did not run the framework's own --self-test after the table grew. This file does both.
+Premise P12, listed after the commit and tried by the runs below: the older entries that expect this check are still caught by the changed script, and the
+framework still passes its own self-test with five more entries.
+
+1. THE DENOMINATOR (Rule 91). Which entries expect this check, enumerated two ways in the committed scripts/mutation-check.mjs:
+
+$ grep -c "expect: 'node scripts/check-exit-drains.mjs" scripts/mutation-check.mjs
+17
+
+$ grep -n "expect:.*exit-drains" scripts/mutation-check.mjs | grep -v "expect: 'node scripts/check-exit-drains.mjs"     (any other form of the expectation)
+(none)
+
+$ node -e <walk the table entry by entry, keep the ids whose expect begins 'node scripts/check-exit-drains.mjs'>
+17 entries: exit-kills-a-script-mid-write,early-exit-ratchet-grows,exit-scan-reverts-to-regex-chain,exit-blank-keeps-every-span,exit-blank-eats-newlines,exit-blank-keeps-regex,exit-blank-keeps-template,exit-blank-keeps-line-comment,exit-blank-keeps-block-comment,exit-blank-keeps-strings,exit-span-ends-past-the-text,exit-budget-loose,exit-advice-drops-the-second-file,exit-advice-tells-a-grown-count-to-lower,exit-advice-for-a-grown-count-hands-over-the-recipe,exit-advice-missing-budget-unhandled,exit-advice-for-an-equal-budget
+Both say 17: 12 at BASE 28ace610 (exit-kills-a-script-mid-write to exit-budget-loose) and the five exit-advice-* entries.
+
+2. THE FRAMEWORK, over all 17. A scratch worktree at 28ace610 holding the committed scripts (cmp-identical before and after, git status as found after):
+
+$ cmp scripts/check-exit-drains.mjs <main tree>/scripts/check-exit-drains.mjs && cmp scripts/mutation-check.mjs <main tree>/scripts/mutation-check.mjs
+identical
+
+$ node scripts/mutation-check.mjs --ids <the 17 ids above>
+
+Mutation testing 17 invariant(s)
+
+  baseline: ran 2 of 2 distinct expectation(s) from 17 mutation(s), 0 failing
+  baseline NOT written: --ids covers 2 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+PASS  [exit-kills-a-script-mid-write] no check script ends by killing itself while its output is in flight
+PASS  [early-exit-ratchet-grows] a NEW early process.exit(summarize()) cannot be added unnoticed
+PASS  [exit-scan-reverts-to-regex-chain] the exit scan reads comments, strings, regular expressions and templates as a scanner does, not as five passes that pair quotes, backticks and comment openers wherever they fall
+PASS  [exit-blank-keeps-every-span] the blank is made of the spans the scan found: with none of them blanked, a report exit in a comment, a string, a regular expression or a template counts
+PASS  [exit-blank-eats-newlines] the blank keeps the line feeds, so a line found in it is the line of the source
+PASS  [exit-blank-keeps-regex] a report exit inside a regular-expression literal is not an exit (the old passes did not blank one at all)
+PASS  [exit-blank-keeps-template] a report exit inside a template literal is not an exit
+PASS  [exit-blank-keeps-line-comment] a report exit in a line comment is not an exit
+PASS  [exit-blank-keeps-block-comment] a report exit in a block comment is not an exit
+PASS  [exit-blank-keeps-strings] a report exit inside a string is not an exit
+PASS  [exit-span-ends-past-the-text] a text that ends inside a string, a template or a regular expression is blanked to the same length
+PASS  [exit-budget-loose] the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it
+PASS  [exit-advice-drops-the-second-file] a budget above the count is told to come down in BOTH places that hold the number: the budget file and the mutation entry that pins it
+PASS  [exit-advice-tells-a-grown-count-to-lower] a count above the budget is never told to lower the budget, which for a count that grew is a raise that lets the growth through
+PASS  [exit-advice-for-a-grown-count-hands-over-the-recipe] a count above the budget is not handed the mutation file or its entry, which with the budget file are the whole edit of a raise
+PASS  [exit-advice-missing-budget-unhandled] a missing budget file is called missing; it is not read as a budget of zero that the count has grown past
+PASS  [exit-advice-for-an-equal-budget] a budget equal to the count has no advice to give
+
+18/18 checks passed
+exit: 0, wall 11 s
+
+3. THE FRAMEWORK CAN REPORT A SURVIVOR (Rule 90). The same scratch tree, the entry the framework keeps for that purpose:
+
+$ node scripts/mutation-check.mjs --only known-survivor
+
+  baseline: ran 1 of 1 distinct expectation(s) from 1 mutation(s), 0 failing
+  baseline NOT written: --only known-survivor covers 1 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+FAIL  [known-survivor] the harness can still detect a surviving mutation
+      → mutation SURVIVED — docs/gate-rows.txt was broken and `node -e "process.exit(0)"` still passed. Nothing defends this claim.
+
+1/2 checks passed
+exit: 1
+
+4. THE FRAMEWORK'S OWN SELF-TEST, same scratch tree (last 12 lines of 230 printed lines):
+
+$ node scripts/mutation-check.mjs --self-test
+PASS  MUTATION: `--only known-survivor --shard 1/8` is a usage error that says why
+PASS  MUTATION: `--build bogus --ids score-presence` is a usage error that says why
+PASS  MUTATION: `--ids ""` is a usage error that says why
+PASS  MUTATION: `--shard` is a usage error that says why
+PASS  MUTATION: `--out` is a usage error that says why
+PASS  MUTATION: `--ids --build full` is a usage error that says why
+
+221/221 checks passed
+
+real	0m27.036s
+user	0m16.406s
+sys	0m5.527s
+
+5. WHAT THIS DOES NOT ESTABLISH
+- It is a scratch tree at 28ace610 with the two committed scripts copied in, not the full table on the runner. The full table runs in the confidence gate, which runs
+  in verify-full (weekly, or dispatched: .github/workflows/verify-full.yml says to dispatch it after any change to scripts/mutation-check.mjs). The session record
+  says whether it was dispatched.
+- Only the 17 entries whose expectation is this check were run through the framework here. The other entries' files were not touched by this change, and
+  mutation-check.mjs --anchors printed "checked 2248 of 2251 mutation anchors; 0 stale" on the committed tree, which says no anchor it checks is stale. It does not say which three it leaves out.
