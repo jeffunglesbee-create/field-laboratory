@@ -1,0 +1,44 @@
+et_day 2026-11-26
+fetched_at 2026-11-26T23:32:32.329Z
+
+GET /bsd/tennis/matches/live -> 200
+  shape: {"array":3}
+  items: 3
+  first 2: [{"id":61272,"tournament":{"id":904,"name":"San Salvador, El Salvador","circuit":"ATP","category":"challenger","surface":"hard"},"player1":{"id":5815,"name":"Lucas Andrade Da Silva","short_name":"L. Andrade Da Silva","country_code":"BR","country_name":"Brazil","gender":"M","current_ranking":null},"player2":{"id":6725,"name":"Diego Duran","short_name":"D. Duran","country_code":"SV","country_name":"El Salvador","gender":"M","current_ranking":null},"is_doubles":false,"home_pair":null,"away_pair":null,"match_date":"2026-11-26T20:30:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":1,"sets_detail":[{"p1":6,"p2":7,"tiebreak":[2,7]},{"p1":7,"p2":6,"tiebreak":[7,2]},{"p1":4,"p2":5}],"winner_id":null,"odds_player1":1.1,"odds_player2":6.5,"player1_games":17,"player2_games":18,"current_set":3,"current_game_p1":4,"current_game_p2":5,"current_point":"40-15","is_serving_p1":true,"p1_aces":13,"p1_double_faults":8,"p1_first_serve_pct":70.58823529411765,"p1_first_serve_won_pct":76.38888888888889,"p1_second_serve_pct":73.33333333333333,"p1_second_serve_won_pct":26.666666666666668,"p1_break_points_saved_pct":60,"p1_break_points_converted_pct":33.33333333333333,"p1_return_points_won_pct":42.27642276422765,"p1_service_games":16,"p1_service_games_won":12,"p1_games_won":17,"p1_total_points_won":115,"p1_service_points_won":63,"p1_receiver_points_won":52,"p1_tiebreaks…(+2955)
+GET /bsd/events/live -> 200
+  shape: {"keys":["count","events"],"arrays":{"events":1}}
+  items: 1
+  first 2: [{"id":7362,"league_id":9,"league_name":"Brasileirão Serie A","home_team_id":158,"home_team":"São Paulo","away_team_id":372,"away_team":"Remo","event_date":"2026-11-26T23:00:00Z","status":"inprogress","period":"1st_half","current_minute":30,"home_score":0,"away_score":0,"penalty_shootout":null,"extra_time_score":null,"home_score_ht":0,"away_score_ht":0,"live_websocket":true,"websocket_plus":true,"last_updated":"2026-11-26T23:31:12Z"}]
+
+GET /v2/games (no sport) -> 400; the route's own supported list: 30 sports
+checked 29 of 30 sports (200 with a games array); 1 with at least one game in state "live"
+  nba                200 {}
+  nhl                200 {}
+  mlb                200 {}
+  wnba               200 {}
+  epl                200 {}
+  mls                200 {}
+  ucl                200 {}
+  europa             200 {"final":18}
+  conference         200 {"final":18}
+  uclqual            200 {}
+  europaqual         200 {}
+  conferencequal     200 {}
+  eflchamp           200 {}
+  eflone             200 {"final":1}
+  efltwo             200 {}
+  eflcup             200 {}
+  efltrophy          200 {}
+  facup              200 {}
+  laliga             200 {}
+  seriea             200 {}
+  bundesliga         200 {}
+  ligue1             200 {}
+  wc26               200 {}
+  pga                200 (no games array)
+  afl                200 {}
+  aflw               200 {}
+  atp                200 {}
+  wta                200 {}
+  nfl                200 {"live":1,"post":1,"pre":1}
+  cfb                200 {"pre":1}
