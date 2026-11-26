@@ -54,6 +54,10 @@ export const DIR = 'scripts'
 /** The ratchet's recorded count. A number in the repo, not in a comment. */
 export const BUDGET_PATH = 'docs/early-exit-budget.txt'
 
+/** The second place the number lives: the mutation entry that proves a loose budget is caught carries it as its `find`. */
+export const MUTATION_PATH = 'scripts/mutation-check.mjs'
+export const LOOSE_ENTRY = 'exit-budget-loose'
+
 /** An exit that ends a printed report. `ss()` is proof-check.mjs's own
  *  summarizer, named differently and doing the same job. */
 export const REPORT_EXIT = /process\.exit\(\s*(?:summarize|ss)\s*\(/
@@ -110,6 +114,27 @@ export const scanAll = (dir = DIR) =>
     file: `${dir}/${f}`,
     ...classify(readFileSync(`${dir}/${f}`, 'utf8')),
   }))
+
+/**
+ * What the equality clause tells a person it has just refused (2026-11-25, docs/CC-CMD-2026-11-06-gate-residuals-remaining.md G1).
+ *
+ * THE CLAUSE FAILS IN THREE WAYS AND THE RIGHT EDIT IS DIFFERENT IN EACH. It used to say one sentence for all of them, `lower the budget to ${count}`:
+ *   - the count GREW (77647dc1, 2026-11-24, 64 against 63): "lower the budget to 64" is a raise, and a budget raised to match a new exit lets that exit through
+ *     (measured: the hook accepts the grown tree once the budget and the mutation entry both say 64). The usual right edit is to remove the exit, so that is what
+ *     the message says, and it names nothing that a raise would edit. The clause before this one lists EVERY early exit ("the new one(s) are among"), so the message
+ *     says the new ones are among those listed, and does not claim they are singled out. A raise is possible and has happened once (c362be57, 2026-11-05: the scanner
+ *     was fixed to count three exits it could not see, 60 to 63). It is a decision, and this message does not hand over its recipe.
+ *   - the count SHRANK: the budget does come down, but the number is held in two files. The mutation entry `exit-budget-loose` carries it as its `find`, so the
+ *     edit the old sentence named was refused again, at `check:mutation-anchors` (`STALE  exit-budget-loose`). Only `find` moves: its `replace` is already above any lower count.
+ *   - the budget file is MISSING: there is nothing to lower, so it says what to write. It does not point at a line above, because the line directly above is `budget null`.
+ * An equal budget has nothing to say, and says it.
+ */
+export const budgetAdvice = (count, budget) => {
+  if (budget === null) return `${count} now, no budget to compare with — ${BUDGET_PATH} is missing: write the count into it`
+  if (count > budget) return `${count} now, budget ${budget} — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through`
+  if (count < budget) return `${count} now, budget ${budget} — lower the budget to ${count} in ${BUDGET_PATH}, and set find: "${count}" on the ${LOOSE_ENTRY} entry in ${MUTATION_PATH}, which pins the number`
+  return ''
+}
 
 // --- self-test ---------------------------------------------------------------
 
@@ -215,6 +240,18 @@ if (SELF_TEST) {
   check('THE REPORTED LINE IS THE SOURCE LINE, past a multi-line template and a multi-line comment',
     classify(lined).early.join() === '6', JSON.stringify(classify(lined)))
 
+  // WHAT A REFUSED PERSON IS TOLD. The tokens below are the edits, not the sentence around them.
+  const adviceDown = budgetAdvice(62, 63)
+  check('A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same number',
+    ['lower the budget to 62', BUDGET_PATH, MUTATION_PATH, LOOSE_ENTRY, 'find: "62"'].every(t => adviceDown.includes(t)), adviceDown)
+  const adviceUp = budgetAdvice(64, 63)
+  check('A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file or its entry (the second half of a raise)',
+    !adviceUp.includes('lower the budget') && !adviceUp.includes(MUTATION_PATH) && !adviceUp.includes(LOOSE_ENTRY) && adviceUp.includes('remove the new early exit'), adviceUp)
+  const adviceMissing = budgetAdvice(63, null)
+  check('...a missing budget file is called missing, and not lowered',
+    adviceMissing.includes(BUDGET_PATH) && adviceMissing.includes('missing') && !adviceMissing.includes('lower'), adviceMissing)
+  check('...an equal budget needs no advice', budgetAdvice(63, 63) === '', JSON.stringify(budgetAdvice(63, 63)))
+
   check('isInert knows a blank line', isInert('   '))
   check('isInert does NOT swallow a statement', !isInert('const x = 1'))
 
@@ -264,7 +301,7 @@ if (IS_MAIN && !SELF_TEST) {
   // A budget that has drifted ABOVE the real count is a ratchet with slack in
   // it, which is how a ratchet stops ratcheting.
   check('...and the budget is not loose', budget !== null && early.length === budget,
-    `${early.length} now, budget ${budget} — lower the budget to ${early.length}`)
+    budgetAdvice(early.length, budget))
 
   finish(summarize())
 }

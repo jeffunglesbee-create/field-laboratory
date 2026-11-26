@@ -1,0 +1,765 @@
+exit-budget-advice proof, 2026-11-25
+====================================
+
+Item G1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md, built on the owner's word "Next approved" (Wed 2026-11-25 20:28 ET), the one next step offered at the end of the F1 report.
+
+ASK, as offered: change the detail of the clause "...and the budget is not loose" in scripts/check-exit-drains.mjs so that it names both files that hold the budget number, docs/early-exit-budget.txt and the mutation entry `exit-budget-loose` in scripts/mutation-check.mjs. Estimate when offered: 10 minutes. The estimate counted the edit and not the proof that Rules 90 and 100 ask for. The session record has the actual time.
+
+DONE CONDITION, as probe outputs (Rule 87.2), on the tree of the commit that carries this file:
+  1. `node outbox/exit-budget-advice-proof-2026-11-25.mjs` exits 0 and prints "COVERAGE: 10 of 10 cases ran" and "RESULT: all 10 cases behaved as expected." Section 5 is that output, verbatim.
+  2. `node scripts/check-exit-drains.mjs --self-test` prints "26/26 checks passed" (22 before). Section 6.
+  3. `node scripts/mutation-check.mjs --anchors` prints "0 stale". Section 6.
+  4. Each of the five new table entries is caught by exactly one clause of that self-test, and `exit-budget-loose` is still caught. Section 6.
+Reproduce from the repo root. The harness makes scratch worktrees under --scratch <dir> and removes them. It makes four real `git commit` attempts, three of about 87 s and one refused at about 14 s, so a whole run is about 5 minutes.
+
+CONTENTS
+  1. Premises (Rule 100), and the commands that tried to refute them
+  2. The change
+  3. The harness, and the check of its own predicates
+  4. Red first: the old message, verbatim
+  5. The final run, verbatim
+  6. The self-test, the anchors and the five entries, verbatim
+  7. Found while proving it
+  8. The option not built, tried in a scratch tree
+  9. Cost
+  10. What this does not establish
+
+
+1. PREMISES (Rule 100)
+----------------------
+
+Each premise the change rests on and what the command that could refute it said. The probe block comes first (Rule 87.1); its commands and output are the next block, verbatim. The case ids (A0 to A6a) are the harness's, sections 3 to 5.
+
+  P1  The old message names no file.                                                    HELD
+      `git show 28ace610:scripts/check-exit-drains.mjs | grep -n "lower the budget"` finds one line, 267, and the
+      line holds none of docs/ scripts/ .txt .mjs. The budget file's path appears in the hook's output only in the
+      NAME of an earlier clause ("docs/early-exit-budget.txt exists, or the ratchet has no number"), not in this
+      clause's detail. The F1 record (outbox/hook-runs-exit-drains-proof-2026-11-24.txt, section 7a) says the old
+      message "names only the first" of the two files, and the F1 report said the same. Both are wrong: it names neither.
+  P2  Doing what the old message says, on a count that shrank, earns a second refusal.   HELD
+      A1: count 62, the budget file alone edited to 62. The real hook refuses at check:mutation-anchors with
+      "STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63", in 14.2 s, and never reaches
+      check:exit-drains.
+  P3  Nothing reads the message text.                                                    HELD
+      `git grep -n "lower the budget" HEAD -- . ':!outbox'` finds the one source line. Five lines in two records quote
+      it. The F1 harness reads only the clause's NAME, in a FAIL line, and that name is unchanged. The clause is named
+      by the source and by one CC-CMD paragraph (docs/CC-CMD-2026-11-03-gate-state-hazards.md:137).
+  P4  The number is held in two files that a check reads, and in no third.               HELD against the hook
+      The hook passes with exactly those two files edited (A0 with the old script, A2 with the new). No doc claim
+      marker names the budget (the grep exits 1). The other tracked places that put 63 beside the word budget or ratchet
+      are dated prose in a hook comment, a script comment and three CC-CMDs. The steps of verify.yml are read after the
+      push, in the session record.
+  P5  The two-file edit the new message names is complete and valid.                     HELD
+      A2: the new message's exact edits (the budget file to 62, `find: "62"` on the entry). The real hook exits 0, HEAD
+      moves, and `mutation-check.mjs --only exit-budget-loose` exits 0 with that entry PASS (caught).
+  P6  The old message is wrong for a count that grew.                                    CONFIRMED
+      A3: count 64, budget 63: "lower the budget to 64", which is a raise. Seen first on 2026-11-24
+      (outbox/step16-exit-drains-regression-2026-11-24.txt, line 68).
+  P7  The old message is wrong for a missing budget file.                                CONFIRMED
+      A5: "63 now, budget null — lower the budget to 63", with nothing to lower.
+  P8  A raise is sometimes right, so the message for a grown count can speak only to the usual case.   HELD
+      c362be57 (2026-11-05) raised the budget 60 to 63 because the scanner was fixed to count three exits it could not
+      see. The message for a grown count says what to do when an exit was added and hands over no recipe for a raise.
+  P9  [first draft] The list above the equality clause singles out the new exit.         REFUTED, in my draft, before any commit
+      The full output of the check on a grown tree (section 7) lists EVERY early exit, 64 locations, introduced by
+      "the new one(s) are among:". The draft said "named above", which claimed more. The message says "which are among
+      those listed above".
+  P10 [first draft] Raising the budget to match "turns the ratchet off".                  REFUTED, in my draft, before any commit
+      A4 and the code: with the budget and the entry both at 64 the hook accepts the grown tree, and the ratchet then
+      holds at 64. What happened is that the growth was let through. The message says "Raising the budget to match lets
+      the growth through".
+  P11 [first draft] For a missing budget file, "see the line above" says what to do.     REFUTED, in my draft, before any commit
+      The line directly above is "→ 63 now, budget null". The instruction is two FAIL lines higher. The message says what
+      to write itself.
+
+PROBE BLOCK, verbatim (run 2026-11-25 on main at 28ace610, origin/main the same):
+
+$ git log --oneline -5   (two automated subjects end in the skip directive; it is written here as [the skip directive], so that this file does not hold the literal token)
+28ace610 docs: the grade re-run after the UEFA join and the EFL Championship seed: 382 of 387 calls graded, 382 agree; the 4 unreached matches and the
+b1f6bcad status: refresh [the skip directive]
+3ac8a46f drift-sentinel: ok on 2026-11-25 [the skip directive]
+cc0cb2f4 docs: Task 3 of the independent-reference CC-CMD ran; the result, with what it does and does not say
+b2e81057 docs: Task 2 of the independent-reference CC-CMD is done; the reader's findings and what was done with each
+
+$ git branch --show-current
+main
+
+$ git rev-parse --short origin/main   (after git fetch)
+28ace610
+
+$ git show 28ace610:scripts/check-exit-drains.mjs | grep -n "lower the budget"
+267:    `${early.length} now, budget ${budget} — lower the budget to ${early.length}`)
+$ the same line, how many of docs/ scripts/ .txt .mjs does it hold?
+paths in the old message: 0
+
+$ cat docs/early-exit-budget.txt | od -c | head -n 2
+0000000   6   3  \n
+0000003
+
+$ git grep -n -A6 "id: 'exit-budget-loose'" 28ace610 -- scripts/mutation-check.mjs
+28ace610:scripts/mutation-check.mjs:7827:    id: 'exit-budget-loose',
+28ace610:scripts/mutation-check.mjs-7828-    file: 'docs/early-exit-budget.txt',
+28ace610:scripts/mutation-check.mjs-7829-    claim: "the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it",
+28ace610:scripts/mutation-check.mjs-7830-    find: "63",
+28ace610:scripts/mutation-check.mjs-7831-    replace: "64",
+28ace610:scripts/mutation-check.mjs-7832-    expect: 'node scripts/check-exit-drains.mjs',
+28ace610:scripts/mutation-check.mjs-7833-  },
+
+$ git log --format="%h %ad %s" --date=short -- docs/early-exit-budget.txt
+c362be57 2026-11-05 fix: check-exit-drains blanks with the shared scanner, so three early exits it could not see are counted and the budget is 63
+f38fc97e 2026-11-03 fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects
+9af2778a 2026-10-11 fix: a check script must not be killed while its output is in flight
+
+$ git show c362be57 -- docs/early-exit-budget.txt | tail -n 4
++++ b/docs/early-exit-budget.txt
+@@ -1 +1 @@
+-60
++63
+
+$ git grep -n "lower the budget" HEAD -- outbox   (records and harnesses that quote or read the old text)
+HEAD:outbox/hook-runs-exit-drains-proof-2026-11-24.txt:254:            → 64 now, budget 63 — lower the budget to 64
+HEAD:outbox/hook-runs-exit-drains-proof-2026-11-24.txt:387:            → 64 now, budget 63 — lower the budget to 64
+HEAD:outbox/hook-runs-exit-drains-proof-2026-11-24.txt:488:a. The exit budget is pinned twice. docs/early-exit-budget.txt holds 63, and the mutation entry `exit-budget-loose` in scripts/mutation-check.mjs carri
+HEAD:outbox/step16-exit-drains-regression-2026-11-24.txt:35:        -> 64 now, budget 63 -- lower the budget to 64
+HEAD:outbox/step16-exit-drains-regression-2026-11-24.txt:68:  - docs/early-exit-budget.txt was not raised to 64. The check's second FAIL line says "lower the budget to 64",
+(exit 0)
+
+$ git grep -n "budget is not loose" HEAD -- . ":!outbox"   (who names the clause)
+HEAD:docs/CC-CMD-2026-11-03-gate-state-hazards.md:137:One thing the review did not find and the guards did, after its fixes: `check:exit-drains` read 59 early exits against a budget of 60 ("the budget is not lo
+HEAD:scripts/check-exit-drains.mjs:266:  check('...and the budget is not loose', budget !== null && early.length === budget,
+(exit 0)
+
+$ git grep -nE "claim: *[A-Za-z0-9_.-]+ *=" HEAD -- docs | grep -iE "budget|exit-drain|early-exit"   (a doc claim that pins the number)
+(matches: 1 exit of grep -i; 1 means none)
+
+$ git grep -nE "(budget|ratchet)[^|]{0,40}\b63\b|\b63\b[^|]{0,40}(budget|ratchet)" HEAD -- docs scripts .githooks .github | cut -c1-170   (63 next to the word budget or ratchet)
+HEAD:.githooks/pre-commit:106:# 77647dc1 put the 64th such exit, against a budget of 63, into
+HEAD:docs/CC-CMD-2026-11-03-gate-hazard-residuals.md:145:| 10.19, `check-exit-drains` and the checkers with the same chain | BUILT for four of six | "check-exit-drains blanks with the shared
+HEAD:docs/CC-CMD-2026-11-03-gate-hazard-residuals.md:161:- Task 10, item 4: the quadratic figures were an order of magnitude too low (second CC-CMD C2); item 19: the budget in `docs/early-ex
+HEAD:docs/CC-CMD-2026-11-06-gate-residuals-remaining.md:83:| F1 | `.githooks/pre-commit` runs twelve checks and `check:exit-drains` is not one of them, nor a row of the confidence gate. It r
+HEAD:docs/CC-CMD-2026-11-24-step16-names-the-request.md:37:**Task 5. Push, then read the runner.** Done twice, because the first push needed a fix. On 77647dc1 (the first layout) live-check 
+HEAD:docs/CC-CMD-2026-11-24-step16-names-the-request.md:45:3. On the head that carries the change, `verify`'s step "No check script kills itself mid-write" has conclusion `success` and `npm 
+HEAD:docs/CC-CMD-2026-11-24-step16-names-the-request.md:51:`77647dc1`, the first source commit, turned `verify` red at "No check script kills itself mid-write". Its `--self-test` branch ende
+HEAD:scripts/console-error-text.mjs:27:// early report exit, the 64th against a ratchet of 63, and verify went red on "No check
+
+
+
+2. THE CHANGE
+-------------
+
+scripts/check-exit-drains.mjs and scripts/mutation-check.mjs, and nothing else under scripts/. The CC-CMD rows and the session record go in the docs commit after the push. `git diff --stat 28ace610` for the two files:
+
+ scripts/check-exit-drains.mjs | 39 +++++++++++++++++++++++++++++++++++++-
+ scripts/mutation-check.mjs    | 44 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+), 1 deletion(-)
+
+The VERDICTS are unchanged. The same inputs fail and pass the same clauses (A3a, A5a, A6a); only the detail string of the equality clause changed. That string now comes from one function with one branch per way the clause fails:
+
+export const budgetAdvice = (count, budget) => {
+  if (budget === null) return `${count} now, no budget to compare with — ${BUDGET_PATH} is missing: write the count into it`
+  if (count > budget) return `${count} now, budget ${budget} — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through`
+  if (count < budget) return `${count} now, budget ${budget} — lower the budget to ${count} in ${BUDGET_PATH}, and set find: "${count}" on the ${LOOSE_ENTRY} entry in ${MUTATION_PATH}, which pins the number`
+  return ''
+}
+
+Callers of `budgetAdvice` in the final file: the live check (line 304) and the self-test (lines 244, 247, 250 and 253). No other tracked file calls it. The docblock above it says why each branch says what it says, with the facts it rests on.
+
+The self-test grew from 22 clauses to 26. The four new clauses pin the message:
+  - A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same number
+  - A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file or its entry (the second half of a raise)
+  - ...a missing budget file is called missing, and not lowered
+  - ...an equal budget needs no advice
+
+The mutation table grew by five entries, one for each thing a clause pins (2245 to 2250 ids, counted by parsing `--list-ids` as JSON; the anchors line goes from "checked 2243 of 2246" to "checked 2248 of 2251"). Each is `file: 'scripts/check-exit-drains.mjs'` with `expect: 'node scripts/check-exit-drains.mjs --self-test'`:
+  exit-advice-drops-the-second-file                      the shrunk branch loses its second file
+  exit-advice-tells-a-grown-count-to-lower               the grown branch says "lower the budget to N" again
+  exit-advice-for-a-grown-count-hands-over-the-recipe    the grown branch names the mutation file and its entry
+  exit-advice-missing-budget-unhandled                   a null budget is read as a number
+  exit-advice-for-an-equal-budget                        an equal budget has advice
+
+
+3. THE HARNESS, AND THE CHECK OF ITS OWN PREDICATES
+--------------------------------------------------
+
+outbox/exit-budget-advice-proof-2026-11-25.mjs builds four trees from 28ace610 in scratch worktrees (outbox/exit-budget-advice-2026-11-25.patch is the change, applied for the "after" cases) and runs ten cases. Four of the ten make a real `git commit` through the real .githooks/pre-commit with the real npm, none stubbed.
+
+  trees   SHRUNK   count 62: scripts/design-tokens-check.mjs `process.exit(summarize(` becomes `finish(summarize(`
+          GREW     count 64: `const PICTOGRAPH =` in scripts/glyph-check.mjs gets `if (false) process.exit(summarize())` before it
+          MISSING  docs/early-exit-budget.txt deleted, count 63
+          CLEAN    unchanged, count 63
+
+  A0   before  SHRUNK   budget file AND entry moved to 62, old script   control: the two-file edit with the old script; the hook passes and the entry is still caught
+  A1   before  SHRUNK   budget file alone, old script                   the old message's advice, followed: the hook refuses at check:mutation-anchors
+  A2   after   SHRUNK   exactly the edits the new message names         the hook passes and the entry is still caught
+  A3   before  GREW     old script, direct run                          "lower the budget to 64"
+  A3a  after   GREW     new script, direct run                          same FAIL clauses; no "lower the budget"; neither the mutation file nor its entry; says remove; the clause above still names scripts/glyph-check.mjs
+  A4   after   GREW     budget 64, entry 64 to 65                       the two-file raise on a grown tree: what the hook does with it
+  A5   before  MISSING  old script, direct run                          "lower the budget to 63" with nothing to lower
+  A5a  after   MISSING  new script, direct run                          same FAIL clauses; calls it missing; no "lower"
+  A6   before  CLEAN    old script, direct run and self-test            passes, 22 clauses
+  A6a  after   CLEAN    new script, direct run and self-test            passes, 26 clauses
+
+A0 is the control and runs first. The harness stops there if it is not as expected, because nothing after it would mean anything. Each case asserts its own setup (anchor unique, text changed, the staged paths) before it runs.
+
+THE HARNESS'S PREDICATES, tried before any worktree is made (Rule 90). The harness decides each case by reading text: the hook's LAST line, a count, the detail under a named FAIL line, the tokens a message holds. The earlier harness of this kind (outbox/hook-runs-exit-drains-proof-2026-11-24.mjs) once called a refused hook a success because its test was a substring test. This one runs 13 predicate tests first ("predicate self-test: 13 of 13 held", the first lines of section 5), and outbox/exit-budget-advice-proof-2026-11-25-mutate.mjs breaks eight predicates in copies of the harness. Each anchor is asserted unique, each mutated copy asserted to parse, and a copy counts as caught only if it stops at the predicate self-test, names its clause, and does so before any case. Verbatim:
+
+CAUGHT      ok back to a substring test  (exit 1; names its clause: true; before any case: true)
+CAUGHT      early reads the first report line, not the last  (exit 1; names its clause: true; before any case: true)
+CAUGHT      failLines loses its anchor  (exit 1; names its clause: true; before any case: true)
+CAUGHT      detailOf takes the first FAIL, whatever its name  (exit 1; names its clause: true; before any case: true)
+CAUGHT      has needs only one token  (exit 1; names its clause: true; before any case: true)
+CAUGHT      lacks forbids only one token  (exit 1; names its clause: true; before any case: true)
+CAUGHT      lacks passes a detail that is not there  (exit 1; names its clause: true; before any case: true)
+CAUGHT      counts swaps pass and total  (exit 1; names its clause: true; before any case: true)
+COVERAGE: 8 variants applied, each anchor unique, each copy parsed; 8 of 8 caught
+
+
+4. RED FIRST: THE OLD MESSAGE, VERBATIM
+--------------------------------------
+
+The cases that run on the old script and need no patch (A0, A1, A3, A5, A6): `node outbox/exit-budget-advice-proof-2026-11-25.mjs --scratch <dir> --only A0,A1,A3,A5,A6`. They show the defects of the message as it stands at 28ace610: it names no file (A0, A1), a lowering done as it says is refused a second time (A1), it tells a grown count to lower the budget (A3), and it tells a missing budget file to be lowered (A5). Two real hook attempts.
+
+scratch: /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/ba-before
+BASE 28ace610; patch not present (only the cases that need none can run)
+predicate self-test: 13 of 13 held
+
+=== A0  before  SHRUNK, script as at BASE, the budget file AND the entry moved to 62: control, the two-file edit
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the shrunk tree: exit 1; early report exits 62; FAIL  ...and the budget is not loose
+  equality clause detail: 62 now, budget 63 — lower the budget to 62
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/design-tokens-check.mjs, scripts/mutation-check.mjs
+  git commit: exit 0; HEAD moved; 83.1 s
+  hook output, last 12 lines:
+    
+      scanned 210 script(s) in scripts/
+      terminal report exits: 0  (must be 0 — finish() is a drop-in)
+      early report exits:    62  (ratchet, budget 62)
+    
+    PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+    PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+    PASS  early report exits do not grow
+    PASS  ...and the budget is not loose
+    
+    4/4 checks passed
+    pre-commit: ok
+  mutation-check --only exit-budget-loose: exit 0; PASS  the unmutated tree passes every expectation | PASS  [exit-budget-loose] the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it
+  AS EXPECTED  the tree has one early exit fewer (the check run directly: non-zero, count 62)
+  AS EXPECTED  only the equality clause fails (one FAIL line, "budget is not loose")
+  AS EXPECTED  the OLD message says "lower the budget to 62" and names no file (not the budget file, the mutation file or its entry)
+  AS EXPECTED  the hook lets it through (exit 0, HEAD moved, "pre-commit: ok")
+  AS EXPECTED  the hook reached the line: count 62
+  AS EXPECTED  and the moved entry is still CAUGHT (mutation-check --only exit-budget-loose: exit 0, PASS [exit-budget-loose])
+
+=== A1  before  SHRUNK, script as at BASE, the budget file alone moved to 62 (what the old message says)
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the shrunk tree: exit 1; early report exits 62; FAIL  ...and the budget is not loose
+  equality clause detail: 62 now, budget 63 — lower the budget to 62
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/design-tokens-check.mjs
+  git commit: exit 1; HEAD unchanged; 13.3 s
+  hook output, last 12 lines:
+      not checked here, needs a build: scripts/favourite-band-census.mjs
+      not checked here, needs a build: scripts/forecast-run.mjs
+      not checked here, needs a build: scripts/second-wind-population.mjs
+      not checked here, needs a build: scripts/weather-availability.mjs
+    PASS  no module-scope script has acquired an export, which would make this probe RUN it
+    PASS  there are exporting modules to check
+    PASS  importing a module never runs it or exits the process
+    
+    3/3 checks passed
+    checked 3 files (.mutation-state/active.json, .mutation-state/nested/active.json, .mutation-state/driver.json); 0 hold a marker; 0 name a build driver a dead run left running
+    checked 2243 of 2246 mutation anchors; 1 stale
+      STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63
+  AS EXPECTED  the tree has one early exit fewer (the check run directly: non-zero, count 62)
+  AS EXPECTED  only the equality clause fails (one FAIL line, "budget is not loose")
+  AS EXPECTED  the OLD message says "lower the budget to 62" and names no file (not the budget file, the mutation file or its entry)
+  AS EXPECTED  the hook REFUSES it (non-zero exit, HEAD unchanged, last line is not "pre-commit: ok")
+  AS EXPECTED  at check:mutation-anchors, naming the pinned entry (STALE  exit-budget-loose)
+  AS EXPECTED  and the exit-drains check was never asked (no "early report exits" in the hook output)
+
+=== A3  before  GREW, script as at BASE, direct run
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the grew tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 64 now, budget 63 — lower the budget to 64
+  AS EXPECTED  the tree has the 64th early exit (non-zero, count 64)
+  AS EXPECTED  both clauses fail: "early report exits do not grow" and "budget is not loose"
+  AS EXPECTED  the OLD equality message tells a grown count to "lower the budget to 64", which is a raise
+
+=== A5  before  MISSING budget file, script as at BASE, direct run
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the missing tree: exit 1; early report exits 63; FAIL  docs/early-exit-budget.txt exists, or the ratchet has no number | FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 63 now, budget null — lower the budget to 63
+  AS EXPECTED  the budget file is missing (non-zero, count 63, "budget MISSING")
+  AS EXPECTED  the OLD equality message says "lower the budget to 63" with nothing to lower
+
+=== A6  before  CLEAN, script as at BASE, direct run and self-test
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the clean tree: exit 0; early report exits 63; no FAIL line
+  self-test: exit 0; [22,22]
+  AS EXPECTED  the check passes (exit 0, no FAIL line, count 63)
+  AS EXPECTED  the self-test passes with 22 clauses
+
+the main tree's node_modules after cleanup: intact (playwright and @xmldom/xmldom present)
+COVERAGE: 5 of 10 cases ran (--only A0,A1,A3,A5,A6); 2 real git commit attempts, each with the real hook and the real npm, none stubbed; worktrees removed.
+whole-hook wall time, one run each: A0 83.1 s, A1 13.3 s
+RESULT: the selected 5 cases behaved as expected.
+exit: 0
+
+
+5. THE FINAL RUN, VERBATIM
+--------------------------
+
+`node outbox/exit-budget-advice-proof-2026-11-25.mjs --scratch <dir>`, the whole harness, on the tree this commit holds (28ace610 plus the patch). The three runs before it are in section 7.
+
+scratch: /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/ba-final
+BASE 28ace610; patch outbox/exit-budget-advice-2026-11-25.patch (79 lines added)
+predicate self-test: 13 of 13 held
+
+=== A0  before  SHRUNK, script as at BASE, the budget file AND the entry moved to 62: control, the two-file edit
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the shrunk tree: exit 1; early report exits 62; FAIL  ...and the budget is not loose
+  equality clause detail: 62 now, budget 63 — lower the budget to 62
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/design-tokens-check.mjs, scripts/mutation-check.mjs
+  git commit: exit 0; HEAD moved; 87.8 s
+  hook output, last 12 lines:
+    
+      scanned 210 script(s) in scripts/
+      terminal report exits: 0  (must be 0 — finish() is a drop-in)
+      early report exits:    62  (ratchet, budget 62)
+    
+    PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+    PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+    PASS  early report exits do not grow
+    PASS  ...and the budget is not loose
+    
+    4/4 checks passed
+    pre-commit: ok
+  mutation-check --only exit-budget-loose: exit 0; PASS  the unmutated tree passes every expectation | PASS  [exit-budget-loose] the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it
+  AS EXPECTED  the tree has one early exit fewer (the check run directly: non-zero, count 62)
+  AS EXPECTED  only the equality clause fails (one FAIL line, "budget is not loose")
+  AS EXPECTED  the OLD message says "lower the budget to 62" and names no file (not the budget file, the mutation file or its entry)
+  AS EXPECTED  the hook lets it through (exit 0, HEAD moved, "pre-commit: ok")
+  AS EXPECTED  the hook reached the line: count 62
+  AS EXPECTED  and the moved entry is still CAUGHT (mutation-check --only exit-budget-loose: exit 0, PASS [exit-budget-loose])
+
+=== A1  before  SHRUNK, script as at BASE, the budget file alone moved to 62 (what the old message says)
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the shrunk tree: exit 1; early report exits 62; FAIL  ...and the budget is not loose
+  equality clause detail: 62 now, budget 63 — lower the budget to 62
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/design-tokens-check.mjs
+  git commit: exit 1; HEAD unchanged; 14.2 s
+  hook output, last 12 lines:
+      not checked here, needs a build: scripts/favourite-band-census.mjs
+      not checked here, needs a build: scripts/forecast-run.mjs
+      not checked here, needs a build: scripts/second-wind-population.mjs
+      not checked here, needs a build: scripts/weather-availability.mjs
+    PASS  no module-scope script has acquired an export, which would make this probe RUN it
+    PASS  there are exporting modules to check
+    PASS  importing a module never runs it or exits the process
+    
+    3/3 checks passed
+    checked 3 files (.mutation-state/active.json, .mutation-state/nested/active.json, .mutation-state/driver.json); 0 hold a marker; 0 name a build driver a dead run left running
+    checked 2243 of 2246 mutation anchors; 1 stale
+      STALE  exit-budget-loose: not found in docs/early-exit-budget.txt: 63
+  AS EXPECTED  the tree has one early exit fewer (the check run directly: non-zero, count 62)
+  AS EXPECTED  only the equality clause fails (one FAIL line, "budget is not loose")
+  AS EXPECTED  the OLD message says "lower the budget to 62" and names no file (not the budget file, the mutation file or its entry)
+  AS EXPECTED  the hook REFUSES it (non-zero exit, HEAD unchanged, last line is not "pre-commit: ok")
+  AS EXPECTED  at check:mutation-anchors, naming the pinned entry (STALE  exit-budget-loose)
+  AS EXPECTED  and the exit-drains check was never asked (no "early report exits" in the hook output)
+
+=== A2  after  SHRUNK, new script, exactly the edits the new message names (the budget file, and find "62" on the entry)
+  worktree at 28ace610 + patch; node_modules linked (package files identical to the main tree's)
+  the check run directly on the shrunk tree: exit 1; early report exits 62; FAIL  ...and the budget is not loose
+  equality clause detail: 62 now, budget 63 — lower the budget to 62 in docs/early-exit-budget.txt, and set find: "62" on the exit-budget-loose entry in scripts/mutation-check.mjs, which pins the number
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/design-tokens-check.mjs, scripts/mutation-check.mjs
+  git commit: exit 0; HEAD moved; 88.5 s
+  hook output, last 12 lines:
+    
+      scanned 210 script(s) in scripts/
+      terminal report exits: 0  (must be 0 — finish() is a drop-in)
+      early report exits:    62  (ratchet, budget 62)
+    
+    PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+    PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+    PASS  early report exits do not grow
+    PASS  ...and the budget is not loose
+    
+    4/4 checks passed
+    pre-commit: ok
+  mutation-check --only exit-budget-loose: exit 0; PASS  the unmutated tree passes every expectation | PASS  [exit-budget-loose] the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it
+  AS EXPECTED  the tree has one early exit fewer (the check run directly: non-zero, count 62)
+  AS EXPECTED  only the equality clause fails (one FAIL line, "budget is not loose")
+  AS EXPECTED  the NEW message names what to edit: "lower the budget to 62", the budget file, the mutation file, its entry and find: "62"
+  AS EXPECTED  the hook lets it through (exit 0, HEAD moved, "pre-commit: ok")
+  AS EXPECTED  the hook reached the line: count 62
+  AS EXPECTED  and the moved entry is still CAUGHT (mutation-check --only exit-budget-loose: exit 0, PASS [exit-budget-loose])
+
+=== A3  before  GREW, script as at BASE, direct run
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the grew tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 64 now, budget 63 — lower the budget to 64
+  AS EXPECTED  the tree has the 64th early exit (non-zero, count 64)
+  AS EXPECTED  both clauses fail: "early report exits do not grow" and "budget is not loose"
+  AS EXPECTED  the OLD equality message tells a grown count to "lower the budget to 64", which is a raise
+
+=== A3a  after  GREW, new script, direct run
+  worktree at 28ace610 + patch; node_modules linked (package files identical to the main tree's)
+  the check run directly on the grew tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 64 now, budget 63 — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through
+  AS EXPECTED  the tree has the 64th early exit (non-zero, count 64)
+  AS EXPECTED  the verdict is unchanged: the same FAIL clauses as the old script
+  AS EXPECTED  the NEW equality message does not say "lower the budget" and names neither the mutation file nor its entry
+  AS EXPECTED  it says to remove the new early exit(s)
+  AS EXPECTED  and the first clause still names the new exit (scripts/glyph-check.mjs)
+
+=== A4  after  GREW, new script, the budget moved to 64 and the entry to 64/65: the two-file edit on a grown tree
+  worktree at 28ace610 + patch; node_modules linked (package files identical to the main tree's)
+  the check run directly on the grew tree: exit 1; early report exits 64; FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 64 now, budget 63 — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through
+  staged: docs/early-exit-budget.txt, outbox/scratch-exit-budget-advice-note.md, scripts/glyph-check.mjs, scripts/mutation-check.mjs
+  git commit: exit 0; HEAD moved; 86.8 s
+  hook output, last 12 lines:
+    
+      scanned 210 script(s) in scripts/
+      terminal report exits: 0  (must be 0 — finish() is a drop-in)
+      early report exits:    64  (ratchet, budget 64)
+    
+    PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+    PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+    PASS  early report exits do not grow
+    PASS  ...and the budget is not loose
+    
+    4/4 checks passed
+    pre-commit: ok
+  AS EXPECTED  the tree has the 64th early exit (non-zero, count 64)
+  AS EXPECTED  the hook lets it through (exit 0, HEAD moved, "pre-commit: ok")
+  AS EXPECTED  the hook reached the line: count 64
+
+=== A5  before  MISSING budget file, script as at BASE, direct run
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the missing tree: exit 1; early report exits 63; FAIL  docs/early-exit-budget.txt exists, or the ratchet has no number | FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 63 now, budget null — lower the budget to 63
+  AS EXPECTED  the budget file is missing (non-zero, count 63, "budget MISSING")
+  AS EXPECTED  the OLD equality message says "lower the budget to 63" with nothing to lower
+
+=== A5a  after  MISSING budget file, new script, direct run
+  worktree at 28ace610 + patch; node_modules linked (package files identical to the main tree's)
+  the check run directly on the missing tree: exit 1; early report exits 63; FAIL  docs/early-exit-budget.txt exists, or the ratchet has no number | FAIL  early report exits do not grow | FAIL  ...and the budget is not loose
+  equality clause detail: 63 now, no budget to compare with — docs/early-exit-budget.txt is missing: write the count into it
+  AS EXPECTED  the budget file is missing (non-zero, count 63, "budget MISSING")
+  AS EXPECTED  the verdict is unchanged: the same FAIL clauses as the old script
+  AS EXPECTED  the NEW message calls it missing and does not say "lower"
+
+=== A6  before  CLEAN, script as at BASE, direct run and self-test
+  worktree at 28ace610; node_modules linked (package files identical to the main tree's)
+  the check run directly on the clean tree: exit 0; early report exits 63; no FAIL line
+  self-test: exit 0; [22,22]
+  AS EXPECTED  the check passes (exit 0, no FAIL line, count 63)
+  AS EXPECTED  the self-test passes with 22 clauses
+
+=== A6a  after  CLEAN, new script, direct run and self-test
+  worktree at 28ace610 + patch; node_modules linked (package files identical to the main tree's)
+  the check run directly on the clean tree: exit 0; early report exits 63; no FAIL line
+  self-test: exit 0; [26,26]
+  AS EXPECTED  the check passes (exit 0, no FAIL line, count 63)
+  AS EXPECTED  the self-test passes with 26 clauses (22 and the four that pin the message)
+
+the main tree's node_modules after cleanup: intact (playwright and @xmldom/xmldom present)
+COVERAGE: 10 of 10 cases ran; 4 real git commit attempts, each with the real hook and the real npm, none stubbed; worktrees removed.
+whole-hook wall time, one run each: A0 87.8 s, A1 14.2 s, A2 88.5 s, A4 86.8 s
+RESULT: all 10 cases behaved as expected.
+exit: 0
+
+
+6. THE SELF-TEST, THE ANCHORS AND THE FIVE ENTRIES, VERBATIM
+------------------------------------------------------------
+
+In a scratch worktree at 28ace610 with the final scripts copied in and compared byte for byte with the main tree's (identical before and after). The entries are run two ways. The framework (`--ids`) mutates in place, in a scratch tree only, and says CAUGHT or not. The probe, outbox/exit-budget-advice-entries-probe-2026-11-25.mjs, reads each entry's find and replace out of the table by evaluating its object literal (nothing retyped), applies it to a copy of the script, and prints which clause failed and the detail it printed; the control is the unmutated copy, 26/26 first. An entry caught by a clause other than the one it exists for would prove the wrong thing.
+
+Scratch worktree at 28ace610 with the final scripts copied in (28ace610); cmp against the main tree: identical
+
+$ node scripts/check-exit-drains.mjs --self-test | tail -n 3
+PASS  THE SCAN FINDS THE REAL EARLY EXITS, or the ratchet guards nothing
+
+26/26 checks passed
+exit: 0
+
+$ node scripts/check-exit-drains.mjs   (the live check on this tree)
+
+  scanned 210 script(s) in scripts/
+  terminal report exits: 0  (must be 0 — finish() is a drop-in)
+  early report exits:    63  (ratchet, budget 63)
+
+PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+PASS  early report exits do not grow
+PASS  ...and the budget is not loose
+
+4/4 checks passed
+exit: 0
+
+$ node scripts/mutation-check.mjs --anchors | tail -n 3
+checked 2248 of 2251 mutation anchors; 0 stale
+exit: 0
+
+$ node scripts/mutation-check.mjs --ids exit-budget-loose,exit-advice-drops-the-second-file,exit-advice-tells-a-grown-count-to-lower,exit-advice-for-a-grown-count-hands-over-the-recipe,exit-advice-missing-budget-unhandled,exit-advice-for-an-equal-budget
+
+Mutation testing 6 invariant(s)
+
+  baseline: ran 2 of 2 distinct expectation(s) from 6 mutation(s), 0 failing
+  baseline NOT written: --ids covers 2 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+PASS  [exit-budget-loose] the early-exit budget is the count, not a number above it: a loose budget is a ratchet with slack in it
+PASS  [exit-advice-drops-the-second-file] a budget above the count is told to come down in BOTH places that hold the number: the budget file and the mutation entry that pins it
+PASS  [exit-advice-tells-a-grown-count-to-lower] a count above the budget is never told to lower the budget, which for a count that grew is a raise that lets the growth through
+PASS  [exit-advice-for-a-grown-count-hands-over-the-recipe] a count above the budget is not handed the mutation file or its entry, which with the budget file are the whole edit of a raise
+PASS  [exit-advice-missing-budget-unhandled] a missing budget file is called missing; it is not read as a budget of zero that the count has grown past
+PASS  [exit-advice-for-an-equal-budget] a budget equal to the count has no advice to give
+
+7/7 checks passed
+exit: 0
+
+$ git status --short   (the framework mutates in place and must leave the tree as it found it: the two copied scripts and the probe only)
+ M scripts/check-exit-drains.mjs
+ M scripts/mutation-check.mjs
+?? outbox/exit-budget-advice-entries-probe-2026-11-25.mjs
+(end of git status)
+identical to the main tree after the run: scripts/check-exit-drains.mjs
+identical to the main tree after the run: scripts/mutation-check.mjs
+
+$ node outbox/exit-budget-advice-entries-probe-2026-11-25.mjs   (which clause catches each entry, and what it printed)
+control (unmutated copy): exit 0, 26/26 checks passed, 0 FAIL
+exit-advice-drops-the-second-file
+  parses: true; self-test exit 1; 25/26 checks passed
+  clauses that fail:
+    FAIL  A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same nu
+  the detail the clause printed:
+    → 62 now, budget 63 — lower the budget to 62 in docs/early-exit-budget.txt
+exit-advice-tells-a-grown-count-to-lower
+  parses: true; self-test exit 1; 25/26 checks passed
+  clauses that fail:
+    FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+  the detail the clause printed:
+    → 64 now, budget 63 — lower the budget to 64
+exit-advice-for-a-grown-count-hands-over-the-recipe
+  parses: true; self-test exit 1; 25/26 checks passed
+  clauses that fail:
+    FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+  the detail the clause printed:
+    → 64 now, budget 63 — the count grew: remove the new early exit(s), which are among those listed above. Set find on exit-budget-loose in scripts/mutation-check.mjs to match
+exit-advice-missing-budget-unhandled
+  parses: true; self-test exit 1; 25/26 checks passed
+  clauses that fail:
+    FAIL  ...a missing budget file is called missing, and not lowered
+  the detail the clause printed:
+    → 63 now, budget null — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through
+exit-advice-for-an-equal-budget
+  parses: true; self-test exit 1; 25/26 checks passed
+  clauses that fail:
+    FAIL  ...an equal budget needs no advice
+  the detail the clause printed:
+    → "x"
+COVERAGE: 5 entries read from the table (the table holds 5), each anchor unique, each mutated copy parsed, each caught by exactly one clause: 5 of 5
+exit: 0
+
+THE PROBE CAN FAIL (Rule 90). outbox/exit-budget-advice-entries-probe-2026-11-25-mutate.mjs breaks the probe's input four ways in a scratch worktree and requires the probe to fail each time: a broken control, a non-unique anchor, an entry caught by two clauses, an entry caught by none.
+
+AS EXPECTED      CONTROL  no edit: the probe passes
+   probe exit 0
+   control (unmutated copy): exit 0, 26/26 checks passed, 0 FAIL
+       FAIL  A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same nu
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  ...a missing budget file is called missing, and not lowered
+       FAIL  ...an equal budget needs no advice
+   COVERAGE: 5 entries read from the table (the table holds 5), each anchor unique, each mutated copy parsed, each caught by exactly one clause: 5 of 5
+AS EXPECTED      D1  the control copy is itself broken (budgetAdvice returns "x" for an equal budget)
+   probe exit 1
+   control (unmutated copy): exit 1, 25/26 checks passed, 1 FAIL
+   Error: the control copy is not 26/26 with no FAIL line, so nothing below means anything
+AS EXPECTED      D2  an entry whose anchor is not unique (exit-advice-for-an-equal-budget finds "  return")
+   probe exit 1
+   control (unmutated copy): exit 0, 26/26 checks passed, 0 FAIL
+       FAIL  A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same nu
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  ...a missing budget file is called missing, and not lowered
+   Error: exit-advice-for-an-equal-budget: the anchor occurs 3 times
+AS EXPECTED      D3  an entry caught by more than one clause (exit-advice-drops-the-second-file empties every advice)
+   probe exit 1
+   control (unmutated copy): exit 0, 26/26 checks passed, 0 FAIL
+       FAIL  A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same nu
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  ...a missing budget file is called missing, and not lowered
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  ...a missing budget file is called missing, and not lowered
+       FAIL  ...an equal budget needs no advice
+   COVERAGE: 5 entries read from the table (the table holds 5), each anchor unique, each mutated copy parsed, each caught by exactly one clause: 4 of 5
+AS EXPECTED      D4  an entry that is not caught at all (exit-advice-for-an-equal-budget changes a docblock phrase, nothing that runs)
+   probe exit 1
+   control (unmutated copy): exit 0, 26/26 checks passed, 0 FAIL
+       FAIL  A BUDGET ABOVE THE COUNT IS TOLD TO COME DOWN, in the budget file and in the mutation entry that holds the same nu
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  A COUNT ABOVE THE BUDGET IS TOLD TO REMOVE THE EXIT, not to lower the budget, and is not handed the mutation file 
+       FAIL  ...a missing budget file is called missing, and not lowered
+       (none)
+       (none)
+   COVERAGE: 5 entries read from the table (the table holds 5), each anchor unique, each mutated copy parsed, each caught by exactly one clause: 4 of 5
+restored; the probe on the unedited scripts: exit 0, COVERAGE: 5 entries read from the table (the table holds 5), each anchor unique, each mutated copy parsed, each caught by exactly one clause: 5 of 5
+COVERAGE: 5 cases ran (one control and 4 broken inputs); 5 behaved as expected
+exit: 0
+
+
+7. FOUND WHILE PROVING IT
+-------------------------
+
+a. A statement in the F1 record is wrong. outbox/hook-runs-exit-drains-proof-2026-11-24.txt, section 7a, says the old message "names only the first" of the two files. It names neither (P1). The F1 report said the same. Neither is edited here: the record is dated, and this section is where the correction is.
+
+b. Four runs of the harness, and what each showed.
+   run 0  `--only A0,A1,A3,A5,A6`, the cases that need no patch: "RESULT: the selected 5 cases behaved as expected." Section 4.
+   run 1  the whole harness on my first wording: 10 of 10 as expected, three real hooks passed and one refused as designed. The harness could not see what was wrong with that wording (c below). Its output is not kept.
+   run 2  the whole harness on the corrected wording: stopped at A2 by the harness's own guard, "NOT APPLIED: A2: the patch added four exit-advice entries to the table", because I had added a fifth entry. The guard had only ever passed before, and here it did what it is for. Corrected to five.
+   run 3  section 5.
+
+c. Three premises in my first wording were refuted by READING, after run 1 came back 10 of 10 (P9, P10, P11). The harness's predicates had passed on all three, because they test for tokens and not for whether a sentence is true. The first draft said, for a grown count, "...remove the new early exit(s) named above. Editing the budget to match turns the ratchet off", and for a missing budget file, "...docs/early-exit-budget.txt is missing, see the line above". Reading the full output of the check on a grown tree showed that the clause above the equality clause lists every early exit, so the new one is among them and is not singled out. A4 showed that the ratchet does not turn off: the hook accepted the grown tree with the budget at 64, and the ratchet then holds at 64. Reading the missing-file output showed that the line directly above the equality clause is "→ 63 now, budget null". None of the three was committed or published: they were in the working tree, and the commit carries the corrected wording. The harness predicate "the first clause still names scripts/glyph-check.mjs" is true and weak: that file holds three early exits, and one is new.
+
+   The check on a grown tree (final wording; a 64th early exit inserted into scripts/glyph-check.mjs; scratch worktree). The list under "early report exits do not grow" is every early exit:
+
+$ (scratch worktree at 28ace610 plus the final scripts) a tree with a 64th early exit: one `if (false) process.exit(summarize())` inserted before `const PICTOGRAPH =` in scripts/glyph-check.mjs
+
+  scanned 210 script(s) in scripts/
+  terminal report exits: 0  (must be 0 — finish() is a drop-in)
+  early report exits:    64  (ratchet, budget 63)
+
+PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+FAIL  early report exits do not grow
+      → 64 now, budget 63 — the new one(s) are among: scripts/axis-check.mjs:164, scripts/boundary-reachable-check.mjs:82, scripts/brief-phase-live-check.mjs:303, scripts/brief-phase-live-check.mjs:382, scripts/brief-phase-live-check.mjs:409, scripts/cc-cmd-followup.mjs:759, scripts/check-ignore-parity.mjs:99, scripts/check-lineups-pull-only.mjs:315, scripts/computed-chrome-check.mjs:867, scripts/confidence-record-check.mjs:494, scripts/deploy-claim-consistency-check.mjs:120, scripts/deploy-landed-check.mjs:124, scripts/design-tokens-check.mjs:33, scripts/device-chrome-check.mjs:145, scripts/docs-check.mjs:195, scripts/draw-render-check.mjs:43, scripts/exit-truncation-probe.mjs:115, scripts/exposed-secret-check.mjs:204, scripts/game-id-check.mjs:104, scripts/generate-team-colours.mjs:351, scripts/glyph-check.mjs:41, scripts/glyph-check.mjs:56, scripts/glyph-check.mjs:81, scripts/history-check.mjs:241, scripts/import-purity-check.mjs:218, scripts/install-adhd-skill.mjs:200, scripts/lineups-render-check.mjs:116, scripts/merge-duplicate-pairs.mjs:268, scripts/mutation-check.mjs:22053, scripts/not-observable.mjs:80, scripts/odds-shape-census.mjs:186, scripts/palette-check.mjs:58, scripts/pick-shape-check.mjs:75, scripts/probe-alternate-colours.mjs:158, scripts/probe-archive-scheme-duplicates.mjs:134, scripts/probe-dash-scheme-writer.mjs:88, scripts/probe-espn-id-collisions.mjs:254, scripts/probe-fixture-identity-duplicates.mjs:152, scripts/probe-id-scheme-migration-exposure.mjs:150, scripts/probe-mls-pair-discriminators.mjs:188, scripts/probe-open-meteo-egress.mjs:97, scripts/probe-plain-card-causes.mjs:115, scripts/probe-team-colour-coverage.mjs:221, scripts/probe-unrecognised-id-shapes.mjs:96, scripts/probe-unresolved-spellings.mjs:123, scripts/red-main-issue.mjs:452, scripts/red-main-rehearsal.mjs:60, scripts/relay-brief-watch.mjs:139, scripts/relay-duplicate-fixture-watch.mjs:259, scripts/row-confidence.mjs:257, scripts/scale-check.mjs:74, scripts/scoreline-check.mjs:188, scripts/session-ready-check.mjs:89, scripts/session-ready-check.mjs:121, scripts/setup-script-check.mjs:108, scripts/short-circuit-check.mjs:136, scripts/skill-drift-check.mjs:233, scripts/status-state-check.mjs:105, scripts/sync-adhd-skill.mjs:97, scripts/team-tint-render-check.mjs:66, scripts/typography-check.mjs:43, scripts/verify-render-check.mjs:53, scripts/viewport-overflow-check.mjs:174, scripts/wp-check.mjs:29
+FAIL  ...and the budget is not loose
+      → 64 now, budget 63 — the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through
+
+2/4 checks passed
+exit: 1
+
+   The check with the budget file missing (final wording):
+
+$ (the same worktree) a tree with the budget file missing
+
+  scanned 210 script(s) in scripts/
+  terminal report exits: 0  (must be 0 — finish() is a drop-in)
+  early report exits:    63  (ratchet, budget MISSING)
+
+PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+FAIL  docs/early-exit-budget.txt exists, or the ratchet has no number
+      → write the current count into it
+FAIL  early report exits do not grow
+      → 63 now, budget null
+FAIL  ...and the budget is not loose
+      → 63 now, no budget to compare with — docs/early-exit-budget.txt is missing: write the count into it
+
+1/4 checks passed
+exit: 1
+
+d. One probe command failed on option order and said so: "fatal: unable to resolve revision: -A6", from `git grep -n "..." -A6 <rev>`. It is corrected in the probe block above, and nothing was concluded from the failed run.
+
+e. The harness header prints "79 lines added" for a patch whose diffstat says 82 insertions. It counts added lines that are not blank (`^\+[^+]`), and three added lines are blank. The label is inexact and no verdict depends on it. Not changed.
+
+f. My first attempt to show that the entries probe can fail used a helper that read its arguments from the wrong position, so none of the four edits was applied, the errors printed, and the "broken" cases ran unbroken. I did not read those runs as results. It was redone with a script that asserts every anchor unique and every edit effective (section 6).
+
+
+8. THE OPTION NOT BUILT, TRIED IN A SCRATCH TREE
+------------------------------------------------
+
+The new message for a shrunk count has two halves because the mutation entry `exit-budget-loose` anchors on the budget's own digits (`find: "63"`, `replace: "64"`). Any change of the budget leaves the anchor stale, so the entry has to move with it. An anchor that does not depend on the number would end the second pin, and with it the second half of the message and of its clause. The candidate is `find: "\n"`, `replace: "1\n"`: the budget file is the number and one newline, so the anchor is unique for every number, and the replacement changes the parsed value for every number (0 becomes 1).
+
+Tried on a scratch worktree at 28ace610, nothing committed, the budget file restored with git checkout afterwards:
+
+$ (scratch worktree at 28ace610, nothing committed; the budget file is restored with git checkout afterwards)
+$ git rev-parse --short HEAD
+28ace610
+
+== the budget file as the anchor sees it
+content "63\n" ; newline count 1
+
+== control: the check on the unmutated tree
+  early report exits:    63  (ratchet, budget 63)
+PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+PASS  early report exits do not grow
+PASS  ...and the budget is not loose
+4/4 checks passed
+exit: 0
+
+== the mutation find "\n" replace "1\n", applied by a script that asserts the anchor is unique and the text changed
+applied: "63\n" -> "631\n"
+  early report exits:    63  (ratchet, budget 631)
+PASS  NO SCRIPT ENDS BY KILLING ITSELF MID-WRITE — use finish(summarize())
+PASS  docs/early-exit-budget.txt exists, or the ratchet has no number
+PASS  early report exits do not grow
+FAIL  ...and the budget is not loose
+      → 63 now, budget 631 — lower the budget to 63
+3/4 checks passed
+exit: 1
+restored; changed files: 0
+
+== the same replacement on other budgets (text only): is the parsed number different for every N?
+"0\n" -> "01\n"  Number: 0 -> 1  differs: true
+"1\n" -> "11\n"  Number: 1 -> 11  differs: true
+"9\n" -> "91\n"  Number: 9 -> 91  differs: true
+"10\n" -> "101\n"  Number: 10 -> 101  differs: true
+"63\n" -> "631\n"  Number: 63 -> 631  differs: true
+"99\n" -> "991\n"  Number: 99 -> 991  differs: true
+"100\n" -> "1001\n"  Number: 100 -> 1001  differs: true
+
+What it would change if built, and what it would not:
+  - `check:mutation-anchors` would no longer refuse a budget-only edit, so such an edit would reach check:exit-drains in the hook. The F1 record's case C5 and the F1 row of the CC-CMD record the refusal at check:mutation-anchors as it stands today, and both would need a dated note.
+  - What stops a raise does not change. A4 measured that the hook accepts a raise to 64 when the budget file and the entry both say 64. After the change a raise would take one file and not two. Neither design stops it. A raise is a visible one-line diff of docs/early-exit-budget.txt, and c362be57 shows that one is sometimes right.
+G2 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md, added in the docs commit that follows this one, waiting for the owner's word. Not built here: it changes which check refuses a budget-only edit, which is outside the message the owner approved.
+
+
+9. COST
+-------
+
+What the machine was doing, from the two probes the command ran before the timings. The first was `ps aux | grep -E "node|npm|git " | grep -v grep | grep -vE "claude|mcp" | head -n 5`, which printed no process. These two lines are what the command printed after it:
+
+  (processes above: any node/npm/git work still running that is not the session's own)
+   21:02:46 up 34 min,  0 user,  load average: 1.13, 1.11, 0.73
+
+That filter hides every line that contains "claude" or "mcp", so it would not show a stray run of mine or one of the harness's. The first line of the block below says "with nothing else running", which is more than these two probes show; read the table as three runs at a load average of 1.13 over the minute before.
+
+Measured Wed 2026-11-25 21:02:46 EST with nothing else running (uptime above), 3 runs each, wall time.
+
+== BASE 28ace610 (old message, 22 clauses)   (0 changed files in the worktree: )
+-- npm run --silent check:exit-drains   (the line the hook runs)
+1.327 s (exit 0)
+1.079 s (exit 0)
+1.125 s (exit 0)
+-- node scripts/check-exit-drains.mjs --self-test   (the expectation of each exit-advice entry, and a step of verify)
+0.713 s (exit 0)
+0.694 s (exit 0)
+0.745 s (exit 0)
+
+== BASE plus the patch (new message, 26 clauses)   (2 changed files in the worktree:  M scripts/check-exit-drains.mjs  M scripts/mutation-check.mjs )
+-- npm run --silent check:exit-drains   (the line the hook runs)
+1.118 s (exit 0)
+1.176 s (exit 0)
+1.206 s (exit 0)
+-- node scripts/check-exit-drains.mjs --self-test   (the expectation of each exit-advice entry, and a step of verify)
+0.693 s (exit 0)
+0.712 s (exit 0)
+0.688 s (exit 0)
+
+The live check is unchanged in cost: 1.08 to 1.33 s before and 1.12 to 1.21 s after, through npm. The self-test went from 22 to 26 clauses with no measurable change (0.69 to 0.75 s before, 0.69 to 0.71 s after). Each new table entry runs that self-test once, so about 0.7 s apiece, about 3.5 s for the five (5 times 0.7, not timed separately). The whole-hook times in section 5 (87.8, 14.2, 88.5 and 86.8 s) were taken while other scratch work ran on the same machine and are not a measurement of the hook's cost.
+
+
+10. WHAT THIS DOES NOT ESTABLISH
+--------------------------------
+
+- The new message on a real refusal in a live session. Unobserved. The harness replays shrunk, grown and missing trees in scratch worktrees, and on this commit's own hook run the clause only passed. Read it the next time the equality clause fails in a session with the hook: the output prints `FAIL  ...and the budget is not loose` with the detail under it, and no commit exists.
+- The runner. The steps of verify and guards on the pushed head are read after the push and recorded in the session record, not here.
+- A raise caused by a scanner change. For a grown count the message says what to do when an exit was added. When the scanner itself was fixed to count more (c362be57), the budget does go up, and the message does not say how. That is a decision, and A4 shows the hook accepts it when both files agree.
+- Two parts of the new wording are not pinned by a clause. The instruction in the missing-file message ("write the count into it") is not tested; the path and the word "missing" are. And "which are among those listed above" depends on the clause above the equality clause listing every early exit under the words "the new one(s) are among:". That sentence is built inline in the live check, and no self-test clause reads it, so a change to it would not fail one.
+- A budget lowered by more than one at a time. The shrunk message gives the number to set as `find`, and the entry's `replace` (64) stays above any lower count, so it should work the same way. Only 63 to 62 was run.
+- The proof ran in scratch worktrees that use the main tree's installed node_modules after the package files are shown identical (the harness asserts it per case). A fresh session's own install was not exercised.
+- `git commit --no-verify` skips the hook, and so this message.

@@ -7831,6 +7831,50 @@ const MUTATIONS = [
     replace: "64",
     expect: 'node scripts/check-exit-drains.mjs',
   },
+  {
+    // What that equality clause says to a person it has refused (2026-11-25, `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md` G1). It fails three ways and the edit is different in each: on 77647dc1 it told an author
+    // whose count had GROWN to "lower the budget to 64", which is a raise that lets the growth through, and for a count that shrank it named no file although two hold the number (the entry above carries it as its `find`).
+    // One entry for each thing a clause pins: the second file of the shrunk branch, the grown branch told to lower, the grown branch handed the recipe for a raise, the missing branch, and the equal budget,
+    // each the line a clause of `check-exit-drains.mjs --self-test` stands on.
+    id: 'exit-advice-drops-the-second-file',
+    file: 'scripts/check-exit-drains.mjs',
+    claim: "a budget above the count is told to come down in BOTH places that hold the number: the budget file and the mutation entry that pins it",
+    find: ', and set find: "${count}" on the ${LOOSE_ENTRY} entry in ${MUTATION_PATH}, which pins the number`',
+    replace: '`',
+    expect: 'node scripts/check-exit-drains.mjs --self-test',
+  },
+  {
+    id: 'exit-advice-tells-a-grown-count-to-lower',
+    file: 'scripts/check-exit-drains.mjs',
+    claim: "a count above the budget is never told to lower the budget, which for a count that grew is a raise that lets the growth through",
+    find: 'the count grew: remove the new early exit(s), which are among those listed above. Raising the budget to match lets the growth through`',
+    replace: 'lower the budget to ${count}`',
+    expect: 'node scripts/check-exit-drains.mjs --self-test',
+  },
+  {
+    id: 'exit-advice-for-a-grown-count-hands-over-the-recipe',
+    file: 'scripts/check-exit-drains.mjs',
+    claim: "a count above the budget is not handed the mutation file or its entry, which with the budget file are the whole edit of a raise",
+    find: 'Raising the budget to match lets the growth through`',
+    replace: 'Set find on ${LOOSE_ENTRY} in ${MUTATION_PATH} to match`',
+    expect: 'node scripts/check-exit-drains.mjs --self-test',
+  },
+  {
+    id: 'exit-advice-missing-budget-unhandled',
+    file: 'scripts/check-exit-drains.mjs',
+    claim: "a missing budget file is called missing; it is not read as a budget of zero that the count has grown past",
+    find: "  if (budget === null) return",
+    replace: "  if (false) return",
+    expect: 'node scripts/check-exit-drains.mjs --self-test',
+  },
+  {
+    id: 'exit-advice-for-an-equal-budget',
+    file: 'scripts/check-exit-drains.mjs',
+    claim: "a budget equal to the count has no advice to give",
+    find: "  return ''\n}",
+    replace: "  return 'x'\n}",
+    expect: 'node scripts/check-exit-drains.mjs --self-test',
+  },
 
   {
     // The short-circuit guard's own scan (2026-11-05). `short-circuit-check.mjs` decided what a comment is with a regular expression over the whole text and a rule per line, so a `/*` inside a
