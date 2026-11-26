@@ -1,0 +1,11 @@
+et_day 2026-11-26
+
+GET /analytics/newspaper/2026-11-26 -> 200
+keys: ok,date,recap_date,generated_at,morning_report,truth_is,night_stars,pick,preview,late,streak_board,record_streak_board,quality_feedback,quality_alert,sport_of_week,composite_brief,contradiction,broken_record,completed_games
+pick = null
+preview = "Off night. Rest up — tomorrow's slate has more."
+
+GET /bsd/tennis/draw -> 400 body={"error":"tournament must be a numeric BSD tournament id","hint":"GET /bsd/tennis/tournaments lists them"}
+GET /bsd/tennis/tournaments -> 200
+top-level keys: count,read,declaredCount,truncated,pages,category,results
+first 4 items: [{"id":22,"name":"Abu Dhabi","category":"wta_500","surface":"hard","circuit":"WTA","country":"","city":"","winner_points":500,"is_active":true},{"id":37,"name":"Acapulco","category":"atp_500","surface":"hard","circuit":"ATP","country":"","city":"","winner_points":500,"is_active":true},{"id":790,"name":"Adana, Turkiye","category":"wta_250","surface":"hard","circuit":"WTA","country":"","city":"","winner_points":125,"is_active":true},{"id":11,"name":"Adelaide","category":"wta_500","surface":"hard","circuit":"WTA","country":"","city":"","winner_points":500,"is_active":true}]
