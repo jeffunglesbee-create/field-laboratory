@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `49dd602` | 2026-11-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-26T17:18 [skip ci] |
+| `b8cb962` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45865985796 |
+| `351a0da` | 2026-11-26 | [.trigger-feature-census](.trigger-feature-census) | probe: feature census of the deployed page and its relay routes [skip ci] |
+| `351a0da` | 2026-11-26 | [feature-census-latest.json](feature-census-latest.json) | probe: feature census of the deployed page and its relay routes [skip ci] |
+| `351a0da` | 2026-11-26 | [feature-census-latest.png](feature-census-latest.png) | probe: feature census of the deployed page and its relay routes [skip ci] |
 | `e075c09` | 2026-11-26 | [.trigger-feature-census](.trigger-feature-census) | probe: feature census of the deployed page and its relay routes |
 | `c78087a` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8ac5633` | 2026-11-26 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-26 [skip ci] |

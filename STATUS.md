@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `e075c09`
+**FAILURE** on `e075c09` at "The browser-free steps' self-tests and read-only modes launch no browser (a trap, not a reading)" — 74 of 121 steps did not run behind it — [run 45865985796](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45865985796)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **green** on `c78087a` — but that is not `main` HEAD
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `b8cb962` — failing step unknown: the run's steps could not be read — [run 45866591104](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45866591104)
 
 ## Is it published?
 
