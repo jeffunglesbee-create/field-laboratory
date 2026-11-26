@@ -40,3 +40,17 @@ That `verify` on the fix commit is green. It is the done condition: the run for 
 ## Also true of the same session (single-page work)
 
 The Tonight surface (`62c28c3b`) was committed on the owner's explicit choice without a full confidence-gate score: the gate's mutation row is about 2.5 hours serial (`docs/GATE-TIMING.md`) and two local attempts were killed. The red above is NOT caused by it: the first red run is `e075c09b`, which precedes it.
+
+## Second cause, found when the first was fixed (run 45913... on `e1bf0e28`, 126 of 126 steps, one failure)
+
+With the pin fixed, steps 15, 16 and 114 passed, and step 30 "The chrome, measured on the rendered page" (`npm run check:computed-chrome`) failed. It had been SKIPPED in the three earlier red runs (default `if: success()` after step 15's failure), so it had never run against the Tonight CSS.
+
+- Failure, reproduced locally: `FAIL every custom property used is declared (21 in use)` / `--border — var() with no declaration resolves to nothing, silently`.
+- Cause: the Tonight rule in `index.html` (commit `62c28c3b`) used `var(--border, rgba(...))`. `--border` is not declared; the check treats a fallback as no declaration.
+- First fix attempt, also wrong, caught by the same check before it was pushed: `var(--edge)`. `--edge` was DELETED on purpose (index.html comment at the `.pick-leader` rule: "the invisible `--edge`").
+- Fix: `var(--edge-strong)`, the declared token `.tabs` already uses (tokens are generated from the F# `Palette` in `scripts/build-site.mjs`).
+- Measured after: `npm run check:computed-chrome` 25/25 (was 24/25); `scripts/tab-check.mjs` 85/85 on a pinned capture.
+
+Premise that failed (Rule 100): that a pre-commit fast gate plus tab-check was enough to commit `62c28c3b` without the full gate. The full gate was not scored (its mutation row is about 2.5 h serial) and this is one of the checks it would have run. The owner chose to commit; the cost was one extra red `verify` run.
+
+Done condition for this fix: `verify` on its commit concludes `success`.
