@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `28ace61` | 2026-11-26 | [cc-session-2026-11-26-uefa-efl-reach.md](cc-session-2026-11-26-uefa-efl-reach.md) | docs: the grade re-run after the UEFA join and the EFL Championship seed: 382 of 387 calls graded, 382 agree; the 4 unreached matches and the reach-reason correction |
 | `3ac8a46` | 2026-11-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-25 [skip ci] |
 | `3ac8a46` | 2026-11-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-25 [skip ci] |
 | `3ac8a46` | 2026-11-25 | [sport-vocabulary-2026-11-25T21-30-16-858Z.json](sport-vocabulary-2026-11-25T21-30-16-858Z.json) | drift-sentinel: ok on 2026-11-25 [skip ci] |
