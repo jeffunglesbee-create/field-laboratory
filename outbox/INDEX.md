@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e075c09` | 2026-11-26 | [.trigger-feature-census](.trigger-feature-census) | probe: feature census of the deployed page and its relay routes |
+| `c78087a` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8ac5633` | 2026-11-26 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-26 [skip ci] |
 | `8ac5633` | 2026-11-26 | [sport-vocabulary-2026-11-26T09-44-01-981Z.json](sport-vocabulary-2026-11-26T09-44-01-981Z.json) | drift-sentinel: ok on 2026-11-26 [skip ci] |
 | `2155b56` | 2026-11-25 | [cc-session-2026-11-25-exit-budget-advice.md](cc-session-2026-11-25-exit-budget-advice.md) | docs: G1 verify-full reading (success, 17 of 17 exit-drains entries caught) |
