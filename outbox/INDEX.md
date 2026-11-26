@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a0b8da0` | 2026-11-26 | [step16-host-read-2026-11-26.md](step16-host-read-2026-11-26.md) | docs: step 16 host read 2026-11-26, six runs reached it, no real-host 429 |
 | `49dd602` | 2026-11-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-26T17:18 [skip ci] |
 | `b8cb962` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45865985796 |
 | `351a0da` | 2026-11-26 | [.trigger-feature-census](.trigger-feature-census) | probe: feature census of the deployed page and its relay routes [skip ci] |
