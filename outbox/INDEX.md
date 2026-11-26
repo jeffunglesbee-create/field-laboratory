@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8ac5633` | 2026-11-26 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-26 [skip ci] |
+| `8ac5633` | 2026-11-26 | [sport-vocabulary-2026-11-26T09-44-01-981Z.json](sport-vocabulary-2026-11-26T09-44-01-981Z.json) | drift-sentinel: ok on 2026-11-26 [skip ci] |
+| `2155b56` | 2026-11-25 | [cc-session-2026-11-25-exit-budget-advice.md](cc-session-2026-11-25-exit-budget-advice.md) | docs: G1 verify-full reading (success, 17 of 17 exit-drains entries caught) |
+| `71a7a0f` | 2026-11-26 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 705085d [skip ci] |
+| `e6630bc` | 2026-11-25 | [cc-session-2026-11-25-exit-budget-advice.md](cc-session-2026-11-25-exit-budget-advice.md) | docs: G1 built and G2, G3 filed in the gate-residuals CC-CMD, session record |
+| `e6630bc` | 2026-11-25 | [exit-budget-advice-existing-entries-2026-11-25.txt](exit-budget-advice-existing-entries-2026-11-25.txt) | docs: G1 built and G2, G3 filed in the gate-residuals CC-CMD, session record |
+| `2eabe37` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `705085d` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45740763182 |
 | `08c30f0` | 2026-11-25 | [exit-budget-advice-2026-11-25.patch](exit-budget-advice-2026-11-25.patch) | fix: exit-drains budget message names both files and the direction |
 | `08c30f0` | 2026-11-25 | [exit-budget-advice-entries-probe-2026-11-25-mutate.mjs](exit-budget-advice-entries-probe-2026-11-25-mutate.mjs) | fix: exit-drains budget message names both files and the direction |
