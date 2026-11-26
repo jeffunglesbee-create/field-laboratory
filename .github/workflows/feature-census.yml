@@ -1,0 +1,60 @@
+# Which non-diagnostic features on the deployed lab page have content today, and which relay routes behind them answer. scripts/feature-census.mjs.
+# CI-as-proxy: the authoring sandbox cannot reach *.workers.dev. Facts into outbox/feature-census-latest.json (and a screenshot); no verdict.
+#
+# Triggers: a push of outbox/.trigger-feature-census, or workflow_dispatch. NO SCHEDULE: it answers one question; a monitor is a recurring
+# Actions cost (CLAUDE.md, "Actions budget"). The trigger file is removed by this workflow's own commit so a later merge cannot re-fire it.
+name: feature-census
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-feature-census'
+
+permissions:
+  contents: write
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # browser-gate: exempt 2 -- a failed install ends the job red (no continue-on-error) before the census runs; the census product, its manifest, needs the browser
+      - name: Install Chromium
+        timeout-minutes: 3
+        run: npx playwright install chromium
+      - name: The census's own logic, before it measures anything
+        run: node scripts/feature-census.mjs --self-test
+      - name: Census the live page and relay
+        id: census
+        continue-on-error: true
+        run: |
+          URL=https://field-laboratory.jeffunglesbee.workers.dev node scripts/feature-census.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git rm -q --ignore-unmatch outbox/.trigger-feature-census
+          git add outbox/feature-census-latest.json outbox/feature-census-latest.png 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: feature census of the deployed page and its relay routes [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The census's result decides the job
+        if: steps.census.outcome != 'success'
+        run: |
+          echo "feature-census did not complete: see the step summary"
+          exit 1
