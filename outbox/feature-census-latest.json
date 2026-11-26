@@ -1,0 +1,285 @@
+{
+  "generated_at": "2026-11-26T17:15:34.024Z",
+  "page": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "et_day": "2026-11-26",
+  "coverage": {
+    "tabs_declared": 12,
+    "tabs_checked": 10,
+    "tabs_excluded_diagnostic": [
+      "metrics",
+      "verify"
+    ],
+    "routes_checked": 7,
+    "routes_known_to_relay": 108
+  },
+  "pageErrors": [],
+  "tabs": [
+    {
+      "slug": "scoreboard",
+      "textLength": 5435,
+      "elements": 1016,
+      "emptyPhrase": null,
+      "head": "UEFA EUROPA CONFERENCE LEAGUE · 18 ALMATY ORTALYK STADIUM Kairat Almaty v Mjällby 1–0 In progress 88' 52°F no odds BRIEF › Show lineup JOHAN CRUIJFF ARENA Ajax v FC Thun — Scheduled 2026-11-26T17:45Z "
+    },
+    {
+      "slug": "field-pick",
+      "textLength": 265,
+      "elements": 4,
+      "emptyPhrase": null,
+      "head": "Field's Pick The marquee game, ranked across the whole slate. A national broadcast counts IN ITS FAVOUR here — this is the opposite of Scout's Pick. No pick section in this payload. The analytics bund"
+    },
+    {
+      "slug": "scout-pick",
+      "textLength": 1016,
+      "elements": 23,
+      "emptyPhrase": null,
+      "head": "Scout's Pick \"The one game tonight you'd never find on your own, but definitely should watch.\" A national broadcast DISQUALIFIES a game here — the opposite of Field's Pick. No game qualifies from this"
+    },
+    {
+      "slug": "deep-cuts",
+      "textLength": 577,
+      "elements": 19,
+      "emptyPhrase": "No games",
+      "head": "Deep Cuts One hidden game for each part of the day, chosen by Scout's Pick's rules. A game belongs to the window it kicks off in (ET). Its own list: Field's Pick, Scout's Pick and Pick'em are unchange"
+    },
+    {
+      "slug": "pickem",
+      "textLength": 417,
+      "elements": 31,
+      "emptyPhrase": null,
+      "head": "Pick'em Your own pick, one side per game. Not an editorial recommendation — Field's Pick and Scout's Pick are FIELD's opinions; this one is yours. No picks yet — 41 game(s) on the slate. CFB 1 EFL Lea"
+    },
+    {
+      "slug": "weather",
+      "textLength": 2524,
+      "elements": 162,
+      "emptyPhrase": null,
+      "head": "Weather Conditions at tonight's venues, from Open-Meteo. Every located venue gets a reading — a retractable roof has real weather at its location, and the roof decision is often made on it. Warmest op"
+    },
+    {
+      "slug": "stats",
+      "textLength": 4796,
+      "elements": 417,
+      "emptyPhrase": null,
+      "head": "Stats One scouting report per game, built from what this payload actually carries. A row exists only when its data does — nothing here claims a field and then reports it unresolved. TCU @ Texas Tech S"
+    },
+    {
+      "slug": "lineups",
+      "textLength": 1710,
+      "elements": 213,
+      "emptyPhrase": "UNAVAILABLE",
+      "head": "Lineups Predicted, not announced. Every name below is the vendor's model output, not a team sheet. Boyacá Chicó FC 4-1-4-1 1 G David Agudelo PREDICTED 14 D Cristian Blanco PREDICTED 4 D Jefferson Mena"
+    },
+    {
+      "slug": "briefs",
+      "textLength": 355,
+      "elements": 14,
+      "emptyPhrase": null,
+      "head": "Briefs on this slate 283 / 283 record no answering model — proxy silent, so which model wrote them is unknown 91 / 469 stat sentences carry no time window (19% unanchored) 283 / 283 carry no scoring_v"
+    },
+    {
+      "slug": "draw",
+      "textLength": 6521,
+      "elements": 1187,
+      "emptyPhrase": "refused",
+      "head": "Roland Garros 2026 127 matches · 126 edges, each resolved by winner identity to exactly one next match · 1 scoreline refused Scoreline refused, so no numbers are printed for it: match 36028 — set 2 is"
+    }
+  ],
+  "relay": [
+    {
+      "feature": "scoreboard slate",
+      "path": "/context/date/2026-11-26",
+      "status": 200,
+      "bytes": 226958,
+      "ms": 212,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "ok",
+          "date",
+          "games",
+          "briefs",
+          "series",
+          "standings"
+        ],
+        "arrays": {
+          "briefs": 283,
+          "series": 0,
+          "standings": 8
+        },
+        "nested": {
+          "games.regular": 41,
+          "games.postseason": 0
+        }
+      },
+      "items": 332,
+      "source": "d1:ARCHIVE_DB"
+    },
+    {
+      "feature": "live scores (all sports)",
+      "path": "/v2/games?date=2026-11-26",
+      "status": 400,
+      "bytes": 294,
+      "ms": 18,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "error",
+          "supported"
+        ],
+        "arrays": {
+          "supported": 30
+        },
+        "nested": {}
+      },
+      "items": 30,
+      "source": "aflapi.afl.com.au + api-web.nhle.com + api.squiggle.com.au + api.the-odds-api.com + d1:ARCHIVE_DB + d1:WC2026_DB + do:BRACKET_DO + do:GAME_DO + espn-primary-forced-failure.invalid + kaliaflstats.com + kv:FIELD_JOURNALISM + kv:JOURNALISM_QUEUE + r2:FIELD_DATA + site.api.espn.com + sports.bzzoiro.com"
+    },
+    {
+      "feature": "live soccer events",
+      "path": "/bsd/events/live",
+      "status": 200,
+      "bytes": 474,
+      "ms": 259,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "count",
+          "events"
+        ],
+        "arrays": {
+          "events": 1
+        },
+        "nested": {}
+      },
+      "items": 1,
+      "source": "sports.bzzoiro.com"
+    },
+    {
+      "feature": "field's pick / newspaper",
+      "path": "/analytics/newspaper/2026-11-26",
+      "status": 200,
+      "bytes": 20587,
+      "ms": 152,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "ok",
+          "date",
+          "recap_date",
+          "generated_at",
+          "morning_report",
+          "truth_is",
+          "night_stars",
+          "pick",
+          "preview",
+          "late",
+          "streak_board",
+          "record_streak_board",
+          "quality_feedback",
+          "quality_alert",
+          "sport_of_week",
+          "composite_brief",
+          "contradiction",
+          "broken_record",
+          "completed_games"
+        ],
+        "arrays": {
+          "completed_games": 39
+        },
+        "nested": {
+          "streak_board.hot": 2,
+          "streak_board.cold": 0,
+          "record_streak_board.hot": 7,
+          "record_streak_board.cold": 9,
+          "quality_feedback.adjustments": 29,
+          "quality_alert.alerts": 47
+        }
+      },
+      "items": 133,
+      "source": "d1:ARCHIVE_DB"
+    },
+    {
+      "feature": "standings (EPL)",
+      "path": "/espn-standings/soccer/eng.1/standings",
+      "status": 200,
+      "bytes": 68900,
+      "ms": 89,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "uid",
+          "id",
+          "name",
+          "abbreviation",
+          "children",
+          "season",
+          "seasons"
+        ],
+        "arrays": {
+          "children": 1,
+          "seasons": 25
+        },
+        "nested": {}
+      },
+      "items": 26,
+      "source": "site.api.espn.com"
+    },
+    {
+      "feature": "tennis draw",
+      "path": "/bsd/tennis/draw",
+      "status": 400,
+      "bytes": 106,
+      "ms": 13,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "error",
+          "hint"
+        ],
+        "arrays": {},
+        "nested": {}
+      },
+      "items": 0,
+      "source": "sports.bzzoiro.com"
+    },
+    {
+      "feature": "world cup standings",
+      "path": "/wc/standings",
+      "status": 200,
+      "bytes": 5160,
+      "ms": 165,
+      "shape": {
+        "type": "object",
+        "length": null,
+        "keys": [
+          "groups",
+          "ts"
+        ],
+        "arrays": {},
+        "nested": {
+          "groups.A": 4,
+          "groups.B": 4,
+          "groups.C": 4,
+          "groups.D": 4,
+          "groups.E": 4,
+          "groups.F": 4,
+          "groups.G": 4,
+          "groups.H": 4,
+          "groups.I": 4,
+          "groups.J": 4,
+          "groups.K": 4,
+          "groups.L": 4
+        }
+      },
+      "items": 48,
+      "source": "d1:WC2026_DB"
+    }
+  ]
+}
