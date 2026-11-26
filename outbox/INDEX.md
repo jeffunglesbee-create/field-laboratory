@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `edb5f7f` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45894399564 |
+| `c46ffb8` | 2026-11-26 | [.trigger-single-page-probe](.trigger-single-page-probe) | probe: newspaper pick value and tennis draw route [skip ci] |
+| `c46ffb8` | 2026-11-26 | [single-page-probe-2026-11-26.txt](single-page-probe-2026-11-26.txt) | probe: newspaper pick value and tennis draw route [skip ci] |
+| `be2ffb0` | 2026-11-26 | [.trigger-single-page-probe](.trigger-single-page-probe) | probe: newspaper pick value and tennis draw route (Task 0 of the single-page CC-CMD) |
 | `a0b8da0` | 2026-11-26 | [step16-host-read-2026-11-26.md](step16-host-read-2026-11-26.md) | docs: step 16 host read 2026-11-26, six runs reached it, no real-host 429 |
 | `49dd602` | 2026-11-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-26T17:18 [skip ci] |
 | `b8cb962` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45865985796 |
