@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3e9bd58` | 2026-11-26 | [.trigger-live-sources-probe](.trigger-live-sources-probe) | probe: what is live right now, by source [skip ci] |
+| `3e9bd58` | 2026-11-26 | [live-capture-bsd-events-live-20261126-2338Z.json](live-capture-bsd-events-live-20261126-2338Z.json) | probe: what is live right now, by source [skip ci] |
+| `3e9bd58` | 2026-11-26 | [live-capture-bsd-tennis-live-20261126-2338Z.json](live-capture-bsd-tennis-live-20261126-2338Z.json) | probe: what is live right now, by source [skip ci] |
+| `3e9bd58` | 2026-11-26 | [live-sources-probe-latest.txt](live-sources-probe-latest.txt) | probe: what is live right now, by source [skip ci] |
+| `ad2c235` | 2026-11-26 | [.trigger-live-sources-probe](.trigger-live-sources-probe) | probe: save the raw BSD live bodies as fixtures for the Live now decoders |
+| `2f8c230` | 2026-11-26 | [.trigger-live-sources-probe](.trigger-live-sources-probe) | probe: what is live right now, by source [skip ci] |
+| `2f8c230` | 2026-11-26 | [live-sources-probe-latest.txt](live-sources-probe-latest.txt) | probe: what is live right now, by source [skip ci] |
+| `e29d6ce` | 2026-11-26 | [.trigger-live-sources-probe](.trigger-live-sources-probe) | probe: what is live right now, by source (Task 6a of the single-page CC-CMD) |
+| `bc839c3` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `98b2da2` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45910143664 |
 | `0867b56` | 2026-11-26 | [cc-session-2026-11-26-verify-red-since-feature-census.md](cc-session-2026-11-26-verify-red-since-feature-census.md) | fix: the Metrics and live-tabs checks name the Tonight tab |
 | `ffaa8cc` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45909392442 |
