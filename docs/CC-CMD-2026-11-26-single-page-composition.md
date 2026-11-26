@@ -56,6 +56,17 @@ Left out of the stack: Lineups (the card's lineup button covers it), Briefs, Met
 
 Design consequence: `Live now` is the UNION of three feeds, each shown with its source name: the cards' `/v2/games` readings, `/bsd/events/live` (any league), `/bsd/tennis/matches/live`. A live item that has no card is listed as its own line, not dropped. The draw section is LIVE when any live match has `tournament.id` equal to the draw's tournament id.
 
+### Task 6b INPUTS: the two raw fixtures (committed by run on `ad2c2353`, captured 23:38Z)
+
+`outbox/live-capture-bsd-tennis-live-20261126-2338Z.json` (3 matches) and `outbox/live-capture-bsd-events-live-20261126-2338Z.json` (1 event). Facts the decoders are written against:
+
+- **Tennis match, fields a liveness decoder needs:** `id`, `tournament.id`, `tournament.name`, `player1.name`, `player2.name`, `status`, `round_name`, `match_date`, `player1_sets`, `player2_sets`, `current_set`, `is_doubles`, `winner_id` (null while live). The three live matches carry tournament ids `[904, 215, 904]`, two in the same tournament, one in another.
+- **Not read, on purpose:** `odds_player1` / `odds_player2` and the ~40 `p1_*` / `p2_*` statistics. They are served on the live route and none of them is liveness. Decoding them would put an odds-bearing record in a decoder whose job is "is it live".
+- **`status` words seen:** `live` only (3 of 3). No other tennis status word has been observed, so an unknown word is a NAMED unknown, never "live" and never "not live".
+- **Soccer event:** `id`, `league_name`, `home_team`, `away_team`, `status:"inprogress"`, `period:"1st_half"`, `current_minute`, `home_score`, `away_score`, and **`last_updated`** (the staleness basis). The tennis feed has no `last_updated`; its freshness is the relay's 25 s cache only.
+- **Between captures** (23:32Z minute 30, 23:38Z minute 37) the soccer minute advanced 7 for 6 minutes of clock, so the feed was current.
+- **Soccer `period` words seen:** `1st_half` only. Halftime and extra-time words are unobserved.
+
 ## Tasks
 
 0. **Probe first.** Artifact: `outbox/single-page-probe-2026-11-26.txt` holding (a) the `pick` value from `/analytics/newspaper/2026-11-26` read on a runner (`gh workflow run` is broken account-wide; use the `outbox/.trigger-*` push pattern) and (b) the draw payload's tournament dates. Stop condition: if the `pick` value is non-empty while the panel says none, that is a defect and gets its own CC-CMD before anything is stacked on it.
