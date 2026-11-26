@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `be2ffb0` at "The browser-free steps' self-tests and read-only modes launch no browser (a trap, not a reading)" — 74 of 121 steps did not run behind it — [run 45894399564](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45894399564)
+**FAILURE** on `62c28c3` at "The browser-free steps' self-tests and read-only modes launch no browser (a trap, not a reading)" — 74 of 121 steps did not run behind it — [run 45907706915](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45907706915)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `edb5f7f` — failing step unknown: the run's steps could not be read — [run 45894830296](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45894830296)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `cfe7cbf` — failing step unknown: the run's steps could not be read — [run 45908152437](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45908152437)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `b5990eb` — behind newest deployable `be2ffb0` (deploy not landed) |
+| Cloudflare Workers | live | `b5990eb` — behind newest deployable `62c28c3` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

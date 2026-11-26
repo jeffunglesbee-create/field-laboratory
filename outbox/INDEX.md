@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `cfe7cbf` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45907706915 |
+| `62c28c3` | 2026-11-26 | [single-page-mutations-2026-11-26.txt](single-page-mutations-2026-11-26.txt) | feat: Tonight, the non-diagnostic features as one scroll (Tasks 1-4 of the single-page CC-CMD) |
 | `468ee78` | 2026-11-26 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-11-26 [skip ci] |
 | `468ee78` | 2026-11-26 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: unmodelled-sport on 2026-11-26 [skip ci] |
 | `468ee78` | 2026-11-26 | [sport-vocabulary-2026-11-26T21-17-27-454Z.json](sport-vocabulary-2026-11-26T21-17-27-454Z.json) | drift-sentinel: unmodelled-sport on 2026-11-26 [skip ci] |
