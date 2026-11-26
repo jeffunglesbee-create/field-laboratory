@@ -54,3 +54,16 @@ With the pin fixed, steps 15, 16 and 114 passed, and step 30 "The chrome, measur
 Premise that failed (Rule 100): that a pre-commit fast gate plus tab-check was enough to commit `62c28c3b` without the full gate. The full gate was not scored (its mutation row is about 2.5 h serial) and this is one of the checks it would have run. The owner chose to commit; the cost was one extra red `verify` run.
 
 Done condition for this fix: `verify` on its commit concludes `success`.
+
+## Third cause, found when the second was fixed (run on `9e09e79b`, 125 of 125 steps, one failure)
+
+With the divider fixed, step 35 "The Metrics tab renders what the modules hand it, and nothing more" (`npm run check:metrics`) failed. Like step 30, it had been skipped in every earlier red run.
+
+- Failure, reproduced locally: `FAIL the tablist names eleven tabs, Metrics directly before Verify, which stays last` with the tab list now starting `tab-tonight`.
+- Cause: `scripts/metrics-render-check.mjs` and `scripts/live-tabs-check.mjs` each hard-code the expected tab list BY NAME (deliberately, so an added tab fails by identity). Tonight is a new first tab and neither list had it.
+- Fix: `'tab-tonight'` first in both `EXPECTED_TABS` lists. Measured after: `check:metrics` 35/35, `live-tabs-check` 15/15 on a pinned capture.
+- Not changed, noted: the predicate's own label says "eleven tabs" and was already stale at twelve. It is a key shared by `PREDICATES` and `MUTATIONS`, so renaming it is its own edit.
+
+Every tab-count assertion in the repo that I know of is now updated: `tab-check.mjs` (earlier), `metrics-render-check.mjs`, `live-tabs-check.mjs`. This was found three times, one run at a time, because each earlier failure hid the steps after it. Next time a new tab is added, run `grep -ln "tab-verify" scripts/*.mjs` first.
+
+Done condition: `verify` on this fix's commit concludes `success`.

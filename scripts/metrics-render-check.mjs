@@ -24,7 +24,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { createChecks, finish, isMain } from './checks.mjs'
 
 export const EXPECTED_TABS = [
-  'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick', 'tab-deep-cuts', 'tab-pickem', 'tab-weather',
+  'tab-tonight', 'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick', 'tab-deep-cuts', 'tab-pickem', 'tab-weather',
   'tab-stats', 'tab-lineups', 'tab-briefs', 'tab-draw', 'tab-metrics', 'tab-verify',
 ]
 export const FLOW_SUBJECTS = ['finished', 'inplay']
