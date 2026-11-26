@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `9e09e79` at "The Metrics tab renders what the modules hand it, and nothing more" — 54 of 121 steps did not run behind it — [run 45909392442](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45909392442)
+**green** on `0867b56` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `ffaa8cc` — failing step unknown: the run's steps could not be read — [run 45909987355](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45909987355)
+`live-check` (post-deploy, against the deployed page): **running** on `98b2da2`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `b5990eb` — behind newest deployable `9e09e79` (deploy not landed) |
+| Cloudflare Workers | live | `98b2da2` — newest deployable `0867b56` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

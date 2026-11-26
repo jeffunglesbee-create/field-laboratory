@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `98b2da2` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45910143664 |
+| `0867b56` | 2026-11-26 | [cc-session-2026-11-26-verify-red-since-feature-census.md](cc-session-2026-11-26-verify-red-since-feature-census.md) | fix: the Metrics and live-tabs checks name the Tonight tab |
 | `ffaa8cc` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45909392442 |
 | `9e09e79` | 2026-11-26 | [cc-session-2026-11-26-verify-red-since-feature-census.md](cc-session-2026-11-26-verify-red-since-feature-census.md) | fix: the Tonight divider uses a declared token (--edge-strong), not --border |
 | `9e8ec75` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45908694036 |
