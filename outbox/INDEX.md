@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `dea0df8` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46082459392 |
+| `78e3abf` | 2026-11-27 | [cc-session-2026-11-27-uefa-fit-mutate-wired.md](cc-session-2026-11-27-uefa-fit-mutate-wired.md) | ci: wire the UEFA fit's mutation harness into a runner job, remove its declaration, exempt it from the copy check |
+| `ce14713` | 2026-11-27 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: completeness of the heredoc and item 9 work: the review-4 dossier, the Status of the residual CC-CMD, a deleted branch no longer cited as holding anything, the cost line |
+| `ce14713` | 2026-11-27 | [cc-session-2026-11-22-gate-item-9.md](cc-session-2026-11-22-gate-item-9.md) | docs: completeness of the heredoc and item 9 work: the review-4 dossier, the Status of the residual CC-CMD, a deleted branch no longer cited as holding anything, the cost line |
+| `ce14713` | 2026-11-27 | [guard-heredoc-review-4-2026-11-19.md](guard-heredoc-review-4-2026-11-19.md) | docs: completeness of the heredoc and item 9 work: the review-4 dossier, the Status of the residual CC-CMD, a deleted branch no longer cited as holding anything, the cost line |
 | `f4c2684` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46071072520 |
 | `7bdc9c7` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-measure.md](cc-session-2026-11-27-uefa-forecast-measure.md) | docs: correction in the UEFA forecast CC-CMD and its measurement record: the scheduled join does not run (the completion marker); 524 rows stay unjoined until a dispatch |
 | `0f52a0a` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | docs: the pre-registered UEFA fit says DO NOT BUILD (U4: the frozen 2026-27 bundle is worse than the base rate); recomputed independently, 26 of 26 agree; Tasks 3 and 4 closed, not built |

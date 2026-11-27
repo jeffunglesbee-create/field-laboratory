@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `d90d96b` at "No script a workflow depends on became unreachable" — 24 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 46071072520](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/46071072520)
+**green** on `78e3abf` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `714ac17`
+`live-check` (post-deploy, against the deployed page): **running** on `dea0df8`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `432e289` — behind newest deployable `d90d96b` (deploy not landed) |
+| Cloudflare Workers | live | `dea0df8` — newest deployable `78e3abf` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
