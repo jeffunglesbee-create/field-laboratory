@@ -1,32 +1,5 @@
 [
   {
-    "date": "2026-09-27",
-    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-27",
-    "at": "2026-09-27T16:47:43.991Z",
-    "sports": {
-      "MLS": {
-        "rows": 11,
-        "withOdds": 0,
-        "withDraw": 0
-      },
-      "MLB": {
-        "rows": 15,
-        "withOdds": 15,
-        "withDraw": 0
-      },
-      "WNBA": {
-        "rows": 4,
-        "withOdds": 4,
-        "withDraw": 0
-      },
-      "NFL": {
-        "rows": 14,
-        "withOdds": 0,
-        "withDraw": 0
-      }
-    }
-  },
-  {
     "date": "2026-09-28",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-28",
     "at": "2026-09-28T19:31:47.434Z",
@@ -2443,6 +2416,18 @@
         "withDraw": 0
       },
       "EFL League One": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    }
+  },
+  {
+    "date": "2026-11-27",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-27",
+    "at": "2026-11-27T09:48:57.039Z",
+    "sports": {
+      "AFLW": {
         "rows": 1,
         "withOdds": 0,
         "withDraw": 0
