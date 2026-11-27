@@ -1,0 +1,82 @@
+{
+  "deployed": "1c56964946e65c6be710ad5f06f0630baa0f6106",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "date": "2026-11-27",
+  "probedAt": "2026-11-27T09:17:57.126Z",
+  "watchSeconds": 70,
+  "error": null,
+  "feedKeys": [
+    "aflw"
+  ],
+  "errors": [],
+  "decodeStatus": {
+    "state": "ok",
+    "text": "decoded 1 game(s) for 2026-11-27"
+  },
+  "requestsInFlightAtRead": 0,
+  "contextStatus": 200,
+  "archiveRowsWithEspnId": 1,
+  "pageOutcomes": [
+    {
+      "key": "aflw",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    },
+    {
+      "key": "aflw",
+      "status": 200,
+      "ok": true,
+      "why": null,
+      "games": 1
+    }
+  ],
+  "runnerFeeds": {
+    "aflw": {
+      "status": 200,
+      "error": null
+    }
+  },
+  "runnerLiveEspnIds": [],
+  "runnerLiveGames": [
+    {
+      "key": "aflw",
+      "espnId": null,
+      "home": "North Melbourne",
+      "away": "Melbourne"
+    }
+  ],
+  "verdict": "NOTHING-TO-JUDGE",
+  "reasons": [
+    "no game of a sport the page asks the feed about is live on this slate"
+  ],
+  "cardState": null,
+  "scoreMatchesFeed": false,
+  "forecastChecked": 0,
+  "forecastAbsent": null,
+  "scheduledAfterKickoff": false,
+  "fullTimeMarker": false,
+  "gameOverMarker": false,
+  "runnerLiveUnclaimed": [],
+  "halfTimeMarker": false,
+  "requestsToV2Games": 2,
+  "checked": "checked 1 of 1 live-score cards against the page's own last /v2/games answer (0 with no ESPN id, 0 outside their window, 0 with no reading yet); 0 live; 0 live id-less feed game(s) no card claims",
+  "rows": [
+    {
+      "gameId": "AFLW_2026-11-27_northmelbourne_melbourne",
+      "teams": "North Melbourne v Melbourne",
+      "sport": "AFLW",
+      "score": "—",
+      "status": "Start time passed, no score served",
+      "live": "live score unavailable",
+      "forecast": null,
+      "espnId": "aflapi:9081",
+      "kind": "feed-unavailable",
+      "ok": true,
+      "reason": ""
+    }
+  ],
+  "doneCondition": false,
+  "screenshot": "outbox/live-score-2026-11-27-20261127-0919Z.png"
+}
