@@ -48,3 +48,21 @@ The page's one timer was bound by the owner's ruling of 2026-11-11 ("Auto-poll w
 The new browser workflow added one command to the no-launch guard's list: the pin in `scripts/no-launch-check.mjs` moves 74 to 75 with the same edits as the last bump (constant, comment, self-test sizes, the mutation entry that mutates the constant). Run BEFORE pushing this time: `check:no-launch` 58/58, mutation entry caught, 0 of 2262 anchors stale.
 
 Done condition: the manifest's `verdict` is `PASS`. Anything else is reported with the manifest, not explained.
+
+### First deployed reading (run 45929209258 on `4994ad3d`, 2026-11-27 02:35Z), and the two defects of the probe it exposed
+
+What the DEPLOYED page said, read from the run's log (the manifest itself was not committed, see defect 2):
+`Live now — scoreboard cards: 0 live · BSD tennis: 2 live · BSD soccer: not read yet`, `data-kind="polled"`, no page errors. The relay, read before and after: tennis 2 and 2, soccer events 1 and 1.
+
+- **Tennis: AGREE** (page 2, relay 2 and 2). This is the first evidence from the live site, not a mock, that the line is deployed and that its tennis count equals the relay's.
+- **Soccer: NOT MEASURED.** The page still said "not read yet" while the relay served 1 live event. That is NOT shown to be a page defect: the probe read the line the moment `data-kind` flipped to `polled`, and the flip happens on the FIRST answer (tennis), so the soccer answer may simply not have arrived. Unrefuted either way until the probe waits for both sources.
+
+Defects of the probe, both mine, both fixed in the commit carrying this note:
+1. It waited on `data-kind === polled` alone. It now waits until no source reads "not read yet" (40 s cap, then reads what is there and reports it).
+2. The workflow's commit step named `live-now-deployed-probe-latest.json`; the script writes `live-now-deployed-manifest-latest.json` (a sed ran before the replacement meant to fix those names, and the replacement silently matched nothing). So the manifest never reached `main`. The `git add` now names the real files. Also `PAGE-NOT-READ YET` had a space in it; the verdict has none now, with a self-test row.
+
+Done condition is unchanged: the manifest's `verdict` is `PASS`, committed to `outbox/`.
+
+### Concurrent committer, noted 2026-11-27
+
+`verify` on `4994ad3d` ended CANCELLED, not red: another committer's push, `d566d24a` ("an AFLW card carries a source line", `FIELD CI` identity, touching `Scoreboard.fs`, `Suite.fs`, `index.html`, `live-score-render-check.mjs` and `mutation-check.mjs`), started a newer `verify` run in the same concurrency group (`verify-refs/heads/main`, `cancel-in-progress`). That run is on a newer tree containing everything pushed up to `d3bfbc25`, so a cancelled run is superseded, not lost. It also means "wait for verify before pushing" cannot be relied on to avoid cancellation in this repo: another session can start a run at any time. What matters is that the LAST tree gets a complete green run.

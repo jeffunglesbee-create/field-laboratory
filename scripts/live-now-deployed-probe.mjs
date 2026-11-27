@@ -32,7 +32,7 @@ export const relayLive = (body, source) => {
 /** One source's verdict. `before` and `after` are the relay's live counts around the page read. Pure. */
 export const sourceVerdict = (shown, before, after) => {
   if (shown === null) return 'NOT-IN-LINE'
-  if (shown === 'unknown' || shown === 'not read yet') return 'PAGE-' + String(shown).toUpperCase().replace(' ', '-')
+  if (shown === 'unknown' || shown === 'not read yet') return 'PAGE-' + String(shown).toUpperCase().replaceAll(' ', '-')
   if (before === null || after === null) return 'RELAY-UNREADABLE'
   return shown === before || shown === after ? 'AGREE' : 'DISAGREE'
 }
@@ -59,6 +59,7 @@ const selfTest = () => {
   eq('agree on the second reading', sourceVerdict(3, 4, 3), 'AGREE')
   eq('disagree', sourceVerdict(3, 4, 5), 'DISAGREE')
   eq('an unknown page is never AGREE', sourceVerdict('unknown', 3, 3), 'PAGE-UNKNOWN')
+  eq('a source not read yet is never AGREE, and its verdict has no space in it', sourceVerdict('not read yet', 1, 1), 'PAGE-NOT-READ-YET')
   eq('an unreadable relay is never AGREE', sourceVerdict(3, null, null), 'RELAY-UNREADABLE')
   eq('a page that shows 0 when the relay says 0 agrees', sourceVerdict(0, 0, 0), 'AGREE')
   eq('absent line', verdictOf({ present: false, tennis: 'AGREE', soccer: 'AGREE' }), 'NOT-DEPLOYED')
@@ -89,7 +90,8 @@ const main = async () => {
   let text = null, kind = null
   const beforeT = await readRelay('/bsd/tennis/matches/live'), beforeS = await readRelay('/bsd/events/live')
   if (present) {
-    await page.waitForFunction(() => document.getElementById('live-now').getAttribute('data-kind') === 'polled', null, { timeout: 40000 }).catch(() => {})
+    // `data-kind` flips to polled on the FIRST answer, so wait until NO source is still "not read yet" (a feed that never answers is read as it stands after the timeout and reported, not waited on forever).
+    await page.waitForFunction(() => { const e = document.getElementById('live-now'); return e.getAttribute('data-kind') === 'polled' && !/not read yet/.test(e.textContent) }, null, { timeout: 40000 }).catch(() => {})
     ;({ text, kind } = await page.$eval('#live-now', e => ({ text: e.textContent, kind: e.getAttribute('data-kind') })))
   }
   const afterT = await readRelay('/bsd/tennis/matches/live'), afterS = await readRelay('/bsd/events/live')
