@@ -1,4 +1,4 @@
-# CC session 2026-11-27 — UEFA forecast, Task 2: the pre-registered fit (in progress)
+# CC session 2026-11-27 — UEFA forecast, Task 2: the pre-registered fit (DONE: DO NOT BUILD)
 
 **Repo:** field-laboratory. **Spec:** `docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md`, Task 2. **Owner words:** "confirmed, pull-only" (2026-11-27), the Rule F scope this CC-CMD was waiting on: a modelled UEFA forecast, pull-only, drawn on request; Rule A (autonomous push) not cleared.
 **Companion record:** `outbox/cc-session-2026-11-27-uefa-forecast-measure.md` (Task 0, Task 1 verified done by another session).
@@ -9,10 +9,10 @@
 |---|---|---|---|
 | 1 | `dc9fdce5` (2026-11-27T20:49:09Z) | **the rule, nothing fetched or fitted** (`outbox/forecast-fit-uefa-2026-11-27.mjs`); RULE block sha256 `6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1`, 10,608 characters | committed |
 | 2 | `59f6eecc`, then `584b517e` (the workflow's own commit, 20:55:23Z) | the data fetch: `scripts/uefa-fit-data.mjs` and `.github/workflows/uefa-fit-data.yml` (dispatch only; reads the relay's public `/context/date` for every day of two windows, keeps the three main UEFA labels; no model number) | committed; the two bundles were written by the workflow's run |
-| 3 | (the commit that carries this edit) | the fit and score code, added to the same file with the RULE block byte-identical, BEFORE the run; `scripts/check-uefa-fit.mjs` (synthetic data only) and `scripts/mutate-uefa-fit.mjs`; `.github/workflows/uefa-fit-run.yml` | committed here |
-| 4 | (later) | the run's output (a runner: its run id, checkout SHA and start time are the audit trail) | not started |
-| 5 | (later) | an independent recompute and a break-it-on-purpose proof | not started |
-| 6 | (later) | the verdict document and the CC-CMD status | not started |
+| 3 | `67223115`, then `d90d96bb` (checks) | the fit and score code, added to the same file with the RULE block byte-identical, BEFORE the run; `scripts/check-uefa-fit.mjs` (synthetic data only) and `scripts/mutate-uefa-fit.mjs`; `.github/workflows/uefa-fit-run.yml` | committed |
+| 4 | the workflow's own commit | the run's output: **run `46071082308`, checkout `d90d96bb`, started 2026-11-27T21:33:49Z** (after the rule, the data and the tooling) | done: **VERDICT DO NOT BUILD (U4)** |
+| 5 | the commit that carries this edit | an independent recompute (`outbox/forecast-fit-uefa-recompute-2026-11-27.mjs`): 26 of 26 quantities agree. The break-it-on-purpose proof is the mutation harness (33 mutants, run on synthetic data before the run) | done |
+| 6 | the same commit | the verdict in `docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md` (Status DONE, Tasks 3 and 4 CLOSED) | done |
 
 ## What was fixed first, and why it matters
 
@@ -33,3 +33,11 @@ The rule block fixes, before any UEFA model number exists: the model (the EPL's 
 ## Tooling tests (synthetic data only)
 
 `scripts/check-uefa-fit.mjs`: 70 checks pass: hand-worked ratings and gaps, the league-phase rule (including a club already on N meeting one that is not), no leakage of a match's own result into its rating, constants recovered from draws of the model by Newton and by an unrelated simplex solver (log loss agreeing to 1e-9), the slope and its standard error against an independent computation, each fold trained on exactly the other two competitions, each benchmark on its own training shares, the integrity checks able to pass and to fail, and the verdict's behaviour on 24 no-skill seasons (0 built) and 24 strong-skill seasons (24 built). `scripts/mutate-uefa-fit.mjs`: the tooling is broken on purpose, one defect at a time, in a copy (the RULE block never touched), and the check must go red. **First run, 29 mutants: 26 caught, 3 not** (the default K, the league-phase "both clubs" definition, and what U1 is measured against): three real holes in the checks, each closed by a new check (a default-options case, a hand case with a club already on N meeting one that is not, and a sign test that each z agrees with the Brier difference against the benchmark it claims). **Second full run, 29 mutants: 29 caught**, control 66 of 66. After the alias map and the 36-clubs check were added, the harness holds **33 mutants** (the alias map not applied on either side, an alias chain, the 36-clubs check dropped) and the check 70 assertions; **the third full run (control 70 of 70) caught 32 of 33**: the one survivor was "the alias map is not applied on the away side", because the alias check put the aliased name only on the home side. A check for the away side was added (71 assertions), and the three club-identity mutants were re-run: **3 of 3 caught, control 71 of 71**. The other 30 mutants were not re-run: adding an assertion cannot turn a caught mutant into an uncaught one, and the tooling file itself is unchanged since `67223115`. Coverage as it stands: 33 mutants, every one caught by some run of the final check; the full harness was not re-run in one piece after the last assertion was added. Not mutated, on purpose: the individual conjuncts of `wellPosed` (redundant with each other, so removing one is an equivalent mutant; they are tested jointly).
+
+## Result, and what is open
+
+**VERDICT: DO NOT BUILD.** U1 (CV z -2.29), U2 (folds -0.95, -3.39, -0.06), U3 (slope 1.083 +/- 0.264), U5 and U6 (17 of 17) passed; **U4 failed: the frozen 2026-27 bundle's Brier 0.6444 is above the base rate's 0.6285 (difference +0.0159, paired z +0.48, n 90).** Verified by an independent recompute (26 of 26 quantities agree). By the rule's NO FURTHER LOOK clause no UEFA forecast is built on these data: no refit, no change of K, weights or folds, no alternative candidate. Tasks 3 and 4 of the CC-CMD are CLOSED, NOT BUILT. The full numbers are in the CC-CMD's Task 2 section and `outbox/forecast-fit-uefa-2026-11-27.txt`.
+
+**Open, the owner's (not deferred work, a decision):** leave it unbuilt, or a new pre-registered forward test with the constants fixed as printed on the remaining 2026-27 league-phase matches; recommendation and unblock criteria are in the CC-CMD ("After the verdict").
+
+**Not claimed:** that the table has no skill. The held-out-competition test says it may on 2025-26; the one forward test, 90 matches early in a season, says nothing either way. The rule's answer to that uncertainty was written before the number, and it is DO NOT BUILD.

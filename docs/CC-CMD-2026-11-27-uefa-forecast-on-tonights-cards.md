@@ -2,7 +2,7 @@
 
 **Repo:** field-laboratory (LAB-FIRST-A: new computation and proofs land here). The archive rows it needs come from field-relay-nba (`archive-league-history-backfill.yml`, read-only measured below).
 **Branch:** main — commit directly, no feature branch, no PR.
-**Status:** PARTIAL 2026-11-27. **Task 0 DONE** (the data, measured). **Task 1 DONE 2026-11-27 by another session** (field-relay-nba session "3rd session", on the owner's "UEFA history write approved"; verified here, below). **The Rule F scope was CONFIRMED by the owner 2026-11-27** ("Confirm the Rule F scope as recommended", decision 2; recorded here by a field-relay-nba session at the owner's instruction), so **Task 2 is UNBLOCKED**. Tasks 3 and 4 follow it. Nothing is built.
+**Status:** DONE 2026-11-27 with the verdict **DO NOT BUILD**. Task 0 and Task 1 done; **Task 2 done: the pre-registered fit said DO NOT BUILD (U4 failed: on the frozen 2026-27 bundle U is worse than the base rate, +0.0159 Brier, z +0.48, n 90; U1, U2, U3, U5 and U6 passed)**. **Tasks 3 and 4 are CLOSED, NOT BUILT, by the rule's own NO FURTHER LOOK clause.** Nothing in the UEFA forecast is built or written; the data, the rule, the tooling and the result are committed. Any revision is a new decision with new matches to read ("After the verdict", below).
 **Filed by:** CC, on the owner's "Yes" (2026-11-27) to "whether you want a UEFA forecast on tonight's cards", given after the owner named the surfaces ("Laboratory and tonight"). The owner had said "Seems like full season UEFA history would be extremely valuable", which was a discussion point and not a build directive; no write was made on it.
 
 One-liner:
@@ -59,23 +59,43 @@ The qualifying rounds (345 ESPN events 2026-06-20 to 08-18, none archived; field
 What was specified (kept as the record): the 522 matches above, through `archive-league-history-backfill.yml` (`dry_run` false, one run per competition, `from` 2025-09-01, `to` 2026-04-30), with the `league` and `label` as the cron writes them (`uefa.champions` / `UEFA Champions League`, `uefa.europa` / `UEFA Europa League`, `uefa.europa.conf` / `UEFA Europa Conference League`), plus the 2 Conference League semi-finals of May 2026. Blocked by: a production archive write of 524 rows, 131 times the one approved on 2026-11-27. Unblocked when: the owner says to write them. Side effect to say before approval: the scheduled join backfill (`bsd-game-join-backfill.yml`, range from 2026-02-01) will pick up the Feb to April rows (NULL `bsd_event_id`) and spend BSD pages on them; rows dated before 2026-02-01 are outside its range and stay unjoined, which a results-only forecast does not need. **Alternative, if the owner does not want the write:** the EPL precedent, an external results source (the EPL fit used openfootball); it needs its own check against ESPN's final tables.
 Verify (after the write): `read-archive-label-dates.yml` with `like` = `UEFA%` reads `UEFA Champions League` 93 + 186 = 279 rows, `UEFA Europa League` 279, `UEFA Europa Conference League` 73 + 150 + 2 = 225; and the dry run over the same window prints `alreadyArchived` equal to `completed`.
 
-## Task 2 — Pre-register the fit and the out-of-sample rule (Task 1 is done; the Rule F scope was confirmed 2026-11-27, so this is UNBLOCKED)
+## Task 2 — Pre-register the fit and the out-of-sample rule (DONE 2026-11-27: the rule said DO NOT BUILD)
 
-What: a committed file fixing, before any fit is run: the model family, the burn-in (how many matchdays before a table is trusted), the baseline it must beat (the EPL's own comparison: Brier against a constant home/draw/away split and against the previous table-v1 form), and the pass rule on the held-out current season, in the shape of the EPL's seven-part rule (`outbox/cc-session-2026-11-09-fit-c.md`). Then the fit script, run unedited. Done when the pre-registration is committed with its commit time before the fit's first run, and the run's output is committed beside it. A fit that fails its rule is not shipped (the EPL's `table-v1` was refitted once under a rule fixed first and the rule said do not ship).
+**The order, as committed** (all in this repository; the EPL fit's order, mirrored): the rule alone `dc9fdce5` (2026-11-27T20:49:09Z; RULE block sha256 `6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1`, 10,608 characters), the two data bundles `584b517e` (20:55:23Z), the tooling `67223115` (21:24:46Z; its checks and the harness' result `d90d96bb`, 21:33:24Z), then the run on a runner: **run `46071082308`, checkout `d90d96bb`, started 2026-11-27T21:33:49Z**, later than all of them. Output: `outbox/forecast-fit-uefa-2026-11-27.txt` and `.json`, `outbox/forecast-fit-uefa-provenance-2026-11-27.txt`. The tooling was tested on synthetic seasons only (`scripts/check-uefa-fit.mjs`, 71 assertions; `scripts/mutate-uefa-fit.mjs`, 33 mutants, the first run 26 of 29 caught and three holes in the checks closed, the third full run 32 of 33 and its one survivor closed and re-run); no real model number existed before the run. One DATA-ONLY pass (names, dates and counts) found the archive writes some clubs under two spellings and led to an outcome-blind alias map and a 36-clubs integrity check, recorded in `outbox/cc-session-2026-11-27-uefa-forecast-fit.md`.
 
-## Task 3 — The UEFA line on a card, pull-only (BLOCKED on Task 2 passing)
+**Result (the run's own numbers; K = 3; 234 eligible 2025-26 forecasts, 90 frozen):**
+
+| part | requirement | measured | |
+|---|---|---|---|
+| U1 | CV set (leave one competition out): Brier below the base rate's, paired z <= -1.645 | 0.5858 against 0.6174, **z -2.29** | pass |
+| U2 | each fold: paired z against the base rate <= +1.0 | UCL -0.95, UEL -3.39, UECL -0.06 | pass |
+| U3 | CV set: home-win slope within 1.96 SE of 1 | **1.083 +/- 0.264** | pass |
+| U4 | frozen 2026-27 bundle: Brier not above the base rate's | **0.6444 against 0.6285, difference +0.0159, z +0.48** | **FAIL** |
+| U5 | the full fit is well posed | solver gap 2.3e-15, max gradient 2.2e-10, Hessian positive definite, no bound | pass |
+| U6 | every integrity check | 17 of 17 | pass |
+
+The constants Task 3 WOULD have shipped, printed and never used: home 1.34, scale 1.97, share 0.18 (the EPL's are 0.42, 1.14, 0.27). Reported, not gating: the CV set against the EPL constants z -1.06, uniform 0.6667; K = 4 sensitivity: CV z -1.84, slope 0.852 +/- 0.247, frozen difference +0.0225.
+
+**Verified a second way.** `outbox/forecast-fit-uefa-recompute-2026-11-27.mjs` recomputes the same pre-registered quantities from the same bundles by a different route (club histories as lists, a grid-and-zoom fit, a gradient-ascent slope with a numerical Hessian, nothing imported from the tooling): **26 of 26 quantities agree** (the rounded constants exactly, every z, the Brier scores, the slope and its SE, the frozen difference to 1e-9; `outbox/forecast-fit-uefa-recompute-2026-11-27.txt`). The verdict is not a tooling artifact.
+
+**What the data say, and do not** (the limits were written before any number, in the rule's DISCLOSED block, and bind the reading): the table shows skill over a table-free forecast on 2025-26 when a competition is held out (strongest in the Europa League, none in the Conference League), but this is within the fit season, and the one forward test, 90 early-season 2026-27 forecasts, shows none: its difference is +0.0159 with z +0.48, which is not distinguishable from zero and not evidence of skill either. U4 was a tripwire in the direction only, its outcome unknown when written, and its own text accepted that a small n makes it weak. The rule says a failure is DO NOT BUILD; it is.
+
+## Task 3 — The UEFA line on a card, pull-only (CLOSED, NOT BUILT: Task 2's verdict was DO NOT BUILD)
+
+The task text below is kept as the record. The rule's NO FURTHER LOOK clause: no UEFA forecast is built on these data.
 
 What: `src/Forecast.fs` and the card path (`src/CardForecast.fs`, `src/Standings.fs`) extended to the three UEFA competitions' league-phase `Scheduled` cards with kickoff ahead; knockout ties and clubs with too few matches carry a `NoForecastReason` sentence. A league-phase table per competition computed from the archive rows. `npm run check:forecast-pull-only` still passes, with its mutation harness. Done when it is shown red on each deliberate break first (Rule 90) and green after.
 
-## Task 4 — Seen on a live card (BLOCKED on Task 3 and on a UEFA matchday with a league-phase card ahead)
+## Task 4 — Seen on a live card (CLOSED, NOT BUILT: depends on Task 3)
 
 The same CI-as-proxy pattern the EPL used (`forecast-live-probe`, run 44897584850): a real browser on the deployed page, a committed manifest of booleans and the screenshot. Done condition (Rule 89): `verdict: "PASS"`, every UEFA league-phase card that is `Scheduled` with kickoff ahead draws `model <method> — …`, every other UEFA card says why it does not, `errors: []`. Blocked until a UEFA matchday has such a card; I have not checked the calendar, and the date is not asserted here.
 
-## Decisions for the owner (recommendations first)
+## After the verdict: a new decision, with new matches to read (the owner's, recommendation first)
 
-1. **Write last season's 524 rows (Task 1).** Recommended: yes. It is the fit data and the out-of-sample comparison's other half, it removes the outside source the EPL needed, and it is the "full season UEFA history" the owner called valuable. Alternative: an external results source.
-2. **Confirm the Rule F scope:** modelled, pull-only, drawn on request; Rule A (autonomous push) not cleared. Recommended: as read above. **DECIDED 2026-11-27: confirmed as recommended** (the owner's words: "Confirm the Rule F scope as recommended").
-3. **The 345 qualifying rows: not needed for this.** Recommended: no, unless a use for qualifying history is named.
+The rule: "Any revision after that is a new decision with new matches to read." Two options:
+1. **Leave the UEFA forecast unbuilt.** Costs nothing. The EPL forecast is unaffected. Choose this if a UEFA line on tonight's cards is not worth another cycle.
+2. **A new pre-registered forward test, no refit.** Fix the three constants as printed (home 1.34, scale 1.97, share 0.18), write a new rule file before reading any new match, and score ONLY league-phase matches played after the 2026-11-27 freeze (a new frozen bundle: the remaining matchdays of the 2026-27 league phase), against the base rate of all 2025-26 eligible forecasts, with a pass line fixed in advance for the larger n. Unblock criteria: the archive holds the remaining league-phase matches (the reader shows 144 / 144 / 108 league-phase matches per competition for 2026-27, so the new bundle has roughly 150 forecasts or more); verify with `scripts/uefa-fit-data.mjs` for the new window and `node outbox/forecast-fit-uefa-2026-11-27.mjs --integrity-only` style checks. It would cost one pre-registration and one run, no change to anything shipped, and it is a real second test where the first had n 90. **Recommended only if the owner wants the UEFA forecast;** otherwise option 1.
+Rule F (modelled, pull-only; Rule A not cleared) is unchanged and would bind option 2's eventual build.
 
 ## Not in scope
 
