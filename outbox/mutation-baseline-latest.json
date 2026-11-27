@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-26T03:40:21.867Z",
+  "at": "2026-11-27T14:57:57.733Z",
   "scope": "full",
-  "ran": 115,
-  "from_mutations": 2250,
+  "ran": 116,
+  "from_mutations": 2275,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -307,6 +307,10 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/cc-cmd-status-check.mjs --self-test",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/venue-infobox.mjs --self-test",
       "passed": true
     },
@@ -383,6 +387,10 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/live-score-render-check.mjs",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/check-forecast-pull-only.mjs",
       "passed": true
     },
@@ -396,10 +404,6 @@
     },
     {
       "cmd": "node scripts/live-shape-capture.mjs --self-test",
-      "passed": true
-    },
-    {
-      "cmd": "node scripts/live-score-render-check.mjs",
       "passed": true
     },
     {
@@ -471,16 +475,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      3421043,
-      4620832,
-      3802483,
-      3734760,
-      3219559,
-      4226278,
-      4223130,
-      4553423
+      4596453,
+      4242405,
+      4669100,
+      3811115,
+      4213657,
+      3642814,
+      4462622,
+      4092716
     ],
-    "longestMs": 4620832,
-    "sumMs": 31801508
+    "longestMs": 4669100,
+    "sumMs": 33730882
   }
 }
