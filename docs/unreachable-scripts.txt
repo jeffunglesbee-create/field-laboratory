@@ -61,3 +61,14 @@ mutate-bsd-next-goal-grade-core.mjs
 espn-reference-grade-core.mjs
 check-espn-reference-grade-core.mjs
 mutate-espn-reference-grade-core.mjs
+
+# Not run by any workflow yet (declared 2026-11-27). The UEFA fit's mutation harness, committed
+# with the fit's tooling in 67223115 (docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md,
+# Task 2). .github/workflows/uefa-fit-run.yml runs its checks, scripts/check-uefa-fit.mjs
+# (line 51), and no workflow in .github/ names this script, which is what this check sees.
+# outbox/cc-session-2026-11-27-uefa-forecast-fit.md says it was run by hand before the fit's run
+# (33 mutants, synthetic data). Measured 2026-11-27 on this container: the control passes (71 of 71
+# checks), and the full run had not finished when stopped at 540 seconds, so wiring it means a
+# runner job with its own timeout, not the pre-commit hook. Delete this line in the commit that
+# wires it, or if the UEFA fit is retired.
+mutate-uefa-fit.mjs
