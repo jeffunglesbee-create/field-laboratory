@@ -12,6 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1471183` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45948904264 |
+| `5d3c640` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `5d3c640` | 2026-11-27 | [live-now-deployed-latest.png](live-now-deployed-latest.png) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `5d3c640` | 2026-11-27 | [live-now-deployed-manifest-latest.json](live-now-deployed-manifest-latest.json) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `b0d03a4` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: load a live draw page and a finished control on the deployed site and judge their liveness lines |
+| `b0d03a4` | 2026-11-27 | [cc-session-2026-11-27-draw-liveness.md](cc-session-2026-11-27-draw-liveness.md) | probe: load a live draw page and a finished control on the deployed site and judge their liveness lines |
+| `f6a6573` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `f6a6573` | 2026-11-27 | [live-now-deployed-latest.png](live-now-deployed-latest.png) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `f6a6573` | 2026-11-27 | [live-now-deployed-manifest-latest.json](live-now-deployed-manifest-latest.json) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `cb06d87` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line and its draw links on the deployed page, after the Task 6c deploy |
+| `9c2231d` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1c56964` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45942335413 |
 | `9e38a39` | 2026-11-27 | [cc-session-2026-11-27-draw-liveness.md](cc-session-2026-11-27-draw-liveness.md) | feat: the draw says whether its tournament is live; the Live now line links the live draws (Task 6c) |
 | `befdfef` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
