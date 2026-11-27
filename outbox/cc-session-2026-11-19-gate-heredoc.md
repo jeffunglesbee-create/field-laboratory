@@ -79,7 +79,7 @@ Review 3 (workflow `wf_a221fda7-c68` of `0ba7f399`, 5 lenses, 67 agents, 4.6 h; 
 
 ## What review 4 found, and what was done
 
-Review 4 (workflow `wf_2947ccfb-10f` of `652b23e7`; 4 lenses, 54 agents, 3.7 h): 22 confirmed, 3 refuted (SS-4 and T4-9, the unterminated heredoc with a `#` body line, which is the recorded 1e; RD-4, the design costs). The fixes are in `58dee9bc` and `92334d5d`; each has pinned rows and a mutation entry that goes red (14 new entries and 9 repointed ones, all caught by the isolated-copy runner; the full sweep below).
+Review 4 (workflow `wf_2947ccfb-10f` of `652b23e7`; 4 lenses, 54 agents, 3.7 h; dossier with every finding verbatim: `outbox/guard-heredoc-review-4-2026-11-19.md`): 22 confirmed, 3 refuted (SS-4 and T4-9, the unterminated heredoc with a `#` body line, which is the recorded 1e; RD-4, the design costs). The fixes are in `58dee9bc` and `92334d5d`; each has pinned rows and a mutation entry that goes red (14 new entries and 9 repointed ones, all caught by the isolated-copy runner; the full sweep below).
 
 | finding | what it was | what was done |
 |---|---|---|

@@ -1,6 +1,6 @@
 # CC session 2026-11-22: item 9, a mention of .npmrc, $GITHUB_PATH or $GITHUB_ENV is not a write
 
-Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 9 (owner: "item 9 approved"). Repo field-laboratory, work branch `item9` from `main` 72232307.
+Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 9 (owner: "item 9 approved"). Repo field-laboratory, work branch `item9` from `main` 72232307 (deleted 2026-11-23; its history is on `main`, see the last section).
 
 ## HEAD progression
 
@@ -8,7 +8,7 @@ Scope: `docs/CC-CMD-2026-11-16-gate-guard-contrived-residual.md`, item 9 (owner:
 |---|---|---|
 | start | `72232307` | `main` |
 | built | `b5563f24` | `without_mentions`, 42 checks, 13 mutation entries (4 repointed), the fuzz |
-| first scored run | `274a4706` | `verify-full` run `45058424770` FAILED: shard 8 reported `mutation SURVIVED` (below); the other 7 shards passed; its ledger commits are on branch `item9` only (the squash `75ca5ba3` on `item9-land` is why they are not on `main`) |
+| first scored run | `274a4706` | `verify-full` run `45058424770` FAILED: shard 8 reported `mutation SURVIVED` (below); the other 7 shards passed; its ledger commits were on branch `item9` only (the squash `75ca5ba3` is why they were not landed with the item); the branch was deleted 2026-11-23: its commits are on `main` through the `ours` merge `c2a15c22`, and the failed run's two ledger lines are in `main`'s ledger (`fc9e8452`) |
 | fix | ``75ca5ba3`` | the entry repointed, a new entry for the fallback, all 22 entries whose anchor lies in a touched line caught |
 | landed | ``107ad080`` | scored `verify-full` run ``45067406927``: `earned 530 of 530, failing [], skipped [], notApplicable [], mutation baseline failing 0, 8 of 8 shards; `verify` run `45075375013` and `guards` run `45075375078` green on the landing` |
 
@@ -39,6 +39,8 @@ Fix: the entry mutates both passes; a new entry `mention-shown-fallback` for the
 - Mutants: the item-9 entries and the later-step entries (30 at the first run, 29 caught, 1 equivalent removed): all caught by the isolated-copy runner.
 - Real tree: `checked 411 of 411 run steps`, 0 differ.
 - Fuzz: see `outbox/guard-mention-fuzz-2026-11-22.txt`: 50000 scripts, 0 false greens, false reds 15852 to 0; controls 709, 99, 1970.
+
+- Cost (done condition 3 of the residual CC-CMD, measured 2026-11-27): `python3 scripts/check-browser-gate.py --self-test`, user plus system CPU seconds, the two guards run back to back at a load of about 1. Before item 9 (`72232307`, 1425 checks): 24.1 + 3.2 and 23.3 + 3.0. With item 9 (1467 checks): 24.2 + 3.1 and 24.4 + 3.3. Wall 28.7 to 30.3 s. The change costs nothing outside the noise (0.1 to 1.1 s).
 
 ## Not verified
 
