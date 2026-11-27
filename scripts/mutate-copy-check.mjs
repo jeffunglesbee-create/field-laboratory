@@ -59,6 +59,7 @@ const EXEMPT = {
   'mutate-ppubs-probe.py': 'works in a tempfile.TemporaryDirectory by its source, but it had not finished in 200 s natively nor in 300 s under the python guard, so it is not run here; ppubs-query-probe.yml runs it',
   'mutate-patent-watch.py': 'needs .client-src/.github/scripts/patent_watch.py, a checkout of another repo that its verify.yml job makes ("FAIL: no watcher at ..." when absent); works in a tempfile.TemporaryDirectory by its source',
   'mutate-drama-backfill.py': 'needs .relay-src/scripts/drama-backfill.mjs, a checkout of another repo that its verify.yml job makes ("FAIL: no script at ..." when absent); works in a tempfile.TemporaryDirectory by its source',
+  'mutate-uefa-fit.mjs': 'works in an os.tmpdir() directory by its source (mkdtemp, removed on exit), but its control and 33 mutants are 34 runs of a check that took 43 s on a runner (run 46071082308) against this check\'s 180 s timeout, and it takes --only but no --self-test; uefa-fit-mutate.yml runs it',
 }
 /** `mutate-claim-check.mjs` is checked as `claim-check`: the name --only takes and the label of its clauses. */
 const nameOf = f => f.replace(/^mutate-/, '').replace(/\.(mjs|py)$/, '')

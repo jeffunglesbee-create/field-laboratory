@@ -1,0 +1,61 @@
+# Rule 90 (MUTATE-FIRST-A) for the UEFA fit's tooling, run on a runner: scripts/mutate-uefa-fit.mjs puts each of its 33 deliberate defects into a COPY of
+# outbox/forecast-fit-uefa-2026-11-27.mjs (the RULE block is never touched) and requires scripts/check-uefa-fit.mjs to go red on every one. The tooling was committed with the harness
+# in 67223115 and the harness was run by hand before the fit's run (outbox/cc-session-2026-11-27-uefa-forecast-fit.md); until this workflow no job ran it, so a change to the check
+# could have made it unable to fail with nothing noticing. docs/unreachable-scripts.txt carried the declaration of that gap and this commit removes it.
+#
+# WHY A RUNNER, AND HOW LONG: one check is one single-threaded process (43 s on the runner in run 46071082308, 57 s on a 4-core sandbox) and the harness runs the control and then 33 mutants
+# on 4 workers, so a full run is 7 to 9 minutes or more on 4 cores and about twice that on 2. It prints its control line after about a minute and every per-mutant line and the coverage line
+# only at the end. The timeout below is a hang guard, not an estimate; the job prints the core count and the elapsed seconds so the next reader has the measured figure rather than this one.
+#
+# WHEN IT RUNS: on dispatch, and on a push to main that changes a file the harness depends on (the harness, the check, the tooling it mutates, or this workflow). The RULE block is pinned by
+# hash and the verdict closed the follow-on tasks (docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md, status DONE with the verdict DO NOT BUILD), so nobody is expected to edit the check,
+# the harness or the tooling; when someone does, this runs, which is exactly when the question "can the check still fail" needs asking again. No cron: it would answer a question nothing has changed.
+#
+# It holds no secret, reads no network and commits or pushes nothing: its outputs are the step summary and the log, and the exit code and the printed coverage line are the whole result. The
+# harness exits 0 only when every mutant is CAUGHT and none is a harness error; the control (the unmutated copy) must pass first. A red run is visible in the Actions tab only: status.yml reads
+# deploy, pages, drift-sentinel and verify, not this workflow.
+name: uefa-fit-mutate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/mutate-uefa-fit.mjs'
+      - 'scripts/check-uefa-fit.mjs'
+      - 'outbox/forecast-fit-uefa-2026-11-27.mjs'
+      - '.github/workflows/uefa-fit-mutate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uefa-fit-mutate
+  cancel-in-progress: false
+
+jobs:
+  mutate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Every deliberate break of the UEFA fit's tooling turns its check red
+        shell: bash
+        run: |
+          start=$(date +%s)
+          echo "runner cores: $(nproc)" | tee -a "$GITHUB_STEP_SUMMARY"
+          # -e is off only around the harness: a failing harness must still reach the lines below,
+          # because the coverage line is the part of a failure worth reading.
+          set +e
+          node scripts/mutate-uefa-fit.mjs 2>&1 | tee uefa-fit-mutate.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "elapsed seconds: $(( $(date +%s) - start ))" | tee -a "$GITHUB_STEP_SUMMARY"
+          cov=$(grep '^coverage:' uefa-fit-mutate.out || true)
+          echo "${cov:-coverage: NOT PRINTED (the harness did not reach its result line)}" | tee -a "$GITHUB_STEP_SUMMARY"
+          # A run that exits 0 without printing its denominator is not a pass (Rule 91).
+          [ "$rc" -eq 0 ] && [ -z "$cov" ] && exit 1
+          exit "$rc"
