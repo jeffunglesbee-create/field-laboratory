@@ -2,7 +2,7 @@
 
 **Repo:** field-laboratory (LAB-FIRST-A: new computation and proofs land here). The archive rows it needs come from field-relay-nba (`archive-league-history-backfill.yml`, read-only measured below).
 **Branch:** main — commit directly, no feature branch, no PR.
-**Status:** PARTIAL 2026-11-27. **Task 0 DONE** (the data, measured). **Task 1 DONE 2026-11-27 by another session** (field-relay-nba session "3rd session", on the owner's "UEFA history write approved"; verified here, below). Task 2 is BLOCKED on one thing only: the owner confirming the Rule F scope (decision 2). Tasks 3 and 4 follow it. Nothing is built.
+**Status:** PARTIAL 2026-11-27. **Task 0 DONE** (the data, measured). **Task 1 DONE 2026-11-27 by another session** (field-relay-nba session "3rd session", on the owner's "UEFA history write approved"; verified here, below). **The Rule F scope was CONFIRMED by the owner 2026-11-27** ("Confirm the Rule F scope as recommended", decision 2; recorded here by a field-relay-nba session at the owner's instruction), so **Task 2 is UNBLOCKED**. Tasks 3 and 4 follow it. Nothing is built.
 **Filed by:** CC, on the owner's "Yes" (2026-11-27) to "whether you want a UEFA forecast on tonight's cards", given after the owner named the surfaces ("Laboratory and tonight"). The owner had said "Seems like full season UEFA history would be extremely valuable", which was a discussion point and not a build directive; no write was made on it.
 
 One-liner:
@@ -17,7 +17,7 @@ Do not commit unless confidence >= 95. If score < 95, report verbatim and stop.
 ## BUILD-ON-A (read 2026-11-27)
 
 The lineage is `docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md` (Status PARTIAL: `table-v2`, shipped 2026-11-09 and seen on 7 of 7 live EPL cards 2026-11-21) and `docs/FORECAST-PROOF.md`. Rulings and holds read there, and which of them bind this work:
-- **Rule F** was cleared by Jeff on 2026-09-11 for a modelled EPL forecast, not only a market-implied one. **Rule A (autonomous push) is NOT cleared.** The owner's "Yes" above is recorded as asking for a UEFA forecast on cards; it is read as the same shape (modelled, pull-only, drawn on request). If the owner meant more than that, Task 2 stops and asks.
+- **Rule F** was cleared by Jeff on 2026-09-11 for a modelled EPL forecast, not only a market-implied one. **Rule A (autonomous push) is NOT cleared.** The owner's "Yes" above is recorded as asking for a UEFA forecast on cards; it is read as the same shape (modelled, pull-only, drawn on request). If the owner meant more than that, Task 2 stops and asks. **Confirmed 2026-11-27, as read: modelled, pull-only, drawn on request; Rule A (autonomous push) NOT cleared.** The owner did not mean more, so Task 2 does not stop. The confirmation clears nothing else: the D1 `forecast_observations` gate and every item under "Not in scope" are unchanged.
 - **The pull-only ruling is structural** (`lineFor` takes no market price; `npm run check:forecast-pull-only` fails on a timer, a second effect, a market field or a word for a gap). It binds the UEFA line the same way.
 - **A forecast is drawn only while it is not hindsight:** a card in state `Scheduled` with kickoff ahead. A card that should carry one and cannot says why, in a sentence.
 - **The fit is pre-registered:** the EPL `table-v2` was fitted on last season under a rule fixed first, and out-of-sample on the current season. The D1 `forecast_observations` write path is gated on the owner and is not touched here.
@@ -59,7 +59,7 @@ The qualifying rounds (345 ESPN events 2026-06-20 to 08-18, none archived; field
 What was specified (kept as the record): the 522 matches above, through `archive-league-history-backfill.yml` (`dry_run` false, one run per competition, `from` 2025-09-01, `to` 2026-04-30), with the `league` and `label` as the cron writes them (`uefa.champions` / `UEFA Champions League`, `uefa.europa` / `UEFA Europa League`, `uefa.europa.conf` / `UEFA Europa Conference League`), plus the 2 Conference League semi-finals of May 2026. Blocked by: a production archive write of 524 rows, 131 times the one approved on 2026-11-27. Unblocked when: the owner says to write them. Side effect to say before approval: the scheduled join backfill (`bsd-game-join-backfill.yml`, range from 2026-02-01) will pick up the Feb to April rows (NULL `bsd_event_id`) and spend BSD pages on them; rows dated before 2026-02-01 are outside its range and stay unjoined, which a results-only forecast does not need. **Alternative, if the owner does not want the write:** the EPL precedent, an external results source (the EPL fit used openfootball); it needs its own check against ESPN's final tables.
 Verify (after the write): `read-archive-label-dates.yml` with `like` = `UEFA%` reads `UEFA Champions League` 93 + 186 = 279 rows, `UEFA Europa League` 279, `UEFA Europa Conference League` 73 + 150 + 2 = 225; and the dry run over the same window prints `alreadyArchived` equal to `completed`.
 
-## Task 2 — Pre-register the fit and the out-of-sample rule (Task 1 is done; BLOCKED only on the owner confirming the Rule F scope above)
+## Task 2 — Pre-register the fit and the out-of-sample rule (Task 1 is done; the Rule F scope was confirmed 2026-11-27, so this is UNBLOCKED)
 
 What: a committed file fixing, before any fit is run: the model family, the burn-in (how many matchdays before a table is trusted), the baseline it must beat (the EPL's own comparison: Brier against a constant home/draw/away split and against the previous table-v1 form), and the pass rule on the held-out current season, in the shape of the EPL's seven-part rule (`outbox/cc-session-2026-11-09-fit-c.md`). Then the fit script, run unedited. Done when the pre-registration is committed with its commit time before the fit's first run, and the run's output is committed beside it. A fit that fails its rule is not shipped (the EPL's `table-v1` was refitted once under a rule fixed first and the rule said do not ship).
 
@@ -74,7 +74,7 @@ The same CI-as-proxy pattern the EPL used (`forecast-live-probe`, run 4489758485
 ## Decisions for the owner (recommendations first)
 
 1. **Write last season's 524 rows (Task 1).** Recommended: yes. It is the fit data and the out-of-sample comparison's other half, it removes the outside source the EPL needed, and it is the "full season UEFA history" the owner called valuable. Alternative: an external results source.
-2. **Confirm the Rule F scope:** modelled, pull-only, drawn on request; Rule A (autonomous push) not cleared. Recommended: as read above.
+2. **Confirm the Rule F scope:** modelled, pull-only, drawn on request; Rule A (autonomous push) not cleared. Recommended: as read above. **DECIDED 2026-11-27: confirmed as recommended** (the owner's words: "Confirm the Rule F scope as recommended").
 3. **The 345 qualifying rows: not needed for this.** Recommended: no, unless a use for qualifying history is named.
 
 ## Not in scope
