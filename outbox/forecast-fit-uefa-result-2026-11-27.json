@@ -1,0 +1,390 @@
+{
+ "verdict": {
+  "verdict": "DO NOT BUILD",
+  "failed": [
+   "U4 frozen-bundle Brier minus the base rate's 0.0159 is not <= 0"
+  ]
+ },
+ "ruleBlockSha256": "6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1",
+ "an": {
+  "K": 3,
+  "trainLeaguePhase": {
+   "UEFA Champions League": 144,
+   "UEFA Europa League": 144,
+   "UEFA Europa Conference League": 108
+  },
+  "frozenLeaguePhase": {
+   "UEFA Champions League": 90,
+   "UEFA Europa League": 90,
+   "UEFA Europa Conference League": 72
+  },
+  "trainEligible": {
+   "UEFA Champions League": 90,
+   "UEFA Europa League": 90,
+   "UEFA Europa Conference League": 54
+  },
+  "frozenEligible": {
+   "UEFA Champions League": 36,
+   "UEFA Europa League": 36,
+   "UEFA Europa Conference League": 18
+  },
+  "openingMatches": {
+   "train": 162,
+   "frozen": 162
+  },
+  "folds": [
+   {
+    "name": "UEFA Champions League",
+    "n": 90,
+    "trainN": 144,
+    "baseShares": [
+     0.5555555555555556,
+     0.2013888888888889,
+     0.24305555555555555
+    ],
+    "fit": {
+     "home": 1.6344511738755576,
+     "scale": 1.528652750335978,
+     "share": 0.2013888888888889
+    },
+    "constants": {
+     "home": 1.63,
+     "scale": 1.53,
+     "share": 0.2
+    },
+    "brierU": 0.6186842252256806,
+    "brierBase": 0.643460648148149,
+    "z": -0.9494508461572659
+   },
+   {
+    "name": "UEFA Europa League",
+    "n": 90,
+    "trainN": 144,
+    "baseShares": [
+     0.5,
+     0.1736111111111111,
+     0.3263888888888889
+    ],
+    "fit": {
+     "home": 1.3648862007616656,
+     "scale": 2.7354163083489755,
+     "share": 0.1736111111111111
+    },
+    "constants": {
+     "home": 1.36,
+     "scale": 2.74,
+     "share": 0.17
+    },
+    "brierU": 0.5457510785646699,
+    "brierBase": 0.6021026234567907,
+    "z": -3.391980542706168
+   },
+   {
+    "name": "UEFA Europa Conference League",
+    "n": 54,
+    "trainN": 180,
+    "baseShares": [
+     0.5111111111111111,
+     0.17777777777777778,
+     0.3111111111111111
+    ],
+    "fit": {
+     "home": 1.0651488867855359,
+     "scale": 1.8515580645878373,
+     "share": 0.17777777777777778
+    },
+    "constants": {
+     "home": 1.07,
+     "scale": 1.85,
+     "share": 0.18
+    },
+    "brierU": 0.5976569301327587,
+    "brierBase": 0.5995061728395066,
+    "z": -0.060589588388349866
+   }
+  ],
+  "cvN": 234,
+  "cvBrierU": 0.5857805622576946,
+  "cvBrierBase": 0.6174103751187086,
+  "cvBrierEPL": 0.6006716525347369,
+  "cvBrierUniform": 0.6666666666666664,
+  "cvLogLossU": 0.9956600402572082,
+  "cvLogLossBase": 1.0270697745603476,
+  "z1": -2.2859335014506583,
+  "zEPL": -1.0576108644120497,
+  "slope": 1.0832857875886488,
+  "slopeSE": 0.2643197351946573,
+  "cvDrawObserved": 0.18376068376068377,
+  "fullFit": {
+   "raw": {
+    "home": 1.3433140470327363,
+    "scale": 1.9735969725833398,
+    "share": 0.18376068376068377
+   },
+   "constants": {
+    "home": 1.34,
+    "scale": 1.97,
+    "share": 0.18
+   },
+   "n": 234,
+   "drawObserved": 0.18376068376068377,
+   "baseShares": [
+    0.5213675213675214,
+    0.18376068376068377,
+    0.2948717948717949
+   ]
+  },
+  "wellPosedDetail": {
+   "ok": true,
+   "solverGap": 2.3314683517128287e-15,
+   "maxGrad": 2.220446049250313e-10,
+   "pd": true,
+   "onBound": [],
+   "simplex": {
+    "home": 1.3433141640632886,
+    "scale": 1.973597043066111,
+    "share": 0.18376068321077915
+   }
+  },
+  "wellPosed": true,
+  "forwardN": 90,
+  "forwardBrierU": 0.6444168130366863,
+  "forwardBrierBase": 0.6285338593030909,
+  "forwardDiff": 0.015882953733595384,
+  "forwardZ": 0.4780692703377383
+ },
+ "integrity": [
+  {
+   "name": "the RULE block equals the one recorded when it was fixed",
+   "ok": true,
+   "detail": "6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1"
+  },
+  {
+   "name": "the training bundle is the pinned one (sha256)",
+   "ok": true,
+   "detail": "45fae278311bbea97882766aa911c850ff181e21e4668d20008bf5e76b9ba2e2"
+  },
+  {
+   "name": "the frozen bundle is the pinned one (sha256)",
+   "ok": true,
+   "detail": "3ccdad96a359bbdc6f1e0608058dec23f26a04dcc944817d648594f28130735e"
+  },
+  {
+   "name": "2025-26 UCL: league-phase matches = 144",
+   "ok": true,
+   "detail": "144"
+  },
+  {
+   "name": "2025-26 UEL: league-phase matches = 144",
+   "ok": true,
+   "detail": "144"
+  },
+  {
+   "name": "2025-26 UECL: league-phase matches = 108",
+   "ok": true,
+   "detail": "108"
+  },
+  {
+   "name": "2025-26: every club has played exactly N league-phase matches (N = 8 / 8 / 6)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "frozen UCL: league-phase matches = 90",
+   "ok": true,
+   "detail": "90"
+  },
+  {
+   "name": "frozen UEL: league-phase matches = 90",
+   "ok": true,
+   "detail": "90"
+  },
+  {
+   "name": "frozen UECL: league-phase matches = 72",
+   "ok": true,
+   "detail": "72"
+  },
+  {
+   "name": "36 distinct clubs in each competition, in each bundle (a spelling the alias map does not know adds a name)",
+   "ok": true,
+   "detail": "{\"UEFA Champions League\":36,\"UEFA Europa League\":36,\"UEFA Europa Conference League\":36} {\"UEFA Champions League\":36,\"UEFA Europa League\":36,\"UEFA Europa Conference League\":36}"
+  },
+  {
+   "name": "no duplicate row id and no duplicate ESPN event id, in either bundle",
+   "ok": true,
+   "detail": "0/0/0/0"
+  },
+  {
+   "name": "no null score in a league-phase match, in either bundle",
+   "ok": true,
+   "detail": "0/0"
+  },
+  {
+   "name": "no match has the same club on both sides",
+   "ok": true,
+   "detail": "0/0"
+  },
+  {
+   "name": "the bundles' own counts equal the rows they carry",
+   "ok": true,
+   "detail": "531/531 252/252"
+  },
+  {
+   "name": "the training bundle holds only rows dated before the season cut, the frozen one only rows from it to the freeze day",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "every day of both windows answered 200",
+   "ok": true,
+   "detail": "{\"200\":334} {\"200\":118}"
+  }
+ ],
+ "k4": {
+  "K": 4,
+  "trainLeaguePhase": {
+   "UEFA Champions League": 144,
+   "UEFA Europa League": 144,
+   "UEFA Europa Conference League": 108
+  },
+  "frozenLeaguePhase": {
+   "UEFA Champions League": 90,
+   "UEFA Europa League": 90,
+   "UEFA Europa Conference League": 72
+  },
+  "trainEligible": {
+   "UEFA Champions League": 72,
+   "UEFA Europa League": 72,
+   "UEFA Europa Conference League": 36
+  },
+  "frozenEligible": {
+   "UEFA Champions League": 18,
+   "UEFA Europa League": 18,
+   "UEFA Europa Conference League": 0
+  },
+  "openingMatches": {
+   "train": 216,
+   "frozen": 216
+  },
+  "folds": [
+   {
+    "name": "UEFA Champions League",
+    "n": 72,
+    "trainN": 108,
+    "baseShares": [
+     0.5462962962962963,
+     0.2037037037037037,
+     0.25
+    ],
+    "fit": {
+     "home": 1.068940998143644,
+     "scale": 0.9484739498858287,
+     "share": 0.2037037037037037
+    },
+    "constants": {
+     "home": 1.07,
+     "scale": 0.95,
+     "share": 0.2
+    },
+    "brierU": 0.6310242850110432,
+    "brierBase": 0.6259430727023317,
+    "z": 0.1211244680195749
+   },
+   {
+    "name": "UEFA Europa League",
+    "n": 72,
+    "trainN": 108,
+    "baseShares": [
+     0.49074074074074076,
+     0.1574074074074074,
+     0.35185185185185186
+    ],
+    "fit": {
+     "home": 0.969282074298648,
+     "scale": 2.5709665085958116,
+     "share": 0.1574074074074074
+    },
+    "constants": {
+     "home": 0.97,
+     "scale": 2.57,
+     "share": 0.16
+    },
+    "brierU": 0.528525322215289,
+    "brierBase": 0.603137860082305,
+    "z": -4.108162798641981
+   },
+   {
+    "name": "UEFA Europa Conference League",
+    "n": 36,
+    "trainN": 144,
+    "baseShares": [
+     0.5277777777777778,
+     0.1597222222222222,
+     0.3125
+    ],
+    "fit": {
+     "home": 1.0264124610565843,
+     "scale": 1.7179700184188624,
+     "share": 0.1597222222222222
+    },
+    "constants": {
+     "home": 1.03,
+     "scale": 1.72,
+     "share": 0.16
+    },
+    "brierU": 0.588494855074173,
+    "brierBase": 0.6293402777777777,
+    "z": -1.1967232111150186
+   }
+  ],
+  "cvN": 180,
+  "cvBrierU": 0.5815188139053674,
+  "cvBrierBase": 0.617500428669411,
+  "cvBrierEPL": 0.5809880896042594,
+  "cvBrierUniform": 0.6666666666666683,
+  "cvLogLossU": 1.0115447520657779,
+  "cvLogLossBase": 1.0274102882639662,
+  "z1": -1.8356207019180417,
+  "zEPL": 0.03788011657259964,
+  "slope": 0.8519232210932547,
+  "slopeSE": 0.2472578899780538,
+  "cvDrawObserved": 0.17222222222222222,
+  "fullFit": {
+   "raw": {
+    "home": 1.0258253743408063,
+    "scale": 1.6199541685397387,
+    "share": 0.17222222222222222
+   },
+   "constants": {
+    "home": 1.03,
+    "scale": 1.62,
+    "share": 0.17
+   },
+   "n": 180,
+   "drawObserved": 0.17222222222222222,
+   "baseShares": [
+    0.5222222222222223,
+    0.17222222222222222,
+    0.3055555555555556
+   ]
+  },
+  "wellPosedDetail": {
+   "ok": true,
+   "solverGap": 1.4432899320127035e-15,
+   "maxGrad": 2.220446049250313e-10,
+   "pd": true,
+   "onBound": [],
+   "simplex": {
+    "home": 1.0258252599359219,
+    "scale": 1.619954010473482,
+    "share": 0.1722222225039039
+   }
+  },
+  "wellPosed": true,
+  "forwardN": 36,
+  "forwardBrierU": 0.673757966030539,
+  "forwardBrierBase": 0.6512962962962965,
+  "forwardDiff": 0.022461669734242462,
+  "forwardZ": 0.4283549883355642
+ }
+}

@@ -1,0 +1,32 @@
+RULE block sha256 6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1  (10608 characters)
+K = 3; league-phase matches 2025-26 {"UEFA Champions League":144,"UEFA Europa League":144,"UEFA Europa Conference League":108}; frozen {"UEFA Champions League":90,"UEFA Europa League":90,"UEFA Europa Conference League":72}
+eligible forecasts 2025-26 {"UEFA Champions League":90,"UEFA Europa League":90,"UEFA Europa Conference League":54} (CV n 234); frozen {"UEFA Champions League":36,"UEFA Europa League":36,"UEFA Europa Conference League":18} (n 90); opening matches (not forecast): 2025-26 162, frozen 162
+fold UCL: test n 90, trained on 144; constants home 1.63 scale 1.53 share 0.2 (raw 1.6345 1.5287 0.2014); Brier U 0.6187 base 0.6435 z -0.95
+fold UEL: test n 90, trained on 144; constants home 1.36 scale 2.74 share 0.17 (raw 1.3649 2.7354 0.1736); Brier U 0.5458 base 0.6021 z -3.39
+fold UECL: test n 54, trained on 180; constants home 1.07 scale 1.85 share 0.18 (raw 1.0651 1.8516 0.1778); Brier U 0.5977 base 0.5995 z -0.06
+CV set (n 234): Brier U 0.5858, base rate 0.6174, EPL constants 0.6007, uniform 0.6667; z against base -2.29, against EPL constants -1.06; log loss U 0.9957 base 1.0271
+CV set home-win slope 1.083 +/- 0.264; draws observed 0.184 against the fitted share
+FULL FIT on all 234 2025-26 eligible forecasts: raw home 1.3433 scale 1.9736 share 0.1838; ROUNDED (what Task 3 would ship) home 1.34 scale 1.97 share 0.18; base shares 0.521 / 0.184 / 0.295
+well posed: true; solver gap 2.33e-15, max gradient 2.22e-10, Hessian positive definite true, on a bound []; simplex solution home 1.3433 scale 1.9736 share 0.1838
+FROZEN bundle (n 90): Brier U 0.6444, base rate 0.6285, difference 0.0159, paired z 0.48
+PASS  the RULE block equals the one recorded when it was fixed [6cf976ba8b895439894346c066c22ff752d2789b208cdccdb563ddae41118cf1]
+PASS  the training bundle is the pinned one (sha256) [45fae278311bbea97882766aa911c850ff181e21e4668d20008bf5e76b9ba2e2]
+PASS  the frozen bundle is the pinned one (sha256) [3ccdad96a359bbdc6f1e0608058dec23f26a04dcc944817d648594f28130735e]
+PASS  2025-26 UCL: league-phase matches = 144 [144]
+PASS  2025-26 UEL: league-phase matches = 144 [144]
+PASS  2025-26 UECL: league-phase matches = 108 [108]
+PASS  2025-26: every club has played exactly N league-phase matches (N = 8 / 8 / 6)
+PASS  frozen UCL: league-phase matches = 90 [90]
+PASS  frozen UEL: league-phase matches = 90 [90]
+PASS  frozen UECL: league-phase matches = 72 [72]
+PASS  36 distinct clubs in each competition, in each bundle (a spelling the alias map does not know adds a name) [{"UEFA Champions League":36,"UEFA Europa League":36,"UEFA Europa Conference League":36} {"UEFA Champions League":36,"UEFA Europa League":36,"UEFA Europa Conference League":36}]
+PASS  no duplicate row id and no duplicate ESPN event id, in either bundle [0/0/0/0]
+PASS  no null score in a league-phase match, in either bundle [0/0]
+PASS  no match has the same club on both sides [0/0]
+PASS  the bundles' own counts equal the rows they carry [531/531 252/252]
+PASS  the training bundle holds only rows dated before the season cut, the frozen one only rows from it to the freeze day
+PASS  every day of both windows answered 200 [{"200":334} {"200":118}]
+17 of 17 integrity checks passed
+VERDICT: DO NOT BUILD
+  U4 frozen-bundle Brier minus the base rate's 0.0159 is not <= 0
+K = 4 (sensitivity, not gating): eligible 180 CV / 36 frozen; CV z against base -1.84; slope 0.852 +/- 0.247; frozen difference 0.0225; full-fit constants home 1.03 scale 1.62 share 0.17
