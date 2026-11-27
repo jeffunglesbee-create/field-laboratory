@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `d671bed` — failing step unknown: the run's steps could not be read — [run 45931189503](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45931189503)
+`live-check` (post-deploy, against the deployed page): **running** on `fdca2fc`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `9afe466` — behind newest deployable `43f78ba` (deploy not landed) |
+| Cloudflare Workers | live | `d671bed` — newest deployable `43f78ba` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
