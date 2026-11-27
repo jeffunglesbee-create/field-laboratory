@@ -27,3 +27,18 @@ The browser scenario drives an UNFINISHED draw (the committed Roland Garros capt
 - **The deployed page.** `scripts/live-now-deployed-probe.mjs` now also compares the page's live-tournament links with the relay's live tournament ids (sorted, distinct, either of two readings around the page read), 12 new self-test rows. It has NOT been triggered for this commit: it would read the old page before `deploy` finishes and report a false DISAGREE. Done condition: after `verify` and `deploy` are green for this commit's SHA, push `outbox/.trigger-live-now-deployed-probe`; the manifest's `verdict` is `PASS` and `drawLinks.verdict` is `AGREE`.
 - **A draw page on the deployed site.** The probe checks the links, not `?draw=<id>` itself: nothing here loaded a real live tournament's draw from the relay. The relay's draw route for tournaments 904 and 215 was not read. The unfinished payload in the test is the finished one with a winner removed, not a real mid-tournament draw.
 - **Staleness** (Task 6d) and **golf** are unchanged and still open.
+
+## Follow-up (owner: "item 3"): the draw page itself, on the deployed site
+
+`scripts/live-now-deployed-probe.mjs` now also loads TWO real draw pages on the deployed site and judges each against the relay's own live feed read before and after:
+
+1. **A live tournament:** `?draw=<lowest tournament id with a live match right now>&tab=draw`. Expected: `#panel-draw[data-live="live"]`, its sentence `Live now: N match...` with N equal to the relay's live-match count for that tournament on either reading, and not collapsed.
+2. **A control with nothing in play:** Roland Garros 2026 (`?draw=77&season=2026`, the tournament of the committed capture, a finished draw). Expected: `data-live="not-live"`.
+
+Verdicts per page: `AGREE`, `DISAGREE`, `DRAW-NOT-LOADED` (no `.dv-head`: the relay's draw route did not give a drawable draw), `NO-LIVENESS-LINE`, `RELAY-UNREADABLE`. The overall `PASS` now needs both pages to `AGREE` as well as the line's two sources and its links. If no tournament has a live match when the run happens, the live page is not measured and the run is NOT-PASS by design, not a pass.
+
+Self-test: 12 new rows (count per tournament, each verdict, the control, a missing control), plus the deliberately wrong expectation that must be refused. No new workflow or command, so the no-launch pin stays at 75.
+
+What this can still not show: whether the relay's draw payload for a mid-tournament challenger is complete (a `DRAW-NOT-LOADED` result would say so and print the panel text); anything on a browser other than Chromium; the scoreboard-card count; staleness (Task 6d).
+
+Done condition: the manifest's `drawLive.verdict` and `drawControl.verdict` are both `AGREE`, and `verdict` is `PASS`.

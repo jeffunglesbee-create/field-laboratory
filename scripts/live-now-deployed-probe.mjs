@@ -43,6 +43,23 @@ export const linksVerdict = (linked, before, after) => {
   return same(linked, before) || same(linked, after) ? 'AGREE' : 'DISAGREE'
 }
 
+/** Live matches of one tournament in a tennis body (null when it is not a bare array). Pure. */
+export const relayLiveOf = (body, tid) =>
+  Array.isArray(body) ? body.filter(r => r && r.status === 'live' && r.tournament && r.tournament.id === tid).length : null
+
+/** One draw page's verdict. `panel` is what the page's #panel-draw said; `before`/`after` are the relay's live-match counts for that tournament around the read. Pure.
+ *  Live: the panel must say live AND its sentence must carry a count equal to either reading. Not live: the panel must say not-live. */
+export const drawPageVerdict = ({ panel, before, after }) => {
+  if (!panel || !panel.loaded) return 'DRAW-NOT-LOADED'
+  if (panel.live === null || panel.live === undefined) return 'NO-LIVENESS-LINE'
+  if (before === null || after === null) return 'RELAY-UNREADABLE'
+  const expectLive = before > 0 || after > 0
+  if (!expectLive) return panel.live === 'not-live' ? 'AGREE' : 'DISAGREE'
+  if (panel.live !== 'live') return 'DISAGREE'
+  const n = Number((String(panel.line ?? '').match(/^Live now: (\d+) match/) ?? [])[1])
+  return n === before || n === after ? 'AGREE' : 'DISAGREE'
+}
+
 /** One source's verdict. `before` and `after` are the relay's live counts around the page read. Pure. */
 export const sourceVerdict = (shown, before, after) => {
   if (shown === null) return 'NOT-IN-LINE'
@@ -51,10 +68,10 @@ export const sourceVerdict = (shown, before, after) => {
   return shown === before || shown === after ? 'AGREE' : 'DISAGREE'
 }
 
-/** The whole verdict. NOT-DEPLOYED when the line is absent; PASS only when BOTH sources AND the draw links agree. Pure. */
-export const verdictOf = ({ present, tennis, soccer, draws }) => {
+/** The whole verdict. NOT-DEPLOYED when the line is absent; PASS only when BOTH sources, the draw links AND both draw pages (a live tournament, and a control with none in play) agree. Pure. */
+export const verdictOf = ({ present, tennis, soccer, draws, drawLive, drawControl }) => {
   if (!present) return 'NOT-DEPLOYED'
-  return tennis === 'AGREE' && soccer === 'AGREE' && draws === 'AGREE' ? 'PASS' : 'NOT-PASS'
+  return [tennis, soccer, draws, drawLive, drawControl].every(v => v === 'AGREE') ? 'PASS' : 'NOT-PASS'
 }
 
 const selfTest = () => {
@@ -76,10 +93,23 @@ const selfTest = () => {
   eq('a source not read yet is never AGREE, and its verdict has no space in it', sourceVerdict('not read yet', 1, 1), 'PAGE-NOT-READ-YET')
   eq('an unreadable relay is never AGREE', sourceVerdict(3, null, null), 'RELAY-UNREADABLE')
   eq('a page that shows 0 when the relay says 0 agrees', sourceVerdict(0, 0, 0), 'AGREE')
-  eq('absent line', verdictOf({ present: false, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE' }), 'NOT-DEPLOYED')
-  eq('all three agree', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE' }), 'PASS')
-  eq('one disagrees', verdictOf({ present: true, tennis: 'AGREE', soccer: 'DISAGREE', draws: 'AGREE' }), 'NOT-PASS')
-  eq('the draw links disagreeing alone is NOT-PASS', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'DISAGREE' }), 'NOT-PASS')
+  eq('absent line', verdictOf({ present: false, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE', drawLive: 'AGREE', drawControl: 'AGREE' }), 'NOT-DEPLOYED')
+  eq('all three agree', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE', drawLive: 'AGREE', drawControl: 'AGREE' }), 'PASS')
+  eq('a draw page that did not load is NOT-PASS', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE', drawLive: 'DRAW-NOT-LOADED', drawControl: 'AGREE' }), 'NOT-PASS')
+  eq('a missing control page is NOT-PASS', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'AGREE', drawLive: 'AGREE', drawControl: undefined }), 'NOT-PASS')
+  eq('relay live matches of one tournament', relayLiveOf([{ status: 'live', tournament: { id: 897 } }, { status: 'live', tournament: { id: 897 } }, { status: 'live', tournament: { id: 898 } }, { status: 'finished', tournament: { id: 897 } }], 897), 2)
+  eq('a non-array body has no per-tournament count, not zero', relayLiveOf({ events: [] }, 897), null)
+  const livePanel = { loaded: true, live: 'live', line: 'Live now: 2 matches of this tournament in play (BSD tennis)' }
+  eq('a live draw page agrees when its count equals the relay', drawPageVerdict({ panel: livePanel, before: 2, after: 2 }), 'AGREE')
+  eq('...or equals either reading', drawPageVerdict({ panel: livePanel, before: 3, after: 2 }), 'AGREE')
+  eq('...and disagrees when it equals neither', drawPageVerdict({ panel: livePanel, before: 1, after: 1 }), 'DISAGREE')
+  eq('a panel that says not-live while the relay has live matches disagrees', drawPageVerdict({ panel: { loaded: true, live: 'not-live', line: 'Not live now' }, before: 2, after: 2 }), 'DISAGREE')
+  eq('a control with no live matches agrees when the panel says not-live', drawPageVerdict({ panel: { loaded: true, live: 'not-live', line: 'Not live now' }, before: 0, after: 0 }), 'AGREE')
+  eq('a control the panel calls live disagrees', drawPageVerdict({ panel: { loaded: true, live: 'live', line: 'Live now: 1 match' }, before: 0, after: 0 }), 'DISAGREE')
+  eq('a panel that never drew is DRAW-NOT-LOADED', drawPageVerdict({ panel: { loaded: false }, before: 2, after: 2 }), 'DRAW-NOT-LOADED')
+  eq('a drawn panel with no liveness line is named, not guessed', drawPageVerdict({ panel: { loaded: true, live: null }, before: 2, after: 2 }), 'NO-LIVENESS-LINE')
+  eq('one disagrees', verdictOf({ present: true, tennis: 'AGREE', soccer: 'DISAGREE', draws: 'AGREE', drawLive: 'AGREE', drawControl: 'AGREE' }), 'NOT-PASS')
+  eq('the draw links disagreeing alone is NOT-PASS', verdictOf({ present: true, tennis: 'AGREE', soccer: 'AGREE', draws: 'DISAGREE', drawLive: 'AGREE', drawControl: 'AGREE' }), 'NOT-PASS')
   eq('relay live tournaments are sorted and distinct', relayLiveTournaments([{ status: 'live', tournament: { id: 904 } }, { status: 'live', tournament: { id: 215 } }, { status: 'live', tournament: { id: 904 } }, { status: 'finished', tournament: { id: 7 } }]), [215, 904])
   eq('a non-array tennis body has no tournaments, not an empty list', relayLiveTournaments({ events: [] }), null)
   eq('link ids come from the hrefs', pageLinkIds(['/?draw=904&tab=draw', '/x/?draw=215&tab=draw', '/?draw=904&tab=draw']), [215, 904])
@@ -119,6 +149,27 @@ const main = async () => {
     ;({ text, kind } = await page.$eval('#live-now', e => ({ text: e.textContent, kind: e.getAttribute('data-kind') })))
   }
   const afterT = await readRelay('/bsd/tennis/matches/live'), afterS = await readRelay('/bsd/events/live')
+  // THE DRAW PAGES. One for a tournament the relay says is in play (the lowest live id, found now), one control that the relay says has nothing in play: Roland Garros 2026,
+  // id 77, a finished draw. Each is a real page load of `?draw=<id>&tab=draw`; nothing is mocked.
+  const liveIds = relayLiveTournaments(afterT.body) ?? []
+  const readDrawPage = async tid => {
+    if (tid === undefined) return { tid: null, panel: { loaded: false }, note: 'no tournament has a live match at this moment' }
+    const pg = await browser.newPage({ viewport: { width: 1000, height: 900 } })
+    const errs = []
+    pg.on('pageerror', e => errs.push(String(e)))
+    const before = relayLiveOf((await readRelay('/bsd/tennis/matches/live')).body, tid)
+    await pg.goto(`${URL}/?draw=${tid}${tid === 77 ? '&season=2026' : ''}&tab=draw`, { waitUntil: 'load', timeout: 60000 })
+    await pg.waitForSelector('#panel-draw .dv-head', { timeout: 45000 }).catch(() => {})
+    await pg.waitForFunction(() => document.getElementById('panel-draw').getAttribute('data-live') !== null, null, { timeout: 45000 }).catch(() => {})
+    const panel = await pg.$eval('#panel-draw', e => ({ loaded: e.querySelector('.dv-head') !== null, live: e.getAttribute('data-live'), collapse: e.getAttribute('data-collapse'),
+      finished: e.getAttribute('data-finished') !== null, line: (e.querySelector('.dv-live') || {}).textContent ?? null, title: (e.querySelector('.dv-head__title') || {}).textContent ?? null,
+      head: (e.innerText || '').replace(/\s+/g, ' ').slice(0, 220) }))
+    const after = relayLiveOf((await readRelay('/bsd/tennis/matches/live')).body, tid)
+    await pg.close()
+    return { tid, relayBefore: before, relayAfter: after, panel, pageErrors: errs, verdict: drawPageVerdict({ panel, before, after }) }
+  }
+  const drawLive = await readDrawPage(liveIds[0])
+  const drawControl = liveIds.includes(77) ? { tid: 77, panel: { loaded: false }, note: 'the control tournament is itself live: not a control', verdict: 'NOT-A-CONTROL' } : await readDrawPage(77)
   const linkHrefs = present ? await page.$$eval('#live-now-draws a', as => as.map(a => a.getAttribute('href'))) : []
   await page.screenshot({ path: 'outbox/live-now-deployed-latest.png' })
   await browser.close()
@@ -129,9 +180,9 @@ const main = async () => {
   for (const s of Object.values(sources)) s.verdict = sourceVerdict(s.shown, s.relayBefore, s.relayAfter)
   const drawLinks = { linkedIds: pageLinkIds(linkHrefs), relayBefore: relayLiveTournaments(beforeT.body), relayAfter: relayLiveTournaments(afterT.body) }
   drawLinks.verdict = linksVerdict(drawLinks.linkedIds, drawLinks.relayBefore, drawLinks.relayAfter)
-  const verdict = verdictOf({ present, tennis: sources['BSD tennis'].verdict, soccer: sources['BSD soccer'].verdict, draws: drawLinks.verdict })
-  const manifest = { generated_at: new Date().toISOString(), page: URL, liveNowPresent: present, kind, text, sources, drawLinks, pageErrors,
-    coverage: 'checked 2 of 2 BSD sources in the line (tennis, soccer) and the live-tournament links against the relay; NOT checked: the scoreboard-card count, golf, a draw page itself, staleness', verdict }
+  const verdict = verdictOf({ present, tennis: sources['BSD tennis'].verdict, soccer: sources['BSD soccer'].verdict, draws: drawLinks.verdict, drawLive: drawLive.verdict, drawControl: drawControl.verdict })
+  const manifest = { generated_at: new Date().toISOString(), page: URL, liveNowPresent: present, kind, text, sources, drawLinks, drawLive, drawControl, pageErrors,
+    coverage: 'checked 2 of 2 BSD sources in the line (tennis, soccer) and the live-tournament links against the relay; and two real draw pages (the lowest live tournament, and Roland Garros 2026 as a control with nothing in play); NOT checked: the scoreboard-card count, golf, staleness', verdict }
   mkdirSync('outbox', { recursive: true })
   writeFileSync('outbox/live-now-deployed-manifest-latest.json', JSON.stringify(manifest, null, 2) + '\n')
   console.log(JSON.stringify(manifest, null, 2))
