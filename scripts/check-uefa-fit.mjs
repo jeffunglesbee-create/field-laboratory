@@ -83,6 +83,9 @@ const PART = { 'UEFA Champions League': 5, 'UEFA Europa League': 5, 'UEFA Europa
     const rows2 = [Q('a1', '2025-10-01', 'PSG', 'B'), Q('a2', '2025-10-08', 'C', 'D'), Q('a3', '2025-10-15', 'Paris Saint-Germain', 'E')]
     const pr = prepare(rows2, { N: { 'UEFA Champions League': 2 }, K: 1 })
     check('prepare: "Paris Saint-Germain" and "PSG" are one club (its second match has one game behind it, and 5 distinct clubs, not 6)', pr.integrity.distinctClubs['UEFA Champions League'] === 5 && pr.matches[2].gH === 1, JSON.stringify(pr.integrity.distinctClubs) + ' ' + pr.matches[2]?.gH)
+    const rows3 = [Q('b1', '2025-10-01', 'B', 'PSG'), Q('b2', '2025-10-08', 'C', 'D'), Q('b3', '2025-10-15', 'E', 'Paris Saint-Germain')]
+    const pr3 = prepare(rows3, { N: { 'UEFA Champions League': 2 }, K: 1 })
+    check('prepare: the alias is applied on the AWAY side too ("Paris Saint-Germain" away is "PSG": 5 distinct clubs, and its second match has one game behind it)', pr3.integrity.distinctClubs['UEFA Champions League'] === 5 && pr3.matches[2].gA === 1, JSON.stringify(pr3.integrity.distinctClubs) + ' ' + pr3.matches[2]?.gA)
     check('prepare: every alias maps to a spelling that is itself not an alias (no chains), and two aliases never share a target', Object.values(CLUB_ALIASES).every(v => !(v in CLUB_ALIASES)) && new Set(Object.values(CLUB_ALIASES)).size === Object.keys(CLUB_ALIASES).length)
   }
   check('prepare: a null score is counted and excluded, not read as 0-0', prepare([R('x', '2025-10-01', 'A', 'B', null, 1)], { N: { 'UEFA Champions League': 2 }, K: 1 }).integrity.nullScores === 1)
