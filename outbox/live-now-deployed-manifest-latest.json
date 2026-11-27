@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-11-27T02:46:17.622Z",
+  "generated_at": "2026-11-27T05:02:55.724Z",
   "page": "https://field-laboratory.jeffunglesbee.workers.dev",
   "liveNowPresent": true,
   "kind": "polled",
-  "text": "Live now — scoreboard cards: 0 live · BSD tennis: 3 live · BSD soccer: 1 live",
+  "text": "Live now — scoreboard cards: 0 live · BSD tennis: 2 live · BSD soccer: 1 live",
   "sources": {
     "BSD tennis": {
-      "shown": 3,
-      "relayBefore": 3,
-      "relayAfter": 3,
+      "shown": 2,
+      "relayBefore": 2,
+      "relayAfter": 2,
       "verdict": "AGREE"
     },
     "BSD soccer": {
@@ -18,7 +18,22 @@
       "verdict": "AGREE"
     }
   },
+  "drawLinks": {
+    "linkedIds": [
+      897,
+      898
+    ],
+    "relayBefore": [
+      897,
+      898
+    ],
+    "relayAfter": [
+      897,
+      898
+    ],
+    "verdict": "AGREE"
+  },
   "pageErrors": [],
-  "coverage": "checked 2 of 2 BSD sources in the line (tennis, soccer); NOT checked: the scoreboard-card count, golf, the draw, staleness",
+  "coverage": "checked 2 of 2 BSD sources in the line (tennis, soccer) and the live-tournament links against the relay; NOT checked: the scoreboard-card count, golf, a draw page itself, staleness",
   "verdict": "PASS"
 }
