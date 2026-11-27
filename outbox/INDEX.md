@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f4c2684` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46071072520 |
+| `7bdc9c7` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-measure.md](cc-session-2026-11-27-uefa-forecast-measure.md) | docs: correction in the UEFA forecast CC-CMD and its measurement record: the scheduled join does not run (the completion marker); 524 rows stay unjoined until a dispatch |
+| `0f52a0a` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | docs: the pre-registered UEFA fit says DO NOT BUILD (U4: the frozen 2026-27 bundle is worse than the base rate); recomputed independently, 26 of 26 agree; Tasks 3 and 4 closed, not built |
+| `0f52a0a` | 2026-11-27 | [forecast-fit-uefa-recompute-2026-11-27.mjs](forecast-fit-uefa-recompute-2026-11-27.mjs) | docs: the pre-registered UEFA fit says DO NOT BUILD (U4: the frozen 2026-27 bundle is worse than the base rate); recomputed independently, 26 of 26 agree; Tasks 3 and 4 closed, not built |
+| `0f52a0a` | 2026-11-27 | [forecast-fit-uefa-recompute-2026-11-27.txt](forecast-fit-uefa-recompute-2026-11-27.txt) | docs: the pre-registered UEFA fit says DO NOT BUILD (U4: the frozen 2026-27 bundle is worse than the base rate); recomputed independently, 26 of 26 agree; Tasks 3 and 4 closed, not built |
+| `05d5fc5` | 2026-11-27 | [forecast-fit-uefa-2026-11-27.txt](forecast-fit-uefa-2026-11-27.txt) | data: the pre-registered UEFA fit's output (run 46071082308) |
+| `05d5fc5` | 2026-11-27 | [forecast-fit-uefa-provenance-2026-11-27.txt](forecast-fit-uefa-provenance-2026-11-27.txt) | data: the pre-registered UEFA fit's output (run 46071082308) |
+| `05d5fc5` | 2026-11-27 | [forecast-fit-uefa-result-2026-11-27.json](forecast-fit-uefa-result-2026-11-27.json) | data: the pre-registered UEFA fit's output (run 46071082308) |
 | `d90d96b` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | tooling: the UEFA fit's alias check covers the away side (the harness's one survivor); the mutation result recorded |
 | `4924068` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46070142220 |
 | `6722311` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | tooling: the UEFA fit's fit-and-score code, its synthetic-data checks and mutation harness, and the run workflow; committed BEFORE the run, the RULE block byte-identical |
