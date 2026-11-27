@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `517de85` | 2026-11-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-27 [skip ci] |
+| `517de85` | 2026-11-27 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-27 [skip ci] |
+| `c1b997f` | 2026-11-27 | [live-score-2026-11-27-20261127-0919Z.png](live-score-2026-11-27-20261127-0919Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
+| `c1b997f` | 2026-11-27 | [live-score-manifest-2026-11-27-20261127-0919Z.json](live-score-manifest-2026-11-27-20261127-0919Z.json) | probe: a live soccer score on a lab card, on the live page [skip ci] |
 | `1471183` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45948904264 |
 | `5d3c640` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay [skip ci] |
 | `5d3c640` | 2026-11-27 | [live-now-deployed-latest.png](live-now-deployed-latest.png) | probe: the Live now line on the deployed page against the relay [skip ci] |

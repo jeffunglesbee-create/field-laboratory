@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`unmodelled-sport` on 2026-11-26 — 41 games, 0 malformed (243 runs logged)
+`ok` on 2026-11-27 — 1 games, 0 malformed (244 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
