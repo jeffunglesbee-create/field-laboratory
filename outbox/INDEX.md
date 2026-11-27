@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a873b88` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46083931168 |
+| `7cbed52` | 2026-11-27 | [cc-session-2026-11-27-uefa-fit-mutate-wired.md](cc-session-2026-11-27-uefa-fit-mutate-wired.md) | ci: uefa-fit-mutate's header carries the measured run time; the note records the proof run |
+| `c3556ef` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `dea0df8` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46082459392 |
 | `78e3abf` | 2026-11-27 | [cc-session-2026-11-27-uefa-fit-mutate-wired.md](cc-session-2026-11-27-uefa-fit-mutate-wired.md) | ci: wire the UEFA fit's mutation harness into a runner job, remove its declaration, exempt it from the copy check |
 | `ce14713` | 2026-11-27 | [cc-session-2026-11-19-gate-heredoc.md](cc-session-2026-11-19-gate-heredoc.md) | docs: completeness of the heredoc and item 9 work: the review-4 dossier, the Status of the residual CC-CMD, a deleted branch no longer cited as holding anything, the cost line |
