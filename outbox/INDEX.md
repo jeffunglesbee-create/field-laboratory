@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `43f78ba` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the deployed-page probe waits for both sources and commits its manifest |
+| `43f78ba` | 2026-11-27 | [cc-session-2026-11-26-live-now-line.md](cc-session-2026-11-26-live-now-line.md) | probe: the deployed-page probe waits for both sources and commits its manifest |
 | `d566d24` | 2026-11-27 | [aflw-source-line-2026-11-27.md](aflw-source-line-2026-11-27.md) | feat: an AFLW card carries a source line, "Data: AFL"; no other card does |
 | `d5ca813` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay [skip ci] |
 | `4994ad3` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay (and the no-launch pin, 74 to 75) |
