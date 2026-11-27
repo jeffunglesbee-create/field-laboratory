@@ -583,7 +583,11 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // structure byte for byte.
           if game.Sport = Sport.EPL then
               forecastNode game shownNow table
-          staticNode "desk-card__desk" "desk" (deskText game) ]
+          staticNode "desk-card__desk" "desk" (deskText game)
+          // Where an AFLW card's data came from (Desk.sourceLineFor). Only an AFLW card has the node, so every other card keeps its structure byte for byte.
+          match sourceLineFor game.Sport with
+          | Some line -> staticNode "desk-card__source" "source" line
+          | None -> () ]
 
     // Where the front-face children are hosted. For a card with no brief this is
     // the card itself, byte-for-byte the old structure so nothing that queries a

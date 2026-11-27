@@ -560,6 +560,15 @@ let sportMeta (sport: Sport) : SportMeta =
     | Sport.Unrecognised raw ->
         { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false; Omission = None }
 
+/// The line an AFLW card carries about where its data came from (relay `docs/CC-CMD-2026-11-22-aflw-live-source.md` Task 6c, approved by the owner
+/// 2026-11-27, and `outbox/ADR-004-aflapi-afl-com-au-source-acceptance-2026-11-27.md` there). AFLW's board and its archive rows are read from the AFL's own API and
+/// no other sport's are, so this is the one sport that carries a line. It NAMES the source and claims nothing else: no licence, no endorsement, no partnership
+/// (Rule 45.1: nothing here certifies a source). The wording is this one constant and is the owner's to change; the Suite pins that it names the source and
+/// uses none of the words that would claim more. Every other sport has none, so every other card keeps its structure byte for byte.
+let aflwSourceLine = "Data: AFL"
+let sourceLineFor (sport: Sport) : string option =
+    if sport = Sport.AFLW then Some aflwSourceLine else None
+
 /// The only place a sport string becomes a `Sport`.
 let sportOfString (raw: string) : Sport =
     match raw with

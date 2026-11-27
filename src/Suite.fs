@@ -5741,6 +5741,24 @@ let private otherSports () =
           Sport.AFLW
           Sport.MLB
 
+      // The attribution line (relay docs/CC-CMD-2026-11-22-aflw-live-source.md Task 6c, owner-approved 2026-11-27). The wording is the owner's to change: it is pinned here byte for byte so a change is deliberate.
+      Verify.check "an AFLW card's source line names the source: `Data: AFL`"
+          (fun sport -> sourceLineFor sport = Some "Data: AFL")
+          Sport.AFLW
+          Sport.AFL
+
+      Verify.check "no sport but AFLW has a source line, the unrecognised ones included, so every other card keeps its structure"
+          (fun (sports: Sport list) -> sports |> List.forall (fun sport -> sourceLineFor sport = None))
+          (Sport.Unrecognised "x" :: (allSports |> List.filter (fun sport -> sport <> Sport.AFLW)))
+          allSports
+
+      Verify.check "the source line names a source and claims nothing more: no licence, endorsement, partnership or official standing (Rule 45.1)"
+          (fun (line: string) ->
+              [ "licen"; "official"; "partner"; "endorse"; "approved"; "authori"; "sponsor"; "association"; "courtesy"; "powered by"; "permission" ]
+              |> List.forall (fun word -> not (line.ToLowerInvariant().Contains word)))
+          aflwSourceLine
+          "Official data of the AFL, used with permission"
+
       Verify.check "a real AFLW game before kickoff (the 2026-11-27 Grand Final, `pre`, no espnEventId) is no reading, joined by its two club names"
           (fun g -> readFeed aflwGrandFinal g = LiveScore.NoReading)
           (card "AFLW" "North Melbourne" "Melbourne" (Some "aflapi:9081"))

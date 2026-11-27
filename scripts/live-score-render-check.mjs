@@ -512,6 +512,44 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     await ctx.close()
   }
 
+  // ── the source line of an AFLW card (relay docs/CC-CMD-2026-11-22-aflw-live-source.md Task 6c, owner-approved 2026-11-27) ─────────────────────
+  // An AFLW card carries one line saying where its data came from, and no other card does. The AFLW row is the shape the relay's `seedAflwArchive` writes (sport and league `AFLW`, `espn_event_id`
+  // `aflapi:<match id>`, never an ESPN id), derived here from the NHL row of the committed capture of 2026-11-21 with those fields changed (a DERIVED row, not a body the relay sent: the Suite holds the real
+  // AFLW feed bodies). The words are spelled out on purpose: a typo in the page's own constant must not be forgiven by a check that derives the same string from the same source.
+  // What this proves that the Suite cannot: that the PAGE draws the node on the AFLW card, with those words, and on no other card of the same slate.
+  {
+    const SOURCE_LINE = 'Data: AFL'
+    const AFLW_ID = 'AFLW_2026-11-21_Melbourne_Carlton'
+    const KEEP = ['NBA_2026-11-21_e401910024', 'NHL_2026-11-21_e401892758']
+    const slate = JSON.parse(readFileSync('data/context-2026-11-21.json', 'utf8'))
+    const nhlRow = slate.games.regular.find(g => g.id === 'NHL_2026-11-21_e401892758')
+    const aflwRow = { ...nhlRow, id: AFLW_ID, sport: 'AFLW', league: 'AFLW', home: 'Melbourne', away: 'Carlton', home_score: null, away_score: null, venue: 'IKON Park',
+      espn_event_id: 'aflapi:9079', start_time: '2026-11-21T05:30Z', finalized_at: null, opening_odds: null, closing_odds: null }
+    slate.games.regular = [...slate.games.regular.filter(g => KEEP.includes(g.id)).map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null })), aflwRow]
+    slate.games.postseason = []
+    slate.briefs = []
+    const errors4 = []
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors4.push(`pageerror: ${e.message}`))
+    await pg.route(`${RELAY}/context/date/2026-11-21`, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ games: [] }) }))
+    await pg.goto(`${BASE}/?date=2026-11-21`, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    const sourceOf = id => pg.evaluate(i => {
+      const card = document.querySelector(`[data-game-id="${i}"]`)
+      if (!card) return { card: false }
+      const nodes = [...card.querySelectorAll('[data-testid="source"]')]
+      return { card: true, count: nodes.length, text: nodes[0]?.textContent ?? null, cls: nodes[0]?.className ?? null }
+    }, id)
+    const aflwCard = await sourceOf(AFLW_ID), nbaCard = await sourceOf(KEEP[0]), nhlCard = await sourceOf(KEEP[1])
+    check('the slate drew all three cards: the AFLW card, the NBA card and the NHL card', aflwCard.card && nbaCard.card && nhlCard.card, JSON.stringify({ aflwCard, nbaCard, nhlCard }))
+    check('an AFLW card carries exactly one source line, and it reads Data: AFL', aflwCard.count === 1 && aflwCard.text === SOURCE_LINE && aflwCard.cls === 'desk-card__source', JSON.stringify(aflwCard))
+    check('an NBA card and an NHL card of the same slate carry none', nbaCard.count === 0 && nhlCard.count === 0, JSON.stringify({ nbaCard, nhlCard }))
+    check('no page errors on the slate with an AFLW card', errors4.length === 0, errors4.join(' | '))
+    await ctx.close()
+  }
+
   // ── two games of one key, one finished and one in play (review 2026-11-22) ──────────────────────────────────────────────────────────────────
   // The poll asks `nba` every minute while the second game is on. An answer is told to the cards still being followed, not to the card the feed has finished: a failed poll must not
   // rewrite a final score the poll stopped asking about. Two NBA cards of the committed capture of 2026-11-21; the feed is scripted: good, then 503, then good.
