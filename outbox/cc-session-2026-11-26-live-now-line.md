@@ -40,3 +40,11 @@ The page's one timer was bound by the owner's ruling of 2026-11-11 ("Auto-poll w
 - **Task 6c (the draw gated by `drawLiveness`) is NOT built.** `LiveSources.drawLiveness` exists and is tested, but the draw section still collapses on `Draw.isComplete` ("tournament finished"), which says finished, not live. STAGED: unblocked by reading the draw's tournament id in `DrawView` and passing the BSD tennis state to it; verify with a render scenario using the captured tournament ids 904 and 215.
 - **Staleness (Task 6d):** the soccer feed's `last_updated` is carried, not judged. UNKNOWN today means a failed or unreadable feed only.
 - **Golf** has no live source here. `/v2/games?sport=pga` returned 200 without a `games` array.
+
+## Follow-up 2026-11-27: the deployed-page probe (the "Not verified" item above)
+
+`scripts/live-now-deployed-probe.mjs` + `.github/workflows/live-now-deployed-probe.yml` (trigger `outbox/.trigger-live-now-deployed-probe`, no schedule). A real Chromium loads the deployed page and reads `#live-now`; the relay's two live feeds are read before AND after, and the page agrees if it matches either reading (both are cached 25 s). Output: `outbox/live-now-deployed-manifest-latest.json` (counts, booleans, a `checked N of M` coverage line, a verdict) and a screenshot. Verdicts: `NOT-DEPLOYED` (no `#live-now`), `PASS` (tennis AND soccer agree), `NOT-PASS` (and why per source). Self-test 17 rows plus a deliberately wrong expectation that must be refused.
+
+The new browser workflow added one command to the no-launch guard's list: the pin in `scripts/no-launch-check.mjs` moves 74 to 75 with the same edits as the last bump (constant, comment, self-test sizes, the mutation entry that mutates the constant). Run BEFORE pushing this time: `check:no-launch` 58/58, mutation entry caught, 0 of 2262 anchors stale.
+
+Done condition: the manifest's `verdict` is `PASS`. Anything else is reported with the manifest, not explained.
