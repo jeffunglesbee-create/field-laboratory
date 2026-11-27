@@ -7,8 +7,8 @@ Owner order: "Declare it" (1836c954), then "Wire it". The declaration in `docs/u
 | commit | what |
 |---|---|
 | `1836c954` | declared `mutate-uefa-fit.mjs` in `docs/unreachable-scripts.txt` (guards on main green again, run 46078592323) |
-| the commit that carries this note | `.github/workflows/uefa-fit-mutate.yml` (new), the declaration removed, one `EXEMPT` entry in `scripts/mutate-copy-check.mjs`, this note |
-| the next commit | the proof run's result, added to the "Done condition" section below |
+| `78e3abf7` | `.github/workflows/uefa-fit-mutate.yml` (new), the declaration removed, one `EXEMPT` entry in `scripts/mutate-copy-check.mjs`, this note |
+| the commit after it | the proof run's result (the "Done condition" section below) and the measured run time in the workflow header, which the first draft had estimated at 7 to 9 minutes |
 
 ## What was built
 
@@ -73,7 +73,17 @@ The push that lands this commit triggers `uefa-fit-mutate` (its own path is in t
 2. `verify` step "No script a workflow depends on became unreachable" and step "The mutate scripts break a copy, never the tracked tree" both `success`.
 3. `guards` concludes `success`.
 
-Result: recorded in the next commit.
+Result, read from the Actions API for `78e3abf7` (workflow runs created 2026-11-27T23:25:57Z):
+
+| run | id | conclusion | what was read |
+|---|---|---|---|
+| `uefa-fit-mutate` | 46082459391 | success | job log: `runner cores: 4`; `control: the check passes on the unmutated copy (71 of 71 checks passed 71 71)`; `coverage: 33 mutants of the tooling (the RULE block untouched); caught 33, not caught 0, harness errors 0`; `elapsed seconds: 841`; 33 `CAUGHT` lines and no `NOT CAUGHT` or `HARNESS ERROR` line; job 23:25:59Z to 23:40:10Z |
+| `verify` | 46082459392 | success | 7 jobs success; in job `verify` steps 69 ("No script a workflow depends on became unreachable"), 70, 71 ("The mutate scripts break a copy, never the tracked tree") and 72 all `success`; 124 steps success and 2 skipped (a failure-only screenshot upload and the browser-install fallback); 9.5 minutes |
+| `guards` | 46082459387 | success | 13 steps |
+
+The workflow's own landing push fired it (its path is in the filter): this was the open question the reviewers could not test read-only, and it is now answered. The full harness had not been run in one piece against the final 71-assertion check before this; it now has, on a runner, and caught every mutant. `verify` on main had been red since `67223115`; this is its first green run since the harness landed (`59f6eecc` was the last).
+
+Measured run time: 841 seconds on 4 cores. The first draft's header estimated 7 to 9 minutes (single-check times times ten); four checks at once are slower than one alone. The header now states the measured figure and marks the 2-core figure as an extrapolation. That edit changes a path in the filter, so it re-runs the harness: the second full run is a repeat of the first, and is read below if it differs.
 
 ## Observed, not changed
 
