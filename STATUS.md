@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `43f78ba`
+**green** on `43f78ba` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `43f78ba` — failing step unknown: the run's steps could not be read — [run 45930273816](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45930273816)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `d671bed` — failing step unknown: the run's steps could not be read — [run 45931189503](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45931189503)
 
 ## Is it published?
 
