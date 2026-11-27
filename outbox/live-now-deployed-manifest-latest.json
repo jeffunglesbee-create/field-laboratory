@@ -1,39 +1,68 @@
 {
-  "generated_at": "2026-11-27T05:02:55.724Z",
+  "generated_at": "2026-11-27T05:58:42.142Z",
   "page": "https://field-laboratory.jeffunglesbee.workers.dev",
   "liveNowPresent": true,
   "kind": "polled",
-  "text": "Live now — scoreboard cards: 0 live · BSD tennis: 2 live · BSD soccer: 1 live",
+  "text": "Live now — scoreboard cards: 0 live · BSD tennis: 1 live · BSD soccer: 0 live",
   "sources": {
     "BSD tennis": {
-      "shown": 2,
-      "relayBefore": 2,
-      "relayAfter": 2,
-      "verdict": "AGREE"
-    },
-    "BSD soccer": {
       "shown": 1,
       "relayBefore": 1,
       "relayAfter": 1,
+      "verdict": "AGREE"
+    },
+    "BSD soccer": {
+      "shown": 0,
+      "relayBefore": 0,
+      "relayAfter": 0,
       "verdict": "AGREE"
     }
   },
   "drawLinks": {
     "linkedIds": [
-      897,
-      898
+      897
     ],
     "relayBefore": [
-      897,
-      898
+      897
     ],
     "relayAfter": [
-      897,
-      898
+      897
     ],
     "verdict": "AGREE"
   },
+  "drawLive": {
+    "tid": 897,
+    "relayBefore": 1,
+    "relayAfter": 1,
+    "panel": {
+      "loaded": true,
+      "live": "live",
+      "collapse": null,
+      "finished": false,
+      "line": "Live now: 1 match of this tournament in play (BSD tennis)",
+      "title": "Playford City,  Australia ",
+      "head": "Playford City, Australia 2026 30 matches · 27 edges, each resolved by winner identity to exactly one next match · 0 scorelines refused No champion yet — this draw is still being played. Canonical-size law: 2 rounds compa"
+    },
+    "pageErrors": [],
+    "verdict": "AGREE"
+  },
+  "drawControl": {
+    "tid": 77,
+    "relayBefore": 0,
+    "relayAfter": 0,
+    "panel": {
+      "loaded": true,
+      "live": "not-live",
+      "collapse": "tournament finished",
+      "finished": true,
+      "line": "Not live now: no match of this tournament is in play (BSD tennis)",
+      "title": "Roland Garros",
+      "head": "Roland Garros 2026 127 matches · 126 edges, each resolved by winner identity to exactly one next match · 1 scoreline refused Scoreline refused, so no numbers are printed for it: match 36028 — set 2 is 6-4 carrying a tieb"
+    },
+    "pageErrors": [],
+    "verdict": "AGREE"
+  },
   "pageErrors": [],
-  "coverage": "checked 2 of 2 BSD sources in the line (tennis, soccer) and the live-tournament links against the relay; NOT checked: the scoreboard-card count, golf, a draw page itself, staleness",
+  "coverage": "checked 2 of 2 BSD sources in the line (tennis, soccer) and the live-tournament links against the relay; and two real draw pages (the lowest live tournament, and Roland Garros 2026 as a control with nothing in play); NOT checked: the scoreboard-card count, golf, staleness",
   "verdict": "PASS"
 }
