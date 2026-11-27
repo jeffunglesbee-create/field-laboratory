@@ -19,3 +19,7 @@
 
 - I read the owner's "Seems like full season UEFA history would be extremely valuable" as a go-ahead and dispatched a production write (UEFA Champions League Qualifying, 2026-06-01 to 08-31, `dry_run` false). The owner said it was a discussion point. Cancelled the same minute: run `45949223836`, its Backfill step skipped, no artifact committed, no rows written (the archive stayed at 342 UEFA rows, read 2026-11-27 02:00Z). A statement of value is not a build directive; the next write waits for a sentence that names it.
 - One of three dry-runs dispatched together was cancelled by the workflow's one-pending-run concurrency rule; re-dispatched alone.
+
+## Update 2026-11-27 (20:45Z): Task 1 was done by another session; verified here
+
+The relay's "3rd session" wrote the 524 rows at 20:03 to 20:12Z on the owner's "UEFA history write approved" (its record: field-relay-nba `outbox/cc-session-2026-11-27-uefa-history-write.md`); it listed this session as "not told". My 19:24Z read (93 / 93 / 73, nothing written) was true when taken and is superseded. My 20:43Z read: 279 / 279 / 225 rows, 186 / 186 / 150 dated before 2026-05-01, and `/context/date/2025-12-10` serves 9 scored Champions League rows. The CC-CMD's Task 1 is marked DONE with this evidence; Task 2 is blocked only on the owner confirming the Rule F scope. Nothing was written by this session.
