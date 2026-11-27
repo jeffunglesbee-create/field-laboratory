@@ -1,0 +1,53 @@
+# The DATA step of docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md, Task 2 (the rule is outbox/forecast-fit-uefa-2026-11-27.mjs, committed first).
+#
+# WHY CI: the sandbox reaches no *.workers.dev. Dispatch only; nothing in it schedules itself. It reads the relay's PUBLIC /context/date for every day of two windows, keeps the rows
+# of the three main UEFA labels (scripts/uefa-fit-data.mjs) and commits the two bundle files. It computes no model number, holds no secret and writes nothing to the relay.
+name: uefa-fit-data
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uefa-fit-data
+  cancel-in-progress: false
+
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Only on main: the last step pushes to main.
+      - name: Only on main
+        run: |
+          [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "dispatch from main only"; exit 1; }
+      - name: The rule is the committed one
+        shell: bash
+        run: |
+          set -o pipefail
+          node outbox/forecast-fit-uefa-2026-11-27.mjs --print-rule-hash | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Training bundle, 2025-26 (every day 2025-09-01 to 2026-07-31)
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/uefa-fit-data.mjs --from 2025-09-01 --to 2026-07-31 --out outbox/forecast-uefa-data-2025-26-2026-11-27.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Frozen bundle, 2026-27 (every day 2026-08-01 to 2026-11-26, frozen 2026-11-27)
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/uefa-fit-data.mjs --from 2026-08-01 --to 2026-11-26 --out outbox/forecast-uefa-data-2026-27-frozen-2026-11-27.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit the two bundles
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/forecast-uefa-data-2025-26-2026-11-27.json outbox/forecast-uefa-data-2026-27-frozen-2026-11-27.json
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          git commit -m "data: the UEFA fit's two bundles (archive rows, no model number)"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep $((i * 5)); done
+          echo "push failed after 4 attempts"; exit 1
