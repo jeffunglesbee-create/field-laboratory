@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2b163f4` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-measure.md](cc-session-2026-11-27-uefa-forecast-measure.md) | docs: a UEFA forecast on tonight's cards filed, with the last-season data measured (522 matches on ESPN, none archived) and every later task blocked on the owner |
+| `e2767c2` | 2026-11-27 | [cc-session-2026-11-27-held-status-word.md](cc-session-2026-11-27-held-status-word.md) | docs: the scored verify-full of the HELD status word is recorded: 530 of 530 |
+| `3de771c` | 2026-11-27 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of a5806b0 [skip ci] |
+| `0b167e5` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `5ef5040` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46008865441 |
 | `a5806b0` | 2026-11-27 | [cc-session-2026-11-27-held-status-word.md](cc-session-2026-11-27-held-status-word.md) | fix: HELD is a word of a CC-CMD's status vocabulary, non-terminal (owner: Vocabulary) |
 | `517de85` | 2026-11-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-27 [skip ci] |
