@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d566d24` | 2026-11-27 | [aflw-source-line-2026-11-27.md](aflw-source-line-2026-11-27.md) | feat: an AFLW card carries a source line, "Data: AFL"; no other card does |
+| `d5ca813` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay [skip ci] |
+| `4994ad3` | 2026-11-27 | [.trigger-live-now-deployed-probe](.trigger-live-now-deployed-probe) | probe: the Live now line on the deployed page against the relay (and the no-launch pin, 74 to 75) |
+| `4994ad3` | 2026-11-27 | [cc-session-2026-11-26-live-now-line.md](cc-session-2026-11-26-live-now-line.md) | probe: the Live now line on the deployed page against the relay (and the no-launch pin, 74 to 75) |
+| `9c74c92` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `9afe466` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45927626675 |
 | `d2ad927` | 2026-11-27 | [cc-session-2026-11-26-live-now-line.md](cc-session-2026-11-26-live-now-line.md) | feat: a Live now line on every surface; the one timer also asks the BSD live feeds (owner ruling) |
 | `f5ee766` | 2026-11-27 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-27T01:55 [skip ci] |
