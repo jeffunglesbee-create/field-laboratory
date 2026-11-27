@@ -313,6 +313,26 @@ let private loadMetricsOnce () =
         | null -> ()
         | mount -> MetricsView.load mount |> Promise.start
 
+// ── the `Live now` line ─────────────────────────────────────────────────
+// What the page says about anything being in play, by SOURCE (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6b). A count of the
+// scoreboard cards whose reading is live, and each BSD live feed's own state. Nothing here fetches; the poll below fills `liveSourceStates`.
+let mutable private liveSourceStates : Map<LiveSources.Source, LiveSources.FeedState> = Map.empty
+
+let private liveNowText (cardsLive: int) (states: Map<LiveSources.Source, LiveSources.FeedState>) : string =
+    let part (source: LiveSources.Source) =
+        match Map.tryFind source states with
+        | None -> sprintf "%s: not read yet" (LiveSources.sourceName source)
+        | Some state -> LiveSources.feedText source state
+    "Live now — " + String.concat " · " [ sprintf "scoreboard cards: %d live" cardsLive; part LiveSources.BsdTennis; part LiveSources.BsdSoccer ]
+
+/// Write the line, only when it changed: the element is a polite live region, and re-writing the same words every minute would be announced every minute.
+let private showLiveNow (text: string) (kind: string) =
+    match document.getElementById "live-now" with
+    | null -> ()
+    | el ->
+        if el.textContent <> text then el.textContent <- text
+        el.setAttribute ("data-kind", kind)
+
 // ── live score poll: begin ──────────────────────────────────────────────
 // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6. THE LABORATORY'S ONLY TIMER, and it is here on the owner's ruling of
 // 2026-11-11 ("Auto-poll while a match is live"). Its conditions are NAMED, not implied, and `scripts/check-live-score-poll.mjs`
@@ -322,8 +342,11 @@ let private loadMetricsOnce () =
 //     (`LiveScore.liveKeysAt`: kickoff to three hours after it), at most ONE request per key per tick, and none while the previous
 //     request for that key is still in flight (a request unanswered after `LiveScore.LivePollTimeoutMs`, one and a half periods, is an
 //     `Error`, so its key is freed and the card names the failure);
-//   - the timer STOPS when no soccer card has a window now or ahead (`LiveScore.liveWorkAheadAt`), and when the slate is
-//     re-rendered (`disposePrevious`), so a page left on a finished slate holds no timer;
+//   - AMENDED BY THE OWNER, 2026-11-26 ("we should always know when anything is live"; docs/CC-CMD-2026-11-26-single-page-composition.md,
+//     Task 6b): the same tick also asks the two BSD live feeds (`bsdFeeds`: every live tennis match, every live soccer game in any league,
+//     including games that are on no card), through the SAME one fetch and the SAME in-flight guard. So the timer no longer stops when no card has
+//     a window: it runs while the page is unpinned, and it stops when the slate is re-rendered (`disposePrevious`). A hidden tab asks nothing.
+//     The answers are the `Live now` line (`showLiveNow`), by source: an unreadable feed is said to be unknown, never zero;
 //   - none at all on a page pinned to a capture (`?data=`), which must not reach the network;
 //   - no socket, no event source, no visibility listener: a tab that becomes visible waits for the next tick.
 // What it asks is the relay's pull route (ADR-002 Rule A: a reader's page asks; nothing is pushed). What it does with the answer is
@@ -331,6 +354,11 @@ let private loadMetricsOnce () =
 let private RELAY_BASE = "https://field-relay-nba.jeffunglesbee.workers.dev"
 
 let mutable private livePollTimer : float option = None
+
+/// The two BSD live feeds the tick asks besides the cards' sport keys. The key is the in-flight key and cannot be a `/v2/games` sport key (it has a colon).
+let private bsdFeeds : (string * LiveSources.Source * string) list =
+    [ ("bsd:tennis", LiveSources.BsdTennis, "/bsd/tennis/matches/live")
+      ("bsd:soccer", LiveSources.BsdSoccer, "/bsd/events/live") ]
 
 let private stopLivePoll () =
     match livePollTimer with
@@ -345,43 +373,61 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
     // The cards still worth asking about: one the feed has said is over is not (`LiveScore.isSettled`), so a slate whose live games have all finished stops its timer without waiting for the archive.
     let games () = handles |> Seq.filter (fun h -> not (h.IsSettled())) |> Seq.map (fun h -> h.Game) |> List.ofSeq
 
+    let refreshLiveNow () =
+        let cardsLive = handles |> Seq.filter (fun h -> h.IsLive ()) |> Seq.length
+        showLiveNow (liveNowText cardsLive liveSourceStates) "polled"
+
     let tick () =
         let now = System.DateTimeOffset.UtcNow
         // A card whose window has ended is no longer asked about and no longer told anything, so a live answer it holds is the last one it will hear: say so (CC-CMD Open question 1).
         // Outside the visibility test on purpose: a hidden tab's timer still runs and the card must not come back to a frozen clock. Pull only: this reads the clock the tick already reads.
         for h in handles do
             if LiveScore.windowEndedAt now h.Game then h.MarkStopped()
-        if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
-        elif (string document?visibilityState) = "visible" then
-            for key in LiveScore.liveKeysAt now (games ()) do
+        if (string document?visibilityState) = "visible" then
+            // The cards' sport keys that have a card in their window, then the two BSD live feeds: ONE list, ONE fetch below, ONE in-flight guard.
+            let requests =
+                [ for key in LiveScore.liveKeysAt now (games ()) -> (key, RELAY_BASE + LiveFeed.feedPath key etDay)
+                  for (key, _, path) in bsdFeeds -> (key, RELAY_BASE + path) ]
+            for (key, url) in requests do
                 if inFlight.Add key then
-                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs url
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
-                        // Told at the instant the answer ARRIVES, not the instant the request left: a card whose window ended while the request was in flight has been marked stopped (above) and must keep that,
-                        // and the timer may already be stopped, so nothing would mark it again. A card the feed has finished is not told either: an answer for another game of the key (or a failed poll) must not
+                        // Told at the instant the answer ARRIVES, not the instant the request left: a card whose window ended while the request was in flight has been marked stopped (above) and must not be told. A card the feed has finished is not told either: an answer for another game of the key (or a failed poll) must not
                         // rewrite a final score that `isSettled` stopped asking about.
                         let arrived = System.DateTimeOffset.UtcNow
-                        let cards =
-                            handles
-                            |> Seq.filter (fun h -> not (h.IsSettled()) && LiveScore.answersTo key arrived h.Game)
-                            |> List.ofSeq
-                        match result with
-                        | Error why ->
-                            for h in cards do
-                                h.SetReading(LiveScore.LiveUnavailable(sprintf "the feed did not answer: %s" why))
-                        | Ok body ->
-                            match LiveFeed.decodeFeed body with
+                        match bsdFeeds |> List.tryFind (fun (k, _, _) -> k = key) with
+                        | Some (_, source, _) ->
+                            let state =
+                                match result with
+                                | Error why -> LiveSources.Unavailable(sprintf "the feed did not answer: %s" why)
+                                | Ok body ->
+                                    match source with
+                                    | LiveSources.BsdTennis -> LiveSources.stateOf (LiveSources.decodeTennis body)
+                                    | LiveSources.BsdSoccer -> LiveSources.stateOf (LiveSources.decodeSoccer body)
+                            liveSourceStates <- Map.add source state liveSourceStates
+                            refreshLiveNow ()
+                        | None ->
+                            let cards =
+                                handles
+                                |> Seq.filter (fun h -> not (h.IsSettled()) && LiveScore.answersTo key arrived h.Game)
+                                |> List.ofSeq
+                            match result with
                             | Error why ->
                                 for h in cards do
-                                    h.SetReading(LiveScore.LiveUnavailable("unreadable — " + why))
-                            | Ok feed ->
-                                for h in cards do
-                                    h.SetReading(LiveFeed.readingFor feed h.Game))
+                                    h.SetReading(LiveScore.LiveUnavailable(sprintf "the feed did not answer: %s" why))
+                            | Ok body ->
+                                match LiveFeed.decodeFeed body with
+                                | Error why ->
+                                    for h in cards do
+                                        h.SetReading(LiveScore.LiveUnavailable("unreadable — " + why))
+                                | Ok feed ->
+                                    for h in cards do
+                                        h.SetReading(LiveFeed.readingFor feed h.Game)
+                            refreshLiveNow ())
 
-    if LiveScore.liveWorkAheadAt System.DateTimeOffset.UtcNow (games ()) then
-        tick ()
-        livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
+    tick ()
+    livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
 // ── live score poll: end ────────────────────────────────────────────────
 
 let mutable private disposeRoot : (unit -> unit) option = None
@@ -593,6 +639,7 @@ let private start () =
                 // The day asked is the day of the cards just drawn (`payload.Date`), not the URL's: `start()` has no generation guard, so two
                 // overlapping navigations can render one day's slate under another's URL (review 2026-11-11, poll S5).
                 if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
+                if (queryParam "data").IsSome then showLiveNow "Live now — not read on a pinned capture (a capture must not reach the network)" "pinned"
 
                 // The model's forecast needs the table; nothing else on the page
                 // does, so a slate with no EPL card spends no request. ONE request,

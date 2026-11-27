@@ -83,7 +83,15 @@ export const claimsOf = ({ program, liveScore, sources }) => {
   claim('a request is made only while the tab is visible', /\(string document\?visibilityState\)\s*=\s*"visible"/.test(code))
   claim('...only for a key with a card to ask about (`liveKeysAt`), and an answer is told only the cards `answersTo` selects: the key\'s sport, in its window', /LiveScore\.liveKeysAt\b/.test(code) && /Seq\.filter \(fun h -> not \(h\.IsSettled\(\)\) && LiveScore\.answersTo key arrived h\.Game\)/.test(code))
   claim('...and told by the clock of the ARRIVAL, not of the request: `let arrived = System.DateTimeOffset.UtcNow` in the answer callback', /Promise\.iter \(fun result ->[\s\S]*?let arrived = System\.DateTimeOffset\.UtcNow[\s\S]*?answersTo key arrived/.test(code))
-  claim('...and the timer stops when no window is ahead', /LiveScore\.liveWorkAheadAt\b[\s\S]*?stopLivePoll \(\)/.test(code))
+  // AMENDED BY THE OWNER, 2026-11-26 ("we should always know when anything is live"): the timer no longer stops for want of a card window, because it also asks the two BSD
+  // live feeds. The old claim ("the timer stops when no window is ahead") is replaced by these four.
+  claim('...and the timer no longer stops for want of a card window (owner 2026-11-26): no `liveWorkAheadAt` in the region, and the timer is started unconditionally after the first tick',
+    !/\bliveWorkAheadAt\b/.test(code) && /\n    tick \(\)\n    livePollTimer <- Some\(window\.setInterval\b/.test(code))
+  claim('...and the two BSD live feeds ride the SAME one fetch: `bsdFeeds` names exactly /bsd/tennis/matches/live and /bsd/events/live, under keys that cannot be a sport key (a colon), and the request list is built from it',
+    /"bsd:tennis", LiveSources\.BsdTennis, "\/bsd\/tennis\/matches\/live"/.test(code) && /"bsd:soccer", LiveSources\.BsdSoccer, "\/bsd\/events\/live"/.test(code) &&
+    count(/"\/bsd\//, code) === 2 && /for \(key, _, path\) in bsdFeeds -> \(key, RELAY_BASE \+ path\)/.test(code))
+  claim('...and each BSD answer is kept by SOURCE and shown: an answer writes `liveSourceStates` and calls `refreshLiveNow`; a failure is `Unavailable`, never an empty answer',
+    /liveSourceStates <- Map\.add source state liveSourceStates/.test(code) && count(/(?<!let )\brefreshLiveNow \(\)/, code) >= 1 && /LiveSources\.Unavailable\(/.test(code))
   claim('...one request per key at a time: a key is held by `if inFlight.Add key then` and released first thing in the answer callback',
     /if inFlight\.Add key then/.test(code) && /Promise\.iter \(fun result ->\s*\n\s*inFlight\.Remove key \|> ignore/.test(code) && count(/inFlight\.Remove key\b/, code) === 1)
   claim('...and one fetch in the region, with a deadline: `tryFetchTextWithin LiveScore.LivePollTimeoutMs`, and no fetch without one',
@@ -97,6 +105,9 @@ export const claimsOf = ({ program, liveScore, sources }) => {
   const calls = outside.split('\n').filter(l => /\bstartLivePoll\b/.test(l) && !/let private startLivePoll/.test(l))
   claim('a page pinned to a capture starts no poll, and neither does a slate with no date: the one call is guarded by (queryParam "data").IsNone and by payload.Date <> "", and asks for the day of the cards just drawn (`payload.Date`)',
     calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]) && /&&\s*payload\.Date <> ""/.test(calls[0]) && /startLivePoll cardHandles\.Value payload\.Date\b/.test(calls[0]), JSON.stringify(calls))
+  const pinnedSays = outside.split('\n').filter(l => /\bshowLiveNow\b/.test(l) && /"pinned"/.test(l))
+  claim('a page pinned to a capture SAYS the Live now line was not read, and is not left blank: one `showLiveNow ... "pinned"` outside the region, guarded by (queryParam "data").IsSome',
+    pinnedSays.length === 1 && /\(queryParam "data"\)\.IsSome/.test(pinnedSays[0]), JSON.stringify(pinnedSays))
   // Fix-review 2026-11-11 (defence F20): the call site passes `payload.Date`, but the poll could still ignore it and ask for the URL's day. The route is built from the day the poll was STARTED with.
   claim('...and the request is built from that day: `LiveFeed.feedPath key etDay`, with no other day source in the region',
     count(/\bLiveFeed\.feedPath key etDay\b/, code) === 1 && !/\bviewedDate\b|\bqueryParam\b|\bfieldToday\b|\bDateTimeOffset\.UtcNow\b[^\n]*\bfieldDay/.test(code),
@@ -125,7 +136,12 @@ const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test'
 /** A minimal program that satisfies every claim, and variants that each break exactly one. */
 const GOOD = `module Program
 let private queryParam (n: string) = None
+let private showLiveNow (text: string) (kind: string) = ()
 ${FROM} ──────
+let mutable private livePollTimer : float option = None
+let private bsdFeeds : (string * LiveSources.Source * string) list =
+    [ ("bsd:tennis", LiveSources.BsdTennis, "/bsd/tennis/matches/live")
+      ("bsd:soccer", LiveSources.BsdSoccer, "/bsd/events/live") ]
 let private stopLivePoll () =
     match livePollTimer with
     | Some id ->
@@ -134,17 +150,24 @@ let private stopLivePoll () =
     | None -> ()
 let private startLivePoll (handles) (etDay: string) =
     let inFlight = HashSet<string>()
+    let refreshLiveNow () = ()
     let tick () =
-        if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
-        elif (string document?visibilityState) = "visible" then
-            for key in LiveScore.liveKeysAt now (games ()) do
+        if (string document?visibilityState) = "visible" then
+            let requests =
+                [ for key in LiveScore.liveKeysAt now (games ()) -> (key, RELAY_BASE + LiveFeed.feedPath key etDay)
+                  for (key, _, path) in bsdFeeds -> (key, RELAY_BASE + path) ]
+            for (key, url) in requests do
                 if inFlight.Add key then
-                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs url
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
                         let arrived = System.DateTimeOffset.UtcNow
+                        let state = LiveSources.Unavailable(sprintf "the feed did not answer: %s" "x")
+                        liveSourceStates <- Map.add source state liveSourceStates
                         let cards = handles |> Seq.filter (fun h -> not (h.IsSettled()) && LiveScore.answersTo key arrived h.Game)
+                        refreshLiveNow ()
                         ())
+    tick ()
     livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
 ${TO} ────────
 
@@ -154,6 +177,7 @@ let private disposePrevious () =
 
 let go () =
     if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
+    if (queryParam "data").IsSome then showLiveNow "Live now" "pinned"
 `
 const GOOD_SCORE = '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 90000\n'
 const run = (program, liveScore = GOOD_SCORE, sources = { 'src/Program.fs': program, 'src/LiveScore.fs': liveScore }) =>
@@ -182,7 +206,7 @@ if (SELF_TEST) {
   one('a raw fetch in the region is caught', GOOD.replace('    livePollTimer <- Some', '    fetch "https://x" [] |> ignore\n    livePollTimer <- Some'))
   one('a Promise.sleep anywhere in src is caught, not only in the region', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let w = Promise.sleep 5000' })
   one('an in-flight guard that is always open is caught', GOOD.replace('if inFlight.Add key then', 'if inFlight.Add key || true then'))
-  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
+  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs url\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs url\n').replace('                        inFlight.Remove key |> ignore\n', ''))
   one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key arrived h.Game', 'LiveScore.inLiveWindowAt arrived h.Game'))
   one('an answer told a card the feed has finished is caught', GOOD.replace('not (h.IsSettled()) && ', ''))
   one('an answer told by the clock of the request, not the arrival, is caught', GOOD.replace('let arrived = System.DateTimeOffset.UtcNow', 'let arrived = now'))
@@ -194,18 +218,27 @@ if (SELF_TEST) {
   one('a 15 s period is caught', GOOD.replace('LiveScore.LivePollMs))', '15000))'))
   one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n\n[<Literal>]\nlet LivePollTimeoutMs = 30000\n')
   // Review 2026-11-11 (poll S4, S18): the fixtures below keep every other claim satisfied, so only the deadline claims can be the reason they fail.
-  one('a request with no deadline is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)', 'tryFetchText (RELAY_BASE + LiveFeed.feedPath key etDay)'))
+  one('a request with no deadline is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs url', 'tryFetchText url'))
   one('a deadline written as a number rather than the named constant is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs', 'tryFetchTextWithin 999999'))
   one('a deadline shorter than the period is caught (the in-flight guard could never fire)', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 15000\n')
   one('a deadline longer than three periods is caught', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 300000\n')
   one('a deadline of zero is caught', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 0\n')
-  one('no visibility gate is caught', GOOD.replace('elif (string document?visibilityState) = "visible" then', 'else'))
+  one('no visibility gate is caught', GOOD.replace('if (string document?visibilityState) = "visible" then', 'if true then'))
   one('no in-flight guard is caught', GOOD.replace('if inFlight.Add key then', 'if true then'))
   one('a poll on a pinned page is caught', GOOD.replace('if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll', 'startLivePoll'))
   one('a poll that is never stopped on re-render is caught', GOOD.replace('let private disposePrevious () =\n    stopLivePoll ()', 'let private disposePrevious () ='))
   one('a timer outside the region is caught', GOOD + '\nlet private stray = window.setInterval ((fun () -> ()), 1000)\n')
   one('a socket anywhere in src is caught', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let s = WebSocket("x")' })
   one('a second fetch in the region is caught', GOOD.replace('                        ())', '                        tryFetchTextWithin 1000 "x" |> ignore\n                        ())'))
+  // OWNER RULING 2026-11-26: one fixture per new claim, each keeping every other claim satisfied.
+  one('a timer that stops for want of a card window again is caught (the owner ruled it must not)', GOOD.replace('    tick ()\n    livePollTimer <- Some', '    if LiveScore.liveWorkAheadAt now (games ()) then tick ()\n    livePollTimer <- Some'))
+  one('a BSD route with a typo is caught', GOOD.replace('"/bsd/events/live")', '"/bsd/events/lve")'))
+  one('a third BSD route is caught', GOOD.replace('      ("bsd:soccer", LiveSources.BsdSoccer, "/bsd/events/live") ]', '      ("bsd:soccer", LiveSources.BsdSoccer, "/bsd/events/live")\n      ("bsd:x", LiveSources.BsdSoccer, "/bsd/x") ]'))
+  one('a BSD feed that bypasses the request list is caught', GOOD.replace('                  for (key, _, path) in bsdFeeds -> (key, RELAY_BASE + path) ]', '                ]'))
+  one('an answer that is not kept by source is caught', GOOD.replace('                        liveSourceStates <- Map.add source state liveSourceStates\n', ''))
+  one('an answer that never refreshes the line is caught', GOOD.replace('                        refreshLiveNow ()\n', ''))
+  one('a pinned page that says nothing is caught', GOOD.replace('    if (queryParam "data").IsSome then showLiveNow "Live now" "pinned"\n', ''))
+  one('a pinned statement not guarded by the pinned test is caught', GOOD.replace('    if (queryParam "data").IsSome then showLiveNow "Live now" "pinned"', '    showLiveNow "Live now" "pinned"'))
   check('a comment that names a timeout is not read as one',
     failing(GOOD.replace('    let inFlight', '    // no setTimeout here\n    let inFlight')).length === 0)
   check('the coverage line names what was read', coverageOf({ program: GOOD, sources: { a: '', b: '' } }).startsWith('scanned 2 F# source file(s)'))

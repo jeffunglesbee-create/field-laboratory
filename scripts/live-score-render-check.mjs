@@ -614,11 +614,14 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     const feedFor = (key, id, home, away, clock, situation) => JSON.stringify({ sport: key, date: '2026-10-10', count: 1, games: [{ id: `espn:${id}`, espnEventId: id, sport: key, state: 'live', start: '2026-10-10T11:30Z',
       home: { name: 'H', abbr: 'H', score: home }, away: { name: 'A', abbr: 'A', score: away }, clock, periodNum: 1, periodLabel: '', situation: situation === undefined ? null : situation, matchEvents: [], streams: [] }] })
     const FEEDS = { epl: feedFor('epl', ARSENAL_LEEDS_ESPN, 1, 0, "34'"), laliga: feedFor('laliga', RAYO, 2, 2, "50'") }
-    const routesFor = async (pg, slate, onFeed) => {
+    // The two BSD live feeds the poll now also asks (owner 2026-11-26). Mocked in EVERY unpinned scenario, so none reaches the real relay; the default answers are empty and real ("nothing live").
+    const bsdEmpty = r => r.fulfill({ contentType: 'application/json', body: r.request().url().endsWith('/matches/live') ? '[]' : '{"count":0,"events":[]}' })
+    const routesFor = async (pg, slate, onFeed, onBsd = bsdEmpty) => {
       await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
       await pg.route(`${RELAY}/context/date/2026-10-09`, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ...slate, date: '2026-10-09', games: { regular: [], postseason: [] } }) }))
       await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
       await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), onFeed)
+      await pg.route(url => url.href.startsWith(`${RELAY}/bsd/`), onBsd)
     }
     const instrument = pg => pg.addInitScript(() => {
       window.__iv = { alive: new Set(), delays: [] }
@@ -657,14 +660,14 @@ if (isMain(import.meta.url) && !SELF_TEST) {
         iv.alive === 1 && iv.delays.length >= 1 && iv.delays.includes(60000) && iv.delays.every(d => d >= 60000), JSON.stringify(iv))
       await pg.click('#prev-day')
       await pg.waitForFunction(() => document.querySelectorAll('.desk-card').length === 0, null, { timeout: 8000 }).catch(() => {})
-      check('re-rendering to a day with no soccer card clears the timer: none alive', (await alive(pg)) === 0, String(await alive(pg)))
+      check('re-rendering to a day with no soccer card KEEPS the one timer (owner 2026-11-26: it also asks the BSD live feeds, so it no longer stops for want of a card window)', (await alive(pg)) === 1, String(await alive(pg)))
       await pg.click('#today')
       await pg.waitForSelector('.desk-card', { timeout: 8000 })
       await settle(pg, EARLY, { score: '1–0' })
       check('...and coming back to a day with cards in their window arms exactly one, not two', (await alive(pg)) === 1, String(await alive(pg)))
       await pg.clock.fastForward(3 * 60 * 60 * 1000 + 60_000)
       await pg.waitForTimeout(300)
-      check('once every window has passed the timer is cleared: none alive', (await alive(pg)) === 0, String(await alive(pg)))
+      check('once every window has passed the one timer is still alive (owner 2026-11-26)', (await alive(pg)) === 1, String(await alive(pg)))
       check('no page errors across the re-renders', errs.length === 0, errs.join(' | '))
       await ctx.close()
     }
@@ -912,6 +915,73 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       check('...and one tick later, with the flag clear, the note is the clock again', n.epl === 3 && mismatches(resumed, { score: '3–0', live: "46'", status: WORDS.inProgress }).length === 0 && resumed.why === null, JSON.stringify({ asked: n.epl, resumed }))
       check('no page errors across half time', errs.length === 0, errs.join(' | '))
       await ctx.close()
+    }
+
+    // (i) THE LIVE NOW LINE (owner 2026-11-26: "we should always know when anything is live"; docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6b).
+    // The two BSD live feeds are answered from the REAL captures of 2026-11-26 23:38Z (3 live tennis matches, 1 live soccer game). The line is
+    // read from the page's own `#live-now`, never from the test's expectations of the F# text.
+    {
+      const TENNIS = readFileSync('outbox/live-capture-bsd-tennis-live-20261126-2338Z.json', 'utf8')
+      const EVENTS = readFileSync('outbox/live-capture-bsd-events-live-20261126-2338Z.json', 'utf8')
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      const asked = { tennis: 0, events: 0 }
+      let mode = 'answer'
+      await routesFor(pg, mk(), r => {
+        const key = new URL(r.request().url()).searchParams.get('sport')
+        return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
+      }, r => {
+        const tennis = r.request().url().endsWith('/matches/live')
+        asked[tennis ? 'tennis' : 'events']++
+        if (mode === 'fail') return r.abort()
+        if (mode === 'junk') return r.fulfill({ contentType: 'text/html', body: '<html>502</html>' })
+        return r.fulfill({ contentType: 'application/json', body: tennis ? TENNIS : EVENTS })
+      })
+      await pg.clock.install({ time: new Date(AT) })
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      const nowText = () => pg.$eval('#live-now', e => ({ text: e.textContent, kind: e.getAttribute('data-kind') }))
+      await pg.waitForFunction(() => /BSD tennis: 3 live/.test(document.getElementById('live-now').textContent), null, { timeout: 8000 }).catch(() => {})
+      const first = await nowText()
+      check('the Live now line names BOTH BSD feeds with the captured counts: 3 live tennis matches, 1 live soccer game',
+        /BSD tennis: 3 live/.test(first.text) && /BSD soccer: 1 live/.test(first.text), JSON.stringify(first))
+      check('...and says it was polled, and each feed was asked exactly once so far', first.kind === 'polled' && asked.tennis === 1 && asked.events === 1, JSON.stringify({ first, asked }))
+      await settle(pg, EARLY, { score: '1–0' })
+      const withCard = await nowText()
+      // `mk()` puts TWO soccer cards in their window (Arsenal v Leeds, Rayo v Athletic) and the mocked sport feeds report both in play.
+      check('the two cards the sport feeds say are in play are counted by source: "scoreboard cards: 2 live"', /scoreboard cards: 2 live/.test(withCard.text), JSON.stringify(withCard))
+      mode = 'fail'
+      await pg.clock.fastForward(60_000)
+      await pg.waitForFunction(() => /BSD tennis: unknown/.test(document.getElementById('live-now').textContent), null, { timeout: 8000 }).catch(() => {})
+      const failed = await nowText()
+      check('a feed that did not answer is "unknown (...)", never "0 live" and never left at its last count',
+        /BSD tennis: unknown \(/.test(failed.text) && /BSD soccer: unknown \(/.test(failed.text) && !/tennis: \d+ live/.test(failed.text) && !/soccer: \d+ live/.test(failed.text), JSON.stringify(failed))
+      mode = 'junk'
+      await pg.clock.fastForward(60_000)
+      await pg.waitForFunction(() => /BSD soccer: unknown \(/.test(document.getElementById('live-now').textContent) && /unreadable|Given an invalid JSON|Expecting/.test(document.getElementById('live-now').textContent), null, { timeout: 8000 }).catch(() => {})
+      const junk = await nowText()
+      check('a feed answering with something unreadable is unknown too, and the reason is the decoder\'s own', /BSD tennis: unknown \(/.test(junk.text) && /Given an invalid JSON|Expecting|unreadable/.test(junk.text), JSON.stringify(junk))
+      mode = 'answer'
+      await pg.clock.fastForward(60_000)
+      await pg.waitForFunction(() => /BSD tennis: 3 live/.test(document.getElementById('live-now').textContent), null, { timeout: 8000 }).catch(() => {})
+      const back = await nowText()
+      check('...and when the feeds answer again the line recovers to the real counts', /BSD tennis: 3 live/.test(back.text) && /BSD soccer: 1 live/.test(back.text), JSON.stringify(back))
+      check('no page errors on the Live now line', errs.length === 0, errs.join(' | '))
+      await ctx.close()
+
+      // a page pinned to a capture says so and reaches for nothing
+      const ctx2 = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pp = await ctx2.newPage()
+      let bsdPinned = 0
+      await pp.route(url => url.href.includes('/bsd/'), r => { bsdPinned++; return r.abort() })
+      await pp.goto(SLATE, { waitUntil: 'networkidle' })
+      await pp.waitForSelector('.desk-card', { timeout: 15_000 })
+      const pinned = await pp.$eval('#live-now', e => ({ text: e.textContent, kind: e.getAttribute('data-kind') }))
+      check('a page pinned to a capture says the Live now line was not read, and asked the BSD feeds for nothing',
+        pinned.kind === 'pinned' && /pinned capture/.test(pinned.text) && bsdPinned === 0, JSON.stringify({ pinned, bsdPinned }))
+      await ctx2.close()
     }
   }
 

@@ -506,6 +506,8 @@ type CardHandle =
       SetReading: LiveScore.LiveReading -> unit
       /// Has the feed said this game is over (`FullTime`, `GameOver`)? The poll does not ask about a settled card.
       IsSettled: unit -> bool
+      /// Is the feed's reading for this game in play right now (`LiveNow`, `HalfTime`)? The page's `Live now` line counts these.
+      IsLive: unit -> bool
       /// The card's window has ended: a live answer it holds becomes `LiveStopped` (`LiveScore.stoppedFrom`). Any other reading, and no reading, is left alone, so calling it again changes nothing.
       MarkStopped: unit -> unit }
 
@@ -794,6 +796,12 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
             setReading r
             setHeard (heard () + 1)
       IsSettled = fun () -> LiveScore.isSettled (reading ())
+      IsLive =
+        fun () ->
+            match reading () with
+            | LiveScore.LiveNow _
+            | LiveScore.HalfTime _ -> true
+            | _ -> false
       MarkStopped =
         fun () ->
             match reading () with
