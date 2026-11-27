@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `b0d03a4` at "Render check against the LIVE slate" — 1 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 45948904264](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/45948904264)
+**green** on `a5806b0` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `13ef6cc`
+`live-check` (post-deploy, against the deployed page): **running** on `5ef5040`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `1c56964` — behind newest deployable `b0d03a4` (deploy not landed) |
+| Cloudflare Workers | live | `5ef5040` — newest deployable `a5806b0` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

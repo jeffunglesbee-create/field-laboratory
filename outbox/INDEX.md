@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5ef5040` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46008865441 |
+| `a5806b0` | 2026-11-27 | [cc-session-2026-11-27-held-status-word.md](cc-session-2026-11-27-held-status-word.md) | fix: HELD is a word of a CC-CMD's status vocabulary, non-terminal (owner: Vocabulary) |
 | `517de85` | 2026-11-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-27 [skip ci] |
 | `517de85` | 2026-11-27 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-27 [skip ci] |
 | `c1b997f` | 2026-11-27 | [live-score-2026-11-27-20261127-0919Z.png](live-score-2026-11-27-20261127-0919Z.png) | probe: a live soccer score on a lab card, on the live page [skip ci] |
