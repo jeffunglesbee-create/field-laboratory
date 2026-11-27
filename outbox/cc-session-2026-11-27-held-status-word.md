@@ -19,3 +19,5 @@ It does not judge whether the page belongs here or in the new repository (the ru
 ## Order of events, said plainly
 
 Landed after local evidence and before a scored `verify-full`, because `main`'s `guards` was red and other sessions' pushes were showing it. The scored run is dispatched on `main` after the landing; its result is the last line of this note.
+
+Scored: `verify-full` run `46008900658` on `a5806b03` (dispatched on `main`): earned 530 of 530, failing [], skipped [], notApplicable [], mutation baseline failing 0 (116 run of 2275 mutations), 8 of 8 shards; `guards` run `46008865346` and `verify` run `46008865441` green on the landing.
