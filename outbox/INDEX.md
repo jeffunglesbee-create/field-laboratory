@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `58530ab` | 2026-11-27 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-11-27 [skip ci] |
+| `58530ab` | 2026-11-27 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: unmodelled-sport on 2026-11-27 [skip ci] |
+| `58530ab` | 2026-11-27 | [sport-vocabulary-2026-11-27T20-59-28-677Z.json](sport-vocabulary-2026-11-27T20-59-28-677Z.json) | drift-sentinel: unmodelled-sport on 2026-11-27 [skip ci] |
+| `584b517` | 2026-11-27 | [forecast-uefa-data-2025-26-2026-11-27.json](forecast-uefa-data-2025-26-2026-11-27.json) | data: the UEFA fit's two bundles (archive rows, no model number) |
+| `584b517` | 2026-11-27 | [forecast-uefa-data-2026-27-frozen-2026-11-27.json](forecast-uefa-data-2026-27-frozen-2026-11-27.json) | data: the UEFA fit's two bundles (archive rows, no model number) |
+| `59f6eec` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | data: the UEFA fit's bundle fetch (a script and a dispatch-only workflow; no model number, the RULE block untouched) |
+| `dc9fdce` | 2026-11-27 | [forecast-fit-uefa-2026-11-27.mjs](forecast-fit-uefa-2026-11-27.mjs) | pre-registration: the UEFA table forecast's ship rule, fixed before any UEFA model number was computed (nothing fetched, fitted or scored) |
+| `6fd6651` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-measure.md](cc-session-2026-11-27-uefa-forecast-measure.md) | docs: the UEFA forecast CC-CMD's Task 1 is done (524 rows written by another session on the owner's word), verified by an independent archive read; Task 2 waits only on the Rule F scope |
+| `aebff8e` | 2026-11-27 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-27T16:58 [skip ci] |
 | `2b163f4` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-measure.md](cc-session-2026-11-27-uefa-forecast-measure.md) | docs: a UEFA forecast on tonight's cards filed, with the last-season data measured (522 matches on ESPN, none archived) and every later task blocked on the owner |
 | `e2767c2` | 2026-11-27 | [cc-session-2026-11-27-held-status-word.md](cc-session-2026-11-27-held-status-word.md) | docs: the scored verify-full of the HELD status word is recorded: 530 of 530 |
 | `3de771c` | 2026-11-27 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of a5806b0 [skip ci] |

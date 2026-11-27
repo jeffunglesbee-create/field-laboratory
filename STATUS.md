@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `a5806b0` — but that is not `main` HEAD
+**running** on `59f6eec`
 
 ## Is the live artifact healthy?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `5ef5040` — newest deployable `a5806b0` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `5ef5040` — behind newest deployable `59f6eec` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-11-27 — 1 games, 0 malformed (244 runs logged)
+`unmodelled-sport` on 2026-11-27 — 50 games, 0 malformed (245 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
