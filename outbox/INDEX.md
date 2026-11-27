@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9afe466` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45927626675 |
+| `d2ad927` | 2026-11-27 | [cc-session-2026-11-26-live-now-line.md](cc-session-2026-11-26-live-now-line.md) | feat: a Live now line on every surface; the one timer also asks the BSD live feeds (owner ruling) |
+| `f5ee766` | 2026-11-27 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-27T01:55 [skip ci] |
+| `3ce71b3` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `eeec05b` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45913376224 |
 | `ee4cf93` | 2026-11-26 | [cc-session-2026-11-26-live-sources-decoders.md](cc-session-2026-11-26-live-sources-decoders.md) | feat: the two BSD live feeds decoded for 'is it live' (Task 6b first half, STAGED) |
 | `ee87a6c` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
