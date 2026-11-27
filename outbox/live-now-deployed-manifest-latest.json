@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-11-27T02:46:17.622Z",
+  "page": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "liveNowPresent": true,
+  "kind": "polled",
+  "text": "Live now — scoreboard cards: 0 live · BSD tennis: 3 live · BSD soccer: 1 live",
+  "sources": {
+    "BSD tennis": {
+      "shown": 3,
+      "relayBefore": 3,
+      "relayAfter": 3,
+      "verdict": "AGREE"
+    },
+    "BSD soccer": {
+      "shown": 1,
+      "relayBefore": 1,
+      "relayAfter": 1,
+      "verdict": "AGREE"
+    }
+  },
+  "pageErrors": [],
+  "coverage": "checked 2 of 2 BSD sources in the line (tennis, soccer); NOT checked: the scoreboard-card count, golf, the draw, staleness",
+  "verdict": "PASS"
+}
