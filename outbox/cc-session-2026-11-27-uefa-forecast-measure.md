@@ -23,3 +23,7 @@
 ## Update 2026-11-27 (20:45Z): Task 1 was done by another session; verified here
 
 The relay's "3rd session" wrote the 524 rows at 20:03 to 20:12Z on the owner's "UEFA history write approved" (its record: field-relay-nba `outbox/cc-session-2026-11-27-uefa-history-write.md`); it listed this session as "not told". My 19:24Z read (93 / 93 / 73, nothing written) was true when taken and is superseded. My 20:43Z read: 279 / 279 / 225 rows, 186 / 186 / 150 dated before 2026-05-01, and `/context/date/2025-12-10` serves 9 scored Champions League rows. The CC-CMD's Task 1 is marked DONE with this evidence; Task 2 is blocked only on the owner confirming the Rule F scope. Nothing was written by this session.
+
+## Correction 2026-11-27 (21:45Z): the scheduled join does not run
+
+This record's Task 1 plan, the CC-CMD's side-effect sentence and the relay Addendum part 3 all said the scheduled join backfill would join the February to April rows. It will not: the relay's `outbox/bsd-join-backfill-complete.json` makes every scheduled run skip at the gate (checked on run `46070490625`, 21:28Z), and the archive read of 21:38:02Z shows 866 UEFA rows, 342 joined, 524 unjoined, with the 126 February to April rows at 0 joined. I stated the claim without reading the marker (the workflow's own header says a dispatch always runs and the schedule stops itself); one read of that file would have said so. Nothing depended on it (the fit uses results, and the verdict is DO NOT BUILD). Corrected in the relay's Addendum part 4 and HANDOFF.
