@@ -67,6 +67,13 @@ Design consequence: `Live now` is the UNION of three feeds, each shown with its 
 - **Between captures** (23:32Z minute 30, 23:38Z minute 37) the soccer minute advanced 7 for 6 minutes of clock, so the feed was current.
 - **Soccer `period` words seen:** `1st_half` only. Halftime and extra-time words are unobserved.
 
+### Task 6c SCOPING (read 2026-11-27 from `src/Program.fs` `drawUrl`, `src/DrawView.fs`, `src/Draw.fs`)
+
+- **The draw panel's DEFAULT is a committed capture, not a live draw.** `drawUrl ()` returns `./data/tennis-draw.json`, "a real Roland Garros WTA 2026", unless the URL carries `?draw=<tournament id>`. So on the default page the draw is a finished past event and "tournament finished" (`Draw.isComplete`) is TRUE there; asking whether it is live is a category error.
+- **`drawLiveness` therefore applies only to `?draw=<tournament id>`.** The tournament id comes from the URL's `draw` parameter; the `Draw` value carries the tournament's NAME, not its id.
+- **What the live feed can add for the default page** is not a gate on the capture but a pointer: the Live now line can NAME the tournaments that have live matches (the captured ids 904 and 215 carry `tournament.name`), and each can link to `?draw=<id>`. Whether to do that is a product choice the code does not settle; the default below is the cheapest that keeps "always know what is live": name them in the line, link them, leave the draw's own default alone.
+- **Plan:** (1) the line names live tournaments; (2) for `?draw=<id>`, `DrawView` gets the tennis state and shows LIVE (expanded, with the live match count) / NOT LIVE (collapsed, with the reason) / UNKNOWN (stated, with the feed's reason); (3) the render check mocks `?draw=904` against the captured tennis feed. Each with its mutation.
+
 ## Tasks
 
 0. **Probe first.** Artifact: `outbox/single-page-probe-2026-11-26.txt` holding (a) the `pick` value from `/analytics/newspaper/2026-11-26` read on a runner (`gh workflow run` is broken account-wide; use the `outbox/.trigger-*` push pattern) and (b) the draw payload's tournament dates. Stop condition: if the `pick` value is non-empty while the panel says none, that is a defect and gets its own CC-CMD before anything is stacked on it.
