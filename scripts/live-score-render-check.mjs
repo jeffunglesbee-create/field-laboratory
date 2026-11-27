@@ -1021,6 +1021,103 @@ if (isMain(import.meta.url) && !SELF_TEST) {
         pinned.kind === 'pinned' && /pinned capture/.test(pinned.text) && bsdPinned === 0, JSON.stringify({ pinned, bsdPinned }))
       await ctx2.close()
     }
+
+    // (j) THE DRAW'S LIVENESS (owner 2026-11-26; Task 6c). The draw panel's DEFAULT is a committed capture of a finished tournament; `?draw=<id>` asks the relay.
+    // The relay's draw route is mocked with the committed capture (FINISHED) and with the same capture whose Final has no winner (UNFINISHED), so the
+    // precedence between "finished" and "live" is observed, not assumed. The tennis feed is the real 2026-11-26 capture: tournament 904 has two matches in play, 215 one.
+    {
+      const TENNIS = readFileSync('outbox/live-capture-bsd-tennis-live-20261126-2338Z.json', 'utf8')
+      const EVENTS = readFileSync('outbox/live-capture-bsd-events-live-20261126-2338Z.json', 'utf8')
+      const FINISHED = readFileSync('data/tennis-draw.json', 'utf8')
+      const unfinished = JSON.parse(FINISHED)
+      for (const n of unfinished.nodes) if (n.round === 'Final') { n.winnerId = null; n.status = 'scheduled' }
+      const UNFINISHED = JSON.stringify(unfinished)
+      const open = async (query, draw, mode) => {
+        const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+        const pg = await ctx.newPage()
+        const errs = []
+        pg.on('pageerror', e => errs.push(e.message))
+        const state = { mode }
+        await routesFor(pg, mk(), r => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ games: [] }) }), r => {
+          const url = r.request().url()
+          if (url.includes('/bsd/tennis/draw')) return r.fulfill({ contentType: 'application/json', body: draw })
+          const tennis = url.endsWith('/matches/live')
+          if (state.mode === 'fail') return r.abort()
+          return r.fulfill({ contentType: 'application/json', body: tennis ? TENNIS : EVENTS })
+        })
+        await pg.clock.install({ time: new Date(AT) })
+        await pg.goto(`${BASE}/?date=2026-10-10&simulate=1&${query}`, { waitUntil: 'networkidle' })
+        await pg.waitForSelector('#panel-draw .dv-head', { timeout: 15_000 })
+        return { ctx, pg, errs, state }
+      }
+      const drawNow = pg => pg.$eval('#panel-draw', e => ({ live: e.getAttribute('data-live'), collapse: e.getAttribute('data-collapse'), finished: e.getAttribute('data-finished'),
+        line: (e.querySelector('.dv-live') || {}).textContent ?? null }))
+      const settleLive = (pg, word) => pg.waitForFunction(w => document.getElementById('panel-draw').getAttribute('data-live') === w, word, { timeout: 8000 }).catch(() => {})
+
+      // 904 has live matches, the draw is unfinished
+      {
+        const { ctx, pg, errs } = await open('draw=904&tab=draw', UNFINISHED, 'answer')
+        await settleLive(pg, 'live')
+        const a = await drawNow(pg)
+        check('an unfinished draw whose tournament has matches in play says so: live, "2 matches", and it is not collapsed',
+          a.live === 'live' && /^Live now: 2 matches/.test(a.line ?? '') && a.collapse === null && a.finished === null, JSON.stringify(a))
+        const links = await pg.$$eval('#live-now-draws a', as => as.map(x => ({ text: x.textContent, href: x.getAttribute('href') })))
+        check('the Live now line links each tournament with a match in play to its own draw, with its live count',
+          links.length === 2 && links.some(l => l.text === 'San Salvador, El Salvador (2 live)' && /\?draw=904&tab=draw$/.test(l.href)) && links.some(l => l.text === 'Buenos Aires, Argentina (1 live)' && /\?draw=215&tab=draw$/.test(l.href)), JSON.stringify(links))
+        check('no page errors on a live draw', errs.length === 0, errs.join(' | '))
+        await ctx.close()
+      }
+      // the same draw, FINISHED capture, tournament 904 in play: the feed is the later fact, so it is shown, not collapsed
+      {
+        const { ctx, pg } = await open('draw=904&tab=draw', FINISHED, 'answer')
+        await settleLive(pg, 'live')
+        const a = await drawNow(pg)
+        check('a finished capture of a tournament the feed says is in play is NOT collapsed (live outranks finished)', a.live === 'live' && a.collapse === null, JSON.stringify(a))
+        await ctx.close()
+      }
+      // 999 has no match in play
+      {
+        const { ctx, pg } = await open('draw=999&tab=draw', UNFINISHED, 'answer')
+        await settleLive(pg, 'not-live')
+        const a = await drawNow(pg)
+        check('an unfinished draw with no match in play says not live, and collapses for the one-page view, with the reason',
+          a.live === 'not-live' && /^Not live now/.test(a.line ?? '') && /^not live now/.test(a.collapse ?? ''), JSON.stringify(a))
+        await ctx.close()
+      }
+      {
+        const { ctx, pg } = await open('draw=999&tab=draw', FINISHED, 'answer')
+        await settleLive(pg, 'not-live')
+        const a = await drawNow(pg)
+        check('a FINISHED capture with no match in play keeps "tournament finished" as its reason (finished is not overwritten by not-live)',
+          a.live === 'not-live' && a.collapse === 'tournament finished' && a.finished !== null, JSON.stringify(a))
+        await ctx.close()
+      }
+      // the feed fails: unknown, never not-live, and the draw is not hidden by it
+      {
+        const { ctx, pg, state } = await open('draw=904&tab=draw', UNFINISHED, 'answer')
+        await settleLive(pg, 'live')
+        state.mode = 'fail'
+        await pg.clock.fastForward(60_000)
+        await settleLive(pg, 'unknown')
+        const a = await drawNow(pg)
+        check('when the tennis feed stops answering the draw says "Live status unknown" with the reason, and is not collapsed by it',
+          a.live === 'unknown' && /^Live status unknown: /.test(a.line ?? '') && a.collapse === null, JSON.stringify(a))
+        await ctx.close()
+      }
+      // a page pinned to a capture asks nothing and says so on the draw too
+      {
+        const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+        const pg = await ctx.newPage()
+        await pg.route(url => url.href.includes('/bsd/tennis/matches/live') || url.href.includes('/bsd/events/live'), r => r.abort())
+        await pg.route(url => url.href.includes('/bsd/tennis/draw'), r => r.fulfill({ contentType: 'application/json', body: UNFINISHED }))
+        await pg.goto(`${SLATE}&draw=904&tab=draw`, { waitUntil: 'networkidle' })
+        await pg.waitForSelector('#panel-draw .dv-head', { timeout: 15_000 })
+        const a = await drawNow(pg)
+        check('a page pinned to a capture says the draw\'s live status is unknown because it does not read the feed',
+          a.live === 'unknown' && /pinned to a capture/.test(a.line ?? ''), JSON.stringify(a))
+        await ctx.close()
+      }
+    }
   }
 
   await browser.close()

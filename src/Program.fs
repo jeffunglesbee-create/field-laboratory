@@ -200,6 +200,33 @@ let private drawUrl () =
         | Some year -> sprintf "%s?tournament=%s&season=%s" RELAY_DRAW tid year
         | None -> sprintf "%s?tournament=%s" RELAY_DRAW tid
 
+/// What each BSD live feed last said, by source. Written by the poll (the region below), read by the Live now line and by the draw panel.
+let mutable private liveSourceStates : Map<LiveSources.Source, LiveSources.FeedState> = Map.empty
+
+/// The tournament id `?draw=<id>` asks for, when it is a whole number. The id comes from the URL and is not read off the draw's payload.
+let private drawTournamentId () : int option =
+    match queryParam "draw" with
+    | Some text ->
+        match System.Int32.TryParse text with
+        | true, n -> Some n
+        | _ -> None
+    | None -> None
+
+/// Tell the draw panel whether its tournament has a match in play (Task 6c). Only for `?draw=<id>`: the panel's DEFAULT is a committed capture of a finished
+/// tournament and has no live question to answer. A feed not yet heard from, or a page pinned to a capture, is UNKNOWN with that reason, never "not live".
+let private applyDrawLiveness () =
+    match drawTournamentId (), document.getElementById "panel-draw" with
+    | Some tid, mount when not (isNull mount) ->
+        let liveness =
+            match Map.tryFind LiveSources.BsdTennis liveSourceStates with
+            | Some state -> LiveSources.drawLiveness tid state
+            | None ->
+                if (queryParam "data").IsSome then LiveSources.DrawUnknown "this page is pinned to a capture and does not read the live feed"
+                else LiveSources.DrawUnknown "the tennis feed has not answered yet"
+        let word, text = LiveSources.drawLivenessLine liveness
+        DrawView.setLiveness mount word text
+    | _ -> ()
+
 let mutable private drawLoaded = false
 
 /// Fetch the draw once, the first time the tab is shown.
@@ -213,7 +240,7 @@ let private loadDrawOnce () =
         drawLoaded <- true
         match document.getElementById "panel-draw" with
         | null -> ()
-        | mount -> DrawView.load mount (drawUrl ()) |> Promise.start
+        | mount -> DrawView.load mount (drawUrl ()) |> Promise.iter (fun () -> applyDrawLiveness ())
 
 /// The lineups route. `/bsd/events/<id>/lineups` on the relay, which forwards
 /// BSD's shape unchanged and reports the state in response headers.
@@ -316,8 +343,6 @@ let private loadMetricsOnce () =
 // ── the `Live now` line ─────────────────────────────────────────────────
 // What the page says about anything being in play, by SOURCE (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6b). A count of the
 // scoreboard cards whose reading is live, and each BSD live feed's own state. Nothing here fetches; the poll below fills `liveSourceStates`.
-let mutable private liveSourceStates : Map<LiveSources.Source, LiveSources.FeedState> = Map.empty
-
 let private liveNowText (cardsLive: int) (states: Map<LiveSources.Source, LiveSources.FeedState>) : string =
     let part (source: LiveSources.Source) =
         match Map.tryFind source states with
@@ -332,6 +357,30 @@ let private showLiveNow (text: string) (kind: string) =
     | el ->
         if el.textContent <> text then el.textContent <- text
         el.setAttribute ("data-kind", kind)
+
+/// The tennis tournaments with a match in play, as links to their own draw, under the Live now line. Rewritten only when the set changed: a link being
+/// read or focused is not replaced every minute. Names come from the vendor feed and are set as text, never as markup.
+let private showLiveDraws () =
+    match document.getElementById "live-now-draws" with
+    | null -> ()
+    | host ->
+        let tournaments =
+            match Map.tryFind LiveSources.BsdTennis liveSourceStates with
+            | Some state -> LiveSources.liveTournaments state
+            | None -> []
+        let key = tournaments |> List.map (fun (tid, _, n) -> sprintf "%d:%d" tid n) |> String.concat ","
+        if host.getAttribute "data-key" <> key then
+            host.setAttribute ("data-key", key)
+            host.innerHTML <- ""
+            if not tournaments.IsEmpty then
+                let label = document.createElement "span"
+                label.textContent <- "Live tennis draws: "
+                host.appendChild label |> ignore
+                for (tid, name, n) in tournaments do
+                    let link = document.createElement "a"
+                    link.setAttribute ("href", sprintf "%s?draw=%d&tab=draw" window.location.pathname tid)
+                    link.textContent <- sprintf "%s (%d live)" name n
+                    host.appendChild link |> ignore
 
 // ── live score poll: begin ──────────────────────────────────────────────
 // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6. THE LABORATORY'S ONLY TIMER, and it is here on the owner's ruling of
@@ -376,6 +425,8 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
     let refreshLiveNow () =
         let cardsLive = handles |> Seq.filter (fun h -> h.IsLive ()) |> Seq.length
         showLiveNow (liveNowText cardsLive liveSourceStates) "polled"
+        showLiveDraws ()
+        applyDrawLiveness ()
 
     let tick () =
         let now = System.DateTimeOffset.UtcNow

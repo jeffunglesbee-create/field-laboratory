@@ -5812,6 +5812,9 @@ let private otherSports () =
 let private liveSources () =
     let tennisTwo =
         """[{"id":61272,"tournament":{"id":904,"name":"San Salvador, El Salvador"},"player1":{"name":"Lucas Andrade Da Silva"},"player2":{"name":"Diego Duran"},"is_doubles":false,"match_date":"2026-11-26T20:30:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":1,"current_set":3,"winner_id":null},{"id":61315,"tournament":{"id":215,"name":"Buenos Aires, Argentina"},"player1":{"name":"Maria Carle"},"player2":{"name":"Nadia Podoroska"},"is_doubles":false,"match_date":"2026-11-26T21:50:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":0,"current_set":2,"winner_id":null}]"""
+    let tennisThird =
+        """{"id":61316,"tournament":{"id":904,"name":"San Salvador, El Salvador"},"player1":{"name":"Timo Legout"},"player2":{"name":"Karl Poling"},"is_doubles":false,"match_date":"2026-11-26T23:00:00+00:00","status":"live","round_name":"Round of 16","player1_sets":0,"player2_sets":0,"current_set":1,"winner_id":null}"""
+    let tennisThree = tennisTwo.TrimEnd(']') + "," + tennisThird + "]"
     let tennisOnly215 =
         """[{"id":61315,"tournament":{"id":215,"name":"Buenos Aires, Argentina"},"player1":{"name":"Maria Carle"},"player2":{"name":"Nadia Podoroska"},"is_doubles":false,"match_date":"2026-11-26T21:50:00+00:00","status":"live","round_name":"Round of 16","player1_sets":1,"player2_sets":0,"current_set":2,"winner_id":null}]"""
     let tennisSuspended = tennisTwo.Replace("\"status\":\"live\",\"round_name\":\"Round of 16\",\"player1_sets\":1,\"player2_sets\":1", "\"status\":\"suspended\",\"round_name\":\"Round of 16\",\"player1_sets\":1,\"player2_sets\":1")
@@ -5888,6 +5891,51 @@ let private liveSources () =
       Verify.check "the Live now text names an unreadable feed as unknown with its reason, never as zero live"
           (fun body ->
               (LiveSources.feedText LiveSources.BsdTennis (LiveSources.stateOf (LiveSources.decodeTennis body))).StartsWith "BSD tennis: unknown (")
+          "<html>502</html>"
+          tennisTwo
+
+      Verify.check "a live tennis match carries its tournament's name beside its id (for the page to say which draw, never to join by)"
+          (fun body ->
+              let got = LiveSources.decodeTennis body |> Result.map (List.map (fun i -> (i.TournamentId, i.TournamentName)))
+              got = Ok [ (Some 904, Some "San Salvador, El Salvador"); (Some 215, Some "Buenos Aires, Argentina") ])
+          tennisTwo
+          (tennisTwo.Replace(""","name":"San Salvador, El Salvador"}""", "}"))
+
+      Verify.check "the live tournaments are grouped by id with their live match count: 904 has two matches in play, 215 one"
+          (fun body ->
+              let got = LiveSources.liveTournaments (LiveSources.stateOf (LiveSources.decodeTennis body))
+              got = [ (904, "San Salvador, El Salvador", 2); (215, "Buenos Aires, Argentina", 1) ])
+          tennisThree
+          tennisTwo
+
+      Verify.check "a match with an unseen status word is not a live tournament"
+          (fun body ->
+              let got = LiveSources.liveTournaments (LiveSources.stateOf (LiveSources.decodeTennis body))
+              got = [ (215, "Buenos Aires, Argentina", 1) ])
+          tennisSuspended
+          tennisTwo
+
+      Verify.check "an unreadable tennis feed names no live tournament (and the Live now text says the feed is unknown)"
+          (fun body -> LiveSources.liveTournaments (LiveSources.stateOf (LiveSources.decodeTennis body)) = [])
+          "<html>502</html>"
+          tennisTwo
+
+      Verify.check "the draw panel's state word is live when a match of its tournament is in play"
+          (fun body -> fst (LiveSources.drawLivenessLine (LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)))) = "live")
+          tennisTwo
+          tennisOnly215
+
+      Verify.check "the draw panel's state word is not-live when none is, and its sentence says so"
+          (fun body ->
+              let word, text = LiveSources.drawLivenessLine (LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)))
+              word = "not-live" && text.StartsWith "Not live now")
+          tennisOnly215
+          tennisTwo
+
+      Verify.check "the draw panel's state word is unknown, with the feed's reason, when the feed could not be read"
+          (fun body ->
+              let word, text = LiveSources.drawLivenessLine (LiveSources.drawLiveness 904 (LiveSources.stateOf (LiveSources.decodeTennis body)))
+              word = "unknown" && text.StartsWith "Live status unknown: ")
           "<html>502</html>"
           tennisTwo
 

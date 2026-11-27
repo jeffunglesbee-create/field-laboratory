@@ -41,6 +41,8 @@ type LiveItem =
       Detail: string
       /// Tennis only: the tournament a draw is joined to by id, never by name.
       TournamentId: int option
+      /// Tennis only: its name, for the page to say which draw is live. Never used to join.
+      TournamentName: string option
       Liveness: Liveness
       /// Soccer only: the feed's own `last_updated`, verbatim. The staleness threshold is NOT chosen here (Task 6d needs a census of observed ages first).
       LastUpdated: string option }
@@ -68,6 +70,7 @@ let private tennisDecoder: Decoder<LiveItem> =
           Label = label
           Detail = [ round; set ] |> List.choose id |> String.concat " · "
           TournamentId = get.Optional.At [ "tournament"; "id" ] Decode.int
+          TournamentName = get.Optional.At [ "tournament"; "name" ] Decode.string
           Liveness = (if status = "live" then Live else UnknownWord status)
           LastUpdated = None })
 
@@ -85,6 +88,7 @@ let private soccerDecoder: Decoder<LiveItem> =
           Label = sprintf "%s v %s" home away
           Detail = [ league; period; minute ] |> List.choose id |> String.concat " · "
           TournamentId = None
+          TournamentName = None
           Liveness = (if status = "inprogress" then Live else UnknownWord status)
           LastUpdated = get.Optional.Field "last_updated" Decode.string })
 
@@ -129,3 +133,24 @@ let feedText (source: Source) (feed: FeedState) : string =
         let unknown = List.length items - live
         if unknown > 0 then sprintf "%s: %d live, %d with a status word not seen before" (sourceName source) live unknown
         else sprintf "%s: %d live" (sourceName source) live
+
+/// The tennis tournaments with a match in play, each with its id, its name and how many of its matches are live: what the Live now line links to.
+/// An unreadable feed names none, and says nothing about whether any is live; the line's own text says the feed is unknown.
+let liveTournaments (feed: FeedState) : (int * string * int) list =
+    match feed with
+    | Unavailable _ -> []
+    | Answered items ->
+        items
+        |> List.filter (fun i -> i.Source = BsdTennis && i.Liveness = Live)
+        |> List.choose (fun i ->
+            i.TournamentId
+            |> Option.map (fun tid -> (tid, i.TournamentName |> Option.defaultValue (sprintf "tournament %d" tid))))
+        |> List.countBy (fun pair -> pair)
+        |> List.map (fun ((tid, name), n) -> (tid, name, n))
+
+/// The state word and the sentence the draw panel shows for one `DrawLiveness`. The word is what a check reads; the sentence is what a reader reads.
+let drawLivenessLine (liveness: DrawLiveness) : string * string =
+    match liveness with
+    | DrawLive n -> ("live", sprintf "Live now: %d match%s of this tournament in play (BSD tennis)" n (if n = 1 then "" else "es"))
+    | DrawNotLive -> ("not-live", "Not live now: no match of this tournament is in play (BSD tennis)")
+    | DrawUnknown why -> ("unknown", sprintf "Live status unknown: %s" why)

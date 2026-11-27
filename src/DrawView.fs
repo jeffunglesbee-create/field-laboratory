@@ -204,7 +204,11 @@ let render (mount: HTMLElement)
     // The one-page view shows a draw only while it is being played: a finished draw collapses to one line (index.html, `data-collapse`).
     // Read off the built draw, never from the tournaments route, which carries no dates.
     mount.removeAttribute "data-collapse"
-    if isComplete d then mount.setAttribute ("data-collapse", "tournament finished")
+    mount.removeAttribute "data-finished"
+    mount.removeAttribute "data-live"
+    if isComplete d then
+        mount.setAttribute ("data-collapse", "tournament finished")
+        mount.setAttribute ("data-finished", "")
     let panel = child mount (el "div" "dv-panel" "")
 
     let head = child panel (el "header" "dv-head" "")
@@ -369,6 +373,27 @@ let private fetchText (url: string) : JS.Promise<Result<string, string>> =
 /// Every branch renders something. A panel that stays on "Reading the draw…"
 /// after a failed fetch is a page claiming to be working, which is the state
 /// this repo has shipped blank three times.
+/// Say whether this draw's tournament has a match in play (docs/CC-CMD-2026-11-26-single-page-composition.md, Task 6c; owner: "always know when anything is live").
+/// `word` and `text` come from `LiveSources.drawLivenessLine`. The line goes in the head and replaces an earlier one, because `render` rewrites the whole mount:
+/// the caller applies this again after every load. A live match shows the draw even on a finished capture (the feed is the later fact); NOT live collapses an
+/// unfinished draw to one line for the one-page view; UNKNOWN changes nothing but the line, so a feed that did not answer never hides a draw.
+let setLiveness (mount: HTMLElement) (word: string) (text: string) =
+    match mount.querySelector ".dv-head" with
+    | null -> ()
+    | head ->
+        let existing = head.querySelector ".dv-live"
+        if not (isNull existing) then head.removeChild existing |> ignore
+        let line = child (head :?> HTMLElement) (el "p" "dv-live" text)
+        line.setAttribute ("data-live", word)
+        line.setAttribute ("role", "status")
+        mount.setAttribute ("data-live", word)
+        match word with
+        | "live" -> mount.removeAttribute "data-collapse"
+        | "not-live" ->
+            if isNull (mount.getAttribute "data-finished") then
+                mount.setAttribute ("data-collapse", "not live now: no match of this tournament is in play")
+        | _ -> ()
+
 let load (mount: HTMLElement) (url: string) : JS.Promise<unit> =
     promise {
         renderIdle mount
