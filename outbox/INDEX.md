@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `eeec05b` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45913376224 |
+| `ee4cf93` | 2026-11-26 | [cc-session-2026-11-26-live-sources-decoders.md](cc-session-2026-11-26-live-sources-decoders.md) | feat: the two BSD live feeds decoded for 'is it live' (Task 6b first half, STAGED) |
+| `ee87a6c` | 2026-11-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1517b52` | 2026-11-26 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 45912141137 |
 | `3e9bd58` | 2026-11-26 | [.trigger-live-sources-probe](.trigger-live-sources-probe) | probe: what is live right now, by source [skip ci] |
 | `3e9bd58` | 2026-11-26 | [live-capture-bsd-events-live-20261126-2338Z.json](live-capture-bsd-events-live-20261126-2338Z.json) | probe: what is live right now, by source [skip ci] |
