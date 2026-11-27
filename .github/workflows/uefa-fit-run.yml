@@ -1,0 +1,66 @@
+# THE RUN of docs/CC-CMD-2026-11-27-uefa-forecast-on-tonights-cards.md, Task 2: the pre-registered UEFA fit (outbox/forecast-fit-uefa-2026-11-27.mjs), executed ONCE on a runner against the
+# two bundles the data workflow committed (outbox/forecast-uefa-data-*-2026-11-27.json, each pinned by sha256 in the script). Dispatch only; nothing in it schedules itself.
+#
+# WHY A RUNNER: the run is the evidence, so it has an audit trail the author cannot edit: the workflow run's id, the commit it checked out, and its start time, all of which must be
+# LATER than the commit that fixed the rule (dc9fdce5) and the commit that carries this tooling. The sandbox reaches no *.workers.dev, but this run needs no network at all: it reads two
+# committed files. It holds no secret, writes nothing to the relay and computes nothing the script does not print.
+#
+# The script's exit code is 0 when every integrity check holds, whatever the verdict says: a verdict of DO NOT BUILD is a RESULT, not a failure of the run. A non-zero exit means an
+# integrity check failed (the output names it) and is itself recorded.
+name: uefa-fit-run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uefa-fit-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Only on main
+        run: |
+          [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "dispatch from main only"; exit 1; }
+      - name: Provenance, and the rule is the committed one
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "run_id=$GITHUB_RUN_ID  checkout_sha=$GITHUB_SHA  started=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "rule commit:    $(git log -1 --format='%H %cI' dc9fdce5)"
+            echo "tooling commit: $(git log -1 --format='%H %cI' -- outbox/forecast-fit-uefa-2026-11-27.mjs)"
+            echo "data commit:    $(git log -1 --format='%H %cI' -- outbox/forecast-uefa-data-2025-26-2026-11-27.json outbox/forecast-uefa-data-2026-27-frozen-2026-11-27.json)"
+            node outbox/forecast-fit-uefa-2026-11-27.mjs --print-rule-hash
+          } 2>&1 | tee outbox/forecast-fit-uefa-provenance-2026-11-27.txt | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: The checks hold on this commit (synthetic data only)
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/check-uefa-fit.mjs 2>&1 | tail -4 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: The pre-registered run
+        shell: bash
+        run: |
+          set -o pipefail
+          node outbox/forecast-fit-uefa-2026-11-27.mjs outbox/forecast-uefa-data-2025-26-2026-11-27.json outbox/forecast-uefa-data-2026-27-frozen-2026-11-27.json --json=outbox/forecast-fit-uefa-result-2026-11-27.json 2>&1 | tee outbox/forecast-fit-uefa-2026-11-27.txt | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit the output
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/forecast-fit-uefa-2026-11-27.txt outbox/forecast-fit-uefa-result-2026-11-27.json outbox/forecast-fit-uefa-provenance-2026-11-27.txt || true
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          git commit -m "data: the pre-registered UEFA fit's output (run ${GITHUB_RUN_ID})"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep $((i * 5)); done
+          echo "push failed after 4 attempts"; exit 1
