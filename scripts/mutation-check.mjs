@@ -10723,6 +10723,25 @@ const MUTATIONS = [
     expect: "python3 scripts/check-browser-gate.py --self-test",
   },
 
+  {
+    id: "cc-cmd-status-held-in-vocabulary",
+    file: "scripts/cc-cmd-status-check.mjs",
+    claim: "HELD is a word of the closed vocabulary: a CC-CMD held by an owner ruling reads as a status, not as an unknown word",
+    find: "const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL', 'HELD']",
+    replace: "const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL']",
+    expect: "node scripts/cc-cmd-status-check.mjs --self-test",
+  },
+
+  {
+    id: "cc-cmd-status-held-is-terminal",
+    file: "scripts/cc-cmd-status-check.mjs",
+    claim: "HELD is non-terminal: a held ask is an open ask for the audit, and it may not carry a closing section",
+    find: "const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL', 'HELD']",
+    replace: "const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL']\nTERMINAL.push('HELD')",
+    expect: "node scripts/cc-cmd-status-check.mjs --self-test",
+  },
+
+
 
 
 

@@ -48,7 +48,9 @@ const DIR = 'docs'
 // non-terminal, or the three 2026-08-09 asks would stay open forever waiting on
 // a settings dialog nobody has a tool for.
 const TERMINAL = ['CLOSED', 'RESOLVED', 'BUILT', 'DONE', 'LANDED', 'SHIPPED', 'WITHDRAWN', 'SUPERSEDED']
-const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL']
+// HELD (added 2026-11-27, owner: "Vocabulary") is open and paused: an owner ruling says no further work lands here until a named condition holds (a CC-CMD whose page moved to a repository
+// that does not exist yet). It is NON-terminal on purpose: a held ask is still an open ask for the audit this file exists for, and it may not carry a closing section.
+const NONTERMINAL = ['FILED', 'OPEN', 'IN PROGRESS', 'BLOCKED', 'STAGED', 'PARTIAL', 'HELD']
 
 // A closing SECTION, not a passing mention. `## CLOSED 2026-08-27` counts;
 // the sentence "the relay just closed this" in a paragraph does not.
@@ -89,6 +91,10 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     readStatus('**Status:** BUILT 2026-08-24').terminal === true &&
     readStatus('**Status:** WITHDRAWN same day').terminal === true)
   T('FILED is not terminal', readStatus('**Status:** FILED, not started.').terminal === false)
+  T('HELD is a word of the vocabulary', readStatus('**Status:** HELD, 2026-11-27. OWNER RULING: the page moves to another repository.').word === 'HELD')
+  T('...and it is not terminal: a held ask is an open ask', readStatus('**Status:** HELD, 2026-11-27.').terminal === false)
+  T('...and a held document with a closing section is the contradiction',
+    contradicts('**Status:** HELD, 2026-11-27.\n\n## CLOSED 2026-11-27\n\nall met') && !contradicts('**Status:** HELD, 2026-11-27.\n\n## Done condition\n\nthree things'))
   // The defect this file exists for, as a fixture.
   T('THE CONTRADICTION IS CAUGHT: FILED above a ## CLOSED section',
     contradicts('**Status:** FILED, not started.\n\n## CLOSED 2026-08-27\n\nall three met'))
