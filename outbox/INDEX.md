@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d90d96b` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | tooling: the UEFA fit's alias check covers the away side (the harness's one survivor); the mutation result recorded |
+| `4924068` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46070142220 |
+| `6722311` | 2026-11-27 | [cc-session-2026-11-27-uefa-forecast-fit.md](cc-session-2026-11-27-uefa-forecast-fit.md) | tooling: the UEFA fit's fit-and-score code, its synthetic-data checks and mutation harness, and the run workflow; committed BEFORE the run, the RULE block byte-identical |
+| `6722311` | 2026-11-27 | [forecast-fit-uefa-2026-11-27.mjs](forecast-fit-uefa-2026-11-27.mjs) | tooling: the UEFA fit's fit-and-score code, its synthetic-data checks and mutation harness, and the run workflow; committed BEFORE the run, the RULE block byte-identical |
+| `284fdbc` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `432e289` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46066593620 |
 | `58530ab` | 2026-11-27 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-11-27 [skip ci] |
 | `58530ab` | 2026-11-27 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: unmodelled-sport on 2026-11-27 [skip ci] |
