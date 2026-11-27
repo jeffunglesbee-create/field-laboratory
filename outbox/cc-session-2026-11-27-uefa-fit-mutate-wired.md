@@ -83,7 +83,7 @@ Result, read from the Actions API for `78e3abf7` (workflow runs created 2026-11-
 
 The workflow's own landing push fired it (its path is in the filter): this was the open question the reviewers could not test read-only, and it is now answered. The full harness had not been run in one piece against the final 71-assertion check before this; it now has, on a runner, and caught every mutant. `verify` on main had been red since `67223115`; this is its first green run since the harness landed (`59f6eecc` was the last).
 
-Measured run time: 841 seconds on 4 cores. The first draft's header estimated 7 to 9 minutes (single-check times times ten); four checks at once are slower than one alone. The header now states the measured figure and marks the 2-core figure as an extrapolation. That edit changes a path in the filter, so it re-runs the harness: the second full run is a repeat of the first, and is read below if it differs.
+Measured run time: 841 seconds on 4 cores. The first draft's header estimated 7 to 9 minutes (single-check times times ten); four checks at once are slower than one alone. The header now states the measured figure and marks the 2-core figure as an extrapolation. That edit changes a path in the filter, so it re-ran the harness on `7cbed524`: run 46083931123, success, the same coverage line (`caught 33, not caught 0, harness errors 0`), control 71 of 71, 831 seconds on 4 cores, and its 33 per-mutant verdict lines identical to the first run's (the sorted `CAUGHT` lines hash to the same md5). `guards` (46083931117) and `verify` (46083931168) were green on that commit too. Two full runs, one verdict: no flaky mutant on the runner.
 
 ## Observed, not changed
 
