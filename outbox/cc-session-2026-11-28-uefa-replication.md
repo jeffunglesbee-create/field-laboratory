@@ -44,3 +44,8 @@ That the ESPN data's licence allows this use (Rule 45: flagged for a human). Tha
 ## Carry-forwards
 
 None deferred: every remaining step is a numbered task of the CC-CMD section "Replication 2026-11-28" (Rule 87).
+
+## Commits (HEAD progression; each source commit stages an outbox entry, the repo's history rule)
+
+1. `230fbfc8` docs: the CC-CMD section, this record, the power script and its output (before any pointer in the rule dangles).
+2. Tooling prep (this entry): the collector conformed to the rule's row conditions (status field, skipped events with no id or an empty team id, a start time needs Z or an offset and is compared by its UTC day, one more read after a body without events or a non-JSON body, tallies for the rows made; self-test 40 checks, mutation harness 32 of 32), `scripts/uefa-structure-census.mjs` and the data workflow's `structure` mode (counts of the league-phase structure only, so the 2024-25 calendar can be tried against the rule's G3 expectations before the rule is fixed), and the data workflow's commit-message formats (`bundle sha256: <hex> <bytes> bytes <path>`, the collector's and the scoring module's sha256, a bundle path that exists is refused).

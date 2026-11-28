@@ -1,7 +1,8 @@
 # The DATA step of the replication rule outbox/forecast-replicate-uefa-2026-11-28.mjs (committed first, RULE sha256 in its commit message). Dispatch only; nothing in it schedules itself.
 # It reads ESPN's PUBLIC scoreboard, one day per read, with scripts/uefa-replication-data.mjs (an allow-list of fields; a club is its ESPN team id; no outcome flag can reach a file). It holds no secret and writes nothing to the relay.
 #   mode census: prints COUNTS of kinds (status names, phases, invalid score texts, skipped events, date mismatches, duplicates) and commits that text. No row, no score, no team.
-#   mode bundle: writes the bundle of completed events and commits it with its counts and sha256. The step summary prints counts and never a score.
+#   mode structure: prints COUNTS of the league-phase structure (scripts/uefa-structure-census.mjs: league-phase matches by the counting rule, clubs not on N, same-date repeats, eligible forecasts, status names of league-phase matches). No score, no team, no match line.
+#   mode bundle: writes the bundle of completed events and commits it; the commit message carries 'bundle sha256: <hex> <bytes> bytes <path>' (G3 (a) of the rule reads it from there). The step summary prints counts and never a score.
 # The collector's own self-test and its mutation harness run first, on every dispatch.
 name: uefa-replicate-data
 
@@ -9,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'census (counts of kinds only) or bundle (writes the data file)'
+        description: 'census (counts of kinds only), structure (counts of the league-phase structure) or bundle (writes the data file)'
         required: true
         default: census
       from:
@@ -66,18 +67,36 @@ jobs:
           [[ "$FROM" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$TO" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "bad dates"; exit 1; }
           if [ "$MODE" = "census" ]; then
             node scripts/uefa-replication-data.mjs --from "$FROM" --to "$TO" --census | tee "outbox/uefa-replication-census-$FROM-$TO.txt" | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ "$MODE" = "structure" ]; then
+            node scripts/uefa-structure-census.mjs --from "$FROM" --to "$TO" | tee "outbox/uefa-replication-structure-$FROM-$TO.txt" | tee -a "$GITHUB_STEP_SUMMARY"
           elif [ "$MODE" = "bundle" ]; then
             [[ "$OUT" =~ ^outbox/forecast-uefa-data-[A-Za-z0-9._-]+\.json$ ]] || { echo "bad out path"; exit 1; }
+            [ ! -e "$OUT" ] || { echo "$OUT already exists: a data commit adds each path once (a repaired bundle goes to a new path)"; exit 1; }
             node scripts/uefa-replication-data.mjs --from "$FROM" --to "$TO" --out "$OUT" | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            echo "mode must be census or bundle"; exit 1
+            echo "mode must be census, structure or bundle"; exit 1
           fi
       - name: Commit the file
+        env:
+          MODE: ${{ inputs.mode }}
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+          OUT: ${{ inputs.out }}
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/uefa-replication-census-*.txt outbox/forecast-uefa-data-*.json
+          git add outbox/uefa-replication-census-*.txt outbox/uefa-replication-structure-*.txt outbox/forecast-uefa-data-*.json
           git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
-          git commit -m "data: the replication's ${{ inputs.mode }} for ${{ inputs.from }} to ${{ inputs.to }} (counts of kinds or completed events; no model number)"
+          {
+            echo "data: the replication's $MODE for $FROM to $TO (counts of kinds or completed events; no model number)"
+            echo
+            if [ "$MODE" = "bundle" ]; then
+              echo "bundle sha256: $(sha256sum "$OUT" | cut -d' ' -f1) $(stat -c%s "$OUT") bytes $OUT"
+              echo "collector sha256: $(sha256sum scripts/uefa-replication-data.mjs | cut -d' ' -f1) scripts/uefa-replication-data.mjs"
+              echo "scoring sha256: $(sha256sum scripts/uefa-replicate-score.mjs | cut -d' ' -f1) scripts/uefa-replicate-score.mjs"
+            fi
+            echo "checkout: $(git rev-parse HEAD)"
+          } > "$RUNNER_TEMP/commit-msg.txt"
+          git commit -q -F "$RUNNER_TEMP/commit-msg.txt"
           for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep $((i * 5)); done
           echo "push failed after 4 attempts"; exit 1
