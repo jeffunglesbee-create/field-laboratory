@@ -27,31 +27,48 @@ export function daysBetween(from, to) {
   for (let t = Date.parse(from + 'T00:00:00Z'); t <= Date.parse(to + 'T00:00:00Z'); t += 86400000) out.push(new Date(t).toISOString().slice(0, 10))
   return out
 }
-const toNum = s => { const n = Number(s); return s === null || s === undefined || s === '' || !Number.isFinite(n) ? null : n }
+export const SCORE_RE = /^[0-9]+$/
+// A score is valid iff its TEXT matches ^[0-9]+$ (the rule); anything else is null, never parsed leniently.
+const toNum = s => { const t = s === null || s === undefined ? '' : String(s); return SCORE_RE.test(t) ? Number(t) : null }
+const dayBefore = d => new Date(Date.parse(d + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10)
+export const newTally = () => ({ events: 0, completed: 0, nonCompleted: 0, skipped: 0, invalidScore: 0, dateMismatch: 0, statusNames: {}, phases: {} })
 
-/** The rows of one scoreboard payload for one requested day: completed events only, the allow-listed fields only. Returns null when the payload is not the expected shape. */
-export function rowsOfScoreboard(payload, label, day) {
+/** The rows of one scoreboard payload for one requested day: completed events only, the allow-listed fields only. Returns null when the payload is not the expected shape. `tally` (optional) counts what was seen and what was refused:
+ *  events, completed, nonCompleted, skipped (a COMPLETED event without exactly one home and one away competitor with a team id: counted, never guessed), invalidScore (a score text outside ^[0-9]+$), dateMismatch (the requested day is neither the UTC day of the
+ *  event's start nor the day before it), the status names of the completed events and their phases. */
+export function rowsOfScoreboard(payload, label, day, tally = newTally()) {
   if (payload === null || typeof payload !== 'object' || !Array.isArray(payload.events)) return null
   const rows = []
   for (const ev of payload.events) {
+    tally.events++
     const comp = ev?.competitions?.[0]
-    if (!comp || !Array.isArray(comp.competitors)) continue
-    if (comp.status?.type?.completed !== true) continue
-    const h = comp.competitors.find(c => c.homeAway === 'home'), a = comp.competitors.find(c => c.homeAway === 'away')
-    if (!h || !a || !h.team || !a.team || h.team.id == null || a.team.id == null) continue
+    if (!comp || !Array.isArray(comp.competitors)) { if (comp?.status?.type?.completed === true) { tally.completed++; tally.skipped++ } else tally.nonCompleted++; continue }
+    if (comp.status?.type?.completed !== true) { tally.nonCompleted++; continue }
+    tally.completed++
+    const name = comp.status?.type?.name ?? 'UNDEFINED'
+    tally.statusNames[name] = (tally.statusNames[name] ?? 0) + 1
+    const homes = comp.competitors.filter(c => c?.homeAway === 'home'), aways = comp.competitors.filter(c => c?.homeAway === 'away')
+    const h = homes[0], a = aways[0]
+    if (homes.length !== 1 || aways.length !== 1 || !h.team || !a.team || h.team.id == null || a.team.id == null) { tally.skipped++; continue }
+    const utcDay = typeof ev.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(ev.date) ? ev.date.slice(0, 10) : null
+    if (utcDay === null || (day !== utcDay && day !== dayBefore(utcDay))) tally.dateMismatch++
+    const hs = toNum(h.score), as = toNum(a.score)
+    if (hs === null || as === null) tally.invalidScore++
+    const phase = ev.season?.slug ?? null
+    tally.phases[String(phase)] = (tally.phases[String(phase)] ?? 0) + 1
     rows.push({
       id: `${label}_${day}_e${ev.id}`,
       sport: label,
       date: day,
       home: String(h.team.id),
       away: String(a.team.id),
-      home_score: toNum(h.score),
-      away_score: toNum(a.score),
+      home_score: hs,
+      away_score: as,
       start_time: ev.date ?? null,
       espn_event_id: String(ev.id),
       home_name: h.team.shortDisplayName ?? h.team.displayName ?? null,
       away_name: a.team.shortDisplayName ?? a.team.displayName ?? null,
-      phase: ev.season?.slug ?? null,
+      phase,
     })
   }
   return rows
@@ -83,13 +100,14 @@ export async function readDay(slug, day, get, spacingMs = 0) {
 
 export async function collect({ from, to, get, spacingMs = 0, log = () => {} }) {
   const days = daysBetween(from, to)
-  const statuses = {}, kept = [], seen = new Set()
+  const statuses = {}, kept = [], seen = new Set(), tallies = {}
   let duplicates = 0
   for (const { slug, label } of SLUGS) {
     for (const d of days) {
       const r = await readDay(slug, d, get, spacingMs)
       statuses[r.status] = (statuses[r.status] ?? 0) + 1
-      const rows = r.payload === null ? null : rowsOfScoreboard(r.payload, label, d)
+      tallies[label] ??= newTally()
+      const rows = r.payload === null ? null : rowsOfScoreboard(r.payload, label, d, tallies[label])
       if (rows === null) return { stopped: `${slug} ${d} did not answer 200 with the expected shape (status ${r.status}${r.error ? ', ' + r.error : ''}${r.stop ? ', not retried' : ''})`, statuses }
       for (const row of rows) { if (seen.has(row.espn_event_id)) { duplicates++; continue } seen.add(row.espn_event_id); kept.push(row) }
       if (spacingMs) await sleep(spacingMs)
@@ -105,7 +123,7 @@ export async function collect({ from, to, get, spacingMs = 0, log = () => {} }) 
     bundle: {
       what: 'Completed events of the three main UEFA competitions, read from ESPN scoreboards one day per read. A club is its ESPN team id. No model number is computed here (the rule is outbox/forecast-replicate-uefa-2026-11-28.mjs, fixed first).',
       route: `${BASE}/<slug>/scoreboard?dates=YYYYMMDD`, from, to, daysRead: days.length, slugs: SLUGS.map(s => s.slug), statuses, labels: SLUGS.map(s => s.label), fields: FIELDS,
-      counts: { rows: kept.length, byLabel, byPhase, nullScores: kept.filter(r => r.home_score === null || r.away_score === null).length, duplicateEventIds: duplicates },
+      counts: { rows: kept.length, byLabel, byPhase, nullScores: kept.filter(r => r.home_score === null || r.away_score === null).length, duplicateEventIds: duplicates, tallies },
       rows: kept,
     },
   }
@@ -120,7 +138,7 @@ async function selfTest() {
   const ev = (id, date, home, away, hs, as, completed = true, order = 'home-first') => {
     const h = { homeAway: 'home', team: team(home[0], home[1]), score: hs, winner: true, form: 'WWLDW', records: [{ summary: '2-1-3' }], advance: false }
     const a = { homeAway: 'away', team: team(away[0], away[1]), score: as, winner: false, form: 'LDLWD', records: [{ summary: '1-1-4' }], advance: false }
-    return { id: String(id), date, season: { slug: 'league-phase' }, competitions: [{ status: { type: { completed, state: completed ? 'post' : 'pre' } }, competitors: order === 'home-first' ? [h, a] : [a, h] }] }
+    return { id: String(id), date, season: { slug: 'league-phase' }, competitions: [{ status: { type: { name: completed ? 'STATUS_FULL_TIME' : 'STATUS_SCHEDULED', completed, state: completed ? 'post' : 'pre' } }, competitors: order === 'home-first' ? [h, a] : [a, h] }] }
   }
   const day1 = { events: [ev(101, '2024-09-17T16:45Z', [10, 'Alpha'], [20, 'Beta'], '2', '1'), ev(102, '2024-09-17T19:00Z', [30, 'Gamma'], [40, 'Delta'], '0', '0'), ev(103, '2024-09-17T19:00Z', [50, 'Eps'], [60, 'Zeta'], '', '', false), ev(104, '2024-09-17T19:00Z', [70, 'Eta'], [80, 'Theta'], '3', '1', true, 'away-first')] }
   const rows = rowsOfScoreboard(day1, 'UEFA Champions League', '2024-09-17')
@@ -136,6 +154,22 @@ async function selfTest() {
   check('a score that is missing on a completed event is null, not 0', rowsOfScoreboard({ events: [ev(105, 'x', [1, 'A'], [2, 'B'], undefined, undefined)] }, 'L', '2024-09-18')[0].home_score === null, '')
   check('a payload without events is refused, not read as an empty day', rowsOfScoreboard({}, 'L', 'd') === null && rowsOfScoreboard(null, 'L', 'd') === null && rowsOfScoreboard({ events: 'x' }, 'L', 'd') === null, '')
   check('an event with no team id is skipped, not guessed', rowsOfScoreboard({ events: [{ id: '9', competitions: [{ status: { type: { completed: true } }, competitors: [{ homeAway: 'home', team: {} , score: '1' }, { homeAway: 'away', team: { id: '2' }, score: '0' }] }] }] }, 'L', 'd').length === 0, '')
+  // ---- the rule's row conditions: score text, exactly one home and one away, status names, the date mapping, and the tally that makes every refusal visible
+  const tl = newTally()
+  const sc = (v) => rowsOfScoreboard({ events: [ev(300, '2024-10-01T19:00Z', [1, 'A'], [2, 'B'], v, '1')] }, 'L', '2024-10-01', newTally())[0].home_score
+  check('a score text must match ^[0-9]+$: 2.5, x, 1e2, " 2" and -1 are null, "10" is 10, the number 3 is 3', [sc('2.5'), sc('x'), sc('1e2'), sc(' 2'), sc('-1')].every(v => v === null) && sc('10') === 10 && sc(3) === 3, JSON.stringify([sc('2.5'), sc('x'), sc('1e2'), sc(' 2'), sc('-1'), sc('10'), sc(3)]))
+  const t0 = newTally(); rowsOfScoreboard({ events: [ev(301, '2024-10-01T19:00Z', [1, 'A'], [2, 'B'], '2.5', '1')] }, 'L', '2024-10-01', t0)
+  check('an invalid score text is counted (invalidScore), not hidden', t0.invalidScore === 1, JSON.stringify(t0))
+  const twoHomes = ev(302, '2024-10-01T19:00Z', [1, 'A'], [2, 'B'], '1', '0'); twoHomes.competitions[0].competitors.push({ homeAway: 'home', team: { id: '9', shortDisplayName: 'Z' }, score: '5' })   // two homes AND one away: a first-found lookup would build a row
+  const oneComp = ev(303, '2024-10-01T19:00Z', [1, 'A'], [2, 'B'], '1', '0'); oneComp.competitions[0].competitors.pop()
+  const t1 = newTally(), r1 = rowsOfScoreboard({ events: [twoHomes, oneComp] }, 'L', '2024-10-01', t1)
+  check('a completed event without exactly one home and one away competitor is counted as skipped and makes no row', r1.length === 0 && t1.skipped === 2 && t1.completed === 2, JSON.stringify(t1))
+  const t2 = newTally(); rowsOfScoreboard({ events: [ev(304, '2024-10-01T19:00Z', [1, 'A'], [2, 'B'], '1', '0'), ev(305, '2024-10-01T19:00Z', [3, 'C'], [4, 'D'], '', '', false)] }, 'L', '2024-10-01', t2)
+  check('events, completed and not-completed are counted; the status name is recorded for completed events only', t2.events === 2 && t2.completed === 1 && t2.nonCompleted === 1 && JSON.stringify(t2.statusNames) === '{"STATUS_FULL_TIME":1}', JSON.stringify(t2))
+  const dm = (requested, start) => { const t = newTally(); rowsOfScoreboard({ events: [ev(306, start, [1, 'A'], [2, 'B'], '1', '0')] }, 'L', requested, t); return t.dateMismatch }
+  check('the requested day may equal the UTC day of the start, or the day before it (an evening kickoff listed under the earlier day)', dm('2024-10-01', '2024-10-01T19:00Z') === 0 && dm('2024-10-01', '2024-10-02T00:30Z') === 0, `${dm('2024-10-01', '2024-10-01T19:00Z')} ${dm('2024-10-01', '2024-10-02T00:30Z')}`)
+  check('a requested day AFTER the UTC day, two days away, or an event with no start, is a date mismatch (a default board answered for another day)', dm('2024-10-02', '2024-10-01T19:00Z') === 1 && dm('2024-10-05', '2024-10-01T19:00Z') === 1 && (() => { const t = newTally(); rowsOfScoreboard({ events: [{ ...ev(307, undefined, [1, 'A'], [2, 'B'], '1', '0'), date: undefined }] }, 'L', '2024-10-01', t); return t.dateMismatch === 1 })(), '')
+  check('the phase of each row is counted in the tally', JSON.stringify(t2.phases) === '{"league-phase":1}', JSON.stringify(t2.phases))
   const dayList = daysBetween('2024-09-01', '2025-06-30')
   check('the window 2024-09-01 to 2025-06-30 is 303 days, first and last included', dayList.length === 303 && dayList[0] === '2024-09-01' && dayList.at(-1) === '2025-06-30', String(dayList.length))
   check('a leap day is one day', daysBetween('2024-02-28', '2024-03-01').length === 3, '')
@@ -149,6 +183,7 @@ async function selfTest() {
   check('a duplicate event (seen on two days) is kept once and counted', ok.bundle.counts.rows === 3 && ok.bundle.counts.duplicateEventIds === 1, JSON.stringify(ok.bundle.counts))
   check('the bundle carries counts and never a score summary', !JSON.stringify(ok.bundle.counts).match(/score/i) || /nullScores/.test(JSON.stringify(ok.bundle.counts)), '')
   check('the bundle as a whole has no outcome-bearing key', leakedKeys(ok.bundle).length === 0, leakedKeys(ok.bundle).join(','))
+  check('the bundle carries a tally for every competition, summed over the days', Object.keys(ok.bundle.counts.tallies).length === 3 && ok.bundle.counts.tallies['UEFA Champions League'].completed === 4 && ok.bundle.counts.tallies['UEFA Champions League'].events === 5, JSON.stringify(ok.bundle.counts.tallies['UEFA Champions League']))
   let calls429 = 0
   const r429 = await collect({ from: '2024-09-17', to: '2024-09-18', get: async () => { calls429++; return mk(429, {}) } })
   check('a 429 stops the run at once and writes no bundle', r429.stopped && r429.bundle === undefined && /429/.test(r429.stopped), JSON.stringify(r429))
@@ -169,13 +204,20 @@ async function main() {
   if (argv.includes('--self-test')) return selfTest()
   const arg = k => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null }
   const from = arg('--from'), to = arg('--to'), out = arg('--out')
-  if (!DAY.test(from ?? '') || !DAY.test(to ?? '') || !out || from > to) { console.error('usage: node scripts/uefa-replication-data.mjs --from YYYY-MM-DD --to YYYY-MM-DD --out <file.json> | --self-test'); return 2 }
+  if (!DAY.test(from ?? '') || !DAY.test(to ?? '') || (!out && !argv.includes('--census')) || from > to) { console.error('usage: node scripts/uefa-replication-data.mjs --from YYYY-MM-DD --to YYYY-MM-DD (--out <file.json> | --census) | --self-test'); return 2 }
   if (daysBetween(from, to).length > 400) { console.error('more than the 400-day cap'); return 2 }
   const UA = 'FIELD-laboratory/1.0 (read-only research; github.com/jeffunglesbee-create/field-laboratory)'
   const get = url => fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(30000) })
   const res = await collect({ from, to, get, spacingMs: 350, log: m => console.log(m) })
   if (res.stopped) { console.error(`STOP: ${res.stopped}; statuses ${JSON.stringify(res.statuses)}; nothing written`); return 1 }
   const b = res.bundle
+  if (argv.includes('--census')) {
+    // A CATEGORICAL CENSUS: counts of kinds, never a row, a score or a team. It writes nothing but this printout.
+    console.log(`CENSUS ${from} to ${to}: ${b.daysRead} days x ${b.slugs.length} competitions read (${JSON.stringify(b.statuses)})`)
+    for (const l of b.labels) console.log(`${l}: ${JSON.stringify(b.counts.tallies[l])}`)
+    console.log(`completed events kept ${b.counts.rows} ${JSON.stringify(b.counts.byLabel)}; duplicate event ids ${b.counts.duplicateEventIds}; scores not matching ^[0-9]+$ among kept rows ${b.counts.nullScores}`)
+    return 0
+  }
   const text = JSON.stringify(b, null, 1) + '\n'
   fs.writeFileSync(out, text)
   console.log(`${out}: ${b.daysRead} days x ${b.slugs.length} competitions read (${JSON.stringify(b.statuses)}); ${b.counts.rows} completed events ${JSON.stringify(b.counts.byLabel)}; by phase ${JSON.stringify(b.counts.byPhase)}; null scores ${b.counts.nullScores}; duplicate event ids ${b.counts.duplicateEventIds}`)

@@ -16,11 +16,11 @@ for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => process.exit(130)
 
 const M = (name, anchor, replacement) => ({ name, anchor, replacement })
 const MUTANTS = [
-  M('home and away taken from the order of the competitors array', "const h = comp.competitors.find(c => c.homeAway === 'home'), a = comp.competitors.find(c => c.homeAway === 'away')", 'const h = comp.competitors[0], a = comp.competitors[1]'),
-  M('scheduled and postponed events are kept (completed filter dropped)', 'if (comp.status?.type?.completed !== true) continue', ''),
-  M('the winner flag reaches a row', "phase: ev.season?.slug ?? null,\n    })", "phase: ev.season?.slug ?? null,\n      winner: h.winner,\n    })"),
-  M('the form string reaches a row', "phase: ev.season?.slug ?? null,\n    })", "phase: ev.season?.slug ?? null,\n      form: h.form,\n    })"),
-  M('a missing score becomes 0', "return s === null || s === undefined || s === '' || !Number.isFinite(n) ? null : n", 'return Number.isFinite(n) ? n : 0'),
+  M('home and away taken from the order of the competitors array', "const homes = comp.competitors.filter(c => c?.homeAway === 'home'), aways = comp.competitors.filter(c => c?.homeAway === 'away')", 'const homes = [comp.competitors[0]], aways = [comp.competitors[1]]'),
+  M('scheduled and postponed events are kept (completed filter dropped)', 'if (comp.status?.type?.completed !== true) { tally.nonCompleted++; continue }', ''),
+  M('the winner flag reaches a row', "phase,\n    })", "phase,\n      winner: h.winner,\n    })"),
+  M('the form string reaches a row', "phase,\n    })", "phase,\n      form: h.form,\n    })"),
+  M('a missing score becomes 0', 'return SCORE_RE.test(t) ? Number(t) : null', 'return SCORE_RE.test(t) ? Number(t) : 0'),
   M('the last day of the window is not read', "t <= Date.parse(to + 'T00:00:00Z')", "t < Date.parse(to + 'T00:00:00Z')"),
   M('a 429 is retried like any other status', 'if (res.status === 403 || res.status === 429)', 'if (res.status === 403)'),
   M('a duplicate event is kept twice', 'if (seen.has(row.espn_event_id)) { duplicates++; continue }', 'if (false) { duplicates++; continue }'),
@@ -31,6 +31,15 @@ const MUTANTS = [
   M('the request date is not the day asked (one day early)', "const url = `${BASE}/${slug}/scoreboard?dates=${day.replaceAll('-', '')}`", "const url = `${BASE}/${slug}/scoreboard?dates=${day.replaceAll('-', '').slice(0, 7)}00`"),
   M('the leak scan finds nothing', 'export const leakedKeys = x => FORBIDDEN_KEYS.filter(k => allKeys(x).has(k))', 'export const leakedKeys = x => []'),
   M('the id drops the requested day', 'id: `${label}_${day}_e${ev.id}`,', 'id: `${label}_e${ev.id}`,'),
+  M('a score is parsed leniently (2.5 is read as 2.5)', "return SCORE_RE.test(t) ? Number(t) : null", 'return Number.isFinite(Number(t)) && t !== \'\' ? Number(t) : null'),
+  M('an event with two home competitors is read (first taken)', "if (homes.length !== 1 || aways.length !== 1 || !h.team || !a.team || h.team.id == null || a.team.id == null) { tally.skipped++; continue }", "if (!h || !a || !h.team || !a.team || h.team.id == null || a.team.id == null) { tally.skipped++; continue }"),
+  M('a skipped completed event is not counted', "|| a.team.id == null) { tally.skipped++; continue }", "|| a.team.id == null) { continue }"),
+  M('the status name is not counted', "tally.statusNames[name] = (tally.statusNames[name] ?? 0) + 1", ""),
+  M('a day-after request is accepted (date check direction)', "(day !== utcDay && day !== dayBefore(utcDay))", "(day !== utcDay && day !== dayBefore(utcDay) && day !== new Date(Date.parse(utcDay + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10))"),
+  M('the date check never fires', "(day !== utcDay && day !== dayBefore(utcDay))", "false"),
+  M('an invalid score is not counted', "if (hs === null || as === null) tally.invalidScore++", ""),
+  M('non-completed events are not counted', "if (comp.status?.type?.completed !== true) { tally.nonCompleted++; continue }", "if (comp.status?.type?.completed !== true) { continue }"),
+  M('the per-competition tally is not threaded into the bundle', "duplicateEventIds: duplicates, tallies },", "duplicateEventIds: duplicates, tallies: {} },"),
 ]
 
 const run = (file) => new Promise((resolve) => {

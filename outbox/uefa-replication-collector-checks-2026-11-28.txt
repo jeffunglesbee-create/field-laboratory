@@ -1,4 +1,5 @@
-# scripts/uefa-replication-data.mjs: self-test and mutation harness, run 2026-11-28 on synthetic ESPN-shaped payloads only (no ESPN read, no data, no model number)
+# scripts/uefa-replication-data.mjs: self-test and mutation harness, synthetic ESPN-shaped payloads only (no ESPN read, no data, no model number)
+# conformed to the replication rule (3cd09a4b) on 2026-11-28: score text ^[0-9]+$, exactly one home and one away, status names, date mapping, tally
 
 ## node scripts/uefa-replication-data.mjs --self-test
   ok   a completed event becomes a row; a scheduled one does not
@@ -13,19 +14,27 @@
   ok   a score that is missing on a completed event is null, not 0
   ok   a payload without events is refused, not read as an empty day
   ok   an event with no team id is skipped, not guessed
+  ok   a score text must match ^[0-9]+$: 2.5, x, 1e2, " 2" and -1 are null, "10" is 10, the number 3 is 3
+  ok   an invalid score text is counted (invalidScore), not hidden
+  ok   a completed event without exactly one home and one away competitor is counted as skipped and makes no row
+  ok   events, completed and not-completed are counted; the status name is recorded for completed events only
+  ok   the requested day may equal the UTC day of the start, or the day before it (an evening kickoff listed under the earlier day)
+  ok   a requested day AFTER the UTC day, two days away, or an event with no start, is a date mismatch (a default board answered for another day)
+  ok   the phase of each row is counted in the tally
   ok   the window 2024-09-01 to 2025-06-30 is 303 days, first and last included
   ok   a leap day is one day
   ok   every slug and every day is asked once: 3 competitions x 2 days = 6 reads
   ok   a duplicate event (seen on two days) is kept once and counted
   ok   the bundle carries counts and never a score summary
   ok   the bundle as a whole has no outcome-bearing key
+  ok   the bundle carries a tally for every competition, summed over the days
   ok   a 429 stops the run at once and writes no bundle
   ok   a 429 is asked ONCE and never retried (a rate limit is not hammered)
   ok   a 500 is retried once and then stops the run
   ok   a 200 with the wrong shape stops the run (a missing day is never an empty day)
   ok   a network error is retried once and then stops the run
 
-23 of 23 checks passed
+31 of 31 checks passed
 
 ## node scripts/mutate-uefa-replication-data.mjs
 control: the unmutated copy passes its self-test
@@ -60,5 +69,23 @@ CAUGHT     the leak scan finds nothing
             <- FAIL the leak scan CAN fail: a polluted row is caught (negative control)
 CAUGHT     the id drops the requested day
             <- FAIL the id follows the archive's form (label, requested day, e + event id)
+CAUGHT     a score is parsed leniently (2.5 is read as 2.5)
+            <- FAIL a score text must match ^[0-9]+$: 2.5, x, 1e2, " 2" and -1 are null, "10" is 10, the number 3 is 3
+CAUGHT     an event with two home competitors is read (first taken)
+            <- FAIL a completed event without exactly one home and one away competitor is counted as skipped and makes no row
+CAUGHT     a skipped completed event is not counted
+            <- FAIL a completed event without exactly one home and one away competitor is counted as skipped and makes no row
+CAUGHT     the status name is not counted
+            <- FAIL events, completed and not-completed are counted; the status name is recorded for completed events only
+CAUGHT     a day-after request is accepted (date check direction)
+            <- FAIL a requested day AFTER the UTC day, two days away, or an event with no start, is a date mismatch (a default board answered for
+CAUGHT     the date check never fires
+            <- FAIL a requested day AFTER the UTC day, two days away, or an event with no start, is a date mismatch (a default board answered for
+CAUGHT     an invalid score is not counted
+            <- FAIL an invalid score text is counted (invalidScore), not hidden
+CAUGHT     non-completed events are not counted
+            <- FAIL events, completed and not-completed are counted; the status name is recorded for completed events only
+CAUGHT     the per-competition tally is not threaded into the bundle
+            <- FAIL the bundle carries a tally for every competition, summed over the days
 
-15 of 15 mutations caught
+24 of 24 mutations caught
