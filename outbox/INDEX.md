@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `fba178c` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46109505804 |
+| `b81d80b` | 2026-11-28 | [forecast-uefa-data-2024-25-2026-11-28.json](forecast-uefa-data-2024-25-2026-11-28.json) | data: the replication's bundle for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
+| `f80deb3` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | tooling: the replication's independent implementation of the rule and its test, before the first bundle |
+| `d55d28f` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `d55d28f` | 2026-11-28 | [uefa-replication-synthetic-look1-a-no-strength.json](uefa-replication-synthetic-look1-a-no-strength.json) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `d55d28f` | 2026-11-28 | [uefa-replication-synthetic-look1-b-moderate.json](uefa-replication-synthetic-look1-b-moderate.json) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `d55d28f` | 2026-11-28 | [uefa-replication-synthetic-look1-c-strong.json](uefa-replication-synthetic-look1-c-strong.json) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `d55d28f` | 2026-11-28 | [uefa-replication-synthetic-look1-d-one-competition-without-strength.json](uefa-replication-synthetic-look1-d-one-competition-without-strength.json) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `d55d28f` | 2026-11-28 | [uefa-replication-synthetic-look2.json](uefa-replication-synthetic-look2.json) | tooling: the replication's scoring module, run and gate workflows, checks, mutation harness and synthetic fixtures |
+| `6a0e529` | 2026-11-28 | [forecast-replicate-uefa-2026-11-28.mjs](forecast-replicate-uefa-2026-11-28.mjs) | docs: the UEFA replication rule, version 3, fixed before any 2024-25 row is written to disk or printed |
+| `32aa69c` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | docs: the replication's session record gains the independent implementation and the recheck comparison; the CC-CMD order is brought up to date |
+| `9129eec` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | docs: the replication's session record and CC-CMD section brought up to the review rounds and the premise tests |
 | `890be43` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46104143176 |
 | `2e5238d` | 2026-11-28 | [uefa-replication-structure-2024-09-01-2025-06-30.txt](uefa-replication-structure-2024-09-01-2025-06-30.txt) | data: the replication's structure for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
 | `12a269b` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | tooling: the collector conformed to the replication rule's row conditions, a structure census, and the data workflow's commit-message formats |
