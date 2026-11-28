@@ -1,0 +1,64 @@
+# scripts/uefa-replication-data.mjs: self-test and mutation harness, run 2026-11-28 on synthetic ESPN-shaped payloads only (no ESPN read, no data, no model number)
+
+## node scripts/uefa-replication-data.mjs --self-test
+  ok   a completed event becomes a row; a scheduled one does not
+  ok   the row carries exactly the allow-listed fields, in order
+  ok   home and away are the ESPN team ids, as strings
+  ok   home and away come from homeAway, not from the order of the competitors array
+  ok   scores are numbers; a draw keeps both zeros (0 is a score, not a missing one)
+  ok   the id follows the archive's form (label, requested day, e + event id)
+  ok   the phase and the UTC start instant are kept
+  ok   NO outcome-bearing key reaches a row (winner, form, records, advance)
+  ok   the leak scan CAN fail: a polluted row is caught (negative control)
+  ok   a score that is missing on a completed event is null, not 0
+  ok   a payload without events is refused, not read as an empty day
+  ok   an event with no team id is skipped, not guessed
+  ok   the window 2024-09-01 to 2025-06-30 is 303 days, first and last included
+  ok   a leap day is one day
+  ok   every slug and every day is asked once: 3 competitions x 2 days = 6 reads
+  ok   a duplicate event (seen on two days) is kept once and counted
+  ok   the bundle carries counts and never a score summary
+  ok   the bundle as a whole has no outcome-bearing key
+  ok   a 429 stops the run at once and writes no bundle
+  ok   a 429 is asked ONCE and never retried (a rate limit is not hammered)
+  ok   a 500 is retried once and then stops the run
+  ok   a 200 with the wrong shape stops the run (a missing day is never an empty day)
+  ok   a network error is retried once and then stops the run
+
+23 of 23 checks passed
+
+## node scripts/mutate-uefa-replication-data.mjs
+control: the unmutated copy passes its self-test
+
+CAUGHT     home and away taken from the order of the competitors array
+            <- FAIL home and away come from homeAway, not from the order of the competitors array
+CAUGHT     scheduled and postponed events are kept (completed filter dropped)
+            <- FAIL a completed event becomes a row; a scheduled one does not
+CAUGHT     the winner flag reaches a row
+            <- FAIL the row carries exactly the allow-listed fields, in order
+CAUGHT     the form string reaches a row
+            <- FAIL the row carries exactly the allow-listed fields, in order
+CAUGHT     a missing score becomes 0
+            <- FAIL a score that is missing on a completed event is null, not 0
+CAUGHT     the last day of the window is not read
+            <- FAIL the window 2024-09-01 to 2025-06-30 is 303 days, first and last included
+CAUGHT     a 429 is retried like any other status
+            <- FAIL a 429 is asked ONCE and never retried (a rate limit is not hammered)
+CAUGHT     a duplicate event is kept twice
+            <- FAIL a duplicate event (seen on two days) is kept once and counted
+CAUGHT     a payload without events is read as an empty day
+            <- FAIL a payload without events is refused, not read as an empty day
+CAUGHT     a club is identified by its spelling, not its id
+            <- FAIL home and away are the ESPN team ids, as strings
+CAUGHT     an event with no team id is kept
+            <- FAIL an event with no team id is skipped, not guessed
+CAUGHT     a 500 is not retried
+            <- FAIL a 500 is retried once and then stops the run
+CAUGHT     the request date is not the day asked (one day early)
+            <- FAIL every slug and every day is asked once: 3 competitions x 2 days = 6 reads
+CAUGHT     the leak scan finds nothing
+            <- FAIL the leak scan CAN fail: a polluted row is caught (negative control)
+CAUGHT     the id drops the requested day
+            <- FAIL the id follows the archive's form (label, requested day, e + event id)
+
+15 of 15 mutations caught
