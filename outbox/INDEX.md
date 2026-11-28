@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `bc6dcb4` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46111972706 |
+| `dd0ae41` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | docs: the replication's session record and CC-CMD carry the runner's recomputation record (agrees true, BUILD) |
+| `acc610b` | 2026-11-28 | [forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json](forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json) | data: the independent recomputation of the printed Look 1 result (run 46111977452; the printed record is outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt) |
 | `6a0c29f` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | data: the replication's Look 1 as printed (VERDICT: BUILD), a closed look1 mode, a recompute1 mode, and the record of what failed |
 | `6a0c29f` | 2026-11-28 | [forecast-replicate-uefa-look1-printed-2026-11-28.txt](forecast-replicate-uefa-look1-printed-2026-11-28.txt) | data: the replication's Look 1 as printed (VERDICT: BUILD), a closed look1 mode, a recompute1 mode, and the record of what failed |
 | `0936bd9` | 2026-11-28 | [cc-session-2026-11-28-orphan-paths-filter.md](cc-session-2026-11-28-orphan-paths-filter.md) | guards: the orphan guard no longer counts a path-filter entry as reach |
