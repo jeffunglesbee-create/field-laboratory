@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9ef58a1` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46095459796 |
+| `8a19af6` | 2026-11-28 | [uefa-replication-census-2024-09-01-2025-06-30.txt](uefa-replication-census-2024-09-01-2025-06-30.txt) | data: the replication's census for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
+| `b36f19d` | 2026-11-28 | [uefa-replication-collector-checks-2026-11-28.txt](uefa-replication-collector-checks-2026-11-28.txt) | tooling: the collector now implements the replication rule's row conditions, plus a categorical census mode and its workflow |
+| `3cd09a4` | 2026-11-28 | [forecast-replicate-uefa-2026-11-28.mjs](forecast-replicate-uefa-2026-11-28.mjs) | pre-registration: the replication rule for UEFA candidate U on new matches, fixed before any 2024-25 result was collected (nothing fetched or scored) |
 | `fa02a27` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46093686148 |
 | `c2a16e5` | 2026-11-28 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-28T01:40 [skip ci] |
 | `ef94a1a` | 2026-11-28 | [uefa-replication-collector-checks-2026-11-28.txt](uefa-replication-collector-checks-2026-11-28.txt) | tooling: the 2024-25 UEFA bundle collector (ESPN, one day per read) and its mutation harness; nothing run on real data |
