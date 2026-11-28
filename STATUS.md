@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `f80deb3` at "The mutate scripts break a copy, never the tracked tree" — 22 of 121 steps did not run behind it; 1 steps before it were skipped by their own `if` — [run 46109505804](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/46109505804)
+**running** on `6a0c29f`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `fba178c` — failing step unknown: the run's steps could not be read — [run 46110803466](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/46110803466)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `6a0c29f` — failing step unknown: the run's steps could not be read — [run 46112004181](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/46112004181)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `a873b88` — behind newest deployable `f80deb3` (deploy not landed) |
+| Cloudflare Workers | live | `a873b88` — behind newest deployable `6a0c29f` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

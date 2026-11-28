@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6a0c29f` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | data: the replication's Look 1 as printed (VERDICT: BUILD), a closed look1 mode, a recompute1 mode, and the record of what failed |
+| `6a0c29f` | 2026-11-28 | [forecast-replicate-uefa-look1-printed-2026-11-28.txt](forecast-replicate-uefa-look1-printed-2026-11-28.txt) | data: the replication's Look 1 as printed (VERDICT: BUILD), a closed look1 mode, a recompute1 mode, and the record of what failed |
+| `0936bd9` | 2026-11-28 | [cc-session-2026-11-28-orphan-paths-filter.md](cc-session-2026-11-28-orphan-paths-filter.md) | guards: the orphan guard no longer counts a path-filter entry as reach |
+| `0936bd9` | 2026-11-28 | [orphan-paths-entries-harness-2026-11-28.txt](orphan-paths-entries-harness-2026-11-28.txt) | guards: the orphan guard no longer counts a path-filter entry as reach |
+| `0936bd9` | 2026-11-28 | [orphan-paths-fuzz-2026-11-28.py](orphan-paths-fuzz-2026-11-28.py) | guards: the orphan guard no longer counts a path-filter entry as reach |
+| `0936bd9` | 2026-11-28 | [orphan-paths-fuzz-2026-11-28.txt](orphan-paths-fuzz-2026-11-28.txt) | guards: the orphan guard no longer counts a path-filter entry as reach |
+| `0936bd9` | 2026-11-28 | [orphan-paths-mutant-sweep-2026-11-28.py](orphan-paths-mutant-sweep-2026-11-28.py) | guards: the orphan guard no longer counts a path-filter entry as reach |
+| `0936bd9` | 2026-11-28 | [orphan-paths-mutant-sweep-2026-11-28.txt](orphan-paths-mutant-sweep-2026-11-28.txt) | guards: the orphan guard no longer counts a path-filter entry as reach |
 | `fba178c` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46109505804 |
 | `b81d80b` | 2026-11-28 | [forecast-uefa-data-2024-25-2026-11-28.json](forecast-uefa-data-2024-25-2026-11-28.json) | data: the replication's bundle for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
 | `f80deb3` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | tooling: the replication's independent implementation of the rule and its test, before the first bundle |
