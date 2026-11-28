@@ -8,7 +8,7 @@ Owner order: "fix the orphan paths gap" (2026-11-28; the words are quoted from t
 |---|---|
 | `332a9738` | start (main) |
 | the commit that carries this note | the reader, its tests, 98 mutation entries, the fuzz, sweep and harness records, row C11, this note |
-| the next commit | the landing's three runs and the scored `verify-full`, added to "Done condition" below |
+| the commit that carries the Done condition below | the landing's runs and the scored `verify-full` |
 
 ## What was found, and how it was measured first (Rule 100)
 
@@ -60,7 +60,17 @@ Both were run as workflows of adversarial reviewers (four lenses, two skeptics p
 
 ## Done condition (Rule 87.2, Rule 89)
 
-On the landing SHA, read from the Actions API: `guards` and `verify` green (in `verify`: the step "No script a workflow depends on became unreachable" and the whole `browser-gate` job `success`); then a scored `verify-full` dispatched on main, because 98 entries joined the table. Result: recorded in the next commit.
+Read from the Actions API and from `docs/confidence-log.jsonl` on 2026-11-28.
+
+| what | result |
+|---|---|
+| `guards` on `0936bd9c` (the landing) | run 46111216367, success |
+| `verify` on `0936bd9c` | run 46111216378: steps 1 to 70 success, including step 69 "No script a workflow depends on became unreachable" and the whole `browser-gate` job; step 71 ("The mutate scripts break a copy, never the tracked tree") was cancelled when a newer push to main superseded the run, so no later step ran |
+| scored `verify-full` on `7a19f432` (main when dispatched; it contains `0936bd9c` and its 98 entries) | run 46112051480. Attempt 1: shards 1 and 3 to 8 success; shard 2 ended `failure` with its step still `in_progress`, no log (HTTP 404) and no artifact; the gate scored 510 of 530 and failed only "breaking each invariant makes a check fail" (record `7a19f43240e7-e3b0c44298fc`). Attempt 2, after one `rerun_failed_jobs`: success, 530 of 530, total 100, no failing row, 3,445 s (record `7a19f43240e7-30ac36f7b7b4`) |
+
+Shard 2's first failure is read as runner loss from what is missing (a step that never completed, no log, no artifact, the other seven shards green). That is an inference; the rerun passing is consistent with it and does not prove it. `dirty: true` on the passing record is the state of the recent scored runs on this repo (the three before it carry it too), not something this change introduced.
+
+**Red on the base, not on this change.** `verify` on main failed on `ef94a1ad`, `b36f19d3`, `12a269bb` and `f80deb35` (the other session's UEFA replication commits), before `0936bd9c`. For `f80deb35` the failing step is 71, read from the jobs list; the failing steps of the other three were not read. Reproduced locally on the tree of `0936bd9c`: `node scripts/mutate-copy-check.mjs --only uefa-replication-data` passes 6 of 9 clauses (it prints `control: the unmutated copy passes its self-test` where the check needs `positive control: the unmutated copy passes`, and its stop message has no `UNMUTATED`, so a copy that cannot run and a copy whose self-test never ran are not refused); `--only uefa-replicate` runs about 9 minutes and ends in the check's own `ENOTEMPTY` while removing `$TMPDIR` (the script leaves its copy there). Both scripts are another session's and were being edited, so neither is changed here; a fix is a few lines in the first (the control line and the stop message) and an `EXEMPT` entry with the measured runtime for the second, as `mutate-uefa-fit.mjs` has.
 
 ## Observed, not changed
 
