@@ -1133,6 +1133,24 @@ let private stats () =
           (InProgress(0, 0))
           (InProgress(4, 2))
 
+      // ADDED 2026-11-28 from field-tonight: flipping `marginOf` to `trailer - leader` passed every row, because the only margin read through
+      // `comebackText` is zero, which a sign flip leaves unchanged.
+      Verify.check "the comeback line reads the size of the gap: a 3-run lead reads 3-run gap"
+          (fun (state, expected: string) ->
+              match Stats.liveMargin state with
+              | Some m -> Stats.comebackText m = expected
+              | None -> false)
+          (InProgress(4, 1), "3-run gap")
+          (InProgress(4, 1), "Within 3 — live")
+
+      Verify.check "a one-run game is Within 1, whichever side leads, and a ten-run gap is not called Within 10"
+          (fun (state, expected: string) ->
+              match Stats.liveMargin state with
+              | Some m -> Stats.comebackText m = expected
+              | None -> false)
+          (InProgress(2, 3), "Within 1 — live")
+          (InProgress(2, 12), "Within 10 — live")
+
       // The second bug, visible in the screenshot without reading any source:
       // header "Orioles @ Twins", and anything listing both sides beneath it
       // must lead with the same team.
@@ -2639,6 +2657,14 @@ let private lineups () =
               | _ -> false)
           (answerOf predicted, answerOf confirmed)
           (answerOf predicted, answerOf predicted)
+
+      // ADDED 2026-11-28 from field-tonight, whose mutation run found this: swapping which standing gets which mark passed every row above, because they
+      // compare the two marks with each other and with the words, never with a direction.
+      Verify.check "a predicted sheet is marked Unannounced and a confirmed one Announced, not the other way round"
+          (fun (a: Lineups.Answer, b: Lineups.Answer) ->
+              Lineups.markFor a = Some Lineups.Unannounced && Lineups.markFor b = Some Lineups.Announced)
+          (answerOf predicted, answerOf confirmed)
+          (answerOf confirmed, answerOf predicted)
 
       Verify.check "an answer with no players has NO row mark rather than a default one"
           (fun (a: Lineups.Answer) -> Option.isNone (Lineups.markFor a))
@@ -5944,6 +5970,24 @@ let private liveSources () =
           tennisTwo
           tennisOnly215 ]
 
+let private colourOrder () =
+    // ADDED 2026-11-28 from field-tonight: swapping the two colours in `tryColours` passed every row. The table is documented "PRIMARY FIRST" and
+    // `Palette.choosePair` reads the list in order, so the order decides which colour a card leads with.
+    [ Verify.check "a club's colours come PRIMARY FIRST, then the alternate"
+          (fun (league: string, team: string, expected: string list) -> TeamColours.tryColours league team = expected)
+          ("AFL", "Adelaide Crows", [ "#002a6f"; "#ffaf25" ])
+          ("AFL", "Adelaide Crows", [ "#ffaf25"; "#002a6f" ])
+
+      Verify.check "a club with no alternate has exactly one colour"
+          (fun (league: string, team: string, expected: string list) -> TeamColours.tryColours league team = expected)
+          ("AFL", "Carlton", [ "#0d0e5f" ])
+          ("AFL", "Carlton", [ "#0d0e5f"; "" ])
+
+      Verify.check "an unknown club has no colours, not a default"
+          (fun (league: string, team: string) -> List.isEmpty (TeamColours.tryColours league team))
+          ("AFL", "Not A Club")
+          ("AFL", "Adelaide Crows") ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -5955,6 +5999,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Stats", stats ()
       "Routing", route ()
       "Team colours", teamTints ()
+      "Team colour order", colourOrder ()
       "Tactical Lock", tacticalLock ()
       "Tennis scorelines", tennis ()
       "Tennis draws", draw ()
