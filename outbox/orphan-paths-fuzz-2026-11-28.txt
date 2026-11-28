@@ -1,0 +1,135 @@
+# python3 -I outbox/orphan-paths-fuzz-2026-11-28.py 4000 20261128   (run 2026-11-28 on the working tree of the commit that carries this file; this is the run after review round 2, which extended the generator)
+seed 20261128; 4000 generated workflows (0 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+shapes generated (OCCURRENCES, not files: one file can hold several):
+    958  a real edge in a sibling of a filter
+    197  anchor on the key
+    165  bare dash, value on the next line
+    130  blank line between items
+    124  block item folded onto a continuation line
+    530  block item with a trailing comment
+    256  block list, dashes at the key indent
+    813  block list, dashes deeper
+    190  block scalar body holding paths: lines and an apostrophe
+     47  block scalar header with a comment naming a script (the comment is not an edge)
+    362  choice input naming scripts
+    214  comment on the key line
+    177  double-quoted description with escaped quotes and filter-looking text
+    155  file with CR line ends
+    434  file with CRLF line ends
+    261  file with a BOM
+    489  flow list on one line
+    234  flow list on the line after the key (Prettier shape)
+    251  flow list on the line after the key, one line
+    550  flow list over several lines
+    147  flow-mapping on, JSON style: quoted keys straight before their colons
+    484  flow-mapping on, one line
+    180  flow-mapping on, several lines
+     84  flow-mapping on, several lines: a scalar filter first on its line, a sibling after it on the line
+    100  flow-mapping on: a flow list straight after the colon of an unquoted key
+    375  flow-mapping on: a real edge after the filter on the same line
+     82  line of spaces between items
+    457  on: after jobs
+   1176  paths: input of an action under jobs
+   1155  paths: text in a run block
+    118  plain flow item with an apostrophe
+    279  plain scalar with an apostrophe (description)
+     40  plain scalar with paths: glued to text, a real edge after it
+     46  quoted description after an anchor or a tag
+    344  quoted key
+    662  quoted on key
+    352  scalar on the key line
+    162  scalar on the line after the key
+   2015  script in an env value
+     35  single-quoted description: '' then text that looks like a comment
+     36  single-quoted description: '' then text that looks like a filter key
+    143  space before the colon
+    175  tag on the key
+     98  verbatim tag (with commas) on the key
+    361  whole-line comment between items
+    949  workflow_call input named paths (a mapping)
+    323  workflow_call input named paths, flow mapping
+    320  workflow_call input whose default is a block scalar with paths: lines
+NOT GENERATED (not claimed): explicit key (? paths); flow collection continuing in column 0; second YAML document; indented document; trailing # comment naming a script outside a filter;
+  action input read as a filter; NBSP or tab; duplicate keys; several files at once (the self-test pins per-file reading); an alias (*a) or merge key; a continuation line of a multi-line
+  plain scalar that starts with a quote character; a multi-line quoted scalar in a block list whose continuation lines are indented less than its dash
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1769 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1769 generated and 1 real (the fuzz can fail)
+exit=0
+
+# the same script, five more seeds, N 4000 (each block is that run's own result lines; Rule 91: the denominators and the NOT GENERATED list are on the first run above and are the same for each)
+## seed 1
+seed 1; 4000 generated workflows (4 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1781 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1781 generated and 1 real (the fuzz can fail)
+## seed 2
+seed 2; 4000 generated workflows (0 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1794 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1794 generated and 1 real (the fuzz can fail)
+## seed 3
+seed 3; 4000 generated workflows (1 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1784 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1784 generated and 1 real (the fuzz can fail)
+## seed 4
+seed 4; 4000 generated workflows (3 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1773 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1773 generated and 1 real (the fuzz can fail)
+## seed 5
+seed 5; 4000 generated workflows (0 generated texts discarded as not valid YAML) and 63 real workflow files; ground truth: PyYAML 6.0.1
+NEW reader (scriptFiles(workflowText)): generated disagreements 0 of 4000; real files disagreeing 0 of 63
+OLD reader (no filter stripping), same corpus: generated disagreements 1766 of 4000; real files disagreeing 1 of 63  ['uefa-fit-mutate.yml']
+PASS: on the generated shapes listed above (4000 files) and the 63 real files the new reader agrees with the parser on 4063 of 4063; the old reader disagrees on 1766 generated and 1 real (the fuzz can fail)
+
+# Rule 90 for this harness: the same script with FUZZ_MUTANT=<entry id>, N 2000, seed 20261128. Each of these entries of scripts/mutation-check.mjs breaks the reader in a way the shapes added after review round 2 are meant to expose; the fuzz must go FAIL on each. A PASS here would mean the generator cannot see that defect.
+## FUZZ_MUTANT=orphans-filters-not-stripped
+MUTANT orphans-filters-not-stripped: check-script-orphans: the workflow scan drops the values of path filters
+NEW reader (scriptFiles(workflowText)): generated disagreements 885 of 2000; real files disagreeing 1 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 1177 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-doubled-apostrophe-closes-the-quote
+MUTANT orphans-doubled-apostrophe-closes-the-quote: check-script-orphans: a doubled apostrophe inside a single-quoted scalar is an escape, not its end
+NEW reader (scriptFiles(workflowText)): generated disagreements 23 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2040 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-quote-after-properties-not-opened
+MUTANT orphans-quote-after-properties-not-opened: check-script-orphans: an anchor or a tag in front of a quoted scalar does not stop it from opening
+NEW reader (scriptFiles(workflowText)): generated disagreements 5 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2058 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-key-colon-not-required-to-end-it
+MUTANT orphans-key-colon-not-required-to-end-it: check-script-orphans: a filter key is a key only when its colon ends it (paths:x is one plain scalar)
+NEW reader (scriptFiles(workflowText)): generated disagreements 10 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2053 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-quoted-key-needs-a-space-after-its-colon
+MUTANT orphans-quoted-key-needs-a-space-after-its-colon: check-script-orphans: in a flow collection a quoted filter key may stand straight before its colon
+NEW reader (scriptFiles(workflowText)): generated disagreements 28 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2035 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-flow-indicator-after-the-colon-not-allowed
+MUTANT orphans-flow-indicator-after-the-colon-not-allowed: check-script-orphans: in a flow collection a flow indicator may follow a filter key's colon
+NEW reader (scriptFiles(workflowText)): generated disagreements 28 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2035 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-block-scalar-header-comment-kept
+MUTANT orphans-block-scalar-header-comment-kept: check-script-orphans: a comment on a block scalar's header line is a comment
+NEW reader (scriptFiles(workflowText)): generated disagreements 13 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2050 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-flow-depth-never-counted
+MUTANT orphans-flow-depth-never-counted: check-script-orphans: a flow collection that opens is counted
+NEW reader (scriptFiles(workflowText)): generated disagreements 140 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 1923 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-flow-context-decided-by-line-start
+MUTANT orphans-flow-context-decided-by-line-start: check-script-orphans: flow context is decided by depth, not by whether the key starts its line
+NEW reader (scriptFiles(workflowText)): generated disagreements 10 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2053 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-anchor-or-tag-not-skipped
+MUTANT orphans-anchor-or-tag-not-skipped: check-script-orphans: an anchor or a tag between a filter key and its value is skipped
+NEW reader (scriptFiles(workflowText)): generated disagreements 172 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 1891 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-mapping-value-stripped-as-scalar
+MUTANT orphans-mapping-value-stripped-as-scalar: check-script-orphans: a paths: key whose value is a flow mapping is not a filter
+NEW reader (scriptFiles(workflowText)): generated disagreements 107 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 1956 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)
+## FUZZ_MUTANT=orphans-verbatim-tag-not-a-property
+MUTANT orphans-verbatim-tag-not-a-property: check-script-orphans: a verbatim tag is a property like any tag
+NEW reader (scriptFiles(workflowText)): generated disagreements 1 of 2000; real files disagreeing 0 of 63
+FAIL: on the generated shapes listed above (2000 files) and the 63 real files the new reader agrees with the parser on 2062 of 2063; the old reader disagrees on 909 generated and 1 real (the fuzz can fail)

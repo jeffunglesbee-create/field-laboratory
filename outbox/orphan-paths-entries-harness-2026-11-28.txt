@@ -1,0 +1,112 @@
+# node scripts/mutation-check.mjs --anchors   (run 2026-11-28 on the working tree of the commit that carries this file)
+checked 2371 of 2374 mutation anchors; 0 stale
+exit=0
+
+# node scripts/mutation-check.mjs --ids <the 98 orphans-* ids> --no-browser   (the real harness, restricted to these entries: it runs each entry's mutation in a scratch copy and reports PASS when the entry's expectation FAILS on the mutant; the full suite and its artifact are the scored verify-full's)
+
+Mutation testing 98 invariant(s)
+
+  baseline: ran 1 of 1 distinct expectation(s) from 98 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+PASS  the unmutated tree passes every expectation
+PASS  [orphans-filters-not-stripped] check-script-orphans: the workflow scan drops the values of path filters
+PASS  [orphans-comments-not-stripped] check-script-orphans: the workflow scan drops whole-line comments
+PASS  [orphans-text-not-normalized] check-script-orphans: the workflow scan reads CR and CRLF as line ends and drops a leading BOM
+PASS  [orphans-files-joined-before-stripping] check-script-orphans: each workflow file is read on its own
+PASS  [orphans-main-skips-workflowText] check-script-orphans: the guard itself reads the workflows through workflowText
+PASS  [orphans-main-joins-the-files] check-script-orphans: the guard hands workflowText one text per file
+PASS  [orphans-comment-strip-is-identity] check-script-orphans: stripYamlComments drops a whole-line comment
+PASS  [orphans-comment-strip-column-0-only] check-script-orphans: stripYamlComments drops an indented comment too
+PASS  [orphans-cr-not-a-line-end] check-script-orphans: a lone CR is a line end
+PASS  [orphans-bom-kept] check-script-orphans: a leading byte order mark is dropped
+PASS  [orphans-on-block-never-ends] check-script-orphans: the on: block ends at the next top-level key, so a paths: line in a run block is not a filter
+PASS  [orphans-on-block-ends-at-the-last-top-level-key] check-script-orphans: the on: block ends at the FIRST top-level key after it
+PASS  [orphans-no-on-block-found] check-script-orphans: the top-level on: key is found
+PASS  [orphans-on-key-with-a-space-not-found] check-script-orphans: on : with a space before the colon is the on: key
+PASS  [orphans-paths-ignore-not-a-filter] check-script-orphans: paths-ignore is a filter key
+PASS  [orphans-quoted-key-not-a-filter] check-script-orphans: a quoted paths key is a filter key
+PASS  [orphans-key-with-a-space-before-the-colon] check-script-orphans: paths : with a space before the colon is a filter key
+PASS  [orphans-look-alike-key-stripped] check-script-orphans: a key that merely ends in paths is not a filter
+PASS  [orphans-key-after-brace-or-comma-missed] check-script-orphans: a filter key straight after { or , in a flow mapping is found
+PASS  [orphans-key-colon-not-required-to-end-it] check-script-orphans: a filter key is a key only when its colon ends it (paths:x is one plain scalar)
+PASS  [orphans-quoted-key-needs-a-space-after-its-colon] check-script-orphans: in a flow collection a quoted filter key may stand straight before its colon
+PASS  [orphans-flow-indicator-after-the-colon-not-allowed] check-script-orphans: in a flow collection a flow indicator may follow a filter key's colon
+PASS  [orphans-anchor-or-tag-not-skipped] check-script-orphans: an anchor or a tag between a filter key and its value is skipped
+PASS  [orphans-verbatim-tag-not-a-property] check-script-orphans: a verbatim tag is a property like any tag
+PASS  [orphans-mapping-value-stripped-as-scalar] check-script-orphans: a paths: key whose value is a flow mapping is not a filter
+PASS  [orphans-flow-scalar-eats-the-rest-of-the-line] check-script-orphans: a scalar filter inside a flow collection ends at the next , } or ]
+PASS  [orphans-flow-context-decided-by-line-start] check-script-orphans: flow context is decided by depth, not by whether the key starts its line
+PASS  [orphans-flow-depth-never-counted] check-script-orphans: a flow collection that opens is counted
+PASS  [orphans-flow-depth-never-closes] check-script-orphans: a flow collection that closes is not counted any more
+PASS  [orphans-flow-end-ignores-a-bracket] check-script-orphans: a ] ends a scalar inside a flow collection
+PASS  [orphans-scalar-continuation-kept] check-script-orphans: the deeper lines under a scalar filter value belong to it
+PASS  [orphans-next-line-mapping-read-as-scalar] check-script-orphans: a mapping on the line after a paths: key is not a filter value
+PASS  [orphans-next-line-blank-or-comment-not-skipped] check-script-orphans: blank and comment lines between a paths: key and its value are skipped
+PASS  [orphans-next-line-dash-at-key-indent-not-a-list] check-script-orphans: dashes at the key's indent on the next line are a list
+PASS  [orphans-same-indent-dash-not-a-list] check-script-orphans: a block list whose dashes stand at the key's own indent is a filter
+PASS  [orphans-item-continuation-kept] check-script-orphans: the deeper lines of a list item belong to it
+PASS  [orphans-list-end-not-found] check-script-orphans: a block list ends at the first line that is not one of its items
+PASS  [orphans-blank-or-comment-ends-the-list] check-script-orphans: a blank or comment line between items does not end the list
+PASS  [orphans-comment-test-unanchored] check-script-orphans: a trailing comment on an item does not make the item a comment line
+PASS  [orphans-flow-list-quote-blind] check-script-orphans: a bracket inside a quoted item does not close a flow list
+PASS  [orphans-flow-list-comment-blind] check-script-orphans: a bracket inside a comment does not close a flow list
+PASS  [orphans-flow-list-eats-the-rest-of-the-line] check-script-orphans: only the flow list itself is removed, not what stands after it on the line
+PASS  [orphans-flow-scalar-quote-blind] check-script-orphans: a comma inside a quoted scalar does not end a flow-collection scalar
+PASS  [orphans-flow-list-hash-after-a-word-is-a-comment] check-script-orphans: a # glued to a word inside a flow list is not a comment
+PASS  [orphans-next-line-scalar-blank-line-ends-it] check-script-orphans: a blank line inside a next-line scalar value does not end it
+PASS  [orphans-key-line-scalar-blank-line-ends-it] check-script-orphans: a blank line inside a scalar value on the key's line does not end it
+PASS  [orphans-mapping-line-double-quoted-key-missed] check-script-orphans: a mapping line with a double-quoted key is a mapping line
+PASS  [orphans-mapping-line-single-quoted-key-missed] check-script-orphans: a mapping line with a single-quoted key is a mapping line
+PASS  [orphans-quote-opens-anywhere] check-script-orphans: a quote opens a quoted scalar only where a scalar can start
+PASS  [orphans-quote-after-dash-not-opened] check-script-orphans: a quote after a dash opens a quoted scalar
+PASS  [orphans-quote-after-bracket-not-opened] check-script-orphans: a quote right after [ opens a quoted scalar
+PASS  [orphans-quote-after-comma-not-opened] check-script-orphans: a quote right after , opens a quoted scalar
+PASS  [orphans-quote-after-brace-not-opened] check-script-orphans: a quote right after { opens a quoted scalar
+PASS  [orphans-quote-after-colon-not-opened] check-script-orphans: a quote right after : opens a quoted scalar
+PASS  [orphans-quote-after-question-mark-not-opened] check-script-orphans: a quote right after ? opens a quoted scalar
+PASS  [orphans-quote-after-properties-not-opened] check-script-orphans: an anchor or a tag in front of a quoted scalar does not stop it from opening
+PASS  [orphans-doubled-apostrophe-closes-the-quote] check-script-orphans: a doubled apostrophe inside a single-quoted scalar is an escape, not its end
+PASS  [orphans-backslash-escape-lost-in-double-quotes] check-script-orphans: a backslash escapes in a double-quoted scalar
+PASS  [orphans-backslash-escapes-in-single-quotes] check-script-orphans: a backslash does not escape in a single-quoted scalar
+PASS  [orphans-quote-never-closes] check-script-orphans: a quoted scalar ends at its closing quote
+PASS  [orphans-quoted-text-read-as-key] check-script-orphans: text inside a quoted string that looks like a filter is not one
+PASS  [orphans-comment-kept] check-script-orphans: a comment inside the on: block is dropped
+PASS  [orphans-comment-ends-the-scan] check-script-orphans: the scan goes on after a comment inside the on: block
+PASS  [orphans-hash-after-a-word-is-a-comment] check-script-orphans: a # glued to a word is not a comment
+PASS  [orphans-block-scalar-body-scanned] check-script-orphans: the body of a block scalar is text, whatever it looks like
+PASS  [orphans-block-scalar-header-comment-kept] check-script-orphans: a comment on a block scalar's header line is a comment
+PASS  [orphans-block-scalar-body-takes-the-sibling] check-script-orphans: a line at the block scalar key's own indent ends the body
+PASS  [orphans-block-scalar-never-ends] check-script-orphans: the body of a block scalar ends at the first line that is not indented under it
+PASS  [orphans-block-scalar-blank-line-ends-it] check-script-orphans: a blank line inside a block scalar body does not end it
+PASS  [orphans-line-start-off-by-one] check-script-orphans: the start of the line holding a block scalar header is found
+PASS  [orphans-mapping-line-unanchored] check-script-orphans: a line is a mapping line only when its KEY starts it (a ": " inside a quoted flow item is not one)
+PASS  [orphans-mapping-line-class-not-negated] check-script-orphans: a plain key cannot start with a space, #, quote, [ or {
+PASS  [orphans-mapping-line-no-space-before-the-colon] check-script-orphans: a quoted mapping key may have a space before its colon
+PASS  [orphans-startstoken-newline-offset] check-script-orphans: startsToken looks at the text before the quote on its own line
+PASS  [orphans-dash-quote-needs-a-space-before-the-dash-test] check-script-orphans: a quote glued after a hyphen is not the start of a scalar
+PASS  [orphans-dash-quote-glued] check-script-orphans: only a hyphen that is a dash item (a space before it) lets a quote open
+PASS  [orphans-skipquoted-escape-skips-two] check-script-orphans: a backslash escapes exactly the next character in a double-quoted scalar
+PASS  [orphans-skipquoted-doubled-apostrophe-skips-two] check-script-orphans: a doubled apostrophe skips exactly the second apostrophe
+PASS  [orphans-skipquoted-doubled-apostrophe-looks-behind] check-script-orphans: a doubled apostrophe is the one that FOLLOWS the first
+PASS  [orphans-flow-list-ends-one-early] check-script-orphans: a flow list ends just after its closing bracket
+PASS  [orphans-flow-scalar-quote-test-or] check-script-orphans: inside a flow scalar only a quote that can start a scalar opens one
+PASS  [orphans-flow-scalar-never-ends-at-a-comma-or-brace] check-script-orphans: a flow scalar ends at a , or a }
+PASS  [orphans-comment-test-looks-ahead] check-script-orphans: a # is a comment when whitespace stands BEFORE it
+PASS  [orphans-next-line-dash-test-unanchored] check-script-orphans: a line is a block-list item only when it STARTS with a dash
+PASS  [orphans-block-header-needs-no-gap-before-the-comment] check-script-orphans: a block scalar header may have spaces before its comment
+PASS  [orphans-block-header-comment-group-broken] check-script-orphans: a block scalar header may carry a comment
+PASS  [orphans-key-lookahead-or-depth] check-script-orphans: the lookahead after a filter key's colon is relaxed only inside a flow collection
+PASS  [orphans-key-line-comment-test-unanchored] check-script-orphans: a key whose line holds nothing but a comment has its value on a later line
+PASS  [orphans-flow-depth-closes-by-two] check-script-orphans: a flow collection that closes lowers the depth by one
+PASS  [orphans-block-scalar-blank-test-needs-trim] check-script-orphans: a line of spaces inside a block scalar body is blank, whatever its width
+PASS  [orphans-next-line-scalar-blank-test-needs-trim] check-script-orphans: a line of spaces inside a next-line scalar value is blank, whatever its width
+PASS  [orphans-key-line-scalar-blank-test-needs-trim] check-script-orphans: a line of spaces inside a scalar value on the key's line is blank, whatever its width
+PASS  [orphans-flow-list-comment-test-looks-ahead] check-script-orphans: inside a flow list a # is a comment when whitespace stands BEFORE it
+PASS  [orphans-block-list-dash-test-unanchored] check-script-orphans: a line is a list item only when it STARTS with a dash
+PASS  [orphans-key-lookahead-depth-nonnegative] check-script-orphans: the relaxed lookahead after a filter key applies only INSIDE a flow collection
+PASS  [orphans-flow-depth-closes-below-zero] check-script-orphans: a closing bracket at depth 0 does not lower the depth below zero
+PASS  [orphans-bom-removed-anywhere] check-script-orphans: only a LEADING byte order mark is dropped
+PASS  [orphans-no-on-block-not-returned-whole] check-script-orphans: a file with no on: block comes back unchanged, line for line
+
+99/99 checks passed
+exit=0

@@ -1,0 +1,47 @@
+# FUZZ_DUMP=corpus.json python3 -I outbox/orphan-paths-fuzz-2026-11-28.py 3000 424242
+# python3 -I outbox/orphan-paths-mutant-sweep-2026-11-28.py corpus.json     (run 2026-11-28 on the working tree of the commit that carries this file; the exit line is the script's)
+344 mutants of the reader (lines of code from `const FILTER_KEY` to `workflowText`)
+corpus: fuzz corpus corpus.json: 3000 texts; self-test fixtures: 156 texts; 3156 texts in all
+  caught: 296 (by a failing row or a crash: 274; only by the 20 s limit, a mutant that hangs: 22); skipped (identical to the source, or does not compile): 33; survived the self-test: 15
+  of the survivors, GAP (a text in the corpus gets a different edge set, so a fixture is missing): 0; agree with the original on every one of the 3156 corpus texts: 15
+    agrees-on-every-corpus-text  line 2: \\s -> '\\\\S' at col 46
+    agrees-on-every-corpus-text  line 7:  <  -> ' <= ' at col 66
+    agrees-on-every-corpus-text  line 9: \\s -> '\\\\S' at col 57
+    agrees-on-every-corpus-text  line 20:  <  -> ' <= ' at col 23
+    agrees-on-every-corpus-text  line 29:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 32:  - 1\b -> ' + 1' at col 71
+    agrees-on-every-corpus-text  line 40:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 55: && -> '||' at col 40
+    agrees-on-every-corpus-text  line 55: \bbreak\b -> 'continue' at col 90
+    agrees-on-every-corpus-text  line 69:  <=  -> ' < ' at col 14
+    agrees-on-every-corpus-text  line 70: delete the line
+    agrees-on-every-corpus-text  line 84:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 89: \^ -> '' at col 63
+    agrees-on-every-corpus-text  line 98: \^ -> '' at col 14
+    agrees-on-every-corpus-text  line 104:  >=  -> ' > ' at col 31
+exit 0
+
+# ONE-OFF, NOT REPRODUCIBLE FROM THE REPO: the same sweep with a third corpus, 4,764 hostile valid documents written by the round-2 reviewer's generator (not committed), added on the command line:
+#   python3 -I outbox/orphan-paths-mutant-sweep-2026-11-28.py corpus.json rev-corpus.json
+# Two survivors differ from the original on that corpus (lines 70 and 89 of the reader). Delta debugging (the original required to agree with PyYAML on the text, no alias in it) found NO valid, alias-free text on which either differs:
+# their differences are on texts that contain an alias, are not valid YAML, or are texts the original itself misreads (the two classes in the guard's NOT-covered list).
+344 mutants of the reader (lines of code from `const FILTER_KEY` to `workflowText`)
+corpus: fuzz corpus corpus.json: 3000 texts; self-test fixtures: 156 texts; extra corpus rev-corpus.json: 4764 texts; 7920 texts in all
+  caught: 296 (by a failing row or a crash: 274; only by the 20 s limit, a mutant that hangs: 22); skipped (identical to the source, or does not compile): 33; survived the self-test: 15
+  of the survivors, GAP (a text in the corpus gets a different edge set, so a fixture is missing): 2; agree with the original on every one of the 7920 corpus texts: 13
+    GAP  line 70: delete the line  (2 corpus texts differ)
+    GAP  line 89: \^ -> '' at col 63  (5 corpus texts differ)
+    agrees-on-every-corpus-text  line 2: \\s -> '\\\\S' at col 46
+    agrees-on-every-corpus-text  line 7:  <  -> ' <= ' at col 66
+    agrees-on-every-corpus-text  line 9: \\s -> '\\\\S' at col 57
+    agrees-on-every-corpus-text  line 20:  <  -> ' <= ' at col 23
+    agrees-on-every-corpus-text  line 29:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 32:  - 1\b -> ' + 1' at col 71
+    agrees-on-every-corpus-text  line 40:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 55: && -> '||' at col 40
+    agrees-on-every-corpus-text  line 55: \bbreak\b -> 'continue' at col 90
+    agrees-on-every-corpus-text  line 69:  <=  -> ' < ' at col 14
+    agrees-on-every-corpus-text  line 84:  <  -> ' <= ' at col 19
+    agrees-on-every-corpus-text  line 98: \^ -> '' at col 14
+    agrees-on-every-corpus-text  line 104:  >=  -> ' > ' at col 31
+exit 1
