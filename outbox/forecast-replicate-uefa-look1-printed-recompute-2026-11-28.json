@@ -1,0 +1,23 @@
+{
+ "look": 1,
+ "basis": "the printed Look 1 output (outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt, a transcription of the job log of run 46110744155), not a result file: the result file was never committed",
+ "agrees": true,
+ "zAgrees": true,
+ "finalVerdict": "BUILD",
+ "printedVerdict": "BUILD",
+ "independentVerdict": "BUILD",
+ "printedZ": -2.268521659635088,
+ "independentZ": -2.268521659635088,
+ "zDifference": 0,
+ "independentSlope": 0.8588072051304428,
+ "independentSlopeSE": 0.24865030100562124,
+ "independentSha256": "b3e166b60ee661b162c2af45ec7baf75c13f11bf7f834780b7296764f39c765f",
+ "bundle24": {
+  "path": "outbox/forecast-uefa-data-2024-25-2026-11-28.json",
+  "sha256": "67911928bad6fcd10fbd598f17fb567a578b64f73f736f1ad4c56da9b43a8e4a"
+ },
+ "scoringSha256": "1e879fbd13cd0b31e5b2d44fef75221e49c84142c34ab425395fa5d003ec78cf",
+ "ruleSha256": "96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47",
+ "runId": "46111977452",
+ "checkout": "6a0c29feb6ce76c630a207436dc3c56b337461e6"
+}
