@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `af15e80` | 2026-11-28 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-28 [skip ci] |
+| `af15e80` | 2026-11-28 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-28 [skip ci] |
+| `af15e80` | 2026-11-28 | [sport-vocabulary-2026-11-28T09-01-10-449Z.json](sport-vocabulary-2026-11-28T09-01-10-449Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-28 [skip ci] |
+| `3dc59ed` | 2026-11-28 | [cc-session-2026-11-28-orphan-paths-filter.md](cc-session-2026-11-28-orphan-paths-filter.md) | outbox: the orphan-paths landing's runs, the scored verify-full (530 of 530 on the rerun) and the red on the base |
+| `78eda63` | 2026-11-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7a19f43 [skip ci] |
 | `bc6dcb4` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46111972706 |
 | `dd0ae41` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | docs: the replication's session record and CC-CMD carry the runner's recomputation record (agrees true, BUILD) |
 | `acc610b` | 2026-11-28 | [forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json](forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json) | data: the independent recomputation of the printed Look 1 result (run 46111977452; the printed record is outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt) |
