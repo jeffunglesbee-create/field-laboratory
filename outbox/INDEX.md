@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `890be43` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46104143176 |
+| `2e5238d` | 2026-11-28 | [uefa-replication-structure-2024-09-01-2025-06-30.txt](uefa-replication-structure-2024-09-01-2025-06-30.txt) | data: the replication's structure for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
+| `12a269b` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | tooling: the collector conformed to the replication rule's row conditions, a structure census, and the data workflow's commit-message formats |
+| `39ea11c` | 2026-11-28 | [cc-session-2026-11-28-uefa-replication.md](cc-session-2026-11-28-uefa-replication.md) | docs: the replication's CC-CMD section, session record and the power script, before the rule's final commit |
+| `39ea11c` | 2026-11-28 | [forecast-replicate-uefa-power-2026-11-28.mjs](forecast-replicate-uefa-power-2026-11-28.mjs) | docs: the replication's CC-CMD section, session record and the power script, before the rule's final commit |
+| `39ea11c` | 2026-11-28 | [forecast-replicate-uefa-power-2026-11-28.txt](forecast-replicate-uefa-power-2026-11-28.txt) | docs: the replication's CC-CMD section, session record and the power script, before the rule's final commit |
+| `08703e4` | 2026-11-28 | [forecast-uefa-data-2026-27-recheck-2026-11-28.json](forecast-uefa-data-2026-27-recheck-2026-11-28.json) | data: the replication's bundle for 2026-08-01 to 2026-11-26 (counts of kinds or completed events; no model number) |
+| `37a724e` | 2026-11-28 | [uefa-replication-census-2026-11-27-2026-11-28.txt](uefa-replication-census-2026-11-27-2026-11-28.txt) | data: the replication's census for 2026-11-27 to 2026-11-28 (counts of kinds or completed events; no model number) |
+| `4441011` | 2026-11-28 | [uefa-replication-census-2026-08-01-2026-11-26.txt](uefa-replication-census-2026-08-01-2026-11-26.txt) | data: the replication's census for 2026-08-01 to 2026-11-26 (counts of kinds or completed events; no model number) |
+| `62cee6a` | 2026-11-28 | [forecast-replicate-uefa-2026-11-28.mjs](forecast-replicate-uefa-2026-11-28.mjs) | pre-registration v2: the replication rule, corrected before any data was collected (the census showed v1's status rule would have voided the run) |
 | `9ef58a1` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46095459796 |
 | `8a19af6` | 2026-11-28 | [uefa-replication-census-2024-09-01-2025-06-30.txt](uefa-replication-census-2024-09-01-2025-06-30.txt) | data: the replication's census for 2024-09-01 to 2025-06-30 (counts of kinds or completed events; no model number) |
 | `b36f19d` | 2026-11-28 | [uefa-replication-collector-checks-2026-11-28.txt](uefa-replication-collector-checks-2026-11-28.txt) | tooling: the collector now implements the replication rule's row conditions, plus a categorical census mode and its workflow |
