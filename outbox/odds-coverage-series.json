@@ -1,22 +1,5 @@
 [
   {
-    "date": "2026-09-28",
-    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-28",
-    "at": "2026-09-28T19:31:47.434Z",
-    "sports": {
-      "NFL": {
-        "rows": 1,
-        "withOdds": 0,
-        "withDraw": 0
-      },
-      "golf": {
-        "rows": 1,
-        "withOdds": 0,
-        "withDraw": 0
-      }
-    }
-  },
-  {
     "date": "2026-09-29",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-29",
     "at": "2026-09-29T17:58:26.479Z",
@@ -2485,6 +2468,18 @@
       "CFB": {
         "rows": 13,
         "withOdds": 13,
+        "withDraw": 0
+      }
+    }
+  },
+  {
+    "date": "2026-11-28",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-28",
+    "at": "2026-11-28T09:00:57.416Z",
+    "sports": {
+      "MLS": {
+        "rows": 6,
+        "withOdds": 0,
         "withDraw": 0
       }
     }
