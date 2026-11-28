@@ -1,0 +1,135 @@
+# The RUN step of the replication rule outbox/forecast-replicate-uefa-2026-11-28.mjs (committed first; its RULE sha256 is in the commit message named by RULE_COMMIT in scripts/uefa-replicate-run.mjs). Dispatch only; nothing in it schedules itself.
+#   mode integrity: G3 (a) to (n) on the committed Look 1 bundle only (the forward bundle's checks first run at Look 2) and nothing else. It prints checks and counts and no outcome-bearing number; it commits nothing.
+#   mode look1: LOOK 1, once. The tooling's checks, its mutation harness, the fixtures' reproducibility and the independent implementation's own test run first (the tooling must be shown red under each break before it scores anything).
+#     ORDER, so that a crash can neither lose nor repeat a look: (1) the checkout must be origin/main; (2) the look runs, G3 first; (3) the RESULT (or the stop file) is committed and pushed in its own commit; (4) only then the independent implementation runs and the comparison record is written, with continue-on-error; (5) the record is committed if it exists.
+#     A result committed with no record is UNCONFIRMED: the Look 2 gate stays inert and only the comparison may be run again.
+# Look 2 is NOT run from here: it is run only by uefa-look2-gate.yml, from its schedule, when the gate says RUN.
+name: uefa-replicate-run
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'integrity (G3 only, commits nothing) or look1 (Look 1, once)'
+        required: true
+        default: integrity
+      bundle24:
+        description: 'the Look 1 bundle path (a repaired bundle is a new path); the Look 1 result records it'
+        required: false
+        default: 'outbox/forecast-uefa-data-2024-25-2026-11-28.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uefa-replicate-run
+  cancel-in-progress: false
+
+env:
+  BUNDLE24: ${{ inputs.bundle24 }}
+  LOOK1_RESULT: outbox/forecast-replicate-uefa-look1-result-2026-11-28.json
+  LOOK1_RECOMPUTE: outbox/forecast-replicate-uefa-look1-recompute-2026-11-28.json
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Only on main, a known mode, and the checkout is origin/main
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "dispatch from main only"; exit 1; }
+          [ "$MODE" = "integrity" ] || [ "$MODE" = "look1" ] || { echo "mode must be integrity or look1"; exit 1; }
+          [[ "$BUNDLE24" =~ ^outbox/forecast-uefa-data-2024-25-[A-Za-z0-9._-]+\.json$ ]] || { echo "bad bundle24 path"; exit 1; }
+          git fetch -q origin main
+          [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || { echo "the checkout is not origin/main: a newer commit exists (a result may have landed); dispatch again"; exit 1; }
+      - name: The rule and the tooling are the committed ones
+        shell: bash
+        run: |
+          set -o pipefail
+          node outbox/forecast-replicate-uefa-2026-11-28.mjs --print-rule-hash | tee -a "$GITHUB_STEP_SUMMARY"
+          sha256sum scripts/uefa-replicate-run.mjs scripts/uefa-replicate-score.mjs scripts/check-uefa-replicate.mjs scripts/mutate-uefa-replicate.mjs scripts/uefa-replication-data.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+          [ ! -e scripts/uefa-replicate-independent.mjs ] || sha256sum scripts/uefa-replicate-independent.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+          git log -1 --format='checkout %H' | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: The tooling can still fail (its checks, then its mutation harness)
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/check-uefa-replicate.mjs | tail -2 | tee -a "$GITHUB_STEP_SUMMARY"
+          node scripts/mutate-uefa-replicate.mjs | tail -2 | tee -a "$GITHUB_STEP_SUMMARY"
+          # the synthetic fixtures are reproducible byte for byte from the tooling, and the independent implementation still agrees with them and with the known answers
+          node scripts/export-uefa-replicate-fixtures.mjs > /dev/null
+          git diff --exit-code -- outbox/uefa-replication-synthetic-look1-a-no-strength.json outbox/uefa-replication-synthetic-look1-b-moderate.json outbox/uefa-replication-synthetic-look1-c-strong.json outbox/uefa-replication-synthetic-look1-d-one-competition-without-strength.json outbox/uefa-replication-synthetic-look2.json
+          node scripts/test-uefa-replicate-independent.mjs | tail -3 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Integrity only (G3 (a) to (n), the Look 1 bundle)
+        if: ${{ inputs.mode == 'integrity' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/uefa-replicate-run.mjs --integrity-only --bundle24 "$BUNDLE24" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Look 1 (once)
+        if: ${{ inputs.mode == 'look1' }}
+        shell: bash
+        run: |
+          set +e
+          node scripts/uefa-replicate-run.mjs --look 1 --bundle24 "$BUNDLE24" --out "$LOOK1_RESULT" 2>&1 | tee outbox/forecast-replicate-uefa-look1-run-2026-11-28.txt | tee -a "$GITHUB_STEP_SUMMARY"
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "exit code $code" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "$code" > "$RUNNER_TEMP/look1-exit"
+      - name: Commit and push the result of Look 1 (its own commit, before any recomputation)
+        if: ${{ inputs.mode == 'look1' }}
+        shell: bash
+        run: |
+          # a refused run (2) or a crash (3) wrote nothing worth committing
+          code=$(cat "$RUNNER_TEMP/look1-exit")
+          { [ "$code" = "0" ] || [ "$code" = "1" ]; } || { echo "exit $code: nothing to commit"; exit 0; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/forecast-replicate-uefa-look1-result-2026-11-28.json outbox/forecast-replicate-uefa-look1-result-2026-11-28-stop-*.txt outbox/forecast-replicate-uefa-look1-run-2026-11-28.txt
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          {
+            echo "data: the replication's Look 1 output (a scored result, or the failure text of a stop at G3)"
+            echo
+            echo "tooling sha256: $(sha256sum scripts/uefa-replicate-run.mjs | cut -d' ' -f1) scripts/uefa-replicate-run.mjs"
+            echo "scoring sha256: $(sha256sum scripts/uefa-replicate-score.mjs | cut -d' ' -f1) scripts/uefa-replicate-score.mjs"
+          } > "$RUNNER_TEMP/commit-msg.txt"
+          git commit -q -F "$RUNNER_TEMP/commit-msg.txt"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Independent recomputation of Look 1 (after the result is committed; a crash here leaves the look UNCONFIRMED, never repeated)
+        if: ${{ inputs.mode == 'look1' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          [ "$(cat "$RUNNER_TEMP/look1-exit")" = "0" ] || { echo "Look 1 did not score: no recomputation"; exit 0; }
+          node scripts/uefa-replicate-independent.mjs --look 1 --bundle24 "$BUNDLE24" > "$RUNNER_TEMP/indep1.json"
+          node scripts/uefa-replicate-run.mjs --compare-independent --look 1 --result "$LOOK1_RESULT" --independent "$RUNNER_TEMP/indep1.json" --independent-script scripts/uefa-replicate-independent.mjs --out "$LOOK1_RECOMPUTE" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit and push the recomputation record (if it exists)
+        if: ${{ always() && inputs.mode == 'look1' }}
+        shell: bash
+        run: |
+          [ -e "$LOOK1_RECOMPUTE" ] || { echo "no recomputation record: the look is UNCONFIRMED"; exit 0; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add "$LOOK1_RECOMPUTE"
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          git commit -q -m "data: the replication's Look 1 recomputation record (the independent implementation's comparison with the committed result)"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Fail the job when G3 stopped the look or the recomputation is missing
+        if: ${{ always() && inputs.mode == 'look1' }}
+        shell: bash
+        run: |
+          [ "$(cat "$RUNNER_TEMP/look1-exit")" = "0" ] || { echo "Look 1 stopped at G3, was refused, or crashed (see the step summary)"; exit 1; }
+          [ -e "$LOOK1_RECOMPUTE" ] || { echo "Look 1 scored but has no recomputation record: UNCONFIRMED"; exit 1; }

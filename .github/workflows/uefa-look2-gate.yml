@@ -1,0 +1,163 @@
+# THE LOOK 2 GATE of the replication rule outbox/forecast-replicate-uefa-2026-11-28.mjs: the whole decision to run, wait or stop is look2Gate() of that file (as the tooling evaluates its block text), called once a day by this schedule.
+#   INERT: it reads no ESPN data and writes nothing unless the committed Look 1 result holds the verdict CONTINUE TO LOOK 2 AND its recomputation record says agrees true (the rule: "inert unless ...").
+#   WAIT: the forward read is made to a temporary file and committed only when every club of the three 2026-27 competitions has played exactly N league-phase matches (or a stop is waiting for its repair record).
+#   RUN: (1) the forward bundle is committed by this workflow (its sha256 and the scoring module's in the message); (2) G3 is run on it UNCOUNTED (an integrity pre-check: a failure is WAIT and costs no stop; the data commit is not a look); (3) Look 2 is run once on it; (4) the RESULT (or the stop file) is committed and pushed in its own commit;
+#   (5) only then the independent implementation runs, with continue-on-error; (6) its record is committed if it exists. A result with no record is UNCONFIRMED.
+#   NO VERDICT: a gate run that finds no committed Look 2 result after the deadline (2027-02-15), or three stops, commits a NO VERDICT result.
+# A MANUAL DISPATCH SCORES NOTHING: it runs only the gate's first stage (the inert check) and prints its answer. Only the schedule can reach the collector and the scoring.
+name: uefa-look2-gate
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uefa-look2-gate
+  cancel-in-progress: false
+
+env:
+  LOOK1_RESULT: outbox/forecast-replicate-uefa-look1-result-2026-11-28.json
+  LOOK1_RECOMPUTE: outbox/forecast-replicate-uefa-look1-recompute-2026-11-28.json
+  LOOK2_RECOMPUTE: outbox/forecast-replicate-uefa-look2-recompute-2026-11-28.json
+  LOOK2_RESULT: outbox/forecast-replicate-uefa-look2-result-2026-11-28.json
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Stage 1, the gate with no data (INERT, DONE, NO VERDICT, or WAIT)
+        id: g1
+        shell: bash
+        run: |
+          set -o pipefail
+          TODAY=$(date -u +%F)
+          ANS=$(node scripts/uefa-replicate-run.mjs --gate --look1-result "$LOOK1_RESULT" --look1-recompute "$LOOK1_RECOMPUTE" --look2-result "$LOOK2_RESULT" --today "$TODAY")
+          echo "$ANS" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
+          echo "answer=${ANS#GATE: }" >> "$GITHUB_OUTPUT"
+      - name: Stage 2a, past the deadline with no Look 2 result, or three stops (scheduled runs only)
+        if: ${{ github.event_name == 'schedule' && steps.g1.outputs.answer == 'NO VERDICT' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/uefa-replicate-run.mjs --gate --look1-result "$LOOK1_RESULT" --look1-recompute "$LOOK1_RECOMPUTE" --look2-result "$LOOK2_RESULT" --today "${{ steps.g1.outputs.today }}" --write-no-verdict | tee -a "$GITHUB_STEP_SUMMARY"
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add "$LOOK2_RESULT"
+          git commit -q -m "data: the replication's Look 2 result is NO VERDICT (no committed Look 2 result by a run that started on or before the deadline 2027-02-15, or three stops)"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Stage 2b, read the forward window into a temporary file (scheduled runs only, only when the gate is WAIT, and not while a stop awaits its repair record)
+        id: fwd
+        if: ${{ github.event_name == 'schedule' && steps.g1.outputs.answer == 'WAIT' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          git fetch -q origin main
+          [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || { echo "the checkout is not origin/main: not run"; echo "answer=WAIT" >> "$GITHUB_OUTPUT"; exit 0; }
+          node scripts/uefa-replication-data.mjs --from 2026-08-01 --to "${{ steps.g1.outputs.today }}" --out "$RUNNER_TEMP/forward.json" | tail -3 | tee -a "$GITHUB_STEP_SUMMARY"
+          ANS=$(node scripts/uefa-replicate-run.mjs --gate --look1-result "$LOOK1_RESULT" --look1-recompute "$LOOK1_RECOMPUTE" --look2-result "$LOOK2_RESULT" --bundle26 "$RUNNER_TEMP/forward.json" --today "${{ steps.g1.outputs.today }}")
+          echo "$ANS" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "answer=${ANS#GATE: }" >> "$GITHUB_OUTPUT"
+      - name: Stage 3a, the gate says RUN, so commit the forward bundle (a data commit, not a look)
+        id: commitfwd
+        if: ${{ github.event_name == 'schedule' && steps.fwd.outputs.answer == 'RUN' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          TODAY="${{ steps.g1.outputs.today }}"
+          F26="outbox/forecast-uefa-data-2026-27-forward-$TODAY.json"
+          [ ! -e "$F26" ] || { echo "$F26 already exists: a data commit adds each path once"; exit 1; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          cp "$RUNNER_TEMP/forward.json" "$F26"
+          git add "$F26"
+          {
+            echo "data: the replication's forward bundle for Look 2, 2026-08-01 to $TODAY (completed events; no model number)"
+            echo
+            echo "bundle sha256: $(sha256sum "$F26" | cut -d' ' -f1) $(stat -c%s "$F26") bytes $F26"
+            echo "collector sha256: $(sha256sum scripts/uefa-replication-data.mjs | cut -d' ' -f1) scripts/uefa-replication-data.mjs"
+            echo "scoring sha256: $(sha256sum scripts/uefa-replicate-score.mjs | cut -d' ' -f1) scripts/uefa-replicate-score.mjs"
+            echo "checkout: $(git rev-parse HEAD)"
+          } > "$RUNNER_TEMP/commit-msg.txt"
+          git commit -q -F "$RUNNER_TEMP/commit-msg.txt"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+          echo "f26=$F26" >> "$GITHUB_OUTPUT"
+      - name: Stage 3b, the integrity pre-check (G3 on the committed forward bundle, uncounted; a failure is WAIT)
+        id: pre
+        if: ${{ github.event_name == 'schedule' && steps.commitfwd.outputs.f26 != '' }}
+        shell: bash
+        run: |
+          set +e
+          # the tooling must be red under each break before it can score
+          node scripts/check-uefa-replicate.mjs | tail -2 | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "${PIPESTATUS[0]}" = "0" ] || { echo "the tooling's own checks failed"; echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0; }
+          node scripts/uefa-replicate-run.mjs --integrity-only --bundle26 "${{ steps.commitfwd.outputs.f26 }}" --look1-result "$LOOK1_RESULT" --look1-recompute "$LOOK1_RECOMPUTE" --today "${{ steps.g1.outputs.today }}" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "${PIPESTATUS[0]}" = "0" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "G3 failed on the pre-check: WAIT (no stop is spent)"; echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Stage 3c, Look 2 (once)
+        if: ${{ github.event_name == 'schedule' && steps.pre.outputs.ok == 'true' }}
+        shell: bash
+        run: |
+          TODAY="${{ steps.g1.outputs.today }}"
+          set +e
+          node scripts/uefa-replicate-run.mjs --look 2 --bundle26 "${{ steps.commitfwd.outputs.f26 }}" --look1-result "$LOOK1_RESULT" --look1-recompute "$LOOK1_RECOMPUTE" --out "$LOOK2_RESULT" --today "$TODAY" 2>&1 | tee outbox/forecast-replicate-uefa-look2-run-$TODAY.txt | tee -a "$GITHUB_STEP_SUMMARY"
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "$code" > "$RUNNER_TEMP/look2-exit"
+          { [ "$code" = "0" ] || [ "$code" = "1" ]; } || { echo "exit $code: nothing to commit"; exit 0; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/forecast-replicate-uefa-look2-result-2026-11-28.json outbox/forecast-replicate-uefa-look2-result-2026-11-28-stop-*.txt outbox/forecast-replicate-uefa-look2-run-$TODAY.txt
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          {
+            echo "data: the replication's Look 2 output (a scored result, or the failure text of a stop at G3)"
+            echo
+            echo "tooling sha256: $(sha256sum scripts/uefa-replicate-run.mjs | cut -d' ' -f1) scripts/uefa-replicate-run.mjs"
+            echo "scoring sha256: $(sha256sum scripts/uefa-replicate-score.mjs | cut -d' ' -f1) scripts/uefa-replicate-score.mjs"
+          } > "$RUNNER_TEMP/commit-msg2.txt"
+          git commit -q -F "$RUNNER_TEMP/commit-msg2.txt"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Stage 3d, independent recomputation of Look 2 (after the result is committed; a crash leaves the look UNCONFIRMED)
+        if: ${{ github.event_name == 'schedule' && steps.pre.outputs.ok == 'true' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          [ "$(cat "$RUNNER_TEMP/look2-exit")" = "0" ] || { echo "Look 2 did not score: no recomputation"; exit 0; }
+          B24=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.env.LOOK1_RESULT, "utf8")).bundle24.path)')
+          node scripts/uefa-replicate-independent.mjs --look 2 --bundle24 "$B24" --bundle26 "${{ steps.commitfwd.outputs.f26 }}" > "$RUNNER_TEMP/indep2.json"
+          node scripts/uefa-replicate-run.mjs --compare-independent --look 2 --result "$LOOK2_RESULT" --independent "$RUNNER_TEMP/indep2.json" --independent-script scripts/uefa-replicate-independent.mjs --out "$LOOK2_RECOMPUTE" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Stage 3e, commit the Look 2 recomputation record (if it exists)
+        if: ${{ always() && github.event_name == 'schedule' && steps.pre.outputs.ok == 'true' }}
+        shell: bash
+        run: |
+          [ -e "$LOOK2_RECOMPUTE" ] || { echo "no recomputation record: Look 2 is UNCONFIRMED"; exit 0; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add "$LOOK2_RECOMPUTE"
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          git commit -q -m "data: the replication's Look 2 recomputation record (the independent implementation's comparison with the committed result)"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Fail the job when Look 2 stopped at G3 or crashed
+        if: ${{ always() && github.event_name == 'schedule' && steps.pre.outputs.ok == 'true' }}
+        shell: bash
+        run: |
+          [ "$(cat "$RUNNER_TEMP/look2-exit")" = "0" ] || { echo "Look 2 stopped at G3, was refused, or crashed (see the step summary)"; exit 1; }
