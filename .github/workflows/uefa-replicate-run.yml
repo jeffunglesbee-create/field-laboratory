@@ -1,6 +1,8 @@
 # The RUN step of the replication rule outbox/forecast-replicate-uefa-2026-11-28.mjs (committed first; its RULE sha256 is in the commit message named by RULE_COMMIT in scripts/uefa-replicate-run.mjs). Dispatch only; nothing in it schedules itself.
 #   mode integrity: G3 (a) to (n) on the committed Look 1 bundle only (the forward bundle's checks first run at Look 2) and nothing else. It prints checks and counts and no outcome-bearing number; it commits nothing.
-#   mode look1: LOOK 1, once. The tooling's checks, its mutation harness, the fixtures' reproducibility and the independent implementation's own test run first (the tooling must be shown red under each break before it scores anything).
+#   mode look1: LOOK 1, once. CLOSED 2026-11-28: Look 1 was run (run 46110744155, printed VERDICT: BUILD) and its commit step failed, so the file below that records it is the printed transcription; this mode now refuses to run (see the first step) because a printed completed result counts as the look.
+#   mode recompute1: the independent implementation's recomputation of the printed Look 1 result, committed as a record (the comparison the rule asks for; the tooling's own recomputation needs a result file that does not exist).
+#   (kept for the record, the original description of look1:) The tooling's checks, its mutation harness, the fixtures' reproducibility and the independent implementation's own test run first (the tooling must be shown red under each break before it scores anything).
 #     ORDER, so that a crash can neither lose nor repeat a look: (1) the checkout must be origin/main; (2) the look runs, G3 first; (3) the RESULT (or the stop file) is committed and pushed in its own commit; (4) only then the independent implementation runs and the comparison record is written, with continue-on-error; (5) the record is committed if it exists.
 #     A result committed with no record is UNCONFIRMED: the Look 2 gate stays inert and only the comparison may be run again.
 # Look 2 is NOT run from here: it is run only by uefa-look2-gate.yml, from its schedule, when the gate says RUN.
@@ -10,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'integrity (G3 only, commits nothing) or look1 (Look 1, once)'
+        description: 'integrity (G3 only, commits nothing), look1 (closed: Look 1 was run) or recompute1 (the independent recomputation of the printed Look 1 result)'
         required: true
         default: integrity
       bundle24:
@@ -46,7 +48,8 @@ jobs:
           MODE: ${{ inputs.mode }}
         run: |
           [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "dispatch from main only"; exit 1; }
-          [ "$MODE" = "integrity" ] || [ "$MODE" = "look1" ] || { echo "mode must be integrity or look1"; exit 1; }
+          [ "$MODE" = "integrity" ] || [ "$MODE" = "look1" ] || [ "$MODE" = "recompute1" ] || { echo "mode must be integrity, look1 or recompute1"; exit 1; }
+          if [ "$MODE" = "look1" ] && [ -e outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt ]; then echo "Look 1 was already run (outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt): the rule says a printed completed result counts as the look, so it is not run again"; exit 1; fi
           [[ "$BUNDLE24" =~ ^outbox/forecast-uefa-data-2024-25-[A-Za-z0-9._-]+\.json$ ]] || { echo "bad bundle24 path"; exit 1; }
           git fetch -q origin main
           [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || { echo "the checkout is not origin/main: a newer commit exists (a result may have landed); dispatch again"; exit 1; }
@@ -93,7 +96,8 @@ jobs:
           { [ "$code" = "0" ] || [ "$code" = "1" ]; } || { echo "exit $code: nothing to commit"; exit 0; }
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/forecast-replicate-uefa-look1-result-2026-11-28.json outbox/forecast-replicate-uefa-look1-result-2026-11-28-stop-*.txt outbox/forecast-replicate-uefa-look1-run-2026-11-28.txt
+          # a path that does not exist (no stop file, no result after a stop) is skipped: `git add` with a pathspec that matches nothing is fatal (this failed the first Look 1 commit)
+          for f in "$LOOK1_RESULT" outbox/forecast-replicate-uefa-look1-result-2026-11-28-stop-*.txt outbox/forecast-replicate-uefa-look1-run-2026-11-28.txt; do if [ -e "$f" ]; then git add -- "$f"; fi; done
           git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
           {
             echo "data: the replication's Look 1 output (a scored result, or the failure text of a stop at G3)"
@@ -124,6 +128,43 @@ jobs:
           git add "$LOOK1_RECOMPUTE"
           git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
           git commit -q -m "data: the replication's Look 1 recomputation record (the independent implementation's comparison with the committed result)"
+          for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: Recompute Look 1 independently against the printed result (recompute1)
+        if: ${{ inputs.mode == 'recompute1' }}
+        shell: bash
+        run: |
+          set -o pipefail
+          P=outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt
+          R=outbox/forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json
+          [ -e "$P" ] || { echo "no printed Look 1 record"; exit 1; }
+          [ ! -e "$R" ] || { echo "$R exists: a record is written once"; exit 1; }
+          node scripts/uefa-replicate-independent.mjs --look 1 --bundle24 "$BUNDLE24" > "$RUNNER_TEMP/indep1.json"
+          INDEP="$RUNNER_TEMP/indep1.json" PRINTED="$P" OUT="$R" BUNDLE="$BUNDLE24" node - <<'JS' | tee -a "$GITHUB_STEP_SUMMARY"
+          const fs = require('fs'), crypto = require('crypto'), cp = require('child_process')
+          const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')
+          const printed = fs.readFileSync(process.env.PRINTED, 'utf8').split('---- BEGIN VERBATIM ----\n')[1].split('---- END VERBATIM ----')[0]
+          const verdicts = [...printed.matchAll(/^VERDICT: (.+)$/gm)], zs = [...printed.matchAll(/^z (-?[0-9]+(?:\.[0-9]+)?(?:e-?[0-9]+)?) \(boundary /gm)]
+          if (verdicts.length !== 1 || zs.length !== 1) throw new Error(`the printed record must hold one VERDICT line and one z line (${verdicts.length}, ${zs.length})`)
+          const printedVerdict = verdicts[0][1], printedZ = Number(zs[0][1])
+          const ind = JSON.parse(fs.readFileSync(process.env.INDEP, 'utf8'))
+          const zDifference = Math.abs(printedZ - ind.z), agrees = printedVerdict === ind.verdict
+          const rec = { look: 1, basis: 'the printed Look 1 output (outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt, a transcription of the job log of run 46110744155), not a result file: the result file was never committed', agrees, zAgrees: Number.isFinite(zDifference) && zDifference <= 1e-9, finalVerdict: agrees ? printedVerdict : 'NO VERDICT', printedVerdict, independentVerdict: ind.verdict, printedZ, independentZ: ind.z, zDifference, independentSlope: ind.slope, independentSlopeSE: ind.slopeSE, independentSha256: sha('scripts/uefa-replicate-independent.mjs'), bundle24: { path: process.env.BUNDLE, sha256: sha(process.env.BUNDLE) }, scoringSha256: sha('scripts/uefa-replicate-score.mjs'), ruleSha256: cp.execFileSync('node', ['outbox/forecast-replicate-uefa-2026-11-28.mjs', '--print-rule-hash'], { encoding: 'utf8' }).slice(0, 64), runId: process.env.GITHUB_RUN_ID ?? null, checkout: cp.execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() }
+          fs.writeFileSync(process.env.OUT, JSON.stringify(rec, null, 1) + '\n')
+          console.log(`printed ${printedVerdict} z ${printedZ}; independent ${ind.verdict} z ${ind.z}; agrees ${agrees}, zAgrees ${rec.zAgrees} (|dz| ${zDifference}); finalVerdict ${rec.finalVerdict}`)
+          if (!agrees) process.exit(1)
+          JS
+      - name: Commit and push the printed-result recomputation record
+        if: ${{ inputs.mode == 'recompute1' }}
+        shell: bash
+        run: |
+          R=outbox/forecast-replicate-uefa-look1-printed-recompute-2026-11-28.json
+          [ -e "$R" ] || { echo "no record"; exit 1; }
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add -- "$R"
+          git commit -q -m "data: the independent recomputation of the printed Look 1 result (run $GITHUB_RUN_ID; the printed record is outbox/forecast-replicate-uefa-look1-printed-2026-11-28.txt)"
           for i in 1 2 3 4; do git pull --rebase origin main && git push origin HEAD:main && break; sleep $((i * 5)); done
           git fetch -q origin main
           git merge-base --is-ancestor HEAD origin/main || { echo "FAIL: push did not land after retries"; exit 1; }

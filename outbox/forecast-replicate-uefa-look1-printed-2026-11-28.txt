@@ -1,0 +1,56 @@
+LOOK 1 OF THE UEFA REPLICATION, AS PRINTED (a transcription of the job log; not the tooling's result file)
+
+Source: GitHub Actions run 46110744155 of .github/workflows/uefa-replicate-run.yml (mode look1), job 140873499031, step "Look 1 (once)", started 2026-11-28 05:13:23Z, checkout b81d80b00271fc36724787f6abf86ab1d33c24b5. The step's own exit code was 0 (a scored result).
+The workflow's next step, "Commit and push the result of Look 1", failed at `git add` (exit 128: "pathspec 'outbox/forecast-replicate-uefa-look1-result-2026-11-28-stop-*.txt' did not match any files": a glob for stop files that matches nothing when there is no stop). The result file and the tee'd run text were in the runner's workspace and were lost with it, so the tooling's result JSON was never committed and the run workflow's recomputation step was skipped.
+The rule's own sentence governs: "a printed completed result counts as the look even if it was not committed". Look 1 is therefore done, was not run again, and this file is the record of what the run printed. It is NOT outbox/forecast-replicate-uefa-look1-result-2026-11-28.json (that path is not written by anyone but the tooling, and no file exists there).
+The lines between the two marker lines are the job log's lines for that step with the leading timestamps removed and nothing else changed. Check them against the log of the run named above.
+
+---- BEGIN VERBATIM ----
+RULE block sha256 96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47 (version 3); rule commit 6a0e52906e6193c1ef917bad96bfef2ffc7457e3; tooling sha256 75ee19b0c37da84b792c61ca783322d65544ca1bc17a1062115efc6a7bad46d3; scoring sha256 1e879fbd13cd0b31e5b2d44fef75221e49c84142c34ab425395fa5d003ec78cf
+LOOK 1: G3 37 of 37 integrity checks passed
+PASS  (b) each marker line of the RULE block occurs exactly once [{"begin":1,"end":1}]
+PASS  (b) the RULE block's sha256 (of the block text this run executed) equals the one in the commit message of RULE_COMMIT [96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47 against 96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47]
+PASS  (b) the block as stored in RULE_COMMIT (git show) has the same sha256, whatever its message says [96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47 against 96341edf36ade8587e0708b2cf48b6221649d8aa1a434505558b90596c813a47]
+PASS  (b) the block is identical in every commit that touches the rule file from RULE_COMMIT to the checkout [true]
+PASS  (b) RULE_COMMIT is an ancestor of the checkout [true]
+PASS  (b) RULE_COMMIT is an ancestor of the commit that added each bundle [true]
+PASS  (a) the bundle scored is a 2024-25 bundle path and the first one ever committed, or the one a repair record names (a line `bundle24: <path>`) [first outbox/forecast-uefa-data-2024-25-2026-11-28.json, scored outbox/forecast-uefa-data-2024-25-2026-11-28.json]
+PASS  (a) the bundle file's sha256 equals the one in the commit message of the commit that added it [67911928bad6fcd10fbd598f17fb567a578b64f73f736f1ad4c56da9b43a8e4a against 67911928bad6fcd10fbd598f17fb567a578b64f73f736f1ad4c56da9b43a8e4a]
+PASS  (c) UCL: completed events = 189, and as many rows [tally 189, rows 189]
+PASS  (d) UCL: league-phase matches by the counting rule = 144 [144]
+PASS  (e) UCL: 36 distinct clubs [36]
+PASS  (g) UCL: no completed event skipped [0]
+PASS  (j) UCL: dateMismatch is 0 as the bundle states it [0]
+PASS  (c) UEL: completed events = 189, and as many rows [tally 189, rows 189]
+PASS  (d) UEL: league-phase matches by the counting rule = 144 [144]
+PASS  (e) UEL: 36 distinct clubs [36]
+PASS  (g) UEL: no completed event skipped [0]
+PASS  (j) UEL: dateMismatch is 0 as the bundle states it [0]
+PASS  (c) UECL: completed events = 153, and as many rows [tally 153, rows 153]
+PASS  (d) UECL: league-phase matches by the counting rule = 108 [108]
+PASS  (e) UECL: 36 distinct clubs [36]
+PASS  (g) UECL: no completed event skipped [0]
+PASS  (j) UECL: dateMismatch is 0 as the bundle states it [0]
+PASS  (e) every club on exactly N league-phase matches (8 / 8 / 6)
+PASS  (f) duplicateEventIds is 0 as the bundle states it [0]
+PASS  (f) no espn_event_id repeats among the rows, every espn_event_id matches ^[0-9]+$, and counts.rows equals the number of rows [531 distinct of 531, counts.rows 531]
+PASS  (g) no club has two events on one date in one competition [0]
+PASS  (g) no match has one club on both sides [0]
+PASS  (h) every league-phase match has the status STATUS_FULL_TIME [0 other]
+PASS  (i) no null score in a league-phase match [0]
+PASS  (j) the requested day equals the UTC day of start_time or the day before it, recomputed from the rows [0]
+PASS  (l) the bundle's fields list is FIELDS and every row has exactly those keys in that order [0 rows with other keys]
+PASS  (l) the bundle's from, to and daysRead are the window's, and every read answered HTTP 200 [2024-09-01..2025-06-30, 303 of 303 days, {"200":909}]
+PASS  (m) UCL: 90 eligible forecasts [90]
+PASS  (m) UEL: 90 eligible forecasts [90]
+PASS  (m) UECL: 54 eligible forecasts [54]
+PASS  (n) the scoring module's sha256 equals the one recorded in the commit message of the commit that added outbox/forecast-uefa-data-2024-25-2026-11-28.json [1e879fbd13cd0b31e5b2d44fef75221e49c84142c34ab425395fa5d003ec78cf against 1e879fbd13cd0b31e5b2d44fef75221e49c84142c34ab425395fa5d003ec78cf]
+counts (not gating): {"rows":531,"byLabel":{"UCL":189,"UEL":189,"UECL":153},"leaguePhase":{"UCL":144,"UEL":144,"UECL":108},"phaseSlugLeaguePhase":{"UCL":144,"UEL":144,"UECL":108}}
+eligible forecasts n 234: UCL 90, UEL 90, UECL 54
+Brier U 0.5820, base rate 0.6151, mean D -0.0331, sd(D) 0.2231
+z -2.268521659635088 (boundary -2.241402728); competition cells UCL z -2.4757, UEL z -0.5568, UECL z -0.4963; home-win slope 0.8588 +/- 0.2487
+reported, not gating: per competition UCL n 90 Brier U 0.5073 base 0.5734; UEL n 90 Brier U 0.6190 base 0.6306; UECL n 54 Brier U 0.6451 base 0.6589; opening matches (league-phase, not forecast) {"UEFA Champions League":54,"UEFA Europa League":54,"UEFA Europa Conference League":54}
+reported, not gating: log loss U 0.9781 base 1.0239; Brier uniform 0.6667; observed shares 0.5128 / 0.2009 / 0.2863 against the draw share assumed 0.18; SE of mean D iid 0.0146, clustered by home club 0.0152
+BUILD does not retire the frozen 2026-27 bundle's adverse out-of-fit result: Brier difference 0.0159, z 0.4781, n 90 (outbox/forecast-fit-uefa-result-2026-11-27.json)
+VERDICT: BUILD
+---- END VERBATIM ----
