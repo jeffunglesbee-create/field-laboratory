@@ -1,0 +1,8 @@
+uefa.champions: 303 days read
+uefa.europa: 303 days read
+uefa.europa.conf: 303 days read
+CENSUS 2024-09-01 to 2025-06-30: 303 days x 3 competitions read ({"200":909})
+UEFA Champions League: {"events":189,"completed":189,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":185,"STATUS_FINAL_AET":2,"STATUS_FINAL_PEN":2},"phases":{"league-phase":144,"knockout-round-playoffs":16,"round-of-16":16,"quarterfinals":8,"semifinals":4,"final":1}}
+UEFA Europa League: {"events":189,"completed":189,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":184,"STATUS_FINAL_AET":3,"STATUS_FINAL_PEN":2},"phases":{"league-phase":144,"knockout-round-playoffs":16,"round-of-16":16,"quarterfinals":8,"semifinals":4,"final":1}}
+UEFA Europa Conference League: {"events":153,"completed":153,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":146,"STATUS_FINAL_AET":5,"STATUS_FINAL_PEN":2},"phases":{"league-phase":108,"knockout-round-playoffs":16,"round-of-16":16,"quarterfinals":8,"semifinals":4,"final":1}}
+completed events kept 531 {"UEFA Champions League":189,"UEFA Europa League":189,"UEFA Europa Conference League":153}; duplicate event ids 0; scores not matching ^[0-9]+$ among kept rows 0
