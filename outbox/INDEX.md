@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ef94a1a` | 2026-11-28 | [uefa-replication-collector-checks-2026-11-28.txt](uefa-replication-collector-checks-2026-11-28.txt) | tooling: the 2024-25 UEFA bundle collector (ESPN, one day per read) and its mutation harness; nothing run on real data |
+| `157a680` | 2026-11-28 | [cc-session-2026-11-28-suite-gaps-from-field-tonight.md](cc-session-2026-11-28-suite-gaps-from-field-tonight.md) | tests: three suite gaps closed (lineup mark direction, comeback margin sign, colour order), each with a mutation entry |
+| `638e358` | 2026-11-28 | [cc-session-2026-11-28-uefa-prior-exploration.md](cc-session-2026-11-28-uefa-prior-exploration.md) | docs: exploration of the UEFA forecaster's prior (idea 3), outcome-blind; nothing built or pre-registered |
+| `638e358` | 2026-11-28 | [uefa-forecaster-prior-literature-2026-11-28.json](uefa-forecaster-prior-literature-2026-11-28.json) | docs: exploration of the UEFA forecaster's prior (idea 3), outcome-blind; nothing built or pre-registered |
+| `638e358` | 2026-11-28 | [uefa-prior-coverage-2026-11-28.mjs](uefa-prior-coverage-2026-11-28.mjs) | docs: exploration of the UEFA forecaster's prior (idea 3), outcome-blind; nothing built or pre-registered |
+| `638e358` | 2026-11-28 | [uefa-prior-coverage-2026-11-28.txt](uefa-prior-coverage-2026-11-28.txt) | docs: exploration of the UEFA forecaster's prior (idea 3), outcome-blind; nothing built or pre-registered |
+| `332a973` | 2026-11-27 | [cc-session-2026-11-27-uefa-fit-mutate-wired.md](cc-session-2026-11-27-uefa-fit-mutate-wired.md) | docs: the second full run of uefa-fit-mutate repeats the first (33 of 33, identical verdicts, 831 s) |
+| `1486726` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a873b88` | 2026-11-27 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46083931168 |
 | `7cbed52` | 2026-11-27 | [cc-session-2026-11-27-uefa-fit-mutate-wired.md](cc-session-2026-11-27-uefa-fit-mutate-wired.md) | ci: uefa-fit-mutate's header carries the measured run time; the note records the proof run |
 | `c3556ef` | 2026-11-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
