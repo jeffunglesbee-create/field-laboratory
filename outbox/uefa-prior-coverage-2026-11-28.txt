@@ -1,0 +1,16 @@
+2025-26 clubs by competition (every row of the bundle, knockouts included): Champions League 36 | Europa League 36 | Europa Conference League 36 | distinct across the three 108
+Champions League           2026-27 clubs 36 | same competition in 2025-26 18 | any UEFA competition in 2025-26 29 (another competition 11) | none 7
+Europa League              2026-27 clubs 36 | same competition in 2025-26 8 | any UEFA competition in 2025-26 21 (another competition 13) | none 15
+Europa Conference League   2026-27 clubs 36 | same competition in 2025-26 2 | any UEFA competition in 2025-26 14 (another competition 12) | none 22
+CLUB-SLOTS 108: same-competition prior 28 (26%), any UEFA prior 64 (59%), no UEFA row in 2025-26 44 (41%)
+  no 2025-26 UEFA row, Champions League: Como, LASK Linz, Lens, Man Utd, RB Leipzig, Sabah, Viking FK
+  no 2025-26 UEFA row, Europa League: Anderlecht, Ararat-Armenia, Besiktas, Bournemouth, Hapoel Be'er, Hoffenheim, Levski Sofia, Lillestrom, Milan, NEC, OFI Crete, Real Sociedad, Rennes, Sunderland, Torreense
+  no 2025-26 UEFA row, Europa Conference League: AGF, Borac, Brighton, CSKA Sofia, CSU Craiova, Egnatia, FC Lugano, FC Thun, FC Twente, Getafe, Hajduk Split, Hearts, Iberia 1999, Inter D'Escaldes, Jablonec, KAA Gent, Kauno Zalgiris, Mjällby, Nordsjælland, Riga FC, Sint-Truidense, Trabzonspor
+shared-word screen (candidates only, for a human to judge):
+  Anderlecht ~ Lech Poznan
+  Lillestrom ~ Lille
+  Milan ~ Inter Milan
+  Real Sociedad ~ Real Madrid | Villarreal
+  CSU Craiova ~ Craiova
+  Inter D'Escaldes ~ Inter Milan
+  Nordsjælland ~ Midtjylland
