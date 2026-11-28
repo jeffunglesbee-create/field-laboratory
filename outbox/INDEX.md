@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `fa02a27` | 2026-11-28 | [weather-availability.jsonl](weather-availability.jsonl) | outbox: Open-Meteo availability, verify run 46093686148 |
+| `c2a16e5` | 2026-11-28 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-28T01:40 [skip ci] |
 | `ef94a1a` | 2026-11-28 | [uefa-replication-collector-checks-2026-11-28.txt](uefa-replication-collector-checks-2026-11-28.txt) | tooling: the 2024-25 UEFA bundle collector (ESPN, one day per read) and its mutation harness; nothing run on real data |
 | `157a680` | 2026-11-28 | [cc-session-2026-11-28-suite-gaps-from-field-tonight.md](cc-session-2026-11-28-suite-gaps-from-field-tonight.md) | tests: three suite gaps closed (lineup mark direction, comeback margin sign, colour order), each with a mutation entry |
 | `638e358` | 2026-11-28 | [cc-session-2026-11-28-uefa-prior-exploration.md](cc-session-2026-11-28-uefa-prior-exploration.md) | docs: exploration of the UEFA forecaster's prior (idea 3), outcome-blind; nothing built or pre-registered |
