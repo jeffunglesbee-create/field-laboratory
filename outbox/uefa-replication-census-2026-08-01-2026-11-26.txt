@@ -1,0 +1,8 @@
+uefa.champions: 118 days read
+uefa.europa: 118 days read
+uefa.europa.conf: 118 days read
+CENSUS 2026-08-01 to 2026-11-26: 118 days x 3 competitions read ({"200":354})
+UEFA Champions League: {"events":90,"completed":90,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":90},"phases":{"league-phase":90}}
+UEFA Europa League: {"events":90,"completed":90,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":90},"phases":{"league-phase":90}}
+UEFA Europa Conference League: {"events":72,"completed":72,"nonCompleted":0,"skipped":0,"invalidScore":0,"dateMismatch":0,"statusNames":{"STATUS_FULL_TIME":72},"phases":{"league-phase":72}}
+completed events kept 252 {"UEFA Champions League":90,"UEFA Europa League":90,"UEFA Europa Conference League":72}; duplicate event ids 0; scores not matching ^[0-9]+$ among kept rows 0
